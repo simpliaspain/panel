@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SimpliaSpain · Panel de cliente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700;1,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pulso:#1B7CFF;
+    --profundo:#0A1F4A;
+    --tinta:#0A0E1A;
+    --aire:#E5EFFE;
+    --gris:#64748B;
+    --linea:#E2E8F0;
+    --blanco:#FFFFFF;
+    --fondo:#F7FAFF;
+    --verde:#12B76A;
+    --ambar:#F79009;
+    --rojo:#F04438;
+    --r:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+    background:var(--fondo);color:var(--tinta);
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+  em{font-style:italic;color:var(--pulso);font-weight:800}
+  button{font-family:inherit;cursor:pointer;border:none}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--pulso);outline-offset:2px}
+
+  /* ---------- LOGIN ---------- */
+  #login{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center}
+  @media(max-width:900px){#login{grid-template-columns:1fr}#login .izq{display:none}}
+  #login .izq{padding:0 6vw}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;background:var(--aire);
+    color:var(--profundo);font-size:12px;font-weight:600;
+    padding:6px 14px;border-radius:99px;margin-bottom:28px;
+  }
+  .eyebrow::before{content:'';width:7px;height:7px;border-radius:99px;background:var(--pulso)}
+  #login h1{font-size:clamp(44px,5.5vw,76px);line-height:1.02;letter-spacing:-.035em;font-weight:800}
+  #login .izq p{margin-top:22px;max-width:44ch;color:#334155;line-height:1.65;font-size:15px}
+  .der{padding:0 6vw}
+  .card{
+    background:var(--blanco);border-radius:var(--r);padding:38px 34px;
+    box-shadow:0 1px 2px rgba(10,31,74,.04),0 12px 40px rgba(10,31,74,.07);
+    max-width:440px;margin:0 auto;width:100%;
+  }
+  .marca{font-size:15px;font-weight:800;text-align:center;letter-spacing:-.01em}
+  .marca span{color:var(--pulso)}
+  .card h2{text-align:center;font-size:27px;line-height:1.2;margin:14px 0 6px;letter-spacing:-.02em}
+  .estado{
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    font-size:12.5px;color:var(--gris);margin-bottom:26px;
+  }
+  .dot{width:7px;height:7px;border-radius:99px;background:var(--verde);flex:none}
+  .dot.on{animation:lat 2s ease-in-out infinite}
+  @keyframes lat{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}}
+  label{display:block;font-size:12.5px;font-weight:600;margin:0 0 7px}
+  input{
+    width:100%;padding:13px 15px;border:1.5px solid var(--linea);border-radius:11px;
+    font-size:14.5px;font-family:inherit;margin-bottom:16px;transition:border-color .15s;
+    background:var(--blanco);color:var(--tinta);
+  }
+  input:focus{border-color:var(--pulso)}
+  .btn{
+    width:100%;background:var(--pulso);color:#fff;padding:14px;border-radius:11px;
+    font-size:14.5px;font-weight:700;transition:filter .15s;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .err{
+    background:#FEF3F2;border:1px solid #FDA29B;color:#B42318;
+    padding:11px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none;
+  }
+
+  /* ---------- APP ---------- */
+  #app{display:none;min-height:100vh}
+  header{
+    background:var(--blanco);border-bottom:1px solid var(--linea);
+    padding:0 26px;display:flex;align-items:center;gap:30px;
+    position:sticky;top:0;z-index:20;
+  }
+  nav{display:flex;gap:4px;margin-right:auto}
+  nav button{
+    background:none;padding:19px 14px;font-size:14px;font-weight:600;color:var(--gris);
+    border-bottom:2.5px solid transparent;margin-bottom:-1px;
+  }
+  nav button.on{color:var(--pulso);border-bottom-color:var(--pulso)}
+  .vivo{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--gris);font-weight:600}
+  .salir{background:none;color:var(--gris);font-size:13px;padding:8px 12px;border-radius:8px}
+  .salir:hover{background:var(--aire);color:var(--profundo)}
+  main{padding:34px 26px 70px;max-width:1440px;margin:0 auto}
+  h2.tit{font-size:32px;letter-spacing:-.03em;margin-bottom:5px}
+  .sub{color:var(--gris);font-size:14px;margin-bottom:28px;max-width:70ch;line-height:1.55}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:15px;margin-bottom:26px}
+  .kpi{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:21px 23px}
+  .kpi .lab{font-size:12px;color:var(--gris);font-weight:600;margin-bottom:9px}
+  .kpi .num{font-size:41px;font-weight:800;letter-spacing:-.035em;line-height:1}
+  .kpi .num.az{color:var(--pulso)}
+  .kpi .num small{font-size:17px;font-weight:700}
+  .kpi .pie{font-size:11.5px;color:var(--gris);margin-top:9px}
+  .kpi.pend{background:repeating-linear-gradient(135deg,#fff,#fff 9px,#FBFCFE 9px,#FBFCFE 18px)}
+  .kpi.pend .num{color:#CBD5E1}
+
+  .panel{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:23px 25px;margin-bottom:22px}
+  .panel h3{font-size:15px;margin-bottom:3px}
+  .panel .ph{color:var(--gris);font-size:12.5px;margin-bottom:20px}
+
+  .vacio{text-align:center;padding:46px 20px;color:var(--gris);font-size:13.5px;line-height:1.6}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{
+    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--gris);padding:0 14px 11px;font-weight:700;
+  }
+  td{padding:13px 14px;border-top:1px solid var(--linea)}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:var(--fondo)}
+  .pill{
+    display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;
+    border-radius:99px;background:var(--aire);color:var(--profundo);
+  }
+  .pill.hist{background:#F1F5F9;color:var(--gris)}
+
+  .modal{
+    display:none;position:fixed;inset:0;background:rgba(10,14,26,.55);
+    z-index:50;padding:26px;overflow-y:auto;
+  }
+  .modal .box{
+    background:var(--blanco);border-radius:var(--r);max-width:760px;margin:26px auto;
+    padding:30px 32px;
+  }
+  .modal .cab{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
+  .cerrar{background:none;font-size:25px;color:var(--gris);line-height:1;padding:0 6px}
+  .msg{display:flex;margin-bottom:11px}
+  .msg .burb{max-width:76%;padding:11px 15px;border-radius:14px;font-size:13.5px;line-height:1.55}
+  .msg.h{justify-content:flex-start}
+  .msg.h .burb{background:var(--aire);border-bottom-left-radius:4px}
+  .msg.a{justify-content:flex-end}
+  .msg.a .burb{background:var(--pulso);color:#fff;border-bottom-right-radius:4px}
+  .hora{font-size:10.5px;color:var(--gris);margin-top:5px;opacity:.8}
+  .msg.a .hora{color:#DBEAFE}
+
+  .aviso{
+    background:#FFFAEB;border:1px solid #FEDF89;border-radius:12px;
+    padding:13px 17px;font-size:12.5px;color:#93370D;margin-bottom:24px;line-height:1.6;
+  }
+  .cargando{text-align:center;padding:60px;color:var(--gris);font-size:13.5px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<section id="login">
+  <div class="izq">
+    <div class="eyebrow">Panel de cliente</div>
+    <h1>Encender<br>el <em>pulso</em>.</h1>
+    <p>Tu operación no se detiene cuando cierras la oficina. Cada conversación
+       que atiende la IA queda registrada aquí: cuándo entró, qué se pidió y cómo se resolvió.</p>
+  </div>
+  <div class="der">
+    <div class="card">
+      <div class="marca">Simplia<span>Spain</span></div>
+      <h2>Tu operación<br><em>nunca duerme.</em></h2>
+      <div class="estado"><span class="dot on"></span><span id="ping">Conectando…</span></div>
+      <div class="err" id="err"></div>
+      <label for="em">Email</label>
+      <input id="em" type="email" autocomplete="email" placeholder="tu@empresa.com">
+      <label for="pw">Contraseña</label>
+      <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••">
+      <button class="btn" id="entrar">Entrar al panel →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <header>
+    <div class="marca" style="font-size:16px">Simplia<span>Spain</span></div>
+    <nav>
+      <button class="on" data-v="latido">Latido</button>
+      <button data-v="convs">Conversaciones</button>
+    </nav>
+    <div class="vivo"><span class="dot on"></span><span id="cliente">—</span></div>
+    <button class="salir" id="salir">Salir</button>
+  </header>
+  <main>
+    <div id="vista"><div class="cargando">Cargando datos…</div></div>
+  </main>
+</div>
+
+<div class="modal" id="modal"><div class="box" id="mbox"></div></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const URL = 'https://bmbfmcgqfruhnhlxxdmy.supabase.co';
+const KEY = 'sb_publishable_YE2Oe3kvM70VGL-304-SXw_yU8KPzS2';
+
+// Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
+const supabase = createClient(URL, KEY, {
+  auth: { persistSession:false, autoRefreshToken:true, detectSessionInUrl:false }
+});
+
+const $ = s => document.querySelector(s);
+const nf = new Intl.NumberFormat('es-ES');
+let TENANT = null, CONVS = [];
+
+/* ---------- comprobación de conexión ---------- */
+(async () => {
+  try {
+    const { error } = await supabase.from('tenants').select('id').limit(1);
+    $('#ping').textContent = error ? 'Servicio disponible' : 'Servicio disponible';
+  } catch { $('#ping').textContent = 'Sin conexión con el servicio'; }
+})();
+
+/* ---------- login ---------- */
+$('#entrar').addEventListener('click', entrar);
+$('#pw').addEventListener('keydown', e => e.key === 'Enter' && entrar());
+$('#em').addEventListener('keydown', e => e.key === 'Enter' && $('#pw').focus());
+
+async function entrar(){
+  const b = $('#entrar'), e = $('#err');
+  e.style.display = 'none';
+  b.disabled = true; b.textContent = 'Comprobando…';
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email: $('#em').value.trim(), password: $('#pw').value
+  });
+
+  if (error){
+    e.textContent = error.message.includes('Invalid')
+      ? 'Email o contraseña incorrectos. Revísalos e inténtalo otra vez.'
+      : error.message;
+    e.style.display = 'block';
+    b.disabled = false; b.textContent = 'Entrar al panel →';
+    return;
+  }
+  $('#login').style.display = 'none';
+  $('#app').style.display = 'block';
+  await arrancar();
+}
+
+$('#salir').addEventListener('click', async () => {
+  await supabase.auth.signOut();
+  location.reload();
+});
+
+document.querySelectorAll('nav button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    b.dataset.v === 'latido' ? pintarLatido() : pintarConvs();
+  });
+});
+
+/* ---------- carga ---------- */
+async function arrancar(){
+  const { data: t } = await supabase.from('tenants').select('id,name').limit(1).single();
+  if (!t){
+    $('#vista').innerHTML = `<div class="panel"><div class="vacio">
+      <strong>Tu cuenta no tiene ningún cliente asignado.</strong><br>
+      Falta la fila correspondiente en <code>memberships</code>.</div></div>`;
+    return;
+  }
+  TENANT = t;
+  $('#cliente').textContent = t.name;
+  await pintarLatido();
+}
+
+async function datos(){
+  const desde = new Date(Date.now() - 864e5).toISOString();
+
+  const [convs, ev24, evTot] = await Promise.all([
+    supabase.from('conversations')
+      .select('id,contact_ref,started_at,last_at,msg_count,human_count,ai_count,is_backfilled')
+      .order('last_at', { ascending:false }).limit(500),
+    supabase.from('message_events')
+      .select('role,observed_at')
+      .eq('is_backfilled', false).gte('observed_at', desde),
+    supabase.from('message_events').select('id', { count:'exact', head:true })
+  ]);
+
+  CONVS = convs.data || [];
+  return {
+    convs: CONVS,
+    ev24: ev24.data || [],
+    total: evTot.count || 0,
+    vivas: CONVS.filter(c => !c.is_backfilled),
+    hist:  CONVS.filter(c =>  c.is_backfilled)
+  };
+}
+
+/* ---------- vista: latido ---------- */
+async function pintarLatido(){
+  $('#vista').innerHTML = '<div class="cargando">Cargando datos…</div>';
+  const d = await datos();
+
+  const c24 = d.vivas.filter(c => new Date(c.last_at) > Date.now() - 864e5);
+  const entr = d.ev24.filter(e => e.role === 'human').length;
+  const resp = d.ev24.filter(e => e.role === 'ai').length;
+  const contactos = new Set(d.convs.map(c => c.contact_ref)).size;
+
+  $('#vista').innerHTML = `
+    <h2 class="tit">El <em>latido</em> · Vista general</h2>
+    <p class="sub">Cada conversación que atiende la IA, registrada según entra.
+       Las cifras de 24 horas empiezan a contar desde que se activó el registro.</p>
+
+    <div class="aviso">
+      <strong>Registro activado hoy.</strong> El histórico anterior está disponible en
+      Conversaciones, pero sin fecha de origen, así que no cuenta en las métricas por hora.
+      La gráfica se llena sola conforme entren mensajes.
+    </div>
+
+    <div class="kpis">
+      ${kpi('Conversaciones · 24h', nf.format(c24.length), c24.length ? 'Con actividad registrada' : 'Aún sin actividad hoy')}
+      ${kpi('Mensajes recibidos · 24h', nf.format(entr), 'Entrantes de clientes')}
+      ${kpi('Respuestas de la IA · 24h', nf.format(resp), 'Sin intervención humana', true)}
+      ${kpi('Contactos únicos', nf.format(contactos), `${nf.format(d.total)} mensajes en total`)}
+    </div>
+
+    <div class="panel">
+      <h3>Cardiograma · últimas 24 horas</h3>
+      <p class="ph">Mensajes entrantes por hora. Se dibuja solo con datos registrados.</p>
+      ${grafica(d.ev24)}
+    </div>
+
+    <div class="kpis">
+      ${kpiPend('Latencia media', 'Pendiente de instrumentar en el flujo')}
+      ${kpiPend('Sentimiento', 'Requiere análisis posterior de conversaciones')}
+      ${kpiPend('Geografía', 'Requiere extraer la ciudad de cada conversación')}
+      ${kpiPend('Coste evitado', 'Se calcula al tener latencia y resolución')}
+    </div>`;
+}
+
+const kpi = (l,n,p,az) => `<div class="kpi">
+  <div class="lab">${l}</div><div class="num${az?' az':''}">${n}</div><div class="pie">${p}</div></div>`;
+
+const kpiPend = (l,p) => `<div class="kpi pend">
+  <div class="lab">${l}</div><div class="num">—</div><div class="pie">${p}</div></div>`;
+
+/* ---------- cardiograma ---------- */
+function grafica(ev){
+  if (!ev.length) return `<div class="vacio">
+    Todavía no hay mensajes registrados en las últimas 24 horas.<br>
+    En cuanto entre uno, aparecerá aquí.</div>`;
+
+  const horas = Array.from({length:24}, (_,i) => {
+    const h = new Date(Date.now() - (23-i)*36e5);
+    h.setMinutes(0,0,0); return { t:h, n:0 };
+  });
+  ev.filter(e => e.role === 'human').forEach(e => {
+    const t = new Date(e.observed_at); t.setMinutes(0,0,0);
+    const s = horas.find(x => x.t.getTime() === t.getTime());
+    if (s) s.n++;
+  });
+
+  const max = Math.max(...horas.map(h => h.n), 1);
+  const W = 1000, H = 190;
+  const pts = horas.map((h,i) => [
+    (i/(horas.length-1))*W,
+    H - (h.n/max)*(H-34) - 17
+  ]);
+  const linea = pts.map((p,i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const area  = `M0 ${H} L` + pts.map(p => p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L') + ` L${W} ${H} Z`;
+
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img"
+      aria-label="Mensajes entrantes por hora en las últimas 24 horas">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1B7CFF" stop-opacity=".16"/>
+      <stop offset="100%" stop-color="#1B7CFF" stop-opacity="0"/>
+    </linearGradient></defs>
+    <line x1="0" y1="${H/2}" x2="${W}" y2="${H/2}" stroke="#E2E8F0" stroke-width="1"/>
+    <path d="${area}" fill="url(#g)"/>
+    <path d="${linea}" fill="none" stroke="#1B7CFF" stroke-width="2.5"
+          stroke-linejoin="round" stroke-linecap="round"/>
+    ${pts.map((p,i) => horas[i].n > 0
+      ? `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="#1B7CFF"/>` : '').join('')}
+  </svg>
+  <div style="display:flex;justify-content:space-between;font-size:11px;color:#64748B;margin-top:9px"
+       class="mono">
+    <span>${horas[0].t.getHours()}:00</span><span>${horas[11].t.getHours()}:00</span>
+    <span>${horas[23].t.getHours()}:00 · ahora</span>
+  </div>`;
+}
+
+/* ---------- vista: conversaciones ---------- */
+async function pintarConvs(){
+  $('#vista').innerHTML = '<div class="cargando">Cargando conversaciones…</div>';
+  const d = await datos();
+
+  $('#vista').innerHTML = `
+    <h2 class="tit">Conversaciones</h2>
+    <p class="sub">Cada fila es una conversación con un contacto. Ábrela para ver el
+       intercambio completo entre el cliente y la IA.</p>
+    <div class="panel">
+      <h3>${nf.format(d.convs.length)} conversaciones</h3>
+      <p class="ph">${nf.format(d.vivas.length)} con registro completo ·
+         ${nf.format(d.hist.length)} del histórico, sin fecha de origen</p>
+      ${d.convs.length ? `<table>
+        <thead><tr><th>Contacto</th><th>Mensajes</th><th>Cliente</th><th>IA</th>
+        <th>Última actividad</th><th></th></tr></thead>
+        <tbody>${d.convs.slice(0,100).map(c => `
+          <tr data-id="${c.id}">
+            <td class="mono">${ofusca(c.contact_ref)}</td>
+            <td class="mono">${c.msg_count}</td>
+            <td class="mono">${c.human_count}</td>
+            <td class="mono">${c.ai_count}</td>
+            <td>${c.is_backfilled ? '—' : fecha(c.last_at)}</td>
+            <td>${c.is_backfilled
+              ? '<span class="pill hist">Histórico</span>'
+              : '<span class="pill">Registrada</span>'}</td>
+          </tr>`).join('')}</tbody>
+      </table>` : '<div class="vacio">Todavía no hay conversaciones.</div>'}
+    </div>`;
+
+  document.querySelectorAll('tbody tr').forEach(tr =>
+    tr.addEventListener('click', () => abrir(tr.dataset.id)));
+}
+
+/* ---------- detalle ---------- */
+async function abrir(id){
+  const c = CONVS.find(x => x.id === id);
+  $('#mbox').innerHTML = '<div class="cargando">Cargando…</div>';
+  $('#modal').style.display = 'block';
+
+  const { data } = await supabase.from('message_events')
+    .select('role,content,observed_at,is_backfilled')
+    .eq('conversation_id', id).order('id', { ascending:true });
+
+  $('#mbox').innerHTML = `
+    <div class="cab">
+      <div>
+        <h2 style="font-size:22px;letter-spacing:-.02em">Conversación</h2>
+        <p style="color:#64748B;font-size:13px;margin-top:5px" class="mono">
+          ${ofusca(c.contact_ref)} · ${data.length} mensajes</p>
+      </div>
+      <button class="cerrar" id="cx" aria-label="Cerrar">×</button>
+    </div>
+    ${data.map(m => `<div class="msg ${m.role === 'human' ? 'h' : 'a'}">
+      <div class="burb">${esc(m.content || '')}
+        <div class="hora">${m.is_backfilled ? 'Sin fecha registrada' : hora(m.observed_at)}</div>
+      </div></div>`).join('')}`;
+
+  $('#cx').addEventListener('click', cerrar);
+}
+function cerrar(){ $('#modal').style.display = 'none'; }
+$('#modal').addEventListener('click', e => e.target.id === 'modal' && cerrar());
+document.addEventListener('keydown', e => e.key === 'Escape' && cerrar());
+
+/* ---------- utilidades ---------- */
+// El teléfono completo no se muestra en pantalla: se ve lo justo para reconocer al contacto.
+const ofusca = t => t ? t.slice(0,4) + '···' + t.slice(-3) : '—';
+const esc = s => s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const fecha = d => new Date(d).toLocaleString('es-ES',
+  { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+const hora = d => new Date(d).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+</script>
+</body>
+</html>
