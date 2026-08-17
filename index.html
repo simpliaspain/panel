@@ -23,7 +23,8 @@
     --r:16px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
+  html,body{min-height:100%;width:100%;max-width:100%;overflow-x:hidden;
+            -webkit-text-size-adjust:100%}
   body{
     font-family:'Plus Jakarta Sans',system-ui,sans-serif;
     background:var(--fondo);color:var(--tinta);
@@ -84,16 +85,20 @@
   #app{display:none;min-height:100vh}
   header{
     background:var(--blanco);border-bottom:1px solid var(--linea);
-    padding:0 26px;display:flex;align-items:center;gap:30px;
-    position:sticky;top:0;z-index:20;
+    padding:0 22px;display:flex;align-items:center;gap:20px;
+    position:sticky;top:0;z-index:20;flex-wrap:wrap;
   }
-  nav{display:flex;gap:4px;margin-right:auto}
+  .marca{font-size:16px}
+  nav{display:flex;gap:4px;flex:1 1 auto;min-width:0}
+  .hend{display:flex;align-items:center;gap:14px;margin-left:auto;min-width:0}
   nav button{
     background:none;padding:19px 14px;font-size:14px;font-weight:600;color:var(--gris);
     border-bottom:2.5px solid transparent;margin-bottom:-1px;
   }
   nav button.on{color:var(--pulso);border-bottom-color:var(--pulso)}
-  .vivo{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--gris);font-weight:600}
+  .vivo{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--gris);
+        font-weight:600;min-width:0}
+  .vivo span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .salir{background:none;color:var(--gris);font-size:13px;padding:8px 12px;border-radius:8px}
   .salir:hover{background:var(--aire);color:var(--profundo)}
   main{padding:34px 26px 70px;max-width:1440px;margin:0 auto}
@@ -116,7 +121,10 @@
 
   .vacio{text-align:center;padding:46px 20px;color:var(--gris);font-size:13.5px;line-height:1.6}
 
+  .tabla{overflow-x:auto;margin:0 -25px;padding:0 25px;-webkit-overflow-scrolling:touch}
   table{width:100%;border-collapse:collapse;font-size:13.5px}
+  td,th{white-space:nowrap}
+  td:first-child,th:first-child{white-space:normal}
   th{
     text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
     color:var(--gris);padding:0 14px 11px;font-weight:700;
@@ -162,7 +170,105 @@
   .mini strong{color:var(--tinta);font-size:15px;font-weight:700;margin-right:5px}
   .nota{font-size:12px;color:var(--gris);line-height:1.6;margin:-6px 0 30px;max-width:76ch}
   .secc{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--gris);margin-bottom:13px}
+  .ficha{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:1px 22px;font-size:13.5px}
+  .ficha dt{color:var(--gris);font-weight:600;padding:9px 0;border-top:1px solid var(--linea)}
+  .ficha dd{padding:9px 0;border-top:1px solid var(--linea);line-height:1.55}
+  .ficha dt:first-of-type,.ficha dd:first-of-type{border-top:0}
+  @media(max-width:640px){.ficha{grid-template-columns:1fr;gap:0}
+    .ficha dd{padding-top:0;border-top:0}}
+  .campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+  .campos input{margin-bottom:0}
+  .acc{display:flex;align-items:center;gap:16px;margin-top:20px;flex-wrap:wrap}
+  .btn.corto{width:auto;padding:11px 22px}
+  .msg-ok{font-size:12.5px;color:var(--verde);font-weight:600}
+  .msg-err{font-size:12.5px;color:var(--rojo);font-weight:600}
+  .feed{list-style:none;margin:0;padding:0}
+  .feed li{display:grid;grid-template-columns:auto 52px 62px 1fr;gap:11px;align-items:baseline;
+           padding:9px 0;border-top:1px solid var(--linea);font-size:13px}
+  .feed li:first-child{border-top:0}
+  .fdot{width:7px;height:7px;border-radius:99px;margin-top:6px}
+  .fdot.h{background:var(--pulso)}
+  .fdot.a{background:#94A3B8}
+  .fh{font-size:11.5px;color:var(--gris)}
+  .fq{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.04em}
+  .ft{color:var(--tinta);line-height:1.5;min-width:0;overflow-wrap:anywhere}
+  @media(max-width:640px){.feed li{grid-template-columns:auto 52px 1fr}.fq{display:none}}
+  .barras{display:grid;gap:19px}
+  .bfila{}
+  .bcab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;gap:12px}
+  .blab{font-size:13.5px;font-weight:600}
+  .bnum{font-size:14px;font-weight:700}
+  .bnum small{color:var(--gris);font-weight:500;font-size:11.5px}
+  .btrack{height:8px;background:var(--aire);border-radius:99px;overflow:hidden}
+  .bfill{height:100%;border-radius:99px;transition:width .5s ease}
+  .bfill.az{background:var(--pulso)} .bfill.vd{background:var(--verde)}
+  .bfill.rj{background:var(--ambar)}
+  .bpie{font-size:11.5px;color:var(--gris);margin-top:6px}
+
+  .zonas{display:grid;gap:9px}
+  .zfila{display:grid;grid-template-columns:minmax(120px,1.4fr) 68px 1fr 42px;
+         gap:12px;align-items:center;font-size:13px}
+  .zn{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .zz{font-size:11px;color:var(--gris)}
+  .ztrack{height:7px;background:var(--aire);border-radius:99px;overflow:hidden;min-width:30px}
+  .zfill{display:block;height:100%;background:var(--pulso);border-radius:99px}
+  .zc{text-align:right;font-weight:700}
+  @media(max-width:600px){.zfila{grid-template-columns:1fr 46px;gap:4px 10px}
+    .zz,.ztrack{display:none}}
+
+  .mapa{overflow-x:auto;padding-bottom:4px}
+  .mhoras,.mfila{display:grid;grid-template-columns:38px repeat(24,minmax(11px,1fr));
+                 gap:3px;align-items:center;min-width:420px}
+  .mhoras{margin-bottom:5px}
+  .mh{font-size:9.5px;color:var(--gris);text-align:center;font-family:'JetBrains Mono',monospace}
+  .mfila{margin-bottom:3px}
+  .md{font-size:11px;color:var(--gris);font-weight:600}
+  .mc{aspect-ratio:1;border-radius:3px;background:var(--aire);min-height:11px}
+
+  .busca{width:auto;min-width:230px;max-width:100%;margin:0;padding:9px 13px;font-size:13.5px}
+  @media(max-width:600px){.busca{width:100%;min-width:0}}
+  .aprox{font-size:10px;color:var(--gris);font-weight:600}
+  .pill.az{background:#E5EFFE;color:#0A4DA6}
+  .pill.vd{background:#E7F8F0;color:#04724D}
+  .pill.rj{background:#FEF0C7;color:#93370D}
+  td .pill{margin-right:4px}
+  .hint{font-size:11px;color:var(--gris);margin-top:6px;line-height:1.5}
+  input:disabled{background:var(--fondo);color:var(--gris);cursor:not-allowed}
   .cargando{text-align:center;padding:60px;color:var(--gris);font-size:13.5px}
+
+  /* ---------- MÓVIL ---------- */
+  @media(max-width:820px){
+    header{padding:0;gap:0}
+    .marca{order:1;padding:13px 16px;flex:1 1 auto}
+    .hend{order:2;padding:13px 16px;margin-left:0;flex:0 0 auto}
+    .hend .vivo span:last-child{max-width:110px}
+    nav{order:3;flex:0 0 100%;width:100%;padding:0 8px;
+        border-top:1px solid var(--linea);overflow-x:auto;
+        scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    nav::-webkit-scrollbar{display:none}
+    nav button{padding:13px 12px;font-size:13.5px;white-space:nowrap;flex:0 0 auto}
+    main{padding:24px 16px 60px}
+    h2.tit{font-size:25px}
+    .panel{padding:19px 17px}
+    .kpi{padding:18px 19px}
+    .kpi .num{font-size:35px}
+    .tabla{margin:0 -17px;padding:0 17px}
+    .mini{gap:16px 20px}
+    .modal{padding:0}
+    .modal .box{margin:0;border-radius:0;min-height:100vh;padding:22px 18px}
+    .modal .cab{position:sticky;top:0;background:var(--blanco);
+                padding-bottom:14px;margin-bottom:16px;z-index:2}
+    .msg .burb{max-width:88%}
+    .rangos{width:100%;justify-content:space-between}
+    .rg{flex:1;text-align:center}
+    .cabpanel{gap:14px}
+  }
+  @media(max-width:420px){
+    .kpis{grid-template-columns:1fr}
+    .campos{grid-template-columns:1fr}
+    main{padding:20px 13px 56px}
+    .tabla{margin:0 -17px;padding:0 17px}
+  }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -194,13 +300,16 @@
 <!-- ================= APP ================= -->
 <div id="app">
   <header>
-    <div class="marca" style="font-size:16px">Simplia<span>Spain</span></div>
+    <div class="marca">Simplia<span>Spain</span></div>
     <nav>
       <button class="on" data-v="latido">Latido</button>
       <button data-v="convs">Conversaciones</button>
+      <button data-v="ajustes">Configuración</button>
     </nav>
-    <div class="vivo"><span class="dot on"></span><span id="cliente">—</span></div>
-    <button class="salir" id="salir">Salir</button>
+    <div class="hend">
+      <div class="vivo"><span class="dot on"></span><span id="cliente">—</span></div>
+      <button class="salir" id="salir">Salir</button>
+    </div>
   </header>
   <main>
     <div id="vista"><div class="cargando">Cargando datos…</div></div>
@@ -223,6 +332,12 @@ const supabase = createClient(URL, KEY, {
 const $ = s => document.querySelector(s);
 const nf = new Intl.NumberFormat('es-ES');
 let TENANT = null, CONVS = [];
+let ETQ = {
+  lugares_titulo: 'Ubicaciones más solicitadas',
+  lugares_desc:   'Lugares que mencionan los clientes en sus mensajes.',
+  lugar_singular: 'ubicación',
+  lugar_plural:   'ubicaciones'
+};
 
 /* ---------- comprobación de conexión ---------- */
 (async () => {
@@ -259,7 +374,23 @@ async function entrar(){
   await arrancar();
 }
 
+/* Auto-refresco cada 30 s. Se detiene si la pestaña no está
+   visible, para no consumir peticiones en balde, y no interrumpe
+   si hay un modal abierto o el usuario está escribiendo. */
+let TIMER = null, VISTA = 'latido';
+function autoRefresco(){
+  clearInterval(TIMER);
+  TIMER = setInterval(() => {
+    if (document.hidden) return;
+    if ($('#modal').style.display === 'block') return;
+    if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+    if (VISTA === 'latido') pintarLatido();
+    else if (VISTA === 'convs' && !$('#buscar')?.value) pintarConvs();
+  }, 30000);
+}
+
 $('#salir').addEventListener('click', async () => {
+  clearInterval(TIMER);
   await supabase.auth.signOut();
   location.reload();
 });
@@ -268,7 +399,10 @@ document.querySelectorAll('nav button').forEach(b => {
   b.addEventListener('click', () => {
     document.querySelectorAll('nav button').forEach(x => x.classList.remove('on'));
     b.classList.add('on');
-    b.dataset.v === 'latido' ? pintarLatido() : pintarConvs();
+    const v = b.dataset.v; VISTA = v;
+    if (v === 'latido') pintarLatido();
+    else if (v === 'convs') pintarConvs();
+    else pintarAjustes();
   });
 });
 
@@ -283,7 +417,15 @@ async function arrancar(){
   }
   TENANT = t;
   $('#cliente').textContent = t.name;
+
+  // Los textos del panel salen del tenant, no del código: así un
+  // cliente de otro sector ve su propia terminología.
+  try {
+    const { data } = await supabase.rpc('mis_etiquetas');
+    if (data) ETQ = { ...ETQ, ...data };
+  } catch { /* se usan los valores por defecto */ }
   await pintarLatido();
+  autoRefresco();
 }
 
 let RANGO = 24;   // horas
@@ -291,9 +433,9 @@ let RANGO = 24;   // horas
 async function datos(){
   const desde = new Date(Date.now() - RANGO*36e5).toISOString();
 
-  const [convs, evR, evTot, lat] = await Promise.all([
+  const [convs, evR, evTot, lat, reciente, lugares, patron] = await Promise.all([
     supabase.from('conversations')
-      .select('id,contact_ref,started_at,last_at,msg_count,human_count,ai_count,is_backfilled')
+      .select('id,contact_ref,started_at,last_at,msg_count,human_count,ai_count,is_backfilled,seq,fecha_origen,fecha_estimada,senal_interes,senal_frustracion,senal_contacto')
       .order('last_at', { ascending:false }).limit(1000),
     supabase.from('message_events')
       .select('role,observed_at')
@@ -301,10 +443,28 @@ async function datos(){
     supabase.from('message_events').select('id', { count:'exact', head:true }),
     supabase.from('message_events')
       .select('latency_ms').not('latency_ms', 'is', null)
-      .order('id', { ascending:false }).limit(200)
+      .order('id', { ascending:false }).limit(200),
+    supabase.from('message_events')
+      .select('conversation_id,role,content,observed_at,is_backfilled')
+      .eq('is_backfilled', false)
+      .order('id', { ascending:false }).limit(12),
+    supabase.from('v_demanda_lugares').select('*').limit(12),
+    supabase.from('v_patron_horario').select('*')
   ]);
 
-  CONVS = convs.data || [];
+  // Orden: primero lo registrado con fecha real (más reciente arriba);
+  // después el histórico, ordenado por seq — que conserva el orden
+  // original de n8n aunque no tengamos la fecha.
+  // Ahora hay fecha real para casi todo (fecha_origen viene de
+  // users.created_at en el histórico), así que se ordena por ella.
+  CONVS = (convs.data || []).sort((a, b) => {
+    const fa = a.fecha_origen ? new Date(a.fecha_origen).getTime() : null;
+    const fb = b.fecha_origen ? new Date(b.fecha_origen).getTime() : null;
+    if (fa && fb && fa !== fb) return fb - fa;
+    if (fa && !fb) return -1;
+    if (!fa && fb) return 1;
+    return (b.seq || 0) - (a.seq || 0);
+  });
   const lats = (lat.data || []).map(r => r.latency_ms);
   return {
     convs: CONVS,
@@ -314,6 +474,9 @@ async function datos(){
     latMedia: lats.length
       ? lats.reduce((a,b) => a+b, 0) / lats.length / 1000
       : null,
+    reciente: reciente.data || [],
+    lugares:  lugares.data  || [],
+    patron:   patron.data   || [],
     vivas: CONVS.filter(c => !c.is_backfilled),
     hist:  CONVS.filter(c =>  c.is_backfilled)
   };
@@ -355,7 +518,7 @@ async function pintarLatido(){
       <div class="cabpanel">
         <div>
           <h3>Cardiograma · últimos ${et}</h3>
-          <p class="ph">Mensajes entrantes por hora, según se registran.</p>
+          <p class="ph">Mensajes entrantes ${RANGO > 48 ? 'por día' : 'por hora'}, según se registran.</p>
         </div>
         <div class="rangos">
           ${[[24,'24h'],[168,'7d'],[720,'30d']].map(([h,l]) =>
@@ -370,11 +533,28 @@ async function pintarLatido(){
       ${grafica(d.evR)}
     </div>
 
+    ${bloqueSenales(d)}
+    ${bloqueLugares(d)}
+    ${bloquePatron(d)}
+
+    ${d.reciente.length ? `<div class="panel">
+      <h3>Actividad reciente</h3>
+      <p class="ph">Últimos mensajes registrados, del más nuevo al más antiguo.</p>
+      <ul class="feed">
+        ${d.reciente.map(m => `<li>
+          <span class="fdot ${m.role === 'human' ? 'h' : 'a'}"></span>
+          <span class="fh mono">${hora(m.observed_at)}</span>
+          <span class="fq">${m.role === 'human' ? 'Cliente' : 'IA'}</span>
+          <span class="ft">${esc((m.content || '').slice(0, 90))}${(m.content||'').length > 90 ? '…' : ''}</span>
+        </li>`).join('')}
+      </ul>
+    </div>` : ''}
+
     <p class="nota">El registro con marca de tiempo se activó el 14 de agosto de 2026.
        Las conversaciones anteriores se conservan íntegras y se pueden consultar en
        Conversaciones, pero no aparecen en la gráfica por hora.</p>
 
-    <h3 class="secc">En preparación</h3>
+    <h3 class="secc">Próximamente…</h3>
     <div class="kpis">
       ${kpiPend('Sentimiento', 'Requiere análisis posterior de cada conversación')}
       ${kpiPend('Geografía', 'Requiere extraer la ciudad de cada conversación')}
@@ -390,6 +570,105 @@ const kpi = (l,n,p,az) => `<div class="kpi">
 
 const kpiPend = (l,p) => `<div class="kpi pend">
   <div class="lab">${l}</div><div class="num">—</div><div class="pie">${p}</div></div>`;
+
+/* ---------- señales de conversación ---------- */
+function bloqueSenales(d){
+  const t = d.convs.length;
+  if (!t) return '';
+  const i = d.convs.filter(c => c.senal_interes).length;
+  const f = d.convs.filter(c => c.senal_frustracion).length;
+  const k = d.convs.filter(c => c.senal_contacto).length;
+  const pc = n => t ? Math.round(n / t * 100) : 0;
+
+  return `<div class="panel">
+    <h3>Qué buscan tus clientes</h3>
+    <p class="ph">Señales detectadas en lo que escribe el cliente.
+       Orientativo: se basa en expresiones concretas, no en un análisis semántico.</p>
+    <div class="barras">
+      ${barra('Interés comercial', i, t, 'Piden precio, visita o disponibilidad', 'az')}
+      ${barra('Datos de contacto', k, t, 'Han facilitado email o teléfono', 'vd')}
+      ${barra('Fricción', f, t, 'Piden hablar con una persona o expresan queja', 'rj')}
+    </div>
+  </div>`;
+}
+const barra = (lab, n, t, pie, cl) => {
+  const p = t ? (n / t * 100) : 0;
+  return `<div class="bfila">
+    <div class="bcab"><span class="blab">${lab}</span>
+      <span class="bnum mono">${nf.format(n)} <small>de ${nf.format(t)}</small></span></div>
+    <div class="btrack"><div class="bfill ${cl}" style="width:${Math.max(p,0.6).toFixed(1)}%"></div></div>
+    <div class="bpie">${pie} · ${p.toFixed(0)}%</div>
+  </div>`;
+};
+
+/* ---------- demanda por zona ---------- */
+function bloqueLugares(d){
+  if (!d.lugares.length) return '';
+  const gen  = d.lugares.filter(l => l.generico);
+  const list = d.lugares.filter(l => !l.generico)
+    .sort((a,b) => b.conversaciones - a.conversaciones).slice(0, 8);
+  if (!list.length && !gen.length) return '';
+  const max = Math.max(...list.map(l => l.conversaciones), 1);
+
+  return `<div class="panel">
+    <h3>${esc(ETQ.lugares_titulo)}</h3>
+    <p class="ph">${esc(ETQ.lugares_desc)}
+       ${gen.length ? gen.map(g =>
+         `${nf.format(g.conversaciones)} conversaciones nombran ${esc(g.nombre)}
+          sin concretar ${esc(ETQ.lugar_singular)}.`).join(' ') : ''}</p>
+    ${list.length ? `<div class="zonas">
+      ${list.map(l => `<div class="zfila">
+        <span class="zn">${esc(l.nombre)}</span>
+        <span class="zz">${esc(l.zona || '')}</span>
+        <span class="ztrack"><span class="zfill"
+              style="width:${(l.conversaciones / max * 100).toFixed(1)}%"></span></span>
+        <span class="zc mono">${nf.format(l.conversaciones)}</span>
+      </div>`).join('')}
+    </div>` : `<div class="vacio">Todavía no se han mencionado ${esc(ETQ.lugar_plural)} concretas.</div>`}
+  </div>`;
+}
+
+/* ---------- patrón horario ---------- */
+function bloquePatron(d){
+  if (!d.patron.length) return '';
+  const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const grid = Array.from({length:7}, () => Array(24).fill(0));
+  let max = 0;
+  d.patron.forEach(p => {
+    const v = Number(p.mensajes) || 0;
+    grid[p.dia_semana][p.hora] += v;
+    if (grid[p.dia_semana][p.hora] > max) max = grid[p.dia_semana][p.hora];
+  });
+  if (!max) return '';
+
+  // fuera de horario: antes de las 9 o después de las 19, o fin de semana
+  let fuera = 0, total = 0;
+  for (let dd=0; dd<7; dd++) for (let h=0; h<24; h++){
+    const v = grid[dd][h]; total += v;
+    if (h < 9 || h >= 19 || dd === 0 || dd === 6) fuera += v;
+  }
+  const pct = total ? Math.round(fuera / total * 100) : 0;
+
+  const orden = [1,2,3,4,5,6,0];
+  return `<div class="panel">
+    <h3>Cuándo escriben</h3>
+    <p class="ph">Mensajes por día y hora. <strong>${pct}%</strong> llegan fuera del
+       horario de oficina (antes de las 9, después de las 19 o en fin de semana) —
+       y se atienden igual.</p>
+    <div class="mapa">
+      <div class="mhoras"><span></span>${
+        Array.from({length:24}, (_,h) => `<span class="mh">${h%6===0?h:''}</span>`).join('')}</div>
+      ${orden.map(dd => `<div class="mfila">
+        <span class="md">${dias[dd]}</span>
+        ${grid[dd].map((v,h) => {
+          const o = v ? (0.14 + 0.86 * (v / max)) : 0;
+          return `<span class="mc" style="background:rgba(27,124,255,${o.toFixed(3)})"
+            title="${dias[dd]} ${h}:00 · ${v} mensajes"></span>`;
+        }).join('')}
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
 
 /* ---------- cardiograma ---------- */
 function grafica(ev){
@@ -456,29 +735,206 @@ async function pintarConvs(){
     <p class="sub">Cada fila es una conversación con un contacto. Ábrela para ver el
        intercambio completo entre el cliente y la IA.</p>
     <div class="panel">
-      <h3>${nf.format(d.convs.length)} conversaciones</h3>
+      <div class="cabpanel">
+        <h3>${nf.format(d.convs.length)} conversaciones</h3>
+        <input id="buscar" class="busca" type="search"
+               placeholder="Buscar por teléfono o texto…" autocomplete="off">
+      </div>
       <p class="ph">${nf.format(d.convs.reduce((s,c)=>s+(c.msg_count||0),0))} mensajes en total${
          d.hist.length ? ` · ${nf.format(d.hist.length)} anteriores al registro con fecha` : ''}</p>
-      ${d.convs.length ? `<table>
+      ${d.convs.length ? `<div class="tabla"><table>
         <thead><tr><th>Contacto</th><th>Mensajes</th><th>Cliente</th><th>IA</th>
-        <th>Última actividad</th><th></th></tr></thead>
-        <tbody>${d.convs.slice(0,100).map(c => `
-          <tr data-id="${c.id}">
-            <td class="mono">${ofusca(c.contact_ref)}</td>
-            <td class="mono">${c.msg_count}</td>
-            <td class="mono">${c.human_count}</td>
-            <td class="mono">${c.ai_count}</td>
-            <td>${c.is_backfilled ? '—' : fecha(c.last_at)}</td>
-            <td>${c.is_backfilled
-              ? '<span class="pill hist">Histórico</span>'
-              : '<span class="pill">Registrada</span>'}</td>
-          </tr>`).join('')}</tbody>
-      </table>` : '<div class="vacio">Todavía no hay conversaciones.</div>'}
+        <th>Fecha</th><th>Señales</th></tr></thead>
+        <tbody>${d.convs.slice(0,100).map(fila).join('')}</tbody>
+      </table></div>` : '<div class="vacio">Todavía no hay conversaciones.</div>'}
     </div>`;
 
+  enlazarFilas();
+
+  const inp = $('#buscar');
+  let tmr = null;
+  inp.addEventListener('input', () => {
+    clearTimeout(tmr);
+    tmr = setTimeout(() => filtrar(inp.value.trim()), 280);
+  });
+}
+
+function enlazarFilas(){
   document.querySelectorAll('tbody tr').forEach(tr =>
     tr.addEventListener('click', () => abrir(tr.dataset.id)));
 }
+
+async function filtrar(q){
+  const tb = document.querySelector('tbody');
+  if (!tb) return;
+
+  if (!q){
+    tb.innerHTML = CONVS.slice(0,100).map(fila).join('');
+    enlazarFilas(); return;
+  }
+
+  // teléfono: filtra en memoria. texto: busca en los mensajes.
+  if (/^[0-9+ ]{3,}$/.test(q)){
+    const n = q.replace(/[^0-9]/g,'');
+    const r = CONVS.filter(c => (c.contact_ref||'').includes(n));
+    tb.innerHTML = r.length ? r.map(fila).join('')
+      : `<tr><td colspan="6" class="vacio">Ningún contacto coincide.</td></tr>`;
+    enlazarFilas(); return;
+  }
+
+  tb.innerHTML = `<tr><td colspan="6" class="vacio">Buscando…</td></tr>`;
+  const { data } = await supabase.from('message_events')
+    .select('conversation_id').ilike('content', `%${q}%`).limit(400);
+  const ids = new Set((data || []).map(r => r.conversation_id));
+  const r = CONVS.filter(c => ids.has(c.id));
+  tb.innerHTML = r.length ? r.map(fila).join('')
+    : `<tr><td colspan="6" class="vacio">Ninguna conversación contiene «${esc(q)}».</td></tr>`;
+  enlazarFilas();
+}
+
+/* ---------- vista: configuración ---------- */
+async function pintarAjustes(){
+  $('#vista').innerHTML = '<div class="cargando">Cargando configuración…</div>';
+
+  let r = null, err = null;
+  try {
+    const { data, error } = await supabase.rpc('resumen_servicio');
+    if (error) throw error;
+    r = data;
+  } catch (e) { err = e; }
+
+  if (!r){
+    $('#vista').innerHTML = `<h2 class="tit">Configuración</h2>
+      <div class="panel"><div class="vacio">
+        No se ha podido cargar la configuración del servicio.<br>
+        ${esc(err?.message || '')}</div></div>`;
+    return;
+  }
+
+  const a = r.ajustes || {};
+  const alta = r.alta ? new Date(r.alta).toLocaleDateString('es-ES',
+    { day:'2-digit', month:'long', year:'numeric' }) : '—';
+  const desde = r.primer_registro ? new Date(r.primer_registro).toLocaleDateString('es-ES',
+    { day:'2-digit', month:'long', year:'numeric' }) : '—';
+
+  $('#vista').innerHTML = `
+    <h2 class="tit">Configuración</h2>
+    <p class="sub">Datos del servicio, parámetros de cálculo y qué información
+       se trata. Lo editable se guarda al pulsar Guardar.</p>
+
+    <div class="panel">
+      <h3>Servicio</h3>
+      <p class="ph">Información de tu cuenta. No editable desde aquí.</p>
+      <dl class="ficha">
+        <dt>Cliente</dt><dd>${esc(r.cliente || '—')}</dd>
+        <dt>Canal</dt><dd>${esc(r.canal)}</dd>
+        <dt>Alta del servicio</dt><dd>${alta}</dd>
+        <dt>Registro con fecha desde</dt><dd>${desde}</dd>
+        <dt>Conversaciones</dt><dd class="mono">${nf.format(r.conversaciones)}</dd>
+        <dt>Mensajes</dt><dd class="mono">${nf.format(r.mensajes)}</dd>
+        <dt>Personas atendidas</dt><dd class="mono">${nf.format(r.contactos)}</dd>
+        <dt>Usuarios con acceso</dt><dd class="mono">${nf.format(r.usuarios)}</dd>
+        <dt>${esc((ETQ.lugar_plural||'ubicaciones').replace(/^./, c => c.toUpperCase()))} monitorizadas</dt>
+        <dd class="mono">${nf.format(r.lugares || 0)}</dd>
+      </dl>
+    </div>
+
+    <div class="panel">
+      <h3>Parámetros de cálculo</h3>
+      <p class="ph">Se usan para estimar el coste de atención evitado.
+         Ajústalos a tu realidad para que la cifra tenga sentido.</p>
+      <div class="campos">
+        <div>
+          <label for="ch">Coste por hora de una persona (€)</label>
+          <input id="ch" type="number" min="0" max="1000" step="0.5"
+                 value="${a.coste_hora_eur ?? ''}" ${r.puede_editar_coste ? '' : 'disabled'}>
+          ${r.puede_editar_coste ? '' :
+            '<p class="hint">Lo define SimpliaSpain para que la cifra sea comparable.</p>'}
+        </div>
+        <div>
+          <label for="mn">Minutos que llevaría atender una conversación</label>
+          <input id="mn" type="number" min="0" max="480" step="0.5"
+                 value="${a.minutos_por_conversacion ?? ''}" ${r.puede_editar_coste ? '' : 'disabled'}>
+          ${r.puede_editar_coste ? '' :
+            '<p class="hint">Si no encaja con tu operación, dínoslo y lo ajustamos.</p>'}
+        </div>
+        <div>
+          <label for="ea">Email para avisos</label>
+          <input id="ea" type="email" placeholder="avisos@empresa.com"
+                 value="${esc(a.email_avisos ?? '')}">
+          <p class="hint">Editable. Se usará para avisos del servicio.</p>
+        </div>
+      </div>
+      <div class="acc">
+        <button class="btn corto" id="guardar">Guardar cambios</button>
+        <span id="msg" class="msg-ok"></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Tratamiento de datos</h3>
+      <p class="ph">Qué se registra de las conversaciones y para qué.</p>
+      <dl class="ficha">
+        <dt>Qué se guarda</dt>
+        <dd>Texto de los mensajes, fecha y hora, y un identificador del
+            contacto para poder agrupar la conversación.</dd>
+        <dt>Para qué</dt>
+        <dd>Atender la conversación, calcular las métricas de este panel
+            y permitir consultar el histórico.</dd>
+        <dt>Quién accede</dt>
+        <dd>Solo los usuarios dados de alta en tu cuenta. Cada cliente ve
+            exclusivamente sus propias conversaciones.</dd>
+        <dt>Servicios implicados</dt>
+        <dd>OpenAI (generación de respuestas y transcripción de audios),
+            Supabase (almacenamiento, servidores en la UE) y Hostinger
+            (servidor del asistente).</dd>
+        <dt>Números de teléfono</dt>
+        <dd>Se muestran parcialmente ofuscados en este panel.</dd>
+      </dl>
+      <p class="aviso" style="margin:16px 0 0">
+        Para ejercer derechos de acceso, rectificación o supresión sobre un
+        contacto concreto, escríbenos y lo tramitamos.
+      </p>
+    </div>`;
+
+  $('#guardar').addEventListener('click', async () => {
+    const b = $('#guardar'), m = $('#msg');
+    b.disabled = true; b.textContent = 'Guardando…'; m.textContent = '';
+    const num = v => v === '' ? null : Number(v);
+    try {
+      const args = { p_email_avisos: $('#ea').value.trim() };
+      if (!$('#ch').disabled){
+        args.p_coste_hora = num($('#ch').value);
+        args.p_minutos    = num($('#mn').value);
+      }
+      const { error } = await supabase.rpc('actualizar_ajustes', args);
+      if (error) throw error;
+      m.textContent = 'Cambios guardados.';
+      m.className = 'msg-ok';
+    } catch (e) {
+      m.textContent = e.message === 'Sin acceso'
+        ? 'Tu cuenta no tiene permiso para modificar estos ajustes.'
+        : (e.message || 'No se han podido guardar los cambios.');
+      m.className = 'msg-err';
+    }
+    b.disabled = false; b.textContent = 'Guardar cambios';
+  });
+}
+
+const fila = c => `<tr data-id="${c.id}">
+  <td class="mono">${ofusca(c.contact_ref)}</td>
+  <td class="mono">${c.msg_count}</td>
+  <td class="mono">${c.human_count}</td>
+  <td class="mono">${c.ai_count}</td>
+  <td>${c.fecha_origen
+        ? fecha(c.fecha_origen) + (c.fecha_estimada ? ' <span class="aprox">aprox.</span>' : '')
+        : '—'}</td>
+  <td>${[
+      c.senal_interes     ? '<span class="pill az">Interés</span>'   : '',
+      c.senal_contacto    ? '<span class="pill vd">Contacto</span>'  : '',
+      c.senal_frustracion ? '<span class="pill rj">Fricción</span>'  : ''
+    ].join('') || '<span class="pill hist">—</span>'}</td>
+</tr>`;
 
 /* ---------- detalle ---------- */
 async function abrir(id){
