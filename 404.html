@@ -332,12 +332,26 @@ const supabase = createClient(URL, KEY, {
 const $ = s => document.querySelector(s);
 const nf = new Intl.NumberFormat('es-ES');
 let TENANT = null, CONVS = [];
-let ETQ = {
-  lugares_titulo: 'Ubicaciones más solicitadas',
-  lugares_desc:   'Lugares que mencionan los clientes en sus mensajes.',
-  lugar_singular: 'ubicación',
-  lugar_plural:   'ubicaciones'
+// Toda la terminología y el horario laboral vienen del cliente
+// (tabla tenants), no del código. Estos son solo los valores por
+// defecto si la configuración no llegara.
+let CFG = {
+  etiquetas: {
+    ubicacion_titulo: 'Ubicaciones más solicitadas',
+    ubicacion_desc:   'Sedes y zonas que mencionan los clientes.',
+    ubicacion_vacio:  'sedes',
+    servicio_titulo:  'Qué servicios preguntan',
+    servicio_desc:    'Servicios sobre los que consultan los clientes.',
+    servicio_vacio:   'servicios',
+    senales_titulo:   'Qué buscan tus clientes',
+    interes_desc:     'Muestran intención de compra o de cita',
+    contacto_desc:    'Han facilitado email o teléfono',
+    friccion_desc:    'Piden atención humana o expresan queja'
+  },
+  horario:   { inicio: 9, fin: 19, dias: [1,2,3,4,5] },
+  objetivos: []
 };
+const E = k => CFG.etiquetas[k] || '';
 
 /* ---------- comprobación de conexión ---------- */
 (async () => {
@@ -421,8 +435,12 @@ async function arrancar(){
   // Los textos del panel salen del tenant, no del código: así un
   // cliente de otro sector ve su propia terminología.
   try {
-    const { data } = await supabase.rpc('mis_etiquetas');
-    if (data) ETQ = { ...ETQ, ...data };
+    const { data } = await supabase.rpc('mi_config');
+    if (data){
+      CFG.etiquetas = { ...CFG.etiquetas, ...(data.etiquetas || {}) };
+      if (data.horario)   CFG.horario   = data.horario;
+      if (data.objetivos) CFG.objetivos = data.objetivos;
+    }
   } catch { /* se usan los valores por defecto */ }
   await pintarLatido();
   autoRefresco();
@@ -448,7 +466,7 @@ async function datos(){
       .select('conversation_id,role,content,observed_at,is_backfilled')
       .eq('is_backfilled', false)
       .order('id', { ascending:false }).limit(12),
-    supabase.from('v_demanda_lugares').select('*').limit(12),
+    supabase.from('v_demanda_temas').select('*').limit(40),
     supabase.from('v_patron_horario').select('*')
   ]);
 
@@ -475,7 +493,7 @@ async function datos(){
       ? lats.reduce((a,b) => a+b, 0) / lats.length / 1000
       : null,
     reciente: reciente.data || [],
-    lugares:  lugares.data  || [],
+    temas:    lugares.data  || [],
     patron:   patron.data   || [],
     vivas: CONVS.filter(c => !c.is_backfilled),
     hist:  CONVS.filter(c =>  c.is_backfilled)
@@ -534,7 +552,8 @@ async function pintarLatido(){
     </div>
 
     ${bloqueSenales(d)}
-    ${bloqueLugares(d)}
+    ${bloqueTemas(d, 'servicio')}
+    ${bloqueTemas(d, 'ubicacion')}
     ${bloquePatron(d)}
 
     ${d.reciente.length ? `<div class="panel">
@@ -581,13 +600,13 @@ function bloqueSenales(d){
   const pc = n => t ? Math.round(n / t * 100) : 0;
 
   return `<div class="panel">
-    <h3>Qué buscan tus clientes</h3>
+    <h3>${esc(E('senales_titulo'))}</h3>
     <p class="ph">Señales detectadas en lo que escribe el cliente.
        Orientativo: se basa en expresiones concretas, no en un análisis semántico.</p>
     <div class="barras">
-      ${barra('Interés comercial', i, t, 'Piden precio, visita o disponibilidad', 'az')}
-      ${barra('Datos de contacto', k, t, 'Han facilitado email o teléfono', 'vd')}
-      ${barra('Fricción', f, t, 'Piden hablar con una persona o expresan queja', 'rj')}
+      ${barra('Interés comercial', i, t, E('interes_desc'),  'az')}
+      ${barra('Datos de contacto', k, t, E('contacto_desc'), 'vd')}
+      ${barra('Fricción',          f, t, E('friccion_desc'), 'rj')}
     </div>
   </div>`;
 }
@@ -601,30 +620,32 @@ const barra = (lab, n, t, pie, cl) => {
   </div>`;
 };
 
-/* ---------- demanda por zona ---------- */
-function bloqueLugares(d){
-  if (!d.lugares.length) return '';
-  const gen  = d.lugares.filter(l => l.generico);
-  const list = d.lugares.filter(l => !l.generico)
-    .sort((a,b) => b.conversaciones - a.conversaciones).slice(0, 8);
+/* ---------- temas: ubicaciones y servicios ---------- */
+function bloqueTemas(d, cat){
+  const todos = (d.temas || []).filter(t => t.categoria === cat);
+  if (!todos.length) return '';
+  const gen  = todos.filter(t => t.generico);
+  const list = todos.filter(t => !t.generico)
+    .sort((a,b) => b.conversaciones - a.conversaciones).slice(0, 10);
   if (!list.length && !gen.length) return '';
-  const max = Math.max(...list.map(l => l.conversaciones), 1);
+  const max = Math.max(...list.map(t => t.conversaciones), 1);
 
   return `<div class="panel">
-    <h3>${esc(ETQ.lugares_titulo)}</h3>
-    <p class="ph">${esc(ETQ.lugares_desc)}
+    <h3>${esc(E(cat + '_titulo'))}</h3>
+    <p class="ph">${esc(E(cat + '_desc'))}
        ${gen.length ? gen.map(g =>
-         `${nf.format(g.conversaciones)} conversaciones nombran ${esc(g.nombre)}
-          sin concretar ${esc(ETQ.lugar_singular)}.`).join(' ') : ''}</p>
+         `${nf.format(g.conversaciones)} conversaciones nombran
+          ${esc(g.nombre)} sin concretar.`).join(' ') : ''}</p>
     ${list.length ? `<div class="zonas">
-      ${list.map(l => `<div class="zfila">
-        <span class="zn">${esc(l.nombre)}</span>
-        <span class="zz">${esc(l.zona || '')}</span>
+      ${list.map(t => `<div class="zfila">
+        <span class="zn">${esc(t.nombre)}</span>
+        <span class="zz">${esc(t.zona || '')}</span>
         <span class="ztrack"><span class="zfill"
-              style="width:${(l.conversaciones / max * 100).toFixed(1)}%"></span></span>
-        <span class="zc mono">${nf.format(l.conversaciones)}</span>
+              style="width:${(t.conversaciones / max * 100).toFixed(1)}%"></span></span>
+        <span class="zc mono">${nf.format(t.conversaciones)}</span>
       </div>`).join('')}
-    </div>` : `<div class="vacio">Todavía no se han mencionado ${esc(ETQ.lugar_plural)} concretas.</div>`}
+    </div>` : `<div class="vacio">Todavía no se han mencionado
+        ${esc(E(cat + '_vacio'))} concretos.</div>`}
   </div>`;
 }
 
@@ -641,20 +662,27 @@ function bloquePatron(d){
   });
   if (!max) return '';
 
-  // fuera de horario: antes de las 9 o después de las 19, o fin de semana
+  // Horario laboral real del cliente (settings.horario).
+  // dias viene en formato ISO 1=lunes…7=domingo; getDay() usa 0=domingo.
+  const H = CFG.horario || { inicio:9, fin:19, dias:[1,2,3,4,5] };
+  const lab = new Set((H.dias || [1,2,3,4,5]).map(n => n === 7 ? 0 : n));
   let fuera = 0, total = 0;
   for (let dd=0; dd<7; dd++) for (let h=0; h<24; h++){
     const v = grid[dd][h]; total += v;
-    if (h < 9 || h >= 19 || dd === 0 || dd === 6) fuera += v;
+    if (!lab.has(dd) || h < H.inicio || h >= H.fin) fuera += v;
   }
   const pct = total ? Math.round(fuera / total * 100) : 0;
+  const dnom = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const dlab = (H.dias || []).map(n => dnom[n === 7 ? 0 : n]);
+  const rango = dlab.length
+    ? `${dlab[0]} a ${dlab[dlab.length-1]}, de ${H.inicio}:00 a ${H.fin}:00`
+    : `de ${H.inicio}:00 a ${H.fin}:00`;
 
   const orden = [1,2,3,4,5,6,0];
   return `<div class="panel">
     <h3>Cuándo escriben</h3>
-    <p class="ph">Mensajes por día y hora. <strong>${pct}%</strong> llegan fuera del
-       horario de oficina (antes de las 9, después de las 19 o en fin de semana) —
-       y se atienden igual.</p>
+    <p class="ph">Mensajes por día y hora. <strong>${pct}%</strong> llegan fuera
+       de tu horario de atención (${rango}) — y se atienden igual.</p>
     <div class="mapa">
       <div class="mhoras"><span></span>${
         Array.from({length:24}, (_,h) => `<span class="mh">${h%6===0?h:''}</span>`).join('')}</div>
@@ -834,8 +862,10 @@ async function pintarAjustes(){
         <dt>Mensajes</dt><dd class="mono">${nf.format(r.mensajes)}</dd>
         <dt>Personas atendidas</dt><dd class="mono">${nf.format(r.contactos)}</dd>
         <dt>Usuarios con acceso</dt><dd class="mono">${nf.format(r.usuarios)}</dd>
-        <dt>${esc((ETQ.lugar_plural||'ubicaciones').replace(/^./, c => c.toUpperCase()))} monitorizadas</dt>
-        <dd class="mono">${nf.format(r.lugares || 0)}</dd>
+        <dt>Ubicaciones monitorizadas</dt><dd class="mono">${nf.format(r.ubicaciones || 0)}</dd>
+        <dt>Servicios monitorizados</dt><dd class="mono">${nf.format(r.servicios || 0)}</dd>
+        <dt>Horario de atención</dt><dd>${horarioTexto()}</dd>
+        ${r.sector ? `<dt>Sector</dt><dd>${esc(r.sector)}</dd>` : ''}
       </dl>
     </div>
 
@@ -890,6 +920,9 @@ async function pintarAjustes(){
             (servidor del asistente).</dd>
         <dt>Números de teléfono</dt>
         <dd>Se muestran parcialmente ofuscados en este panel.</dd>
+        <dt>Horario y ubicaciones</dt>
+        <dd>Se configuran con los datos que nos facilitaste en el alta del
+            servicio. Si algo ha cambiado, dínoslo y lo actualizamos.</dd>
       </dl>
       <p class="aviso" style="margin:16px 0 0">
         Para ejercer derechos de acceso, rectificación o supresión sobre un
@@ -935,6 +968,14 @@ const fila = c => `<tr data-id="${c.id}">
       c.senal_frustracion ? '<span class="pill rj">Fricción</span>'  : ''
     ].join('') || '<span class="pill hist">—</span>'}</td>
 </tr>`;
+
+function horarioTexto(){
+  const H = CFG.horario || {};
+  const dn = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const ds = (H.dias || []).map(n => dn[n === 7 ? 0 : n]);
+  if (!ds.length) return '—';
+  return `${ds[0]} a ${ds[ds.length-1]}, de ${H.inicio}:00 a ${H.fin}:00`;
+}
 
 /* ---------- detalle ---------- */
 async function abrir(id){
