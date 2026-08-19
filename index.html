@@ -202,7 +202,16 @@
   .fh{font-size:11.5px;color:var(--gris)}
   .fq{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.04em}
   .ft{color:var(--tinta);line-height:1.5;min-width:0;overflow-wrap:anywhere}
-  @media(max-width:640px){.feed li{grid-template-columns:auto 52px 1fr}.fq{display:none}}
+  .feed li[data-ir]{cursor:pointer;border-radius:8px;margin:0 -10px;padding-left:10px;
+                    padding-right:10px;transition:background .13s ease}
+  .feed li[data-ir]:hover,.feed li[data-ir]:focus-visible{background:var(--fondo)}
+  .feed li[data-ir]:hover .fgo{color:var(--pulso);transform:translateX(2px)}
+  .fgo{color:transparent;font-size:17px;font-weight:700;line-height:1;
+       transition:color .13s ease,transform .13s ease;align-self:center}
+  .feed li{grid-template-columns:auto 52px 62px 1fr auto}
+  .dacc{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 20px;
+        padding-bottom:18px;border-bottom:1px solid var(--linea)}
+  @media(max-width:640px){.feed li{grid-template-columns:auto 52px 1fr auto}.fq{display:none}}
   .barras{display:grid;gap:19px}
   .bfila{}
   .bcab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;gap:12px}
@@ -212,7 +221,8 @@
   .btrack{height:8px;background:var(--aire);border-radius:99px;overflow:hidden}
   .bfill{height:100%;border-radius:99px;transition:width .5s ease}
   .bfill.az{background:var(--pulso)} .bfill.vd{background:var(--verde)}
-  .bfill.rj{background:var(--ambar)}
+  .bfill.am{background:var(--ambar)}
+  .bfill.rj{background:var(--rojo)}
   .bpie{font-size:11.5px;color:var(--gris);margin-top:6px}
 
   .zonas{display:grid;gap:9px}
@@ -592,7 +602,7 @@ async function datos(){
 
   const [convs, evR, evTot, lat, reciente, lugares, patron] = await Promise.all([
     supabase.from('conversations')
-      .select('id,contact_ref,started_at,last_at,msg_count,human_count,ai_count,is_backfilled,seq,fecha_origen,fecha_estimada,senal_interes,senal_frustracion,senal_contacto')
+      .select('id,contact_ref,started_at,last_at,msg_count,human_count,ai_count,is_backfilled,seq,fecha_origen,fecha_estimada,senal_interes,senal_frustracion,senal_contacto,senal_sin_respuesta')
       .order('last_at', { ascending:false }).limit(1000),
     supabase.from('message_events')
       .select('role,observed_at')
@@ -712,12 +722,19 @@ async function pintarLatido(silencioso){
       <h3>Actividad reciente</h3>
       <p class="ph">Últimos mensajes registrados, del más nuevo al más antiguo.</p>
       <ul class="feed">
-        ${d.reciente.map(m => `<li>
-          <span class="fdot ${m.role === 'human' ? 'h' : 'a'}"></span>
-          <span class="fh mono">${hora(m.observed_at)}</span>
-          <span class="fq">${m.role === 'human' ? 'Cliente' : 'IA'}</span>
-          <span class="ft">${esc((m.content || '').slice(0, 90))}${(m.content||'').length > 90 ? '…' : ''}</span>
-        </li>`).join('')}
+        ${d.reciente.map(m => {
+          // el mensaje trae conversation_id; el contacto sale de las
+          // conversaciones ya cargadas, sin consultar de nuevo
+          const cv = (d.convs || []).find(c => c.id === m.conversation_id);
+          const ref = cv ? cv.contact_ref : null;
+          return `<li${ref ? ` data-ir="${esc(ref)}" tabindex="0" role="button"` : ''}>
+            <span class="fdot ${m.role === 'human' ? 'h' : 'a'}"></span>
+            <span class="fh mono">${hora(m.observed_at)}</span>
+            <span class="fq">${m.role === 'human' ? 'Cliente' : 'IA'}</span>
+            <span class="ft">${esc((m.content || '').slice(0, 90))}${(m.content||'').length > 90 ? '…' : ''}</span>
+            ${ref ? '<span class="fgo" aria-hidden="true">›</span>' : ''}
+          </li>`;
+        }).join('')}
       </ul>
     </div>` : ''}
 
@@ -735,6 +752,14 @@ async function pintarLatido(silencioso){
   activarGrafico();
   ULTIMOS = d;
   activarMapa();
+
+  // desde la actividad reciente se abre la conversación completa
+  document.querySelectorAll('.feed li[data-ir]').forEach(li => {
+    li.addEventListener('click', () => abrir(li.dataset.ir));
+    li.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); abrir(li.dataset.ir); }
+    });
+  });
 
   // El rango sí necesita volver a consultar (otra ventana temporal),
   // pero se pinta en modo silencioso para conservar el scroll.
@@ -759,17 +784,24 @@ function bloqueSenales(d){
   const i = d.convs.filter(c => c.senal_interes).length;
   const f = d.convs.filter(c => c.senal_frustracion).length;
   const k = d.convs.filter(c => c.senal_contacto).length;
-  const pc = n => t ? Math.round(n / t * 100) : 0;
+  const r = d.convs.filter(c => c.senal_sin_respuesta).length;
 
   return `<div class="panel">
     <h3>${esc(E('senales_titulo'))}</h3>
-    <p class="ph">Señales detectadas en lo que escribe el cliente.
-       Orientativo: se basa en expresiones concretas, no en un análisis semántico.</p>
+    <p class="ph">Señales detectadas en el texto de las conversaciones.</p>
     <div class="barras">
       ${barra('Interés comercial', i, t, E('interes_desc'),  'az')}
       ${barra('Datos de contacto', k, t, E('contacto_desc'), 'vd')}
+      ${barra('El asistente no supo responder', r, t,
+              'Reconoció no tener el dato o derivó a una persona', 'am')}
       ${barra('Fricción',          f, t, E('friccion_desc'), 'rj')}
     </div>
+    <p class="nota" style="margin:18px 0 0">
+      Se detectan por las expresiones que aparecen en los mensajes, así que
+      pueden quedarse cortas: una queja formulada de forma poco habitual puede
+      pasar desapercibida. Los datos de contacto y la falta de respuesta del
+      asistente son los indicadores más fiables de los cuatro.
+    </p>
   </div>`;
 }
 const barra = (lab, n, t, pie, cl) => {
@@ -1516,9 +1548,16 @@ function horarioTexto(){
 
 /* ---------- detalle de un contacto ---------- */
 async function abrir(contact){
-  const c = CONTACTOS.find(x => x.contact_ref === contact) || {};
   $('#mbox').innerHTML = '<div class="cargando">Cargando…</div>';
   $('#modal').style.display = 'block';
+
+  // Se puede llegar aquí desde el Latido, donde la lista de
+  // contactos todavía no se ha pedido: se carga al vuelo.
+  if (!CONTACTOS.length){
+    const { data: cs } = await supabase.rpc('mis_contactos');
+    CONTACTOS = cs || [];
+  }
+  const c = CONTACTOS.find(x => x.contact_ref === contact) || {};
 
   const { data } = await supabase.rpc('mensajes_contacto', { p_contact: contact });
   const msgs = data || [];
@@ -1539,6 +1578,11 @@ async function abrir(contact){
       </div>
       <button class="cerrar" id="cx" aria-label="Cerrar">×</button>
     </div>
+    <div class="dacc">
+      ${c.telefono ? `<a class="cbtn" href="tel:${esc(c.telefono)}">Llamar</a>` : ''}
+      ${c.email ? `<a class="cbtn" href="mailto:${esc(c.email)}">Escribir</a>` : ''}
+      <button class="cbtn" id="verconvs">Ver en Conversaciones</button>
+    </div>
     ${msgs.map(m => {
       let sep = '';
       if (m.sesion !== sesion){
@@ -1556,6 +1600,16 @@ async function abrir(contact){
     }).join('')}`;
 
   $('#cx').addEventListener('click', cerrar);
+  $('#verconvs')?.addEventListener('click', () => {
+    cerrar();
+    document.querySelectorAll('nav button').forEach(x =>
+      x.classList.toggle('on', x.dataset.v === 'convs'));
+    VISTA = 'convs';
+    pintarConvs().then(() => {
+      const inp = $('#buscar');
+      if (inp){ inp.value = c.telefono || contact; filtrar(inp.value); }
+    });
+  });
 }
 function cerrar(){ $('#modal').style.display = 'none'; }
 $('#modal').addEventListener('click', e => e.target.id === 'modal' && cerrar());
