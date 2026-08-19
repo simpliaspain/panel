@@ -223,16 +223,23 @@
         opacity:0;transition:opacity .14s ease;letter-spacing:.03em}
   .bfila.pulsa:hover .bver,.bfila.pulsa:focus-visible .bver{opacity:1}
 
-  .filtro{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin:-14px 0 20px}
-  .fpill{font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px}
-  .fpill.az{background:#E5EFFE;color:#0A4DA6}
-  .fpill.nt{background:#F1F5F9;color:#475569}
-  .fpill.am{background:#FEF0C7;color:#93370D}
-  .fpill.rj{background:#FBEAE5;color:#9C4221}
-  .ftx{font-size:12.5px;color:var(--gris)}
-  .fquita{background:none;color:var(--gris);font-size:12px;font-weight:600;
-          padding:5px 10px;border-radius:8px;text-decoration:underline}
-  .fquita:hover{color:var(--pulso);background:var(--fondo);text-decoration:none}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 18px}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;
+        font-weight:600;padding:7px 13px;border-radius:99px;color:var(--gris);
+        background:var(--blanco);border:1px solid var(--linea);
+        font-family:inherit;transition:border-color .14s,color .14s,background .14s}
+  .chip:hover{border-color:#CBD5E1;color:var(--tinta)}
+  .chip .cn{font-size:11px;font-weight:700;color:#94A3B8;
+            font-family:'JetBrains Mono',monospace}
+  .chip.on{border-color:transparent;color:#fff}
+  .chip.on .cn{color:rgba(255,255,255,.72)}
+  .chip.on.az{background:var(--pulso)}
+  .chip.on.nt{background:#64748B}
+  .chip.on.vd{background:var(--verde)}
+  .chip.on.am{background:#D9820A}
+  .chip.on.rj{background:var(--coral)}
+  .chip.limpia{border-style:dashed;color:var(--gris)}
+  .chip.limpia:hover{color:var(--pulso);border-color:var(--pulso)}
   .pill.am{background:#FEF0C7;color:#93370D}
   .pill.rj{background:#FBEAE5;color:#9C4221}
   .bcab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;gap:12px}
@@ -1168,7 +1175,7 @@ function activarGrafico(){
 }
 
 function irASenal(tipo){
-  FILTRO = tipo;
+  FILTRO = new Set([tipo]);
   VISTA = 'convs';
   document.querySelectorAll('nav button').forEach(x =>
     x.classList.toggle('on', x.dataset.v === 'convs'));
@@ -1181,14 +1188,19 @@ function irASenal(tipo){
    sigue existiendo para las métricas, pero aquí sería confuso:
    el usuario piensa en "mi conversación con X", no en sesiones. */
 let CONTACTOS = [];
-// Filtro activo en Conversaciones, fijado al pulsar una señal.
-let FILTRO = null;
+// Filtros activos en Conversaciones. Se combinan con Y: marcar
+// "Interés" y "Contacto" da los leads listos para llamar.
+let FILTRO = new Set();
 const SENALES = {
-  interes:       { etq: 'Interés comercial',  campo: 'interes',       pill: 'az' },
-  contacto:      { etq: 'Datos de contacto',  campo: 'contacto',      pill: 'nt' },
-  sin_respuesta: { etq: 'Sin respuesta',      campo: 'sin_respuesta', pill: 'am' },
-  friccion:      { etq: 'Fricción',           campo: 'friccion',      pill: 'rj' }
+  interes:       { etq: 'Interés',       campo: c => c.interes,        pill: 'az' },
+  contacto:      { etq: 'Con contacto',  campo: c => c.contacto,       pill: 'nt' },
+  cita:          { etq: 'Con cita',      campo: c => !!c.cita,         pill: 'vd' },
+  sin_respuesta: { etq: 'Sin respuesta', campo: c => c.sin_respuesta,  pill: 'am' },
+  friccion:      { etq: 'Fricción',      campo: c => c.friccion,       pill: 'rj' },
+  vuelto:        { etq: 'Ha vuelto',     campo: c => Number(c.conversaciones) > 1, pill: 'nt' }
 };
+const aplicaFiltros = (lista, filtros) =>
+  lista.filter(c => [...filtros].every(k => SENALES[k].campo(c)));
 
 async function pintarConvs(silencioso){
   if (!silencioso) $('#vista').innerHTML =
@@ -1205,46 +1217,77 @@ async function pintarConvs(silencioso){
   }
   CONTACTOS = data || [];
 
-  const S = FILTRO ? SENALES[FILTRO] : null;
-  const lista = S ? CONTACTOS.filter(c => c[S.campo]) : CONTACTOS;
-
-  const sesiones = lista.reduce((s,c) => s + Number(c.conversaciones), 0);
-  const vueltos  = lista.filter(c => Number(c.conversaciones) > 1).length;
-  const conCita  = lista.filter(c => c.cita).length;
-
   pintaEn(`
     <h2 class="tit">Conversaciones</h2>
     <p class="sub">Una fila por persona. Ábrela para ver todo el intercambio,
        incluidas las veces que volvió a escribir.</p>
-    ${S ? `<div class="filtro">
-      <span class="fpill ${S.pill}">${esc(S.etq)}</span>
-      <span class="ftx">${nf.format(lista.length)} de ${nf.format(CONTACTOS.length)} personas</span>
-      <button class="fquita" id="quitafiltro">Quitar filtro</button>
-    </div>` : ''}
-    <div class="panel">
-      <div class="cabpanel">
-        <div>
-          <h3>${nf.format(lista.length)} personas</h3>
-          <p class="ph" style="margin:2px 0 0">${nf.format(sesiones)} conversaciones${
-            vueltos ? ` · ${nf.format(vueltos)} ${vueltos===1?'persona ha vuelto':'personas han vuelto'} a escribir` : ''}${
-            conCita ? ` · ${nf.format(conCita)} con cita` : ''}</p>
-        </div>
-        <input id="buscar" class="busca" type="search"
-               placeholder="Buscar por nombre, teléfono o texto…" autocomplete="off">
+    <div class="panel" id="pconvs"></div>`, silencioso);
+
+  render();
+}
+
+// Repinta solo el interior del panel: los filtros son instantáneos
+// porque no hay que volver a consultar nada.
+function render(busqueda){
+  const cont = $('#pconvs'); if (!cont) return;
+  const lista = aplicaFiltros(CONTACTOS, FILTRO);
+
+  // Cada filtro muestra cuántos resultados daría AÑADIRLO a la
+  // selección actual. Si daría cero, se desactiva: así nunca se
+  // llega a una lista vacía.
+  const chips = Object.entries(SENALES).map(([k, s]) => {
+    const activo = FILTRO.has(k);
+    const prueba = new Set(FILTRO);
+    activo ? prueba.delete(k) : prueba.add(k);
+    const n = activo
+      ? lista.length
+      : aplicaFiltros(CONTACTOS, prueba).length;
+    return { k, s, activo, n };
+  }).filter(c => c.activo || c.n > 0);
+
+  const sesiones = lista.reduce((a,c) => a + Number(c.conversaciones), 0);
+  const vueltos  = lista.filter(c => Number(c.conversaciones) > 1).length;
+
+  cont.innerHTML = `
+    <div class="cabpanel">
+      <div>
+        <h3>${nf.format(lista.length)} ${lista.length === 1 ? 'persona' : 'personas'}</h3>
+        <p class="ph" style="margin:2px 0 0">${nf.format(sesiones)} conversaciones${
+          vueltos ? ` · ${nf.format(vueltos)} ${vueltos === 1 ? 'ha vuelto' : 'han vuelto'} a escribir` : ''}${
+          FILTRO.size ? ` · filtrado de ${nf.format(CONTACTOS.length)}` : ''}</p>
       </div>
-      <div class="tabla"><table>
-        <thead><tr>
-          <th>Contacto</th><th>Mensajes</th><th>Primera</th>
-          <th>Última</th><th>Señales</th>
-        </tr></thead>
-        <tbody>${lista.length
-          ? lista.slice(0,150).map(filaC).join('')
-          : `<tr><td colspan="5" class="vacio">Ninguna conversación con esta señal.</td></tr>`}</tbody>
-      </table></div>
-    </div>`, silencioso);
+      <input id="buscar" class="busca" type="search"
+             placeholder="Buscar por nombre, teléfono o texto…"
+             autocomplete="off" value="${esc(busqueda || '')}">
+    </div>
+
+    <div class="chips">
+      ${chips.map(c => `<button class="chip ${c.s.pill}${c.activo ? ' on' : ''}"
+          data-f="${c.k}" aria-pressed="${c.activo}">
+        ${esc(c.s.etq)}<span class="cn">${nf.format(c.n)}</span>
+      </button>`).join('')}
+      ${FILTRO.size ? '<button class="chip limpia" id="limpiar">Quitar filtros</button>' : ''}
+    </div>
+
+    <div class="tabla"><table>
+      <thead><tr>
+        <th>Contacto</th><th>Mensajes</th><th>Primera</th>
+        <th>Última</th><th>Señales</th>
+      </tr></thead>
+      <tbody>${lista.length
+        ? lista.slice(0,150).map(filaC).join('')
+        : `<tr><td colspan="5" class="vacio">Ninguna persona con esos filtros.</td></tr>`}</tbody>
+    </table></div>`;
 
   enlazarFilas();
-  $('#quitafiltro')?.addEventListener('click', () => { FILTRO = null; pintarConvs(); });
+
+  cont.querySelectorAll('.chip[data-f]').forEach(b =>
+    b.addEventListener('click', () => {
+      const k = b.dataset.f;
+      FILTRO.has(k) ? FILTRO.delete(k) : FILTRO.add(k);
+      render();
+    }));
+  $('#limpiar')?.addEventListener('click', () => { FILTRO.clear(); render(); });
 
   const inp = $('#buscar');
   let tmr = null;
@@ -1252,6 +1295,36 @@ async function pintarConvs(silencioso){
     clearTimeout(tmr);
     tmr = setTimeout(() => filtrar(inp.value.trim()), 280);
   });
+  if (busqueda) filtrar(busqueda);
+}
+
+async function filtrar(q){
+  const tb = document.querySelector('#pconvs tbody');
+  if (!tb) return;
+  const base = aplicaFiltros(CONTACTOS, FILTRO);
+
+  if (!q){ tb.innerHTML = base.slice(0,150).map(filaC).join(''); enlazarFilas(); return; }
+
+  const n = q.toLowerCase();
+  const local = base.filter(c =>
+    (c.nombre   || '').toLowerCase().includes(n) ||
+    (c.telefono || '').includes(q.replace(/[^0-9]/g,'')) ||
+    (c.email    || '').toLowerCase().includes(n));
+
+  if (local.length || /^[0-9+ ]{3,}$/.test(q)){
+    tb.innerHTML = local.length ? local.map(filaC).join('')
+      : `<tr><td colspan="5" class="vacio">Ningún contacto coincide.</td></tr>`;
+    enlazarFilas(); return;
+  }
+
+  tb.innerHTML = `<tr><td colspan="5" class="vacio">Buscando en los mensajes…</td></tr>`;
+  const { data } = await supabase.from('message_events')
+    .select('conversation_id').ilike('content', `%${q}%`).limit(500);
+  const ids = new Set((data || []).map(r => r.conversation_id));
+  const r = base.filter(c => (c.ids || []).some(i => ids.has(i)));
+  tb.innerHTML = r.length ? r.map(filaC).join('')
+    : `<tr><td colspan="5" class="vacio">Ninguna conversación contiene «${esc(q)}».</td></tr>`;
+  enlazarFilas();
 }
 
 const filaC = c => `<tr data-c="${esc(c.contact_ref)}">
@@ -1277,38 +1350,6 @@ const filaC = c => `<tr data-c="${esc(c.contact_ref)}">
 function enlazarFilas(){
   document.querySelectorAll('tbody tr[data-c]').forEach(tr =>
     tr.addEventListener('click', () => abrir(tr.dataset.c)));
-}
-
-async function filtrar(q){
-  const tb = document.querySelector('tbody');
-  if (!tb) return;
-  const S = FILTRO ? SENALES[FILTRO] : null;
-  const base = S ? CONTACTOS.filter(c => c[S.campo]) : CONTACTOS;
-
-  if (!q){ tb.innerHTML = base.slice(0,150).map(filaC).join(''); enlazarFilas(); return; }
-
-  const n = q.toLowerCase();
-  // nombre, teléfono o email: filtra en memoria, instantáneo
-  const local = base.filter(c =>
-    (c.nombre   || '').toLowerCase().includes(n) ||
-    (c.telefono || '').includes(q.replace(/[^0-9]/g,'')) ||
-    (c.email    || '').toLowerCase().includes(n));
-
-  if (local.length || /^[0-9+ ]{3,}$/.test(q)){
-    tb.innerHTML = local.length ? local.map(filaC).join('')
-      : `<tr><td colspan="5" class="vacio">Ningún contacto coincide.</td></tr>`;
-    enlazarFilas(); return;
-  }
-
-  // si no, se busca dentro del texto de los mensajes
-  tb.innerHTML = `<tr><td colspan="5" class="vacio">Buscando en los mensajes…</td></tr>`;
-  const { data } = await supabase.from('message_events')
-    .select('conversation_id').ilike('content', `%${q}%`).limit(500);
-  const ids = new Set((data || []).map(r => r.conversation_id));
-  const r = base.filter(c => (c.ids || []).some(i => ids.has(i)));
-  tb.innerHTML = r.length ? r.map(filaC).join('')
-    : `<tr><td colspan="5" class="vacio">Ninguna conversación contiene «${esc(q)}».</td></tr>`;
-  enlazarFilas();
 }
 
 /* ---------- vista: agenda ----------
@@ -1673,10 +1714,8 @@ async function abrir(contact){
     document.querySelectorAll('nav button').forEach(x =>
       x.classList.toggle('on', x.dataset.v === 'convs'));
     VISTA = 'convs';
-    pintarConvs().then(() => {
-      const inp = $('#buscar');
-      if (inp){ inp.value = c.telefono || contact; filtrar(inp.value); }
-    });
+    FILTRO.clear();
+    pintarConvs().then(() => render(c.telefono || contact));
   });
 }
 function cerrar(){ $('#modal').style.display = 'none'; }
