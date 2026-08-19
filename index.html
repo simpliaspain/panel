@@ -213,7 +213,27 @@
         padding-bottom:18px;border-bottom:1px solid var(--linea)}
   @media(max-width:640px){.feed li{grid-template-columns:auto 52px 1fr auto}.fq{display:none}}
   .barras{display:grid;gap:19px}
-  .bfila{}
+  .bfila{border-radius:11px;padding:2px}
+  .bfila.pulsa{cursor:pointer;margin:0 -12px;padding:9px 12px 8px;
+               transition:background .14s ease}
+  .bfila.pulsa:hover,.bfila.pulsa:focus-visible{background:var(--fondo)}
+  .bfila.pulsa:focus-visible{outline:2px solid var(--pulso);outline-offset:1px}
+  .bver{font-size:10.5px;font-weight:700;color:var(--pulso);margin-left:9px;
+        opacity:0;transition:opacity .14s ease;letter-spacing:.03em}
+  .bfila.pulsa:hover .bver,.bfila.pulsa:focus-visible .bver{opacity:1}
+
+  .filtro{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin:-14px 0 20px}
+  .fpill{font-size:12px;font-weight:700;padding:5px 12px;border-radius:99px}
+  .fpill.az{background:#E5EFFE;color:#0A4DA6}
+  .fpill.nt{background:#F1F5F9;color:#475569}
+  .fpill.am{background:#FEF0C7;color:#93370D}
+  .fpill.rj{background:#FEE4E2;color:#B42318}
+  .ftx{font-size:12.5px;color:var(--gris)}
+  .fquita{background:none;color:var(--gris);font-size:12px;font-weight:600;
+          padding:5px 10px;border-radius:8px;text-decoration:underline}
+  .fquita:hover{color:var(--pulso);background:var(--fondo);text-decoration:none}
+  .pill.am{background:#FEF0C7;color:#93370D}
+  .pill.rj{background:#FEE4E2;color:#B42318}
   .bcab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;gap:12px}
   .blab{font-size:13.5px;font-weight:600}
   .bnum{font-size:14px;font-weight:700}
@@ -753,6 +773,15 @@ async function pintarLatido(silencioso){
   ULTIMOS = d;
   activarMapa();
 
+  // desde una señal se salta a las conversaciones que la tienen
+  document.querySelectorAll('.bfila[data-sen]').forEach(b => {
+    const ir = () => irASenal(b.dataset.sen);
+    b.addEventListener('click', ir);
+    b.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ir(); }
+    });
+  });
+
   // desde la actividad reciente se abre la conversación completa
   document.querySelectorAll('.feed li[data-ir]').forEach(li => {
     li.addEventListener('click', () => abrir(li.dataset.ir));
@@ -790,11 +819,11 @@ function bloqueSenales(d){
     <h3>${esc(E('senales_titulo'))}</h3>
     <p class="ph">Señales detectadas en el texto de las conversaciones.</p>
     <div class="barras">
-      ${barra('Interés comercial', i, t, E('interes_desc'),  'az')}
-      ${barra('Datos de contacto', k, t, E('contacto_desc'), 'vd')}
+      ${barra('Interés comercial', i, t, E('interes_desc'),  'az', 'interes')}
+      ${barra('Datos de contacto', k, t, E('contacto_desc'), 'vd', 'contacto')}
       ${barra('El asistente no supo responder', r, t,
-              'Reconoció no tener el dato o derivó a una persona', 'am')}
-      ${barra('Fricción',          f, t, E('friccion_desc'), 'rj')}
+              'Reconoció no tener el dato o derivó a una persona', 'am', 'sin_respuesta')}
+      ${barra('Fricción',          f, t, E('friccion_desc'), 'rj', 'friccion')}
     </div>
     <p class="nota" style="margin:18px 0 0">
       Se detectan por las expresiones que aparecen en los mensajes, así que
@@ -804,10 +833,16 @@ function bloqueSenales(d){
     </p>
   </div>`;
 }
-const barra = (lab, n, t, pie, cl) => {
+// Solo se puede pulsar si hay algo que ver: llevar al usuario a
+// una lista vacía sería un callejón sin salida.
+const barra = (lab, n, t, pie, cl, tipo) => {
   const p = t ? (n / t * 100) : 0;
-  return `<div class="bfila">
-    <div class="bcab"><span class="blab">${lab}</span>
+  const act = n > 0 && tipo;
+  return `<div class="bfila${act ? ' pulsa' : ''}"${
+      act ? ` data-sen="${tipo}" tabindex="0" role="button"
+      aria-label="Ver las ${n} conversaciones con ${lab.toLowerCase()}"` : ''}>
+    <div class="bcab">
+      <span class="blab">${lab}${act ? '<span class="bver">Ver</span>' : ''}</span>
       <span class="bnum mono">${nf.format(n)} <small>de ${nf.format(t)}</small></span></div>
     <div class="btrack"><div class="bfill ${cl}" style="width:${Math.max(p,0.6).toFixed(1)}%"></div></div>
     <div class="bpie">${pie} · ${p.toFixed(0)}%</div>
@@ -1132,11 +1167,28 @@ function activarGrafico(){
   cont.addEventListener('touchend', ocultar);
 }
 
+function irASenal(tipo){
+  FILTRO = tipo;
+  VISTA = 'convs';
+  document.querySelectorAll('nav button').forEach(x =>
+    x.classList.toggle('on', x.dataset.v === 'convs'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  pintarConvs();
+}
+
 /* ---------- vista: conversaciones ----------
    Se agrupa por PERSONA, no por sesión. El corte a 30 minutos
    sigue existiendo para las métricas, pero aquí sería confuso:
    el usuario piensa en "mi conversación con X", no en sesiones. */
 let CONTACTOS = [];
+// Filtro activo en Conversaciones, fijado al pulsar una señal.
+let FILTRO = null;
+const SENALES = {
+  interes:       { etq: 'Interés comercial',  campo: 'interes',       pill: 'az' },
+  contacto:      { etq: 'Datos de contacto',  campo: 'contacto',      pill: 'nt' },
+  sin_respuesta: { etq: 'Sin respuesta',      campo: 'sin_respuesta', pill: 'am' },
+  friccion:      { etq: 'Fricción',           campo: 'friccion',      pill: 'rj' }
+};
 
 async function pintarConvs(silencioso){
   if (!silencioso) $('#vista').innerHTML =
@@ -1153,18 +1205,26 @@ async function pintarConvs(silencioso){
   }
   CONTACTOS = data || [];
 
-  const sesiones = CONTACTOS.reduce((s,c) => s + Number(c.conversaciones), 0);
-  const vueltos  = CONTACTOS.filter(c => Number(c.conversaciones) > 1).length;
-  const conCita  = CONTACTOS.filter(c => c.cita).length;
+  const S = FILTRO ? SENALES[FILTRO] : null;
+  const lista = S ? CONTACTOS.filter(c => c[S.campo]) : CONTACTOS;
+
+  const sesiones = lista.reduce((s,c) => s + Number(c.conversaciones), 0);
+  const vueltos  = lista.filter(c => Number(c.conversaciones) > 1).length;
+  const conCita  = lista.filter(c => c.cita).length;
 
   pintaEn(`
     <h2 class="tit">Conversaciones</h2>
     <p class="sub">Una fila por persona. Ábrela para ver todo el intercambio,
        incluidas las veces que volvió a escribir.</p>
+    ${S ? `<div class="filtro">
+      <span class="fpill ${S.pill}">${esc(S.etq)}</span>
+      <span class="ftx">${nf.format(lista.length)} de ${nf.format(CONTACTOS.length)} personas</span>
+      <button class="fquita" id="quitafiltro">Quitar filtro</button>
+    </div>` : ''}
     <div class="panel">
       <div class="cabpanel">
         <div>
-          <h3>${nf.format(CONTACTOS.length)} personas</h3>
+          <h3>${nf.format(lista.length)} personas</h3>
           <p class="ph" style="margin:2px 0 0">${nf.format(sesiones)} conversaciones${
             vueltos ? ` · ${nf.format(vueltos)} ${vueltos===1?'persona ha vuelto':'personas han vuelto'} a escribir` : ''}${
             conCita ? ` · ${nf.format(conCita)} con cita` : ''}</p>
@@ -1177,11 +1237,15 @@ async function pintarConvs(silencioso){
           <th>Contacto</th><th>Mensajes</th><th>Primera</th>
           <th>Última</th><th>Señales</th>
         </tr></thead>
-        <tbody>${CONTACTOS.slice(0,150).map(filaC).join('')}</tbody>
+        <tbody>${lista.length
+          ? lista.slice(0,150).map(filaC).join('')
+          : `<tr><td colspan="5" class="vacio">Ninguna conversación con esta señal.</td></tr>`}</tbody>
       </table></div>
     </div>`, silencioso);
 
   enlazarFilas();
+  $('#quitafiltro')?.addEventListener('click', () => { FILTRO = null; pintarConvs(); });
+
   const inp = $('#buscar');
   let tmr = null;
   inp.addEventListener('input', () => {
@@ -1205,6 +1269,7 @@ const filaC = c => `<tr data-c="${esc(c.contact_ref)}">
       c.cita     ? '<span class="pill vd">Cita</span>'      : '',
       c.interes  ? '<span class="pill az">Interés</span>'   : '',
       c.contacto ? '<span class="pill nt">Contacto</span>'  : '',
+      c.sin_respuesta ? '<span class="pill am">Sin respuesta</span>' : '',
       c.friccion ? '<span class="pill rj">Fricción</span>'  : ''
     ].join('') || '<span class="pill hist">—</span>'}</td>
 </tr>`;
@@ -1217,11 +1282,14 @@ function enlazarFilas(){
 async function filtrar(q){
   const tb = document.querySelector('tbody');
   if (!tb) return;
-  if (!q){ tb.innerHTML = CONTACTOS.slice(0,150).map(filaC).join(''); enlazarFilas(); return; }
+  const S = FILTRO ? SENALES[FILTRO] : null;
+  const base = S ? CONTACTOS.filter(c => c[S.campo]) : CONTACTOS;
+
+  if (!q){ tb.innerHTML = base.slice(0,150).map(filaC).join(''); enlazarFilas(); return; }
 
   const n = q.toLowerCase();
   // nombre, teléfono o email: filtra en memoria, instantáneo
-  const local = CONTACTOS.filter(c =>
+  const local = base.filter(c =>
     (c.nombre   || '').toLowerCase().includes(n) ||
     (c.telefono || '').includes(q.replace(/[^0-9]/g,'')) ||
     (c.email    || '').toLowerCase().includes(n));
@@ -1237,7 +1305,7 @@ async function filtrar(q){
   const { data } = await supabase.from('message_events')
     .select('conversation_id').ilike('content', `%${q}%`).limit(500);
   const ids = new Set((data || []).map(r => r.conversation_id));
-  const r = CONTACTOS.filter(c => (c.ids || []).some(i => ids.has(i)));
+  const r = base.filter(c => (c.ids || []).some(i => ids.has(i)));
   tb.innerHTML = r.length ? r.map(filaC).join('')
     : `<tr><td colspan="5" class="vacio">Ninguna conversación contiene «${esc(q)}».</td></tr>`;
   enlazarFilas();
