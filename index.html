@@ -234,6 +234,75 @@
   td .pill{margin-right:4px}
   .hint{font-size:11px;color:var(--gris);margin-top:6px;line-height:1.5}
   input:disabled{background:var(--fondo);color:var(--gris);cursor:not-allowed}
+  .refr{display:flex;align-items:center;gap:6px;background:none;padding:6px 10px;
+        border-radius:8px;color:var(--gris);font-size:11.5px;font-weight:600}
+  .refr:hover{background:var(--fondo);color:var(--pulso)}
+  .ricon{font-size:14px;line-height:1;display:inline-block}
+  .refr.girando .ricon{animation:gira .8s linear infinite}
+  @keyframes gira{to{transform:rotate(360deg)}}
+  @media(max-width:820px){.rtxt{display:none}}
+
+  .svgmapa{width:100%;height:auto;display:block;max-height:min(60vh,460px)}
+  .mtxt{font-size:12px;font-weight:700;fill:#0A1F4A;font-family:'Plus Jakarta Sans',sans-serif}
+  .mnum{font-size:12px;font-weight:800;fill:#fff;font-family:'JetBrains Mono',monospace}
+
+  .docs{display:grid;gap:10px}
+  .doc{display:flex;align-items:center;gap:13px;padding:14px 16px;
+       border:1px solid var(--linea);border-radius:12px;text-decoration:none;
+       color:inherit;transition:border-color .15s,background .15s}
+  .doc:hover{border-color:var(--pulso);background:var(--fondo)}
+  .dico{font-size:19px;flex:none}
+  .dtx{display:grid;gap:3px;min-width:0}
+  .dtx strong{font-size:13.5px}
+  .dtx span{font-size:12px;color:var(--gris);line-height:1.5}
+  .dfl{margin-left:auto;color:var(--gris);font-size:15px;flex:none}
+  .graf{position:relative}
+  .hit{cursor:crosshair}
+  .tip{position:absolute;background:var(--tinta);color:#fff;padding:8px 12px;
+       border-radius:9px;font-size:12px;line-height:1.45;pointer-events:none;
+       white-space:nowrap;z-index:5;box-shadow:0 6px 18px rgba(10,31,74,.22)}
+  .tip strong{display:block;font-size:14px;font-weight:800}
+  .tip span{color:#CBD5E1;font-size:11px}
+
+  .cnom{font-weight:700;font-size:13.5px}
+  .csin{color:var(--gris);font-weight:500;font-style:italic}
+  .cdat{font-size:11.5px;color:var(--gris);margin-top:2px}
+  .ses{display:inline-block;font-size:10px;color:var(--gris);margin-left:5px;
+       background:var(--fondo);padding:1px 6px;border-radius:99px;font-weight:600}
+  .pill.nt{background:#F1F5F9;color:#475569}
+  td .cnom,td .cdat{white-space:normal}
+
+  .sep{display:flex;align-items:center;gap:12px;margin:20px 0 13px;
+       color:var(--gris);font-size:11px;font-weight:600}
+  .sep::before,.sep::after{content:'';flex:1;height:1px;background:var(--linea)}
+  .dmeta{font-size:12.5px;color:var(--gris);margin-top:5px}
+  .dmeta a{color:var(--pulso);text-decoration:none}
+  .dmeta a:hover{text-decoration:underline}
+
+  .citas{display:grid;gap:11px}
+  .cita{display:grid;grid-template-columns:62px 1fr auto;gap:15px;align-items:center;
+        padding:13px 15px;border:1px solid var(--linea);border-radius:13px}
+  .cita.pr{border-color:#BFDBFE;background:#FAFCFF}
+  .cita.can{opacity:.62}
+  .cita.can .ccuerpo strong{text-decoration:line-through}
+  .cfecha{text-align:center;line-height:1.15}
+  .cdia{display:block;font-size:21px;font-weight:800;letter-spacing:-.02em}
+  .cmes{display:block;font-size:10.5px;color:var(--gris);text-transform:uppercase;
+        font-weight:700;letter-spacing:.04em}
+  .chora{display:block;font-size:11px;color:var(--pulso);font-weight:700;margin-top:2px}
+  .ccuerpo{display:grid;gap:3px;min-width:0}
+  .ccuerpo strong{font-size:14px}
+  .ccuerpo span{font-size:12.5px;color:#475569;line-height:1.5;overflow-wrap:anywhere}
+  .cmeta{font-size:11.5px;color:var(--gris)}
+  .cacc{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+  .cbtn{font-size:12px;font-weight:600;padding:7px 12px;border-radius:9px;
+        background:var(--aire);color:var(--profundo);text-decoration:none;
+        border:none;cursor:pointer;white-space:nowrap;font-family:inherit}
+  .cbtn:hover{background:var(--pulso);color:#fff}
+  @media(max-width:600px){
+    .cita{grid-template-columns:52px 1fr;gap:12px}
+    .cacc{grid-column:1/-1;justify-content:flex-start}
+  }
   .cargando{text-align:center;padding:60px;color:var(--gris);font-size:13.5px}
 
   /* ---------- MÓVIL ---------- */
@@ -267,7 +336,21 @@
     .kpis{grid-template-columns:1fr}
     .campos{grid-template-columns:1fr}
     main{padding:20px 13px 56px}
-    .tabla{margin:0 -17px;padding:0 17px}
+    .panel{padding:16px 14px}
+    .tabla{margin:0 -14px;padding:0 14px}
+    .mapa{margin:0 -14px;padding:0 14px}
+    .svgmapa{max-height:none}
+    .mtxt{font-size:15px}
+    .mnum{font-size:15px}
+    h2.tit{font-size:22px}
+    .kpi .num{font-size:32px}
+    .doc{padding:12px 13px;gap:10px}
+  }
+  @media(max-width:340px){
+    main{padding:16px 10px 50px}
+    .panel{padding:14px 12px}
+    nav button{padding:12px 9px;font-size:12.5px}
+    .marca{font-size:14px}
   }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -304,9 +387,14 @@
     <nav>
       <button class="on" data-v="latido">Latido</button>
       <button data-v="convs">Conversaciones</button>
+      <button data-v="agenda">Agenda</button>
       <button data-v="ajustes">Configuración</button>
     </nav>
     <div class="hend">
+      <button class="refr" id="refrescar" title="Actualizar datos">
+        <span class="ricon" aria-hidden="true">⟳</span>
+        <span class="rtxt" id="rcuando">—</span>
+      </button>
       <div class="vivo"><span class="dot on"></span><span id="cliente">—</span></div>
       <button class="salir" id="salir">Salir</button>
     </div>
@@ -349,8 +437,11 @@ let CFG = {
     friccion_desc:    'Piden atención humana o expresan queja'
   },
   horario:   { inicio: 9, fin: 19, dias: [1,2,3,4,5] },
-  objetivos: []
+  objetivos: [],
+  documentos: [],
+  mapas: {}
 };
+let ULTIMA = null;   // instante de la última carga de datos
 const E = k => CFG.etiquetas[k] || '';
 
 /* ---------- comprobación de conexión ---------- */
@@ -391,15 +482,16 @@ async function entrar(){
 /* Auto-refresco cada 30 s. Se detiene si la pestaña no está
    visible, para no consumir peticiones en balde, y no interrumpe
    si hay un modal abierto o el usuario está escribiendo. */
-let TIMER = null, VISTA = 'latido';
+let TIMER = null, VISTA = 'latido', MAPA = null;
 function autoRefresco(){
   clearInterval(TIMER);
   TIMER = setInterval(() => {
     if (document.hidden) return;
     if ($('#modal').style.display === 'block') return;
     if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
-    if (VISTA === 'latido') pintarLatido();
-    else if (VISTA === 'convs' && !$('#buscar')?.value) pintarConvs();
+    if (VISTA === 'latido') pintarLatido(true);
+    else if (VISTA === 'convs' && !$('#buscar')?.value) pintarConvs(true);
+    else if (VISTA === 'agenda') pintarAgenda(true);
   }, 30000);
 }
 
@@ -416,6 +508,7 @@ document.querySelectorAll('nav button').forEach(b => {
     const v = b.dataset.v; VISTA = v;
     if (v === 'latido') pintarLatido();
     else if (v === 'convs') pintarConvs();
+    else if (v === 'agenda') pintarAgenda();
     else pintarAjustes();
   });
 });
@@ -439,14 +532,38 @@ async function arrancar(){
     if (data){
       CFG.etiquetas = { ...CFG.etiquetas, ...(data.etiquetas || {}) };
       if (data.horario)   CFG.horario   = data.horario;
-      if (data.objetivos) CFG.objetivos = data.objetivos;
+      if (data.objetivos)  CFG.objetivos  = data.objetivos;
+      if (data.documentos) CFG.documentos = data.documentos;
+      if (data.mapas)      CFG.mapas      = data.mapas;
     }
   } catch { /* se usan los valores por defecto */ }
+  $('#refrescar').addEventListener('click', refrescar);
   await pintarLatido();
   autoRefresco();
 }
 
 let RANGO = 24;   // horas
+
+function pintarCuando(){
+  const el = $('#rcuando'); if (!el) return;
+  if (!ULTIMA){ el.textContent = '—'; return; }
+  const s = Math.round((Date.now() - ULTIMA) / 1000);
+  el.textContent = s < 10 ? 'ahora mismo'
+    : s < 60 ? `hace ${s} s`
+    : s < 3600 ? `hace ${Math.round(s/60)} min`
+    : `hace ${Math.round(s/3600)} h`;
+}
+setInterval(pintarCuando, 10000);
+
+async function refrescar(){
+  const b = $('#refrescar');
+  b?.classList.add('girando');
+  if (VISTA === 'latido')       await pintarLatido(true);
+  else if (VISTA === 'convs')   await pintarConvs(true);
+  else if (VISTA === 'agenda')  await pintarAgenda(true);
+  else                          await pintarAjustes(true);
+  b?.classList.remove('girando');
+}
 
 async function datos(){
   const desde = new Date(Date.now() - RANGO*36e5).toISOString();
@@ -475,6 +592,7 @@ async function datos(){
   // original de n8n aunque no tengamos la fecha.
   // Ahora hay fecha real para casi todo (fecha_origen viene de
   // users.created_at en el histórico), así que se ordena por ella.
+  ULTIMA = Date.now(); pintarCuando();
   CONVS = (convs.data || []).sort((a, b) => {
     const fa = a.fecha_origen ? new Date(a.fecha_origen).getTime() : null;
     const fb = b.fecha_origen ? new Date(b.fecha_origen).getTime() : null;
@@ -501,8 +619,17 @@ async function datos(){
 }
 
 /* ---------- vista: latido ---------- */
-async function pintarLatido(){
-  $('#vista').innerHTML = '<div class="cargando">Cargando datos…</div>';
+// `silencioso` = refresco automático o manual sobre contenido ya
+// visible: se evita el estado de carga y se conserva el scroll,
+// para que la página no dé el salto que reportaba el usuario.
+function pintaEn(html, silencioso){
+  const y = window.scrollY;
+  $('#vista').innerHTML = html;
+  if (silencioso) window.scrollTo({ top: y, behavior: 'instant' });
+}
+
+async function pintarLatido(silencioso){
+  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando datos…</div>';
   const d = await datos();
 
   const contactos = new Set(d.convs.map(c => c.contact_ref)).size;
@@ -515,13 +642,15 @@ async function pintarLatido(){
   const resp = d.evR.filter(e => e.role === 'ai').length;
   const et   = RANGO === 24 ? '24 horas' : RANGO === 168 ? '7 días' : '30 días';
 
-  $('#vista').innerHTML = `
+  pintaEn(`
     <h2 class="tit">El <em>latido</em> · Vista general</h2>
     <p class="sub">Cada conversación que atiende la IA con tus clientes, registrada según entra.</p>
 
     <div class="kpis">
       ${kpi('Personas atendidas', nf.format(contactos),
-            `${nf.format(msgs)} mensajes en total`)}
+            d.convs.length > contactos
+              ? `${nf.format(d.convs.length)} conversaciones · ${nf.format(d.convs.length - contactos)} han vuelto`
+              : `${nf.format(msgs)} mensajes en total`)}
       ${kpi('Conversaciones · 24h', nf.format(cR.length),
             `${nf.format(entr + resp)} mensajes en 24h`)}
       ${kpi('Respuestas de la IA', nf.format(auto), 'Sin intervención humana', true)}
@@ -554,6 +683,7 @@ async function pintarLatido(){
     ${bloqueSenales(d)}
     ${bloqueTemas(d, 'servicio')}
     ${bloqueTemas(d, 'ubicacion')}
+    ${bloqueMapa(d)}
     ${bloquePatron(d)}
 
     ${d.reciente.length ? `<div class="panel">
@@ -578,10 +708,13 @@ async function pintarLatido(){
       ${kpiPend('Sentimiento', 'Requiere análisis posterior de cada conversación')}
       ${kpiPend('Geografía', 'Requiere extraer la ciudad de cada conversación')}
       ${kpiPend('Coste evitado', 'Se calcula al disponer de latencia y resolución')}
-    </div>`;
+    </div>`, silencioso);
 
-  document.querySelectorAll('.rg').forEach(b =>
+  activarGrafico();
+  document.querySelectorAll('.rg[data-h]').forEach(b =>
     b.addEventListener('click', () => { RANGO = +b.dataset.h; pintarLatido(); }));
+  document.querySelectorAll('.rg[data-m]').forEach(b =>
+    b.addEventListener('click', () => { MAPA = b.dataset.m; pintarLatido(); }));
 }
 
 const kpi = (l,n,p,az) => `<div class="kpi">
@@ -647,6 +780,136 @@ function bloqueTemas(d, cat){
     </div>` : `<div class="vacio">Todavía no se han mencionado
         ${esc(E(cat + '_vacio'))} concretos.</div>`}
   </div>`;
+}
+
+/* ---------- mapa ----------
+   Genérico: el encuadre se calcula desde las propias coordenadas
+   del cliente, así que funciona en cualquier geografía. La silueta
+   de referencia es opcional y vive en su configuración.          */
+
+const VB = [760, 560];   // lienzo del SVG
+
+// Encuadre a partir de los puntos, con margen y corrección de
+// aspecto (un grado de longitud mide menos según la latitud).
+function encuadre(pts, cfg){
+  if (cfg && cfg.encuadre){
+    const e = cfg.encuadre;
+    return { la0:e.lat_min, la1:e.lat_max, ln0:e.lng_min, ln1:e.lng_max };
+  }
+  const las = pts.map(p => Number(p.lat));
+  const lns = pts.map(p => Number(p.lng));
+  let la0 = Math.min(...las), la1 = Math.max(...las);
+  let ln0 = Math.min(...lns), ln1 = Math.max(...lns);
+
+  // un solo punto o puntos muy juntos: se abre un mínimo
+  const MIN = 0.04;
+  if (la1 - la0 < MIN){ const c=(la0+la1)/2; la0=c-MIN/2; la1=c+MIN/2; }
+  if (ln1 - ln0 < MIN){ const c=(ln0+ln1)/2; ln0=c-MIN/2; ln1=c+MIN/2; }
+
+  // margen del 18% para que los puntos no toquen el borde
+  const ml = (la1-la0)*0.18, mn = (ln1-ln0)*0.18;
+  la0-=ml; la1+=ml; ln0-=mn; ln1+=mn;
+
+  // ajuste de proporción para no deformar la geografía
+  const k = Math.cos((la0+la1)/2 * Math.PI/180);
+  const spanLa = la1-la0, spanLn = (ln1-ln0)*k;
+  const rLienzo = VB[0]/VB[1], rDatos = spanLn/spanLa;
+  if (rDatos > rLienzo){
+    const nueva = spanLn/rLienzo, d=(nueva-spanLa)/2;
+    la0-=d; la1+=d;
+  } else {
+    const nueva = (spanLa*rLienzo)/k, d=(nueva-(ln1-ln0))/2;
+    ln0-=d; ln1+=d;
+  }
+  return { la0, la1, ln0, ln1 };
+}
+
+const proy = (lat, lng, E) => [
+  (lng - E.ln0) / (E.ln1 - E.ln0) * VB[0],
+  (1 - (lat - E.la0) / (E.la1 - E.la0)) * VB[1]
+];
+
+function bloqueMapa(d){
+  const pts = (d.temas || []).filter(t =>
+    t.categoria === 'ubicacion' && t.lat != null && t.lng != null && !t.generico);
+  if (!pts.length) return '';
+
+  // agrupar por ámbito; sin ámbito definido, todo junto
+  const grupos = {};
+  pts.forEach(p => { const a = p.ambito || 'general'; (grupos[a] ||= []).push(p); });
+
+  const claves = Object.keys(grupos).sort((a,b) =>
+    ((CFG.mapas[a]?.orden ?? 99) - (CFG.mapas[b]?.orden ?? 99)) || a.localeCompare(b));
+  if (!claves.length) return '';
+  if (!claves.includes(MAPA)) MAPA = claves[0];
+
+  const etq = k => CFG.mapas[k]?.etiqueta
+    || k.charAt(0).toUpperCase() + k.slice(1);
+
+  return `<div class="panel">
+    <div class="cabpanel">
+      <div>
+        <h3>Mapa de demanda</h3>
+        <p class="ph">Cada punto es una zona mencionada por los clientes;
+           su tamaño, cuántas conversaciones la nombran.</p>
+      </div>
+      ${claves.length > 1 ? `<div class="rangos">
+        ${claves.map(k => `<button class="rg mp${MAPA===k?' on':''}" data-m="${esc(k)}">
+          ${esc(etq(k))}</button>`).join('')}
+      </div>` : ''}
+    </div>
+    ${dibujaMapa(grupos[MAPA], CFG.mapas[MAPA] || {})}
+  </div>`;
+}
+
+function dibujaMapa(pts, cfg){
+  if (!pts || !pts.length) return '<div class="vacio">Sin datos en este ámbito.</div>';
+  const E   = encuadre(pts, cfg);
+  const max = Math.max(...pts.map(p => p.conversaciones), 1);
+  const rMin = 6, rMax = pts.length > 12 ? 22 : 28;
+
+  // silueta opcional: lista de "lat,lng" con comandos M / L / Z
+  let silueta = '';
+  if (cfg.silueta){
+    const dpath = cfg.silueta.trim().split(/\s+/).map(tok => {
+      if (tok === 'M' || tok === 'L' || tok === 'Z') return tok;
+      const [la, ln] = tok.split(',').map(Number);
+      if (!isFinite(la) || !isFinite(ln)) return '';
+      const [x, y] = proy(la, ln, E);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).filter(Boolean).join(' ');
+    silueta = `<path d="${dpath}" fill="#F0F6FF" stroke="#CFE0FA"
+                     stroke-width="1.5" stroke-linejoin="round"/>`;
+  } else {
+    // sin silueta: fondo neutro con una retícula suave
+    silueta = `<rect x="0" y="0" width="${VB[0]}" height="${VB[1]}" rx="18" fill="#F7FAFF"/>
+      ${[1,2,3].map(i => `<line x1="0" y1="${VB[1]*i/4}" x2="${VB[0]}" y2="${VB[1]*i/4}"
+            stroke="#E8F0FC" stroke-width="1"/>`).join('')}
+      ${[1,2,3].map(i => `<line x1="${VB[0]*i/4}" y1="0" x2="${VB[0]*i/4}" y2="${VB[1]}"
+            stroke="#E8F0FC" stroke-width="1"/>`).join('')}`;
+  }
+
+  const orden = [...pts].sort((a,b) => b.conversaciones - a.conversaciones);
+  return `<svg viewBox="0 0 ${VB[0]} ${VB[1]}" class="svgmapa" role="img"
+      aria-label="Mapa de demanda por ubicación">
+    ${silueta}
+    ${orden.map((p, i) => {
+      const [x, y] = proy(Number(p.lat), Number(p.lng), E);
+      const r = rMin + (rMax - rMin) * Math.sqrt(p.conversaciones / max);
+      return `<g>
+        <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"
+                fill="#1B7CFF" fill-opacity="${(0.18 + 0.42*(p.conversaciones/max)).toFixed(2)}"
+                stroke="#1B7CFF" stroke-width="1.5"/>
+        <title>${esc(p.nombre)} · ${p.conversaciones} conversaciones</title>
+        ${i < 6 ? `<text x="${x.toFixed(1)}" y="${(y-r-7).toFixed(1)}"
+              text-anchor="middle" class="mtxt">${esc(p.nombre)}</text>
+          <text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}"
+              text-anchor="middle" class="mnum">${p.conversaciones}</text>` : ''}
+      </g>`;
+    }).join('')}
+  </svg>
+  ${cfg.silueta ? `<p class="nota" style="margin:10px 0 0">Representación esquemática
+     para situar la demanda; no es un mapa a escala.</p>` : ''}`;
 }
 
 /* ---------- patrón horario ---------- */
@@ -731,54 +994,131 @@ function grafica(ev){
   const et = d => porDia
     ? d.toLocaleDateString('es-ES', { day:'2-digit', month:'short' })
     : d.getHours() + ':00';
+  const etLargo = d => porDia
+    ? d.toLocaleDateString('es-ES', { weekday:'long', day:'2-digit', month:'long' })
+    : d.toLocaleDateString('es-ES', { day:'2-digit', month:'short' }) +
+      ', ' + d.getHours() + ':00 h';
+  const ancho = W / cubos.length;
 
-  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img"
-      aria-label="Mensajes entrantes a lo largo del periodo">
-    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1B7CFF" stop-opacity=".16"/>
-      <stop offset="100%" stop-color="#1B7CFF" stop-opacity="0"/>
-    </linearGradient></defs>
-    <line x1="0" y1="${H/2}" x2="${W}" y2="${H/2}" stroke="#E2E8F0" stroke-width="1"/>
-    <path d="${area}" fill="url(#g)"/>
-    <path d="${linea}" fill="none" stroke="#1B7CFF" stroke-width="2.5"
-          stroke-linejoin="round" stroke-linecap="round"/>
-    ${pts.map((p,i) => cubos[i].n > 0
-      ? `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="#1B7CFF"/>` : '').join('')}
-  </svg>
-  <div style="display:flex;justify-content:space-between;font-size:11px;color:#64748B;margin-top:9px"
-       class="mono">
-    <span>${et(cubos[0].t)}</span>
-    <span>${et(cubos[Math.floor(cubos.length/2)].t)}</span>
-    <span>${et(cubos[cubos.length-1].t)} · ahora</span>
+  return `<div class="graf" id="graf">
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img"
+        aria-label="Mensajes entrantes a lo largo del periodo">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1B7CFF" stop-opacity=".16"/>
+        <stop offset="100%" stop-color="#1B7CFF" stop-opacity="0"/>
+      </linearGradient></defs>
+      <line x1="0" y1="${H/2}" x2="${W}" y2="${H/2}" stroke="#E2E8F0" stroke-width="1"/>
+      <path d="${area}" fill="url(#g)"/>
+      <path d="${linea}" fill="none" stroke="#1B7CFF" stroke-width="2.5"
+            stroke-linejoin="round" stroke-linecap="round"/>
+      <line id="guia" x1="0" y1="0" x2="0" y2="${H}" stroke="#1B7CFF"
+            stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
+      ${pts.map((p,i) => cubos[i].n > 0
+        ? `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="#1B7CFF"/>` : '').join('')}
+      <circle id="foco" r="6" fill="#fff" stroke="#1B7CFF" stroke-width="2.5" opacity="0"/>
+      ${cubos.map((c,i) => `<rect x="${(i*ancho).toFixed(1)}" y="0"
+          width="${ancho.toFixed(1)}" height="${H}" fill="transparent"
+          data-i="${i}" data-x="${pts[i][0].toFixed(1)}" data-y="${pts[i][1].toFixed(1)}"
+          data-n="${c.n}" data-t="${esc(etLargo(c.t))}" class="hit"/>`).join('')}
+    </svg>
+    <div class="tip" id="tip" hidden></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:#64748B;margin-top:9px"
+         class="mono">
+      <span>${et(cubos[0].t)}</span>
+      <span>${et(cubos[Math.floor(cubos.length/2)].t)}</span>
+      <span>${et(cubos[cubos.length-1].t)} · ahora</span>
+    </div>
   </div>`;
 }
 
-/* ---------- vista: conversaciones ---------- */
-async function pintarConvs(){
-  $('#vista').innerHTML = '<div class="cargando">Cargando conversaciones…</div>';
-  const d = await datos();
+// Tooltip del cardiograma: se engancha tras pintar el bloque.
+function activarGrafico(){
+  const cont = $('#graf'); if (!cont) return;
+  const svg = cont.querySelector('svg');
+  const tip = $('#tip'), guia = $('#guia'), foco = $('#foco');
+  if (!svg || !tip) return;
 
-  $('#vista').innerHTML = `
+  cont.querySelectorAll('.hit').forEach(r => {
+    const mostrar = e => {
+      const n = r.dataset.n, x = +r.dataset.x, y = +r.dataset.y;
+      guia.setAttribute('x1', x); guia.setAttribute('x2', x);
+      guia.setAttribute('opacity', '1');
+      foco.setAttribute('cx', x); foco.setAttribute('cy', y);
+      foco.setAttribute('opacity', n > 0 ? '1' : '0');
+
+      tip.innerHTML = `<strong>${n} ${n === '1' ? 'mensaje' : 'mensajes'}</strong>
+                       <span>${r.dataset.t}</span>`;
+      tip.hidden = false;
+
+      const caja = cont.getBoundingClientRect();
+      const px = (e.touches ? e.touches[0].clientX : e.clientX) - caja.left;
+      const ancho = tip.offsetWidth || 130;
+      tip.style.left = Math.max(4, Math.min(px - ancho/2, caja.width - ancho - 4)) + 'px';
+      tip.style.top  = Math.max(0, (y / 190) * caja.height - 52) + 'px';
+    };
+    r.addEventListener('mousemove', mostrar);
+    r.addEventListener('touchstart', mostrar, { passive:true });
+  });
+
+  const ocultar = () => {
+    tip.hidden = true;
+    guia.setAttribute('opacity','0');
+    foco.setAttribute('opacity','0');
+  };
+  cont.addEventListener('mouseleave', ocultar);
+  cont.addEventListener('touchend', ocultar);
+}
+
+/* ---------- vista: conversaciones ----------
+   Se agrupa por PERSONA, no por sesión. El corte a 30 minutos
+   sigue existiendo para las métricas, pero aquí sería confuso:
+   el usuario piensa en "mi conversación con X", no en sesiones. */
+let CONTACTOS = [];
+
+async function pintarConvs(silencioso){
+  if (!silencioso) $('#vista').innerHTML =
+    '<div class="cargando">Cargando conversaciones…</div>';
+
+  const { data, error } = await supabase.rpc('mis_contactos');
+  ULTIMA = Date.now(); pintarCuando();
+
+  if (error){
+    pintaEn(`<h2 class="tit">Conversaciones</h2><div class="panel">
+      <div class="vacio">No se han podido cargar.<br>${esc(error.message)}</div>
+    </div>`, silencioso);
+    return;
+  }
+  CONTACTOS = data || [];
+
+  const sesiones = CONTACTOS.reduce((s,c) => s + Number(c.conversaciones), 0);
+  const vueltos  = CONTACTOS.filter(c => Number(c.conversaciones) > 1).length;
+  const conCita  = CONTACTOS.filter(c => c.cita).length;
+
+  pintaEn(`
     <h2 class="tit">Conversaciones</h2>
-    <p class="sub">Cada fila es una conversación con un contacto. Ábrela para ver el
-       intercambio completo entre el cliente y la IA.</p>
+    <p class="sub">Una fila por persona. Ábrela para ver todo el intercambio,
+       incluidas las veces que volvió a escribir.</p>
     <div class="panel">
       <div class="cabpanel">
-        <h3>${nf.format(d.convs.length)} conversaciones</h3>
+        <div>
+          <h3>${nf.format(CONTACTOS.length)} personas</h3>
+          <p class="ph" style="margin:2px 0 0">${nf.format(sesiones)} conversaciones${
+            vueltos ? ` · ${nf.format(vueltos)} ${vueltos===1?'persona ha vuelto':'personas han vuelto'} a escribir` : ''}${
+            conCita ? ` · ${nf.format(conCita)} con cita` : ''}</p>
+        </div>
         <input id="buscar" class="busca" type="search"
-               placeholder="Buscar por teléfono o texto…" autocomplete="off">
+               placeholder="Buscar por nombre, teléfono o texto…" autocomplete="off">
       </div>
-      <p class="ph">${nf.format(d.convs.reduce((s,c)=>s+(c.msg_count||0),0))} mensajes en total${
-         d.hist.length ? ` · ${nf.format(d.hist.length)} anteriores al registro con fecha` : ''}</p>
-      ${d.convs.length ? `<div class="tabla"><table>
-        <thead><tr><th>Contacto</th><th>Mensajes</th><th>Cliente</th><th>IA</th>
-        <th>Fecha</th><th>Señales</th></tr></thead>
-        <tbody>${d.convs.slice(0,100).map(fila).join('')}</tbody>
-      </table></div>` : '<div class="vacio">Todavía no hay conversaciones.</div>'}
-    </div>`;
+      <div class="tabla"><table>
+        <thead><tr>
+          <th>Contacto</th><th>Mensajes</th><th>Primera</th>
+          <th>Última</th><th>Señales</th>
+        </tr></thead>
+        <tbody>${CONTACTOS.slice(0,150).map(filaC).join('')}</tbody>
+      </table></div>
+    </div>`, silencioso);
 
   enlazarFilas();
-
   const inp = $('#buscar');
   let tmr = null;
   inp.addEventListener('input', () => {
@@ -787,42 +1127,180 @@ async function pintarConvs(){
   });
 }
 
+const filaC = c => `<tr data-c="${esc(c.contact_ref)}">
+  <td>
+    <div class="cnom">${c.nombre ? esc(c.nombre) : '<span class="csin">Sin nombre</span>'}</div>
+    <div class="cdat mono">${esc(c.telefono || c.contact_ref)}</div>
+    ${c.email ? `<div class="cdat">${esc(c.email)}</div>` : ''}
+  </td>
+  <td class="mono">${c.mensajes}
+    ${Number(c.conversaciones) > 1
+      ? `<span class="ses">${c.conversaciones} veces</span>` : ''}</td>
+  <td>${c.primera ? fechaCorta(c.primera) : '—'}</td>
+  <td>${c.historico ? '<span class="aprox">histórico</span>' : fechaCorta(c.ultima)}</td>
+  <td>${[
+      c.cita     ? '<span class="pill vd">Cita</span>'      : '',
+      c.interes  ? '<span class="pill az">Interés</span>'   : '',
+      c.contacto ? '<span class="pill nt">Contacto</span>'  : '',
+      c.friccion ? '<span class="pill rj">Fricción</span>'  : ''
+    ].join('') || '<span class="pill hist">—</span>'}</td>
+</tr>`;
+
 function enlazarFilas(){
-  document.querySelectorAll('tbody tr').forEach(tr =>
-    tr.addEventListener('click', () => abrir(tr.dataset.id)));
+  document.querySelectorAll('tbody tr[data-c]').forEach(tr =>
+    tr.addEventListener('click', () => abrir(tr.dataset.c)));
 }
 
 async function filtrar(q){
   const tb = document.querySelector('tbody');
   if (!tb) return;
+  if (!q){ tb.innerHTML = CONTACTOS.slice(0,150).map(filaC).join(''); enlazarFilas(); return; }
 
-  if (!q){
-    tb.innerHTML = CONVS.slice(0,100).map(fila).join('');
+  const n = q.toLowerCase();
+  // nombre, teléfono o email: filtra en memoria, instantáneo
+  const local = CONTACTOS.filter(c =>
+    (c.nombre   || '').toLowerCase().includes(n) ||
+    (c.telefono || '').includes(q.replace(/[^0-9]/g,'')) ||
+    (c.email    || '').toLowerCase().includes(n));
+
+  if (local.length || /^[0-9+ ]{3,}$/.test(q)){
+    tb.innerHTML = local.length ? local.map(filaC).join('')
+      : `<tr><td colspan="5" class="vacio">Ningún contacto coincide.</td></tr>`;
     enlazarFilas(); return;
   }
 
-  // teléfono: filtra en memoria. texto: busca en los mensajes.
-  if (/^[0-9+ ]{3,}$/.test(q)){
-    const n = q.replace(/[^0-9]/g,'');
-    const r = CONVS.filter(c => (c.contact_ref||'').includes(n));
-    tb.innerHTML = r.length ? r.map(fila).join('')
-      : `<tr><td colspan="6" class="vacio">Ningún contacto coincide.</td></tr>`;
-    enlazarFilas(); return;
-  }
-
-  tb.innerHTML = `<tr><td colspan="6" class="vacio">Buscando…</td></tr>`;
+  // si no, se busca dentro del texto de los mensajes
+  tb.innerHTML = `<tr><td colspan="5" class="vacio">Buscando en los mensajes…</td></tr>`;
   const { data } = await supabase.from('message_events')
-    .select('conversation_id').ilike('content', `%${q}%`).limit(400);
+    .select('conversation_id').ilike('content', `%${q}%`).limit(500);
   const ids = new Set((data || []).map(r => r.conversation_id));
-  const r = CONVS.filter(c => ids.has(c.id));
-  tb.innerHTML = r.length ? r.map(fila).join('')
-    : `<tr><td colspan="6" class="vacio">Ninguna conversación contiene «${esc(q)}».</td></tr>`;
+  const r = CONTACTOS.filter(c => (c.ids || []).some(i => ids.has(i)));
+  tb.innerHTML = r.length ? r.map(filaC).join('')
+    : `<tr><td colspan="5" class="vacio">Ninguna conversación contiene «${esc(q)}».</td></tr>`;
   enlazarFilas();
 }
 
+/* ---------- vista: agenda ----------
+   Las citas ya las guarda el agente en la tabla users mediante
+   su herramienta "Save Data". Aquí solo se presentan.          */
+async function pintarAgenda(silencioso){
+  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando agenda…</div>';
+
+  const { data, error } = await supabase.rpc('mis_citas');
+  ULTIMA = Date.now(); pintarCuando();
+
+  if (error){
+    pintaEn(`<h2 class="tit">Agenda</h2><div class="panel">
+      <div class="vacio">No se ha podido cargar la agenda.<br>${esc(error.message)}</div>
+    </div>`, silencioso);
+    return;
+  }
+
+  const citas = data || [];
+  const ahora = Date.now();
+  const vivas = citas.filter(c => c.estado !== 'cancelada');
+  const canceladas = citas.filter(c => c.estado === 'cancelada');
+  const conFecha = vivas.filter(c => c.cuando);
+  const proximas = conFecha.filter(c => new Date(c.cuando) >= ahora)
+    .sort((a,b) => new Date(a.cuando) - new Date(b.cuando));
+  const pasadas  = conFecha.filter(c => new Date(c.cuando) < ahora)
+    .sort((a,b) => new Date(b.cuando) - new Date(a.cuando));
+  const sinFecha = vivas.filter(c => !c.cuando);
+
+  pintaEn(`
+    <h2 class="tit">Agenda</h2>
+    <p class="sub">Citas que ha ido registrando el asistente en sus conversaciones.
+       Puedes añadir cada una a tu calendario.</p>
+
+    <div class="kpis">
+      ${kpi('Próximas citas', nf.format(proximas.length),
+            proximas.length ? 'La más cercana, ' + fechaCorta(proximas[0].cuando) : 'Ninguna pendiente')}
+      ${kpi('Citas agendadas', nf.format(vivas.length), 'Desde el inicio del servicio', true)}
+      ${kpi('Ya celebradas', nf.format(pasadas.length), 'Con fecha pasada')}
+      ${kpi('Canceladas', nf.format(canceladas.length),
+            citas.length ? `${Math.round(canceladas.length / citas.length * 100)}% del total` : '—')}
+    </div>
+
+    ${bloqueCitas('Próximas', proximas, true)}
+    ${bloqueCitas('Anteriores', pasadas.slice(0, 25), false)}
+    ${sinFecha.length ? bloqueCitas('Sin fecha', sinFecha, false) : ''}
+    ${canceladas.length ? bloqueCitas('Canceladas', canceladas.slice(0, 15), false) : ''}
+
+    ${!citas.length ? `<div class="panel"><div class="vacio">
+      Todavía no hay ninguna cita registrada.<br>
+      Aparecerán aquí en cuanto se agende la primera desde Calendly.</div></div>` : ''}`,
+    silencioso);
+
+  document.querySelectorAll('.ics').forEach(b =>
+    b.addEventListener('click', () => descargarICS(JSON.parse(b.dataset.c))));
+}
+
+function bloqueCitas(titulo, lista, destacar){
+  if (!lista.length) return '';
+  return `<div class="panel">
+    <h3>${titulo}</h3>
+    <p class="ph">${nf.format(lista.length)} ${lista.length===1?'cita':'citas'}</p>
+    <div class="citas">
+      ${lista.map(c => `<div class="cita${destacar?' pr':''}${
+          c.estado === 'cancelada' ? ' can' : ''}">
+        <div class="cfecha">
+          ${c.cuando ? `<span class="cdia">${new Date(c.cuando).toLocaleDateString('es-ES',
+                {day:'2-digit'})}</span>
+            <span class="cmes">${new Date(c.cuando).toLocaleDateString('es-ES',
+                {month:'short'})}</span>
+            <span class="chora mono">${new Date(c.cuando).toLocaleTimeString('es-ES',
+                {hour:'2-digit',minute:'2-digit'})}</span>`
+            : `<span class="cdia">·</span><span class="cmes">s/f</span>`}
+        </div>
+        <div class="ccuerpo">
+          <strong>${c.nombre ? esc(c.nombre) : esc(c.telefono || c.email || 'Contacto')}</strong>
+          ${c.descripcion ? `<span>${esc(c.descripcion)}</span>` : ''}
+          <span class="cmeta mono">${esc(c.telefono || '')}${
+            c.email ? ' · ' + esc(c.email) : ''}</span>
+          ${c.ubicacion ? `<span class="cmeta">${esc(c.ubicacion)}</span>` : ''}
+        </div>
+        <div class="cacc">
+          ${c.telefono ? `<a class="cbtn" href="tel:${esc(c.telefono)}">Llamar</a>` : ''}
+          ${c.cuando && c.estado !== 'cancelada' ? `<button class="cbtn ics"
+              data-c='${esc(JSON.stringify({t:c.nombre||c.telefono,d:c.descripcion||'',
+                            w:c.cuando,e:c.email||'',p:c.telefono||''}))}'>Calendario</button>` : ''}
+          ${c.enlace && c.estado !== 'cancelada' ? `<a class="cbtn" href="${esc(c.enlace)}"
+              target="_blank" rel="noopener noreferrer">Reagendar</a>` : ''}
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// Genera un .ics estándar: se abre en Google Calendar, Outlook,
+// Apple Calendar o el que tenga configurado el usuario.
+function descargarICS(c){
+  const ini = new Date(c.w);
+  const fin = new Date(ini.getTime() + 60*60*1000);
+  const z = d => d.toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+  const esc2 = s => String(s||'').replace(/([,;\\])/g,'\\$1').replace(/\n/g,'\\n');
+  const ics = [
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//SimpliaSpain//Panel//ES',
+    'BEGIN:VEVENT',
+    'UID:' + Date.now() + '@simpliaspain',
+    'DTSTAMP:' + z(new Date()),
+    'DTSTART:' + z(ini),
+    'DTEND:'   + z(fin),
+    'SUMMARY:' + esc2('Cita · ' + c.t),
+    'DESCRIPTION:' + esc2((c.d ? c.d + '\n' : '') +
+        (c.p ? 'Teléfono: ' + c.p + '\n' : '') + (c.e ? 'Email: ' + c.e : '')),
+    'END:VEVENT','END:VCALENDAR'
+  ].join('\r\n');
+
+  const url = URL.createObjectURL(new Blob([ics], {type:'text/calendar;charset=utf-8'}));
+  const a = document.createElement('a');
+  a.href = url; a.download = 'cita.ics'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 /* ---------- vista: configuración ---------- */
-async function pintarAjustes(){
-  $('#vista').innerHTML = '<div class="cargando">Cargando configuración…</div>';
+async function pintarAjustes(silencioso){
+  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando configuración…</div>';
 
   let r = null, err = null;
   try {
@@ -871,28 +1349,39 @@ async function pintarAjustes(){
 
     <div class="panel">
       <h3>Parámetros de cálculo</h3>
-      <p class="ph">Se usan para estimar el coste de atención evitado.
-         Ajústalos a tu realidad para que la cifra tenga sentido.</p>
+      <p class="ph">Los usamos para estimar el coste de atención evitado.
+         ${r.puede_editar_coste ? 'Puedes ajustarlos a tu realidad.'
+           : 'Los fija SimpliaSpain para que la cifra sea comparable entre periodos. Si no encajan con tu operación, dínoslo y los actualizamos.'}</p>
+      ${r.puede_editar_coste ? `
+        <div class="campos">
+          <div>
+            <label for="ch">Coste por hora de una persona (€)</label>
+            <input id="ch" type="number" min="0" max="1000" step="0.5"
+                   value="${a.coste_hora_eur ?? ''}">
+          </div>
+          <div>
+            <label for="mn">Minutos que llevaría atender una conversación</label>
+            <input id="mn" type="number" min="0" max="480" step="0.5"
+                   value="${a.minutos_por_conversacion ?? ''}">
+          </div>
+        </div>`
+        : `<dl class="ficha">
+          <dt>Coste por hora</dt>
+          <dd>${a.coste_hora_eur != null ? a.coste_hora_eur + ' €' : '—'}</dd>
+          <dt>Minutos por conversación</dt>
+          <dd>${a.minutos_por_conversacion != null ? a.minutos_por_conversacion + ' min' : '—'}</dd>
+        </dl>`}
+    </div>
+
+    <div class="panel">
+      <h3>Tus preferencias</h3>
+      <p class="ph">Lo que puedes cambiar tú mismo.</p>
       <div class="campos">
         <div>
-          <label for="ch">Coste por hora de una persona (€)</label>
-          <input id="ch" type="number" min="0" max="1000" step="0.5"
-                 value="${a.coste_hora_eur ?? ''}" ${r.puede_editar_coste ? '' : 'disabled'}>
-          ${r.puede_editar_coste ? '' :
-            '<p class="hint">Lo define SimpliaSpain para que la cifra sea comparable.</p>'}
-        </div>
-        <div>
-          <label for="mn">Minutos que llevaría atender una conversación</label>
-          <input id="mn" type="number" min="0" max="480" step="0.5"
-                 value="${a.minutos_por_conversacion ?? ''}" ${r.puede_editar_coste ? '' : 'disabled'}>
-          ${r.puede_editar_coste ? '' :
-            '<p class="hint">Si no encaja con tu operación, dínoslo y lo ajustamos.</p>'}
-        </div>
-        <div>
-          <label for="ea">Email para avisos</label>
+          <label for="ea">Email para avisos del servicio</label>
           <input id="ea" type="email" placeholder="avisos@empresa.com"
                  value="${esc(a.email_avisos ?? '')}">
-          <p class="hint">Editable. Se usará para avisos del servicio.</p>
+          <p class="hint">Usaremos esta dirección para comunicaciones sobre el asistente.</p>
         </div>
       </div>
       <div class="acc">
@@ -900,6 +1389,23 @@ async function pintarAjustes(){
         <span id="msg" class="msg-ok"></span>
       </div>
     </div>
+
+    ${CFG.documentos && CFG.documentos.length ? `<div class="panel">
+      <h3>Información del servicio</h3>
+      <p class="ph">Documentación que usa el asistente para responder.
+         Solo lectura: si necesitas cambiar algo, escríbenos y lo actualizamos.</p>
+      <div class="docs">
+        ${CFG.documentos.map(doc => `<a class="doc" href="${esc(doc.url)}"
+            target="_blank" rel="noopener noreferrer">
+          <span class="dico" aria-hidden="true">📄</span>
+          <span class="dtx">
+            <strong>${esc(doc.titulo || 'Documento')}</strong>
+            ${doc.desc ? `<span>${esc(doc.desc)}</span>` : ''}
+          </span>
+          <span class="dfl" aria-hidden="true">↗</span>
+        </a>`).join('')}
+      </div>
+    </div>` : ''}
 
     <div class="panel">
       <h3>Tratamiento de datos</h3>
@@ -936,7 +1442,7 @@ async function pintarAjustes(){
     const num = v => v === '' ? null : Number(v);
     try {
       const args = { p_email_avisos: $('#ea').value.trim() };
-      if (!$('#ch').disabled){
+      if ($('#ch')){
         args.p_coste_hora = num($('#ch').value);
         args.p_minutos    = num($('#mn').value);
       }
@@ -977,29 +1483,46 @@ function horarioTexto(){
   return `${ds[0]} a ${ds[ds.length-1]}, de ${H.inicio}:00 a ${H.fin}:00`;
 }
 
-/* ---------- detalle ---------- */
-async function abrir(id){
-  const c = CONVS.find(x => x.id === id);
+/* ---------- detalle de un contacto ---------- */
+async function abrir(contact){
+  const c = CONTACTOS.find(x => x.contact_ref === contact) || {};
   $('#mbox').innerHTML = '<div class="cargando">Cargando…</div>';
   $('#modal').style.display = 'block';
 
-  const { data } = await supabase.from('message_events')
-    .select('role,content,observed_at,is_backfilled')
-    .eq('conversation_id', id).order('id', { ascending:true });
+  const { data } = await supabase.rpc('mensajes_contacto', { p_contact: contact });
+  const msgs = data || [];
+  let sesion = null;
 
   $('#mbox').innerHTML = `
     <div class="cab">
       <div>
-        <h2 style="font-size:22px;letter-spacing:-.02em">Conversación</h2>
-        <p style="color:#64748B;font-size:13px;margin-top:5px" class="mono">
-          ${ofusca(c.contact_ref)} · ${data.length} mensajes</p>
+        <h2 style="font-size:21px;letter-spacing:-.02em">
+          ${c.nombre ? esc(c.nombre) : 'Contacto'}</h2>
+        <p class="dmeta">
+          <a href="tel:${esc(c.telefono||'')}" class="mono">${esc(c.telefono || contact)}</a>
+          ${c.email ? ` · <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}
+        </p>
+        <p class="dmeta">${msgs.length} mensajes${
+          Number(c.conversaciones) > 1 ? ` en ${c.conversaciones} conversaciones` : ''}${
+          c.cita ? ` · cita: ${esc(c.cita)}` : ''}</p>
       </div>
       <button class="cerrar" id="cx" aria-label="Cerrar">×</button>
     </div>
-    ${data.map(m => `<div class="msg ${m.role === 'human' ? 'h' : 'a'}">
-      <div class="burb">${esc(m.content || '')}
-        <div class="hora">${m.is_backfilled ? 'Sin fecha registrada' : hora(m.observed_at)}</div>
-      </div></div>`).join('')}`;
+    ${msgs.map(m => {
+      let sep = '';
+      if (m.sesion !== sesion){
+        sesion = m.sesion;
+        const f = m.is_backfilled ? null : (m.fecha_ref || m.observed_at);
+        sep = `<div class="sep"><span>${
+          msgs.filter(x => x.sesion === m.sesion).length} mensajes${
+          f ? ' · ' + fecha(f) : ''}</span></div>`;
+      }
+      return sep + `<div class="msg ${m.role === 'human' ? 'h' : 'a'}">
+        <div class="burb">${esc(m.content || '')}
+          <div class="hora">${m.is_backfilled ? 'sin hora registrada' : hora(m.observed_at)}${
+            m.latency_ms ? ` · ${(m.latency_ms/1000).toFixed(1)}s` : ''}</div>
+        </div></div>`;
+    }).join('')}`;
 
   $('#cx').addEventListener('click', cerrar);
 }
@@ -1011,6 +1534,8 @@ document.addEventListener('keydown', e => e.key === 'Escape' && cerrar());
 // El teléfono completo no se muestra en pantalla: se ve lo justo para reconocer al contacto.
 const ofusca = t => t ? t.slice(0,4) + '···' + t.slice(-3) : '—';
 const esc = s => s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const fechaCorta = d => new Date(d).toLocaleDateString('es-ES',
+  { day:'2-digit', month:'short', year:'2-digit' });
 const fecha = d => new Date(d).toLocaleString('es-ES',
   { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
 const hora = d => new Date(d).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
