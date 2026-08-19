@@ -251,6 +251,9 @@
   .svgmapa{width:100%;height:auto;display:block;max-height:min(60vh,460px)}
   .mtxt{font-size:12px;font-weight:700;fill:#0A1F4A;font-family:'Plus Jakarta Sans',sans-serif}
   .mnum{font-size:12px;font-weight:800;fill:#fff;font-family:'JetBrains Mono',monospace}
+  .mkm{font-size:10.5px;fill:#94A3B8;font-family:'JetBrains Mono',monospace;font-weight:500}
+  .mcen{font-size:10.5px;fill:#64748B;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;
+        letter-spacing:.04em;text-transform:uppercase}
 
   .docs{display:grid;gap:10px}
   .doc{display:flex;align-items:center;gap:13px;padding:14px 16px;
@@ -488,7 +491,7 @@ async function entrar(){
 /* Auto-refresco cada 30 s. Se detiene si la pestaña no está
    visible, para no consumir peticiones en balde, y no interrumpe
    si hay un modal abierto o el usuario está escribiendo. */
-let TIMER = null, VISTA = 'latido', MAPA = null;
+let TIMER = null, VISTA = 'latido', MAPA = null, ULTIMOS = null;
 function autoRefresco(){
   clearInterval(TIMER);
   TIMER = setInterval(() => {
@@ -717,10 +720,17 @@ async function pintarLatido(silencioso){
     </div>`, silencioso);
 
   activarGrafico();
+  ULTIMOS = d;
+
+  // El rango sí necesita volver a consultar (otra ventana temporal),
+  // pero se pinta en modo silencioso para conservar el scroll.
   document.querySelectorAll('.rg[data-h]').forEach(b =>
-    b.addEventListener('click', () => { RANGO = +b.dataset.h; pintarLatido(); }));
+    b.addEventListener('click', () => { RANGO = +b.dataset.h; pintarLatido(true); }));
+
+  // El mapa no necesita datos nuevos: se repinta solo su bloque,
+  // sin tocar el resto de la página ni mover el scroll.
   document.querySelectorAll('.rg[data-m]').forEach(b =>
-    b.addEventListener('click', () => { MAPA = b.dataset.m; pintarLatido(); }));
+    b.addEventListener('click', () => { MAPA = b.dataset.m; repintarMapa(); }));
 }
 
 const kpi = (l,n,p,az) => `<div class="kpi">
@@ -839,6 +849,20 @@ const proy = (lat, lng, E) => [
   (1 - (lat - E.la0) / (E.la1 - E.la0)) * E.H
 ];
 
+// Repinta únicamente el panel del mapa, en su sitio.
+function repintarMapa(){
+  if (!ULTIMOS) return;
+  const actual = document.getElementById('panelmapa');
+  if (!actual) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = bloqueMapa(ULTIMOS);
+  const nuevo = tmp.firstElementChild;
+  if (!nuevo) return;
+  actual.replaceWith(nuevo);
+  document.querySelectorAll('.rg[data-m]').forEach(b =>
+    b.addEventListener('click', () => { MAPA = b.dataset.m; repintarMapa(); }));
+}
+
 function bloqueMapa(d){
   // Los genéricos (p. ej. "Madrid" sin concretar centro) SÍ entran
   // en el mapa: en la vista nacional son el punto más relevante.
@@ -856,7 +880,7 @@ function bloqueMapa(d){
 
   const etq = k => CFG.mapas[k]?.etiqueta || k.charAt(0).toUpperCase() + k.slice(1);
 
-  return `<div class="panel">
+  return `<div class="panel" id="panelmapa">
     <div class="cabpanel">
       <div>
         <h3>Mapa de demanda</h3>
@@ -890,17 +914,73 @@ function dibujaMapa(pts, cfg){
     fondo = `<path d="${dpath}" fill="#EFF6FF" stroke="#C7DDF9"
                    stroke-width="1.5" stroke-linejoin="round"/>`;
   } else {
-    fondo = `<rect x="0" y="0" width="${E.W}" height="${E.H}" rx="16" fill="#F7FAFF"/>
-      ${[1,2,3].map(i => `<line x1="0" y1="${(E.H*i/4).toFixed(0)}"
-            x2="${E.W}" y2="${(E.H*i/4).toFixed(0)}" stroke="#E8F0FC" stroke-width="1"/>`).join('')}
-      ${[1,2,3].map(i => `<line x1="${(E.W*i/4).toFixed(0)}" y1="0"
-            x2="${(E.W*i/4).toFixed(0)}" y2="${E.H}" stroke="#E8F0FC" stroke-width="1"/>`).join('')}`;
+    // Sin silueta se dibujan referencias reales: retícula fina y
+    // anillos de distancia desde un punto conocido. Preferimos
+    // esto a inventar un contorno aproximado de la ciudad.
+    const cen = cfg.centro || {
+      lat: (E.la0 + E.la1) / 2, lng: (E.ln0 + E.ln1) / 2, etiqueta: 'Centro'
+    };
+    const [cx, cy] = proy(Number(cen.lat), Number(cen.lng), E);
+
+    // px por km, a partir de la escala real del encuadre
+    const kmLat = 111.32;
+    const kmLng = 111.32 * Math.cos((E.la0 + E.la1) / 2 * Math.PI / 180);
+    const pxKm  = (E.W / ((E.ln1 - E.ln0) * kmLng));
+
+    // radios "redondos" que quepan en el lienzo
+    const maxKm = Math.max(E.W, E.H) / pxKm / 2;
+    const escala = [1,2,5,10,15,20,25,50,100,150,200];
+    const anillos = escala.filter(k => k * pxKm > 34 && k < maxKm * 1.15).slice(0, 5);
+
+    // barra de escala: una distancia redonda de ~1/5 del ancho
+    const objetivo = (E.W / pxKm) / 5;
+    const barraKm = escala.reduce((a,b) =>
+      Math.abs(b - objetivo) < Math.abs(a - objetivo) ? b : a, escala[0]);
+
+    fondo = `
+      <rect x="0" y="0" width="${E.W}" height="${E.H}" rx="16" fill="#FBFDFF"/>
+      <g stroke="#EDF3FC" stroke-width="1">
+        ${Array.from({length:11}, (_,i) => i+1).map(i =>
+          `<line x1="0" y1="${(E.H*i/12).toFixed(0)}" x2="${E.W}" y2="${(E.H*i/12).toFixed(0)}"/>`).join('')}
+        ${Array.from({length:11}, (_,i) => i+1).map(i =>
+          `<line x1="${(E.W*i/12).toFixed(0)}" y1="0" x2="${(E.W*i/12).toFixed(0)}" y2="${E.H}"/>`).join('')}
+      </g>
+      <g>
+        ${anillos.map(k => `
+          <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(k*pxKm).toFixed(1)}"
+                  fill="none" stroke="#D6E6FA" stroke-width="1.2" stroke-dasharray="4 5"/>
+          <text x="${(cx + k*pxKm*0.7071).toFixed(1)}"
+                y="${(cy - k*pxKm*0.7071 + 4).toFixed(1)}"
+                class="mkm">${k} km</text>`).join('')}
+      </g>
+      <g>
+        <line x1="${(cx-7).toFixed(1)}" y1="${cy.toFixed(1)}"
+              x2="${(cx+7).toFixed(1)}" y2="${cy.toFixed(1)}" stroke="#94A3B8" stroke-width="1.5"/>
+        <line x1="${cx.toFixed(1)}" y1="${(cy-7).toFixed(1)}"
+              x2="${cx.toFixed(1)}" y2="${(cy+7).toFixed(1)}" stroke="#94A3B8" stroke-width="1.5"/>
+        <text x="${cx.toFixed(1)}" y="${(cy+20).toFixed(1)}"
+              text-anchor="middle" class="mcen">${esc(cen.etiqueta || 'Centro')}</text>
+      </g>
+      <g transform="translate(20,${E.H-24})">
+        <line x1="0" y1="0" x2="${(barraKm*pxKm).toFixed(1)}" y2="0"
+              stroke="#94A3B8" stroke-width="2"/>
+        <line x1="0" y1="-4" x2="0" y2="4" stroke="#94A3B8" stroke-width="2"/>
+        <line x1="${(barraKm*pxKm).toFixed(1)}" y1="-4"
+              x2="${(barraKm*pxKm).toFixed(1)}" y2="4" stroke="#94A3B8" stroke-width="2"/>
+        <text x="${(barraKm*pxKm/2).toFixed(1)}" y="-8"
+              text-anchor="middle" class="mkm">${barraKm} km</text>
+      </g>`;
   }
 
   // Etiquetas: se colocan de mayor a menor y se omite la que
   // chocaría con otra ya puesta. Sin esto se solapan los centros
   // que están en la misma manzana.
   const puestas = [];
+  if (!cfg.silueta){
+    const c = cfg.centro || { lat:(E.la0+E.la1)/2, lng:(E.ln0+E.ln1)/2 };
+    const [ccx, ccy] = proy(Number(c.lat), Number(c.lng), E);
+    puestas.push({ x1:ccx-42, x2:ccx+42, y1:ccy+6, y2:ccy+26 });
+  }
   const cabe = (x, y, texto) => {
     const w = texto.length * 6.6 + 10, h = 17;
     const caja = { x1:x-w/2, x2:x+w/2, y1:y-h, y2:y+3 };
@@ -938,7 +1018,8 @@ function dibujaMapa(pts, cfg){
     ${fondo}${circulos.join('')}${textos.join('')}
   </svg>
   <p class="nota" style="margin:10px 0 0">
-    ${cfg.silueta ? 'Representación esquemática; no es un mapa a escala. ' : ''}
+    ${cfg.silueta ? 'Representación esquemática; no es un mapa a escala. '
+       : 'Los anillos marcan la distancia en línea recta desde el centro. '}
     ${sinEtiqueta > 0 ? `${sinEtiqueta} ${sinEtiqueta === 1 ? 'zona más queda' : 'zonas más quedan'}
        sin etiquetar por falta de espacio: pasa el ratón por encima para verlas.` : ''}
   </p>`;
