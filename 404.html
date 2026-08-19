@@ -126,9 +126,13 @@
   td,th{white-space:nowrap}
   td:first-child,th:first-child{white-space:normal}
   th{
-    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
-    color:var(--gris);padding:0 14px 11px;font-weight:700;
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--gris);padding:0 14px 12px;font-weight:700;
+    border-bottom:1px solid var(--linea);
   }
+  thead tr th:first-child{padding-left:0}
+  tbody td:first-child{padding-left:0}
+  tbody tr:first-child td{border-top:0}
   td{padding:13px 14px;border-top:1px solid var(--linea)}
   tbody tr{cursor:pointer}
   tbody tr:hover{background:var(--fondo)}
@@ -161,7 +165,9 @@
     background:#FFFAEB;border:1px solid #FEDF89;border-radius:12px;
     padding:13px 17px;font-size:12.5px;color:#93370D;margin-bottom:24px;line-height:1.6;
   }
-  .cabpanel{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .cabpanel{display:flex;justify-content:space-between;align-items:flex-start;
+            gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  .cabpanel .ph{margin-bottom:0}
   .rangos{display:flex;gap:4px;background:var(--fondo);padding:3px;border-radius:10px}
   .rg{background:none;padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--gris)}
   .rg.on{background:var(--blanco);color:var(--pulso);box-shadow:0 1px 3px rgba(10,31,74,.09)}
@@ -225,7 +231,7 @@
   .md{font-size:11px;color:var(--gris);font-weight:600}
   .mc{aspect-ratio:1;border-radius:3px;background:var(--aire);min-height:11px}
 
-  .busca{width:auto;min-width:230px;max-width:100%;margin:0;padding:9px 13px;font-size:13.5px}
+  .busca{width:auto;min-width:260px;flex:0 1 320px;max-width:100%;margin:0;padding:9px 13px;font-size:13.5px}
   @media(max-width:600px){.busca{width:100%;min-width:0}}
   .aprox{font-size:10px;color:var(--gris);font-weight:600}
   .pill.az{background:#E5EFFE;color:#0A4DA6}
@@ -787,54 +793,59 @@ function bloqueTemas(d, cat){
    del cliente, así que funciona en cualquier geografía. La silueta
    de referencia es opcional y vive en su configuración.          */
 
-const VB = [760, 560];   // lienzo del SVG
+// El lienzo se adapta a la forma de los datos en vez de forzar
+// los datos a un lienzo fijo: así no queda espacio muerto a los
+// lados cuando la nube de puntos es más alta que ancha.
+const W_MAPA = 760;
 
-// Encuadre a partir de los puntos, con margen y corrección de
-// aspecto (un grado de longitud mide menos según la latitud).
 function encuadre(pts, cfg){
+  let la0, la1, ln0, ln1;
+
   if (cfg && cfg.encuadre){
     const e = cfg.encuadre;
-    return { la0:e.lat_min, la1:e.lat_max, ln0:e.lng_min, ln1:e.lng_max };
-  }
-  const las = pts.map(p => Number(p.lat));
-  const lns = pts.map(p => Number(p.lng));
-  let la0 = Math.min(...las), la1 = Math.max(...las);
-  let ln0 = Math.min(...lns), ln1 = Math.max(...lns);
-
-  // un solo punto o puntos muy juntos: se abre un mínimo
-  const MIN = 0.04;
-  if (la1 - la0 < MIN){ const c=(la0+la1)/2; la0=c-MIN/2; la1=c+MIN/2; }
-  if (ln1 - ln0 < MIN){ const c=(ln0+ln1)/2; ln0=c-MIN/2; ln1=c+MIN/2; }
-
-  // margen del 18% para que los puntos no toquen el borde
-  const ml = (la1-la0)*0.18, mn = (ln1-ln0)*0.18;
-  la0-=ml; la1+=ml; ln0-=mn; ln1+=mn;
-
-  // ajuste de proporción para no deformar la geografía
-  const k = Math.cos((la0+la1)/2 * Math.PI/180);
-  const spanLa = la1-la0, spanLn = (ln1-ln0)*k;
-  const rLienzo = VB[0]/VB[1], rDatos = spanLn/spanLa;
-  if (rDatos > rLienzo){
-    const nueva = spanLn/rLienzo, d=(nueva-spanLa)/2;
-    la0-=d; la1+=d;
+    la0 = e.lat_min; la1 = e.lat_max; ln0 = e.lng_min; ln1 = e.lng_max;
+    // los puntos fuera del encuadre configurado (p. ej. Canarias
+    // en un mapa peninsular) lo amplían para no perderlos
+    pts.forEach(p => {
+      const la = Number(p.lat), ln = Number(p.lng);
+      if (la < la0) la0 = la - 0.4;  if (la > la1) la1 = la + 0.4;
+      if (ln < ln0) ln0 = ln - 0.4;  if (ln > ln1) ln1 = ln + 0.4;
+    });
   } else {
-    const nueva = (spanLa*rLienzo)/k, d=(nueva-(ln1-ln0))/2;
-    ln0-=d; ln1+=d;
+    const las = pts.map(p => Number(p.lat));
+    const lns = pts.map(p => Number(p.lng));
+    la0 = Math.min(...las); la1 = Math.max(...las);
+    ln0 = Math.min(...lns); ln1 = Math.max(...lns);
+
+    const MIN = 0.03;
+    if (la1 - la0 < MIN){ const c=(la0+la1)/2; la0=c-MIN/2; la1=c+MIN/2; }
+    if (ln1 - ln0 < MIN){ const c=(ln0+ln1)/2; ln0=c-MIN/2; ln1=c+MIN/2; }
+
+    const ml = (la1-la0)*0.22, mn = (ln1-ln0)*0.22;
+    la0-=ml; la1+=ml; ln0-=mn; ln1+=mn;
   }
-  return { la0, la1, ln0, ln1 };
+
+  // altura del lienzo según la proporción geográfica real
+  const k = Math.cos((la0+la1)/2 * Math.PI/180);
+  const anchoGeo = (ln1-ln0) * k, altoGeo = la1-la0;
+  let H = Math.round(W_MAPA * altoGeo / anchoGeo);
+  H = Math.max(320, Math.min(H, 620));   // límites razonables
+
+  return { la0, la1, ln0, ln1, W: W_MAPA, H };
 }
 
 const proy = (lat, lng, E) => [
-  (lng - E.ln0) / (E.ln1 - E.ln0) * VB[0],
-  (1 - (lat - E.la0) / (E.la1 - E.la0)) * VB[1]
+  (lng - E.ln0) / (E.ln1 - E.ln0) * E.W,
+  (1 - (lat - E.la0) / (E.la1 - E.la0)) * E.H
 ];
 
 function bloqueMapa(d){
+  // Los genéricos (p. ej. "Madrid" sin concretar centro) SÍ entran
+  // en el mapa: en la vista nacional son el punto más relevante.
   const pts = (d.temas || []).filter(t =>
-    t.categoria === 'ubicacion' && t.lat != null && t.lng != null && !t.generico);
+    t.categoria === 'ubicacion' && t.lat != null && t.lng != null);
   if (!pts.length) return '';
 
-  // agrupar por ámbito; sin ámbito definido, todo junto
   const grupos = {};
   pts.forEach(p => { const a = p.ambito || 'general'; (grupos[a] ||= []).push(p); });
 
@@ -843,8 +854,7 @@ function bloqueMapa(d){
   if (!claves.length) return '';
   if (!claves.includes(MAPA)) MAPA = claves[0];
 
-  const etq = k => CFG.mapas[k]?.etiqueta
-    || k.charAt(0).toUpperCase() + k.slice(1);
+  const etq = k => CFG.mapas[k]?.etiqueta || k.charAt(0).toUpperCase() + k.slice(1);
 
   return `<div class="panel">
     <div class="cabpanel">
@@ -866,10 +876,9 @@ function dibujaMapa(pts, cfg){
   if (!pts || !pts.length) return '<div class="vacio">Sin datos en este ámbito.</div>';
   const E   = encuadre(pts, cfg);
   const max = Math.max(...pts.map(p => p.conversaciones), 1);
-  const rMin = 6, rMax = pts.length > 12 ? 22 : 28;
+  const rMin = 7, rMax = pts.length > 14 ? 20 : 26;
 
-  // silueta opcional: lista de "lat,lng" con comandos M / L / Z
-  let silueta = '';
+  let fondo;
   if (cfg.silueta){
     const dpath = cfg.silueta.trim().split(/\s+/).map(tok => {
       if (tok === 'M' || tok === 'L' || tok === 'Z') return tok;
@@ -878,38 +887,61 @@ function dibujaMapa(pts, cfg){
       const [x, y] = proy(la, ln, E);
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).filter(Boolean).join(' ');
-    silueta = `<path d="${dpath}" fill="#F0F6FF" stroke="#CFE0FA"
-                     stroke-width="1.5" stroke-linejoin="round"/>`;
+    fondo = `<path d="${dpath}" fill="#EFF6FF" stroke="#C7DDF9"
+                   stroke-width="1.5" stroke-linejoin="round"/>`;
   } else {
-    // sin silueta: fondo neutro con una retícula suave
-    silueta = `<rect x="0" y="0" width="${VB[0]}" height="${VB[1]}" rx="18" fill="#F7FAFF"/>
-      ${[1,2,3].map(i => `<line x1="0" y1="${VB[1]*i/4}" x2="${VB[0]}" y2="${VB[1]*i/4}"
-            stroke="#E8F0FC" stroke-width="1"/>`).join('')}
-      ${[1,2,3].map(i => `<line x1="${VB[0]*i/4}" y1="0" x2="${VB[0]*i/4}" y2="${VB[1]}"
-            stroke="#E8F0FC" stroke-width="1"/>`).join('')}`;
+    fondo = `<rect x="0" y="0" width="${E.W}" height="${E.H}" rx="16" fill="#F7FAFF"/>
+      ${[1,2,3].map(i => `<line x1="0" y1="${(E.H*i/4).toFixed(0)}"
+            x2="${E.W}" y2="${(E.H*i/4).toFixed(0)}" stroke="#E8F0FC" stroke-width="1"/>`).join('')}
+      ${[1,2,3].map(i => `<line x1="${(E.W*i/4).toFixed(0)}" y1="0"
+            x2="${(E.W*i/4).toFixed(0)}" y2="${E.H}" stroke="#E8F0FC" stroke-width="1"/>`).join('')}`;
   }
 
+  // Etiquetas: se colocan de mayor a menor y se omite la que
+  // chocaría con otra ya puesta. Sin esto se solapan los centros
+  // que están en la misma manzana.
+  const puestas = [];
+  const cabe = (x, y, texto) => {
+    const w = texto.length * 6.6 + 10, h = 17;
+    const caja = { x1:x-w/2, x2:x+w/2, y1:y-h, y2:y+3 };
+    const choca = puestas.some(p =>
+      !(caja.x2 < p.x1 || caja.x1 > p.x2 || caja.y2 < p.y1 || caja.y1 > p.y2));
+    if (choca) return false;
+    puestas.push(caja); return true;
+  };
+
   const orden = [...pts].sort((a,b) => b.conversaciones - a.conversaciones);
-  return `<svg viewBox="0 0 ${VB[0]} ${VB[1]}" class="svgmapa" role="img"
+  const circulos = [], textos = [];
+
+  orden.forEach(p => {
+    const [x, y] = proy(Number(p.lat), Number(p.lng), E);
+    const r = rMin + (rMax - rMin) * Math.sqrt(p.conversaciones / max);
+    const op = (0.16 + 0.44 * (p.conversaciones / max)).toFixed(2);
+
+    circulos.push(`<g>
+      <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"
+              fill="#1B7CFF" fill-opacity="${op}" stroke="#1B7CFF" stroke-width="1.5"/>
+      <title>${esc(p.nombre)} · ${p.conversaciones} conversaciones</title>
+      ${r >= 12 ? `<text x="${x.toFixed(1)}" y="${(y+4.5).toFixed(1)}"
+            text-anchor="middle" class="mnum">${p.conversaciones}</text>` : ''}
+    </g>`);
+
+    if (cabe(x, y - r - 4, p.nombre)){
+      textos.push(`<text x="${x.toFixed(1)}" y="${(y-r-7).toFixed(1)}"
+          text-anchor="middle" class="mtxt">${esc(p.nombre)}</text>`);
+    }
+  });
+
+  const sinEtiqueta = orden.length - textos.length;
+  return `<svg viewBox="0 0 ${E.W} ${E.H}" class="svgmapa" role="img"
       aria-label="Mapa de demanda por ubicación">
-    ${silueta}
-    ${orden.map((p, i) => {
-      const [x, y] = proy(Number(p.lat), Number(p.lng), E);
-      const r = rMin + (rMax - rMin) * Math.sqrt(p.conversaciones / max);
-      return `<g>
-        <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"
-                fill="#1B7CFF" fill-opacity="${(0.18 + 0.42*(p.conversaciones/max)).toFixed(2)}"
-                stroke="#1B7CFF" stroke-width="1.5"/>
-        <title>${esc(p.nombre)} · ${p.conversaciones} conversaciones</title>
-        ${i < 6 ? `<text x="${x.toFixed(1)}" y="${(y-r-7).toFixed(1)}"
-              text-anchor="middle" class="mtxt">${esc(p.nombre)}</text>
-          <text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}"
-              text-anchor="middle" class="mnum">${p.conversaciones}</text>` : ''}
-      </g>`;
-    }).join('')}
+    ${fondo}${circulos.join('')}${textos.join('')}
   </svg>
-  ${cfg.silueta ? `<p class="nota" style="margin:10px 0 0">Representación esquemática
-     para situar la demanda; no es un mapa a escala.</p>` : ''}`;
+  <p class="nota" style="margin:10px 0 0">
+    ${cfg.silueta ? 'Representación esquemática; no es un mapa a escala. ' : ''}
+    ${sinEtiqueta > 0 ? `${sinEtiqueta} ${sinEtiqueta === 1 ? 'zona más queda' : 'zonas más quedan'}
+       sin etiquetar por falta de espacio: pasa el ratón por encima para verlas.` : ''}
+  </p>`;
 }
 
 /* ---------- patrón horario ---------- */
