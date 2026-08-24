@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SimpliaSpain · Panel de cliente</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%231B7CFF%22%2F%3E%3Cpath%20d%3D%22M9%2034h9.5l5-13.5L32%2047l6-18%204.5%205H55%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%226.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%231B7CFF%22%2F%3E%3Cpath%20d%3D%22M9%2034h9.5l5-13.5L32%2047l6-18%204.5%205H55%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%226.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<meta name="theme-color" content="#1B7CFF">
+<meta name="description" content="Panel de cliente de SimpliaSpain: conversaciones, agenda y métricas del asistente.">
+<meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -41,33 +46,27 @@
   button:focus-visible,input:focus-visible{outline:2px solid var(--pulso);outline-offset:2px}
 
   /* ---------- LOGIN ---------- */
-  #login{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center}
-  @media(max-width:900px){#login{grid-template-columns:1fr}#login .izq{display:none}}
-  #login .izq{padding:0 6vw}
-  .eyebrow{
-    display:inline-flex;align-items:center;gap:8px;background:var(--aire);
-    color:var(--profundo);font-size:12px;font-weight:600;
-    padding:6px 14px;border-radius:99px;margin-bottom:28px;
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;
+         padding:40px 26px}
+  .lwrap{display:grid;grid-template-columns:1fr 420px;gap:clamp(48px,7vw,110px);
+         align-items:center;max-width:1060px;width:100%}
+  @media(max-width:900px){
+    .lwrap{grid-template-columns:1fr;max-width:420px;gap:0}
+    #login .izq{display:none}
   }
-  .eyebrow::before{content:'';width:7px;height:7px;border-radius:99px;background:var(--pulso)}
-  #login h1{font-size:clamp(44px,5.5vw,76px);line-height:1.02;letter-spacing:-.035em;font-weight:800}
-  #login .izq p{margin-top:22px;max-width:44ch;color:#334155;line-height:1.65;font-size:15px}
-  .der{padding:0 6vw}
+  #login h1{font-size:clamp(36px,4.2vw,54px);line-height:1.07;
+            letter-spacing:-.03em;font-weight:800}
+  #login .izq p{margin-top:15px;max-width:34ch;color:#475569;
+                line-height:1.6;font-size:15.5px}
+
   .card{
-    background:var(--blanco);border-radius:var(--r);padding:38px 34px;
+    background:var(--blanco);border-radius:var(--r);padding:36px 32px;
     box-shadow:0 1px 2px rgba(10,31,74,.04),0 12px 40px rgba(10,31,74,.07);
-    max-width:440px;margin:0 auto;width:100%;
+    width:100%;
   }
-  .marca{font-size:15px;font-weight:800;text-align:center;letter-spacing:-.01em}
+  .marca{font-size:15px;font-weight:800;letter-spacing:-.01em}
   .marca span{color:var(--pulso)}
-  .card h2{text-align:center;font-size:27px;line-height:1.2;margin:14px 0 6px;letter-spacing:-.02em}
-  .estado{
-    display:flex;align-items:center;justify-content:center;gap:7px;
-    font-size:12.5px;color:var(--gris);margin-bottom:26px;
-  }
-  .dot{width:7px;height:7px;border-radius:99px;background:var(--verde);flex:none}
-  .dot.on{animation:lat 2s ease-in-out infinite}
-  @keyframes lat{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}}
+  .cardmarca{text-align:center}
   label{display:block;font-size:12.5px;font-weight:600;margin:0 0 7px}
   input{
     width:100%;padding:13px 15px;border:1.5px solid var(--linea);border-radius:11px;
@@ -77,10 +76,19 @@
   input:focus{border-color:var(--pulso)}
   .btn{
     width:100%;background:var(--pulso);color:#fff;padding:14px;border-radius:11px;
-    font-size:14.5px;font-weight:700;transition:filter .15s;
+    font-size:14.5px;font-weight:700;transition:filter .15s;margin-top:4px;
   }
   .btn:hover{filter:brightness(1.08)}
   .btn:disabled{opacity:.55;cursor:not-allowed}
+  .card h2{text-align:center;font-size:26px;line-height:1.2;
+           margin:13px 0 6px;letter-spacing:-.02em}
+  .estado{
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    font-size:12.5px;color:var(--gris);margin-bottom:26px;
+  }
+  .dot{width:7px;height:7px;border-radius:99px;background:var(--verde);flex:none}
+  .dot.on{animation:lat 2s ease-in-out infinite}
+  @keyframes lat{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}}
   .err{
     background:#FEF3F2;border:1px solid #FDA29B;color:#B42318;
     padding:11px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none;
@@ -417,23 +425,23 @@
 
 <!-- ================= LOGIN ================= -->
 <section id="login">
-  <div class="izq">
-    <div class="eyebrow">Panel de cliente</div>
-    <h1>Encender<br>el <em>pulso</em>.</h1>
-    <p>Tu operación no se detiene cuando cierras la oficina. Cada conversación
-       que atiende la IA queda registrada aquí: cuándo entró, qué se pidió y cómo se resolvió.</p>
-  </div>
-  <div class="der">
-    <div class="card">
-      <div class="marca">Simplia<span>Spain</span></div>
-      <h2>Tu operación<br><em>nunca duerme.</em></h2>
-      <div class="estado"><span class="dot on"></span><span id="ping">Conectando…</span></div>
-      <div class="err" id="err"></div>
-      <label for="em">Email</label>
-      <input id="em" type="email" autocomplete="email" placeholder="tu@empresa.com">
-      <label for="pw">Contraseña</label>
-      <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••">
-      <button class="btn" id="entrar">Entrar al panel →</button>
+  <div class="lwrap">
+    <div class="izq">
+      <h1>Panel de cliente</h1>
+      <p>Conversaciones, datos y actividad de tu asistente.</p>
+    </div>
+    <div class="der">
+      <div class="card">
+        <div class="marca cardmarca">Simplia<span>Spain</span></div>
+        <h2>Tu operación<br><em>nunca duerme.</em></h2>
+        <div class="estado"><span class="dot on"></span><span id="ping">Conectando…</span></div>
+        <div class="err" id="err"></div>
+        <label for="em">Email</label>
+        <input id="em" type="email" autocomplete="email" placeholder="tu@empresa.com">
+        <label for="pw">Contraseña</label>
+        <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••">
+        <button class="btn" id="entrar">Entrar al panel →</button>
+      </div>
     </div>
   </div>
 </section>
@@ -700,6 +708,7 @@ async function pintarLatido(silencioso){
   const entr = d.evR.filter(e => e.role === 'human').length;
   const resp = d.evR.filter(e => e.role === 'ai').length;
   const et   = RANGO === 24 ? '24 horas' : RANGO === 168 ? '7 días' : '30 días';
+  const etc  = RANGO === 24 ? '24h'       : RANGO === 168 ? '7 días' : '30 días';
 
   pintaEn(`
     <h2 class="tit">El <em>latido</em> · Vista general</h2>
@@ -710,8 +719,8 @@ async function pintarLatido(silencioso){
             d.convs.length > contactos
               ? `${nf.format(d.convs.length)} conversaciones · ${nf.format(d.convs.length - contactos)} han vuelto`
               : `${nf.format(msgs)} mensajes en total`)}
-      ${kpi('Conversaciones · 24h', nf.format(cR.length),
-            `${nf.format(entr + resp)} mensajes en 24h`)}
+      ${kpi(`Conversaciones · ${etc}`, nf.format(cR.length),
+            `${nf.format(entr + resp)} mensajes en ${etc}`)}
       ${kpi('Respuestas de la IA', nf.format(auto), 'Sin intervención humana', true)}
       ${d.latMedia
         ? kpi('Tiempo medio de respuesta',
