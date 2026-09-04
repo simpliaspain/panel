@@ -1000,6 +1000,45 @@ function bloqueMapa(d){
   </div>`;
 }
 
+// Teselas: Stadia "Alidade Smooth" (equivalente a Positron).
+// Se autentica por dominio, así que no hay ninguna clave en el
+// código. Si fallara, se cae a OpenStreetMap automáticamente.
+const TESELAS = {
+  principal: {
+    url: 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap',
+    maxZoom: 20
+  },
+  respaldo: {
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap',
+    maxZoom: 19, className: 'tsuave'
+  }
+};
+
+function ponerTeselas(){
+  const cfg = CFG.mapas?.teselas || TESELAS.principal;
+  let fallos = 0, caido = false;
+
+  const capa = L.tileLayer(cfg.url, {
+    attribution: cfg.attribution, maxZoom: cfg.maxZoom || 19,
+    className: cfg.className || ''
+  }).addTo(LMAP);
+
+  // Varios errores seguidos suelen significar que el proveedor
+  // no está sirviendo (dominio sin dar de alta, cuota agotada).
+  capa.on('tileerror', () => {
+    if (caido || ++fallos < 4) return;
+    caido = true;
+    capa.remove();
+    L.tileLayer(TESELAS.respaldo.url, {
+      attribution: TESELAS.respaldo.attribution,
+      maxZoom: TESELAS.respaldo.maxZoom,
+      className: TESELAS.respaldo.className
+    }).addTo(LMAP);
+  });
+}
+
 // Crea o actualiza el mapa. Se llama después de pintar la vista.
 function activarMapa(){
   const cont = document.getElementById('lmapa');
@@ -1018,9 +1057,7 @@ function activarMapa(){
   LMAP = L.map(cont, {
     zoomControl: true, scrollWheelZoom: false, attributionControl: true
   });
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap', maxZoom: 19, className: 'tsuave'
-  }).addTo(LMAP);
+  ponerTeselas();
 
   // El scroll del ratón hace zoom solo tras pulsar en el mapa:
   // evita que se quede atrapado al desplazar la página.
