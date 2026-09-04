@@ -301,6 +301,9 @@
          border:1px solid var(--linea);background:#F7FAFF;z-index:1}
   @media(max-width:600px){.lmapa{height:min(52vh,340px)}}
   .leaflet-container{font-family:'Plus Jakarta Sans',sans-serif;background:#F7FAFF}
+  /* aspecto minimalista sobre teselas estándar, sin depender de
+     un proveedor de pago ni de una clave de API */
+  .tsuave{filter:grayscale(.92) brightness(1.06) contrast(.92)}
   .leaflet-control-attribution{font-size:9.5px;background:rgba(255,255,255,.82)}
   .leaflet-control-zoom a{border-radius:7px!important;color:var(--profundo)!important}
   .pmarca{cursor:pointer;transition:fill-opacity .18s ease,stroke-width .18s ease}
@@ -369,6 +372,13 @@
     .cita{grid-template-columns:52px 1fr;gap:12px}
     .cacc{grid-column:1/-1;justify-content:flex-start}
   }
+  .coste{display:flex;align-items:center;gap:clamp(24px,5vw,56px);flex-wrap:wrap}
+  .cifra{font-size:clamp(44px,6vw,64px);font-weight:800;letter-spacing:-.04em;
+         line-height:1;color:var(--pulso)}
+  .cifra span{font-size:.45em;font-weight:700;margin-left:4px}
+  .formula{display:grid;gap:5px;font-size:12.5px;color:var(--gris);line-height:1.5}
+  .formula strong{color:var(--tinta);font-weight:700}
+  .ftot{padding-top:6px;margin-top:2px;border-top:1px solid var(--linea)}
   .cargando{text-align:center;padding:60px;color:var(--gris);font-size:13.5px}
 
   /* ---------- MÓVIL ---------- */
@@ -505,7 +515,9 @@ let CFG = {
   horario:   { inicio: 9, fin: 19, dias: [1,2,3,4,5] },
   objetivos: [],
   documentos: [],
-  mapas: {}
+  mapas: {},
+  modulos: {},
+  tratamiento: []
 };
 let ULTIMA = null;   // instante de la última carga de datos
 const E = k => CFG.etiquetas[k] || '';
@@ -601,10 +613,24 @@ async function arrancar(){
       if (data.horario)   CFG.horario   = data.horario;
       if (data.objetivos)  CFG.objetivos  = data.objetivos;
       if (data.documentos) CFG.documentos = data.documentos;
-      if (data.mapas)      CFG.mapas      = data.mapas;
+      if (data.mapas)       CFG.mapas       = data.mapas;
+      if (data.modulos)     CFG.modulos     = data.modulos;
+      if (data.tratamiento) CFG.tratamiento = data.tratamiento;
     }
   } catch { /* se usan los valores por defecto */ }
   $('#refrescar').addEventListener('click', refrescar);
+  // La Agenda solo se muestra si aporta algo: sin citas sería
+  // una pestaña vacía. 'auto' decide según haya datos.
+  const mAg = CFG.modulos?.agenda;
+  let verAgenda = mAg === true;
+  if (mAg !== false && mAg !== true){
+    try {
+      const { data: n } = await supabase.rpc('tengo_citas');
+      verAgenda = Number(n) > 0;
+    } catch { verAgenda = false; }
+  }
+  if (!verAgenda) document.querySelector('nav button[data-v="agenda"]')?.remove();
+
   await pintarLatido();
   autoRefresco();
 }
@@ -778,12 +804,7 @@ async function pintarLatido(silencioso){
        Las conversaciones anteriores se conservan íntegras y se pueden consultar en
        Conversaciones, pero no aparecen en la gráfica por hora.</p>
 
-    <h3 class="secc">Próximamente…</h3>
-    <div class="kpis">
-      ${kpiPend('Sentimiento', 'Requiere análisis posterior de cada conversación')}
-      ${kpiPend('Geografía', 'Requiere extraer la ciudad de cada conversación')}
-      ${kpiPend('Coste evitado', 'Se calcula al disponer de latencia y resolución')}
-    </div>`, silencioso);
+    ${bloqueCoste(d)}`, silencioso);
 
   activarGrafico();
   ULTIMOS = d;
@@ -818,6 +839,46 @@ async function pintarLatido(silencioso){
 
 const kpi = (l,n,p,az) => `<div class="kpi">
   <div class="lab">${l}</div><div class="num${az?' az':''}">${n}</div><div class="pie">${p}</div></div>`;
+
+// Coste evitado: estimación, no medición. Se muestra la fórmula
+// para que el cliente pueda juzgar si le encaja, en lugar de
+// presentarle una cifra que tiene que creerse.
+function bloqueCoste(d){
+  const a = CFG.ajustes || {};
+  const ch = Number(a.coste_hora_eur);
+  const mn = Number(a.minutos_por_conversacion);
+
+  // solo las conversaciones que el asistente llevó a término:
+  // respondió y no hubo que intervenir
+  const atendidas = d.convs.filter(c =>
+    Number(c.ai_count) > 0 && !c.senal_frustracion).length;
+
+  if (!ch || !mn || !atendidas) return '';
+  const horas = atendidas * mn / 60;
+  const eur   = horas * ch;
+
+  return `<div class="panel">
+    <h3>Coste de atención evitado</h3>
+    <p class="ph">Estimación de lo que habría costado atender estas conversaciones
+       con una persona.</p>
+    <div class="coste">
+      <div class="cifra">${nf.format(Math.round(eur))}<span>€</span></div>
+      <div class="formula">
+        <span><strong class="mono">${nf.format(atendidas)}</strong> conversaciones
+              resueltas por el asistente</span>
+        <span>× <strong class="mono">${mn}</strong> min que llevaría atender cada una</span>
+        <span>× <strong class="mono">${ch} €</strong> por hora de una persona</span>
+        <span class="ftot">= <strong class="mono">${nf.format(Math.round(horas))}</strong>
+              horas de trabajo</span>
+      </div>
+    </div>
+    <p class="nota" style="margin:16px 0 0">
+      Los dos parámetros se pueden ajustar en Configuración. No se cuentan las
+      conversaciones en las que hubo fricción, porque en esas es probable que
+      alguien tuviera que intervenir igualmente.
+    </p>
+  </div>`;
+}
 
 const kpiPend = (l,p) => `<div class="kpi pend">
   <div class="lab">${l}</div><div class="num">—</div><div class="pie">${p}</div></div>`;
@@ -957,9 +1018,8 @@ function activarMapa(){
   LMAP = L.map(cont, {
     zoomControl: true, scrollWheelZoom: false, attributionControl: true
   });
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    subdomains: 'abcd', maxZoom: 19
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap', maxZoom: 19, className: 'tsuave'
   }).addTo(LMAP);
 
   // El scroll del ratón hace zoom solo tras pulsar en el mapa:
@@ -1588,34 +1648,18 @@ async function pintarAjustes(silencioso){
       </div>
     </div>` : ''}
 
-    <div class="panel">
+    ${CFG.tratamiento && CFG.tratamiento.length ? `<div class="panel">
       <h3>Tratamiento de datos</h3>
       <p class="ph">Qué se registra de las conversaciones y para qué.</p>
       <dl class="ficha">
-        <dt>Qué se guarda</dt>
-        <dd>Texto de los mensajes, fecha y hora, y un identificador del
-            contacto para poder agrupar la conversación.</dd>
-        <dt>Para qué</dt>
-        <dd>Atender la conversación, calcular las métricas de este panel
-            y permitir consultar el histórico.</dd>
-        <dt>Quién accede</dt>
-        <dd>Solo los usuarios dados de alta en tu cuenta. Cada cliente ve
-            exclusivamente sus propias conversaciones.</dd>
-        <dt>Servicios implicados</dt>
-        <dd>OpenAI (generación de respuestas y transcripción de audios),
-            Supabase (almacenamiento, servidores en la UE) y Hostinger
-            (servidor del asistente).</dd>
-        <dt>Números de teléfono</dt>
-        <dd>Se muestran parcialmente ofuscados en este panel.</dd>
-        <dt>Horario y ubicaciones</dt>
-        <dd>Se configuran con los datos que nos facilitaste en el alta del
-            servicio. Si algo ha cambiado, dínoslo y lo actualizamos.</dd>
+        ${CFG.tratamiento.map(x =>
+          `<dt>${esc(x.t)}</dt><dd>${esc(x.d)}</dd>`).join('')}
       </dl>
       <p class="aviso" style="margin:16px 0 0">
         Para ejercer derechos de acceso, rectificación o supresión sobre un
         contacto concreto, escríbenos y lo tramitamos.
       </p>
-    </div>`;
+    </div>` : ''}`;
 
   $('#guardar').addEventListener('click', async () => {
     const b = $('#guardar'), m = $('#msg');
