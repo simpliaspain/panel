@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SimpliaSpain · Panel de cliente</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%231B7CFF%22%2F%3E%3Cpath%20d%3D%22M9%2034h9.5l5-13.5L32%2047l6-18%204.5%205H55%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%226.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%231B7CFF%22%2F%3E%3Cpath%20d%3D%22M9%2034h9.5l5-13.5L32%2047l6-18%204.5%205H55%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%226.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
@@ -34,7 +34,11 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{min-height:100%;width:100%;max-width:100%;overflow-x:hidden;
-            -webkit-text-size-adjust:100%}
+            -webkit-text-size-adjust:100%;text-size-adjust:100%}
+  /* Nada puede ser más ancho que la pantalla: si un solo elemento
+     desborda, el móvil encoge toda la página para que quepa. */
+  img,svg,canvas,video,iframe{max-width:100%}
+  header,main,.panel,.kpi,.kpis,.card{min-width:0}
   body{
     font-family:'Plus Jakarta Sans',system-ui,sans-serif;
     background:var(--fondo);color:var(--tinta);
@@ -428,6 +432,42 @@
     nav button{padding:12px 9px;font-size:12.5px}
     .marca{font-size:14px}
   }
+  /* ---------- SELECTOR DE PERSONA ---------- */
+  .sel{
+    font-family:inherit;font-size:13px;font-weight:600;color:var(--tinta);
+    background:var(--blanco);border:1px solid var(--linea);border-radius:10px;
+    padding:8px 32px 8px 12px;max-width:100%;
+    appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%2364748B' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:11px;
+  }
+  .sel:focus{border-color:var(--pulso);outline:none}
+  .segm{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+  .rangos{max-width:100%;overflow-x:auto;scrollbar-width:none}
+  .rangos::-webkit-scrollbar{display:none}
+  .rangos .rg{white-space:nowrap}
+  .segpie{font-size:11.5px;color:var(--gris);line-height:1.55;
+          margin:-4px 0 16px;padding-bottom:14px;border-bottom:1px solid var(--linea)}
+  .segpie strong{color:var(--tinta);font-weight:700}
+  @media(max-width:820px){
+    .segm{width:100%;justify-content:stretch}
+    .segm .sel{width:100%;flex:1 1 100%}
+    .rangos.per{width:100%}
+    .rangos.per .rg{flex:1 1 0;padding:7px 6px;font-size:12px;text-align:center}
+  }
+
+  /* ---------- ZOOM EN MÓVIL ----------
+     Safari en iOS amplía toda la página al enfocar un campo con
+     letra menor de 16 px, y al salir NO la devuelve a su sitio:
+     de ahí el panel "ampliado" que aparecía de vez en cuando,
+     normalmente después de usar el buscador. Con 16 px no amplía.
+     No se usa user-scalable=no: Safari lo ignora e impediría el
+     zoom a quien lo necesite. */
+  @media (pointer:coarse){
+    input,select,textarea,.busca,.sel{font-size:16px}
+    .sel{padding-top:9px;padding-bottom:9px}
+  }
+
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -507,7 +547,7 @@ let CFG = {
     servicio_titulo:  'Qué servicios preguntan',
     servicio_desc:    'Servicios sobre los que consultan los clientes.',
     servicio_vacio:   'servicios',
-    senales_titulo:   'Qué buscan tus clientes',
+    senales_titulo:   'Por qué se interesan',
     interes_desc:     'Muestran intención de compra o de cita',
     contacto_desc:    'Han facilitado email o teléfono',
     friccion_desc:    'Piden atención humana o expresan queja'
@@ -566,7 +606,8 @@ function autoRefresco(){
   TIMER = setInterval(() => {
     if (document.hidden) return;
     if ($('#modal').style.display === 'block') return;
-    if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+    const ae = document.activeElement;
+    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT')) return;
     if (VISTA === 'latido') pintarLatido(true);
     else if (VISTA === 'convs' && !$('#buscar')?.value) pintarConvs(true);
     else if (VISTA === 'agenda') pintarAgenda(true);
@@ -610,6 +651,12 @@ async function arrancar(){
     const { data } = await supabase.rpc('mi_config');
     if (data){
       CFG.etiquetas = { ...CFG.etiquetas, ...(data.etiquetas || {}) };
+      // El rótulo antiguo pudo quedar guardado en tenants.etiquetas y
+      // ganaría al valor por defecto. Se sustituye solo si coincide
+      // exactamente. Quitar estas dos líneas cuando la fila esté
+      // actualizada en la base de datos (SQL en las notas de entrega).
+      if (CFG.etiquetas.senales_titulo === 'Qué buscan tus clientes')
+        CFG.etiquetas.senales_titulo = 'Por qué se interesan';
       if (data.horario)   CFG.horario   = data.horario;
       if (data.objetivos)  CFG.objetivos  = data.objetivos;
       if (data.documentos) CFG.documentos = data.documentos;
@@ -660,6 +707,16 @@ async function refrescar(){
 
 async function datos(){
   const desde = new Date(Date.now() - RANGO*36e5).toISOString();
+
+  // Los nombres hacen falta para segmentar las señales por persona.
+  // Se piden una sola vez y se reutiliza la misma caché que usan
+  // Conversaciones y el detalle de contacto.
+  if (!CONTACTOS.length){
+    try {
+      const { data: cs } = await supabase.rpc('mis_contactos');
+      CONTACTOS = cs || [];
+    } catch { /* se seguirá mostrando la referencia del contacto */ }
+  }
 
   const [convs, evR, evTot, lat, reciente, lugares, patron] = await Promise.all([
     supabase.from('conversations')
@@ -809,15 +866,7 @@ async function pintarLatido(silencioso){
   activarGrafico();
   ULTIMOS = d;
   activarMapa();
-
-  // desde una señal se salta a las conversaciones que la tienen
-  document.querySelectorAll('.bfila[data-sen]').forEach(b => {
-    const ir = () => irASenal(b.dataset.sen);
-    b.addEventListener('click', ir);
-    b.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ir(); }
-    });
-  });
+  activarSenales();
 
   // desde la actividad reciente se abre la conversación completa
   document.querySelectorAll('.feed li[data-ir]').forEach(li => {
@@ -883,32 +932,182 @@ function bloqueCoste(d){
 const kpiPend = (l,p) => `<div class="kpi pend">
   <div class="lab">${l}</div><div class="num">—</div><div class="pie">${p}</div></div>`;
 
-/* ---------- señales de conversación ---------- */
-function bloqueSenales(d){
-  const t = d.convs.length;
-  if (!t) return '';
-  const i = d.convs.filter(c => c.senal_interes).length;
-  const f = d.convs.filter(c => c.senal_frustracion).length;
-  const k = d.convs.filter(c => c.senal_contacto).length;
-  const r = d.convs.filter(c => c.senal_sin_respuesta).length;
+/* ---------- señales de conversación ----------
+   El bloque se puede segmentar por periodo y por persona. El
+   denominador se recalcula siempre sobre el mismo subconjunto que
+   los numeradores: si se filtrara solo el "n" y el total siguiera
+   siendo el histórico, los porcentajes serían falsos. */
 
-  return `<div class="panel">
-    <h3>${esc(E('senales_titulo'))}</h3>
-    <p class="ph">Señales detectadas en el texto de las conversaciones.</p>
-    <div class="barras">
-      ${barra('Interés comercial', i, t, E('interes_desc'),  'az', 'interes')}
-      ${barra('Datos de contacto', k, t, E('contacto_desc'), 'vd', 'contacto')}
-      ${barra('El asistente no supo responder', r, t,
-              'Reconoció no tener el dato o derivó a una persona', 'am', 'sin_respuesta')}
-      ${barra('Fricción',          f, t, E('friccion_desc'), 'rj', 'friccion')}
+let SEN_PER = 'todo';    // dia | semana | mes | ano | todo
+let SEN_QUIEN = '';      // contact_ref, o '' para todas las personas
+
+const SEN_PERIODOS = [
+  ['dia',    'Hoy'],
+  ['semana', 'Semana'],
+  ['mes',    'Mes'],
+  ['ano',    'Año'],
+  ['todo',   'Todo']
+];
+
+// Periodos de calendario, no ventanas móviles: "Semana" es la semana
+// en curso desde el lunes, no los últimos siete días.
+function inicioPeriodo(p){
+  const d = new Date();
+  if (p === 'dia'){ d.setHours(0,0,0,0); return d; }
+  if (p === 'semana'){
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    d.setHours(0,0,0,0); return d;
+  }
+  if (p === 'mes'){ d.setDate(1); d.setHours(0,0,0,0); return d; }
+  if (p === 'ano'){ d.setMonth(0,1); d.setHours(0,0,0,0); return d; }
+  return null;                       // 'todo'
+}
+
+// fecha_origen es el dato real (users.created_at en el histórico).
+// Si faltara, se recurre al inicio de la sesión registrada.
+const fechaConv = c => {
+  const f = c.fecha_origen || c.started_at || c.last_at;
+  return f ? new Date(f) : null;
+};
+
+function segmentaConvs(d){
+  let lista = d.convs;
+  if (SEN_QUIEN) lista = lista.filter(c => c.contact_ref === SEN_QUIEN);
+  const desde = inicioPeriodo(SEN_PER);
+  let sinFecha = 0;
+  if (desde){
+    lista = lista.filter(c => {
+      const f = fechaConv(c);
+      if (!f){ sinFecha++; return false; }
+      return f >= desde;
+    });
+  }
+  return { lista, desde, sinFecha };
+}
+
+function personasSenales(d){
+  const refs = new Set(d.convs.map(c => c.contact_ref));
+  const l = CONTACTOS.length
+    ? CONTACTOS.filter(c => refs.has(c.contact_ref))
+        .map(c => ({ ref: c.contact_ref, n: c.nombre || c.telefono || c.contact_ref }))
+    : [...refs].map(r => ({ ref: r, n: r }));
+  return l.sort((a,b) => String(a.n).localeCompare(String(b.n), 'es'));
+}
+
+function bloqueSenales(d){
+  if (!d.convs.length) return '';
+  return `<div class="panel" id="psen">${interiorSenales(d)}</div>`;
+}
+
+function interiorSenales(d){
+  const { lista, desde, sinFecha } = segmentaConvs(d);
+  const t = lista.length;
+  const personas = personasSenales(d);
+  const quien = personas.find(p => p.ref === SEN_QUIEN);
+  const segmentado = SEN_PER !== 'todo' || !!SEN_QUIEN;
+
+  const controles = `
+    <div class="segm">
+      ${personas.length > 1 ? `<select class="sel" id="senquien"
+          aria-label="Filtrar las señales por persona">
+        <option value="">Todas las personas</option>
+        ${personas.map(p => `<option value="${esc(String(p.ref))}"${
+          p.ref === SEN_QUIEN ? ' selected' : ''}>${esc(String(p.n))}</option>`).join('')}
+      </select>` : ''}
+      <div class="rangos per">
+        ${SEN_PERIODOS.map(([k,l]) => `<button class="rg${SEN_PER===k?' on':''}"
+          data-p="${k}">${l}</button>`).join('')}
+      </div>
+    </div>`;
+
+  // Qué se está midiendo exactamente, en palabras. Sin esto el
+  // usuario no puede juzgar si la cifra le cuadra.
+  const nomPer = { dia:'Hoy', semana:'Esta semana', mes:'Este mes',
+                   ano:'Este año', todo:'Todo el histórico' }[SEN_PER];
+  const alcance = [
+    quien ? `<strong>${esc(String(quien.n))}</strong>` : 'Todas las personas',
+    nomPer + (desde ? ` (desde el ${fechaCorta(desde)})` : ''),
+    `<strong>${nf.format(t)}</strong> ${t === 1 ? 'conversación' : 'conversaciones'}`
+  ].join(' · ');
+
+  const pie = `<p class="segpie">${alcance}${
+    sinFecha ? ` · ${nf.format(sinFecha)} sin fecha registrada quedan fuera del periodo` : ''
+  }</p>`;
+
+  const cab = `
+    <div class="cabpanel">
+      <div>
+        <h3>${esc(E('senales_titulo'))}</h3>
+        <p class="ph">Señales detectadas en el texto de las conversaciones.</p>
+      </div>
+      ${controles}
     </div>
+    ${pie}`;
+
+  if (!t) return `${cab}<div class="vacio">
+    Ninguna conversación en este periodo.<br>
+    Amplía el rango o elige otra persona.</div>`;
+
+  const i = lista.filter(c => c.senal_interes).length;
+  const f = lista.filter(c => c.senal_frustracion).length;
+  const k = lista.filter(c => c.senal_contacto).length;
+  const r = lista.filter(c => c.senal_sin_respuesta).length;
+
+  // Saltar a Conversaciones solo tiene sentido sin segmentar: allí no
+  // hay filtro de periodo, y las cifras no coincidirían.
+  const s = n => segmentado ? null : n;
+
+  return `${cab}
+    <div class="barras">
+      ${barra('Interés comercial', i, t, E('interes_desc'),  'az', s('interes'))}
+      ${barra('Datos de contacto', k, t, E('contacto_desc'), 'vd', s('contacto'))}
+      ${barra('El asistente no supo responder', r, t,
+              'Reconoció no tener el dato o derivó a una persona', 'am', s('sin_respuesta'))}
+      ${barra('Fricción',          f, t, E('friccion_desc'), 'rj', s('friccion'))}
+    </div>
+    ${quien ? `<div class="dacc" style="margin:18px 0 0;padding:0;border:0">
+      <button class="cbtn" id="senabrir">Ver la conversación completa</button>
+    </div>` : ''}
     <p class="nota" style="margin:18px 0 0">
       Se detectan por las expresiones que aparecen en los mensajes, así que
       pueden quedarse cortas: una queja formulada de forma poco habitual puede
       pasar desapercibida. Los datos de contacto y la falta de respuesta del
-      asistente son los indicadores más fiables de los cuatro.
-    </p>
-  </div>`;
+      asistente son los indicadores más fiables de los cuatro.${
+      segmentado
+        ? ' Los porcentajes se calculan solo sobre las conversaciones del segmento.'
+        : ''}
+    </p>`;
+}
+
+// Repinta solo el interior del bloque: no hace falta volver a
+// consultar nada y la página no se mueve.
+function repintarSenales(){
+  const cont = $('#psen');
+  if (!cont || !ULTIMOS) return;
+  cont.innerHTML = interiorSenales(ULTIMOS);
+  activarSenales();
+}
+
+function activarSenales(){
+  const cont = $('#psen'); if (!cont) return;
+
+  cont.querySelectorAll('.rg[data-p]').forEach(b =>
+    b.addEventListener('click', () => { SEN_PER = b.dataset.p; repintarSenales(); }));
+
+  const sel = cont.querySelector('#senquien');
+  sel?.addEventListener('change', () => { SEN_QUIEN = sel.value; repintarSenales(); });
+
+  cont.querySelector('#senabrir')
+      ?.addEventListener('click', () => abrir(SEN_QUIEN));
+
+  // desde una señal se salta a las conversaciones que la tienen
+  cont.querySelectorAll('.bfila[data-sen]').forEach(b => {
+    const ir = () => irASenal(b.dataset.sen);
+    b.addEventListener('click', ir);
+    b.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ir(); }
+    });
+  });
 }
 // Solo se puede pulsar si hay algo que ver: llevar al usuario a
 // una lista vacía sería un callejón sin salida.
