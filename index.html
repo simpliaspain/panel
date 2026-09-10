@@ -533,6 +533,71 @@ const supabase = createClient(URL, KEY, {
   auth: { persistSession:false, autoRefreshToken:true, detectSessionInUrl:false }
 });
 
+/* ============================================================
+   REGISTRO DE INCIDENCIAS
+
+   Cuando el panel del cliente falla —un error de
+   JavaScript, una consulta que devuelve permission denied, una
+   promesa sin capturar— lo registra en `incidencias` y aparece
+   solo en el panel maestro. Hoy, si al cliente le falla algo, no
+   nos enteramos hasta que llama.
+
+   Requiere 020_maestro.sql aplicado. Si no lo está, la llamada
+   falla en silencio y el panel sigue funcionando igual.
+
+   Nota: no reporta más de una vez por código y sesión. Un error
+   dentro de un bucle de render podría disparar cientos de
+   inserciones por segundo; el contador `veces` de la tabla ya
+   recoge la reincidencia entre sesiones.
+   ============================================================ */
+
+const YA_REPORTADO = new Set();
+
+async function reportar(codigo, titulo, detalle = {}, severidad = 'aviso'){
+  if (YA_REPORTADO.has(codigo)) return;
+  YA_REPORTADO.add(codigo);
+  try {
+    await supabase.rpc('registrar_incidencia', {
+      p_codigo:    codigo,
+      p_titulo:    String(titulo).slice(0, 300),
+      p_severidad: severidad,
+      p_detalle:   { ...detalle,
+                     vista:  typeof VISTA !== 'undefined' ? VISTA : null,
+                     agente: navigator.userAgent.slice(0, 180) },
+      p_origen:    'panel'
+    });
+  } catch { /* si ni siquiera se puede reportar, no hay nada más que hacer */ }
+}
+
+const codigoDe = (pref, txt) =>
+  pref + '_' + String(txt || 'error').slice(0, 60).replace(/\W+/g, '_').toLowerCase();
+
+window.addEventListener('error', e => reportar(
+  codigoDe('js', e.message),
+  'Error de JavaScript: ' + (e.message || 'desconocido'),
+  { fichero: e.filename, linea: e.lineno }));
+
+window.addEventListener('unhandledrejection', e => {
+  const t = String(e.reason?.message || e.reason || '');
+  reportar(codigoDe('promesa', t), 'Promesa sin capturar: ' + t.slice(0, 200));
+});
+
+/* Además de los errores de JavaScript, interesa saber cuándo una
+   consulta a Supabase devuelve error: es el fallo más probable y
+   el más silencioso, porque el panel solo muestra "no se han
+   podido cargar" y el cliente cierra la pestaña. */
+const _rpc = supabase.rpc.bind(supabase);
+supabase.rpc = async (nombre, args, opciones) => {
+  const r = await _rpc(nombre, args, opciones);
+  if (r?.error && nombre !== 'registrar_incidencia'){
+    reportar('rpc_' + nombre,
+             `Fallo en ${nombre}(): ${r.error.message}`,
+             { codigo: r.error.code, pista: r.error.hint },
+             'critico');
+  }
+  return r;
+};
+
 const $ = s => document.querySelector(s);
 const nf = new Intl.NumberFormat('es-ES');
 let TENANT = null, CONVS = [];

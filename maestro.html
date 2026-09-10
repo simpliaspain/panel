@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SimpliaSpain · Panel maestro</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%230A1F4A%22%2F%3E%3Cpath%20d%3D%22M9%2034h9.5l5-13.5L32%2047l6-18%204.5%205H55%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%226.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+<meta name="theme-color" content="#0A1F4A">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pulso:#1B7CFF; --profundo:#0A1F4A; --tinta:#0A0E1A; --aire:#E5EFFE;
+    --gris:#64748B; --linea:#E2E8F0; --blanco:#FFFFFF; --fondo:#F7FAFF;
+    --verde:#12B76A; --ambar:#F79009; --rojo:#F04438; --coral:#E8836B;
+    --r:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%;width:100%;max-width:100%;overflow-x:hidden;
+            -webkit-text-size-adjust:100%;text-size-adjust:100%}
+  img,svg{max-width:100%}
+  header,main,.panel,.kpi,.card{min-width:0}
+  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--fondo);
+       color:var(--tinta);-webkit-font-smoothing:antialiased}
+  .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+  button{font-family:inherit;cursor:pointer;border:none}
+  button:focus-visible,input:focus-visible,select:focus-visible{
+    outline:2px solid var(--pulso);outline-offset:2px}
+
+  /* ---------- login ---------- */
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 26px}
+  .card{background:var(--blanco);border-radius:var(--r);padding:36px 32px;width:100%;max-width:420px;
+        box-shadow:0 1px 2px rgba(10,31,74,.04),0 12px 40px rgba(10,31,74,.07)}
+  .marca{font-size:16px;font-weight:800;letter-spacing:-.01em}
+  .marca span{color:var(--pulso)}
+  .card .marca{text-align:center}
+  .card h2{text-align:center;font-size:25px;line-height:1.2;margin:13px 0 4px;letter-spacing:-.02em}
+  .card .ph{text-align:center;color:var(--gris);font-size:12.5px;margin-bottom:26px}
+  label{display:block;font-size:12.5px;font-weight:600;margin:0 0 7px}
+  input{width:100%;padding:13px 15px;border:1.5px solid var(--linea);border-radius:11px;
+        font-size:14.5px;font-family:inherit;margin-bottom:16px;background:var(--blanco);color:var(--tinta)}
+  input:focus{border-color:var(--pulso);outline:none}
+  .btn{width:100%;background:var(--profundo);color:#fff;padding:14px;border-radius:11px;
+       font-size:14.5px;font-weight:700;margin-top:4px}
+  .btn:hover{filter:brightness(1.15)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .err{background:#FEF3F2;border:1px solid #FDA29B;color:#B42318;padding:11px 14px;
+       border-radius:10px;font-size:13px;margin-bottom:16px;display:none}
+
+  /* ---------- app ---------- */
+  #app{display:none;min-height:100vh}
+  header{background:var(--profundo);color:#fff;padding:0 22px;display:flex;
+         align-items:center;gap:20px;position:sticky;top:0;z-index:20;flex-wrap:wrap}
+  header .marca{color:#fff}
+  header .marca span{color:#7FB2FF}
+  nav{display:flex;gap:4px;flex:1 1 auto;min-width:0}
+  nav button{background:none;padding:19px 14px;font-size:14px;font-weight:600;
+             color:#9FB6D9;border-bottom:2.5px solid transparent}
+  nav button.on{color:#fff;border-bottom-color:#7FB2FF}
+  nav button .bdg{display:inline-block;min-width:18px;padding:1px 6px;margin-left:7px;
+                  border-radius:99px;background:var(--rojo);color:#fff;font-size:10.5px;
+                  font-weight:800;font-family:'JetBrains Mono',monospace}
+  nav button .bdg.am{background:var(--ambar)}
+  .hend{display:flex;align-items:center;gap:12px;margin-left:auto;min-width:0}
+  .refr{display:flex;align-items:center;gap:6px;background:none;padding:6px 10px;border-radius:8px;
+        color:#9FB6D9;font-size:11.5px;font-weight:600}
+  .refr:hover{background:rgba(255,255,255,.1);color:#fff}
+  .ricon{font-size:14px;line-height:1;display:inline-block}
+  .refr.girando .ricon{animation:gira .8s linear infinite}
+  @keyframes gira{to{transform:rotate(360deg)}}
+  .salir{background:none;color:#9FB6D9;font-size:13px;padding:8px 12px;border-radius:8px}
+  .salir:hover{background:rgba(255,255,255,.1);color:#fff}
+  main{padding:32px 26px 70px;max-width:1440px;margin:0 auto}
+  h2.tit{font-size:30px;letter-spacing:-.03em;margin-bottom:5px}
+  .sub{color:var(--gris);font-size:14px;margin-bottom:26px;max-width:74ch;line-height:1.55}
+  .panel{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);
+         padding:22px 24px;margin-bottom:20px}
+  .panel h3{font-size:15px;margin-bottom:3px}
+  .panel .ph{color:var(--gris);font-size:12.5px;margin-bottom:18px}
+  .vacio{text-align:center;padding:44px 20px;color:var(--gris);font-size:13.5px;line-height:1.6}
+  .cargando{text-align:center;padding:60px;color:var(--gris);font-size:13.5px}
+  .cabpanel{display:flex;justify-content:space-between;align-items:flex-start;
+            gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  .cabpanel .ph{margin-bottom:0}
+  .nota{font-size:12px;color:var(--gris);line-height:1.6;margin:16px 0 0;max-width:76ch}
+
+  /* ---------- semáforo de clientes ---------- */
+  .clientes{display:grid;gap:14px}
+  .cli{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);
+       padding:20px 22px;border-left:5px solid var(--verde)}
+  .cli.am{border-left-color:var(--ambar)}
+  .cli.rj{border-left-color:var(--rojo)}
+  .cli.gr{border-left-color:#CBD5E1}
+  .clicab{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+  .clinom{font-size:19px;font-weight:800;letter-spacing:-.02em}
+  .clislug{font-size:11.5px;color:var(--gris);font-family:'JetBrains Mono',monospace}
+  .clidiag{font-size:13px;line-height:1.55;margin-bottom:16px}
+  .clidiag.ok{color:var(--gris)}
+  .clidiag.mal{color:#B42318;font-weight:600}
+  .clidiag.med{color:#93370D;font-weight:600}
+  .met{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:14px;
+       padding-top:15px;border-top:1px solid var(--linea)}
+  .mt .l{font-size:10.5px;color:var(--gris);font-weight:700;text-transform:uppercase;
+         letter-spacing:.05em;margin-bottom:4px}
+  .mt .v{font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .mt .v.rj{color:var(--rojo)} .mt .v.am{color:#B54708} .mt .v.gr{color:#CBD5E1}
+  .mt .p{font-size:11px;color:var(--gris);margin-top:3px;line-height:1.4}
+  .delta{font-size:11.5px;font-weight:700;margin-left:5px}
+  .delta.up{color:var(--verde)} .delta.down{color:var(--coral)}
+
+  /* ---------- incidencias ---------- */
+  .inc{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;
+       padding:15px 0;border-top:1px solid var(--linea)}
+  .inc:first-child{border-top:0}
+  .sev{width:9px;height:9px;border-radius:99px;margin-top:6px;background:var(--gris);flex:none}
+  .sev.critico{background:var(--rojo)} .sev.aviso{background:var(--ambar)}
+  .sev.info{background:#94A3B8}
+  .inc.resuelta{opacity:.5}
+  .incuerpo{min-width:0}
+  .inctit{font-size:14px;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
+  .incmeta{font-size:11.5px;color:var(--gris);margin-top:4px;line-height:1.5;overflow-wrap:anywhere}
+  .incdet{font-size:12.5px;color:#475569;margin-top:6px;line-height:1.55;overflow-wrap:anywhere}
+  .incacc{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .cbtn{font-size:12px;font-weight:600;padding:7px 12px;border-radius:9px;background:var(--aire);
+        color:var(--profundo);border:none;cursor:pointer;white-space:nowrap;font-family:inherit}
+  .cbtn:hover{background:var(--pulso);color:#fff}
+  .cbtn.sec{background:var(--fondo);color:var(--gris)}
+  .cbtn.sec:hover{background:#E2E8F0;color:var(--tinta)}
+  @media(max-width:600px){
+    .inc{grid-template-columns:auto 1fr}
+    .incacc{grid-column:2/-1;justify-content:flex-start}
+  }
+
+  /* ---------- salud ---------- */
+  .chk{display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:baseline;
+       padding:13px 0;border-top:1px solid var(--linea);font-size:13.5px}
+  .chk:first-child{border-top:0}
+  .cico{font-size:14px;line-height:1;font-weight:800}
+  .cico.ok{color:var(--verde)} .cico.mal{color:var(--rojo)}
+  .cico.med{color:var(--ambar)} .cico.na{color:#CBD5E1}
+  .chknom{font-weight:600}
+  .chkdet{font-size:12px;color:var(--gris);margin-top:3px;line-height:1.5;overflow-wrap:anywhere}
+  .chkslug{font-size:11px;color:var(--gris);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+
+  /* ---------- vencimientos ---------- */
+  .ven{display:grid;grid-template-columns:78px 1fr auto;gap:14px;align-items:center;
+       padding:13px 0;border-top:1px solid var(--linea)}
+  .ven:first-child{border-top:0}
+  .vfecha{text-align:center;line-height:1.15}
+  .vdia{display:block;font-size:19px;font-weight:800;letter-spacing:-.02em}
+  .vmes{display:block;font-size:10px;color:var(--gris);text-transform:uppercase;font-weight:700}
+  .vsin{font-size:10.5px;color:var(--gris);font-weight:700;text-transform:uppercase}
+  .vque{font-size:13.5px;font-weight:600;line-height:1.4}
+  .vdet{font-size:12px;color:var(--gris);margin-top:3px;line-height:1.5}
+  .vqueda{font-size:11px;font-weight:700;margin-top:3px}
+  .vqueda.rj{color:var(--rojo)} .vqueda.am{color:#B54708} .vqueda.gr{color:var(--gris)}
+  @media(max-width:600px){.ven{grid-template-columns:64px 1fr}
+    .ven .cbtn{grid-column:2/-1;justify-self:start}}
+
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;
+        background:var(--aire);color:var(--profundo);white-space:nowrap}
+  .pill.gris{background:#F1F5F9;color:var(--gris)}
+  .pill.rj{background:#FEE4E2;color:#B42318}
+  .pill.am{background:#FEF0C7;color:#93370D}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 16px}
+  .chip{font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:99px;color:var(--gris);
+        background:var(--blanco);border:1px solid var(--linea);font-family:inherit}
+  .chip.on{background:var(--profundo);color:#fff;border-color:transparent}
+
+  /* ---------- avisos flotantes ---------- */
+  #tostadas{position:fixed;right:18px;bottom:18px;z-index:80;display:grid;gap:10px;
+            max-width:min(380px,calc(100vw - 36px))}
+  .tosta{background:var(--tinta);color:#fff;border-radius:12px;padding:14px 16px;
+         box-shadow:0 10px 30px rgba(10,31,74,.3);font-size:13px;line-height:1.5}
+  .tosta strong{display:block;font-size:13.5px;margin-bottom:3px}
+  .tosta.critico{border-left:4px solid var(--rojo)}
+  .tosta.aviso{border-left:4px solid var(--ambar)}
+
+  @media(max-width:820px){
+    header{padding:0;gap:0}
+    .marca{order:1;padding:13px 16px;flex:1 1 auto}
+    .hend{order:2;padding:13px 16px;margin-left:0;flex:0 0 auto}
+    nav{order:3;flex:0 0 100%;width:100%;padding:0 8px;border-top:1px solid rgba(255,255,255,.14);
+        overflow-x:auto;scrollbar-width:none}
+    nav::-webkit-scrollbar{display:none}
+    nav button{padding:13px 12px;font-size:13.5px;white-space:nowrap;flex:0 0 auto}
+    main{padding:22px 16px 60px}
+    h2.tit{font-size:24px}
+    .panel{padding:18px 16px}
+    .cli{padding:18px 17px}
+  }
+  /* Safari amplía la página al enfocar un campo de menos de 16 px
+     y no la devuelve al salir. Con 16 px no amplía. */
+  @media (pointer:coarse){input,select,textarea{font-size:16px}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <div class="card">
+    <div class="marca">Simplia<span>Spain</span></div>
+    <h2>Panel maestro</h2>
+    <p class="ph">Operación de todos los clientes</p>
+    <div class="err" id="err"></div>
+    <label for="em">Email</label>
+    <input id="em" type="email" autocomplete="email" placeholder="simpliaspain@gmail.com">
+    <label for="pw">Contraseña</label>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••">
+    <button class="btn" id="entrar">Entrar</button>
+  </div>
+</section>
+
+<div id="app">
+  <header>
+    <div class="marca">Simplia<span>Spain</span> · maestro</div>
+    <nav>
+      <button class="on" data-v="clientes">Clientes</button>
+      <button data-v="incidencias">Incidencias<span class="bdg" id="bdg" hidden></span></button>
+      <button data-v="salud">Salud</button>
+      <button data-v="vencimientos">Vencimientos</button>
+    </nav>
+    <div class="hend">
+      <button class="refr" id="refrescar" title="Actualizar">
+        <span class="ricon" aria-hidden="true">⟳</span><span id="rcuando">—</span>
+      </button>
+      <button class="salir" id="salir">Salir</button>
+    </div>
+  </header>
+  <main><div id="vista"><div class="cargando">Cargando…</div></div></main>
+</div>
+
+<div id="tostadas"></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const URL = 'https://bmbfmcgqfruhnhlxxdmy.supabase.co';
+const KEY = 'sb_publishable_YE2Oe3kvM70VGL-304-SXw_yU8KPzS2';
+
+const supabase = createClient(URL, KEY, {
+  auth: { persistSession:false, autoRefreshToken:true, detectSessionInUrl:false }
+});
+
+const $  = s => document.querySelector(s);
+const nf = new Intl.NumberFormat('es-ES');
+const esc = s => String(s ?? '').replace(/[&<>"]/g,
+  m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+
+let VISTA = 'clientes', TIMER = null, ULTIMA = null;
+let PANORAMA = [], INCID = [], CHECKS = [], VENC = [];
+let FILTRO_INC = 'vivas';
+let VISTAS_CRIT = new Set();     // huellas críticas ya avisadas
+let ARRANCANDO = true;           // no avisar de lo que ya existía al entrar
+
+/* ============================================================
+   Captura de errores del propio panel maestro.
+   El mismo bloque, sin la parte de operador, va en el panel de
+   cliente: así los fallos que ve el cliente llegan aquí solos.
+   ============================================================ */
+const YA_REPORTADO = new Set();
+async function reportar(codigo, titulo, detalle, severidad = 'aviso'){
+  if (YA_REPORTADO.has(codigo)) return;   // una vez por sesión, no un bucle
+  YA_REPORTADO.add(codigo);
+  try {
+    await supabase.rpc('registrar_incidencia', {
+      p_codigo: codigo,
+      p_titulo: String(titulo).slice(0, 300),
+      p_severidad: severidad,
+      p_detalle: { ...detalle, url: location.pathname, agente: navigator.userAgent.slice(0,180) },
+      p_origen: 'panel'
+    });
+  } catch { /* si ni siquiera se puede reportar, no hay más que hacer */ }
+}
+window.addEventListener('error', e => reportar(
+  'js_' + (e.message || 'error').slice(0,60).replace(/\W+/g,'_').toLowerCase(),
+  'Error de JavaScript: ' + (e.message || 'desconocido'),
+  { fichero: e.filename, linea: e.lineno }, 'aviso'));
+window.addEventListener('unhandledrejection', e => reportar(
+  'promesa_' + String(e.reason?.message || e.reason).slice(0,60).replace(/\W+/g,'_').toLowerCase(),
+  'Promesa sin capturar: ' + String(e.reason?.message || e.reason).slice(0,200),
+  {}, 'aviso'));
+
+// Envoltorio de RPC: cualquier fallo de consulta queda registrado.
+async function rpc(nombre, args){
+  const { data, error } = await supabase.rpc(nombre, args);
+  if (error){
+    reportar('rpc_' + nombre, `Fallo en ${nombre}(): ${error.message}`,
+             { codigo: error.code, pista: error.hint }, 'critico');
+    throw error;
+  }
+  return data;
+}
+
+/* ---------- login ---------- */
+$('#entrar').addEventListener('click', entrar);
+$('#pw').addEventListener('keydown', e => e.key === 'Enter' && entrar());
+$('#em').addEventListener('keydown', e => e.key === 'Enter' && $('#pw').focus());
+
+async function entrar(){
+  const b = $('#entrar'), e = $('#err');
+  e.style.display = 'none';
+  b.disabled = true; b.textContent = 'Comprobando…';
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email: $('#em').value.trim(), password: $('#pw').value
+  });
+  if (error){
+    e.textContent = error.message.includes('Invalid')
+      ? 'Email o contraseña incorrectos.' : error.message;
+    e.style.display = 'block';
+    b.disabled = false; b.textContent = 'Entrar';
+    return;
+  }
+
+  // El acceso lo decide la base de datos, no esta comprobación.
+  // Aunque alguien la saltara, las funciones devuelven vacío.
+  const { data: op } = await supabase.rpc('soy_operador');
+  if (!op){
+    await supabase.auth.signOut();
+    e.textContent = 'Esta cuenta no tiene permiso de operador. ' +
+                    'Usa panel.simpliaspain.com para el panel de cliente.';
+    e.style.display = 'block';
+    b.disabled = false; b.textContent = 'Entrar';
+    return;
+  }
+
+  $('#login').style.display = 'none';
+  $('#app').style.display = 'block';
+  await cargar();
+  ARRANCANDO = false;
+  auto();
+}
+
+$('#salir').addEventListener('click', async () => {
+  clearInterval(TIMER);
+  await supabase.auth.signOut();
+  location.reload();
+});
+
+document.querySelectorAll('nav button').forEach(b =>
+  b.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    VISTA = b.dataset.v;
+    pintar();
+    // Al abrir Salud o Vencimientos se pide dato fresco, aunque
+    // no haya tocado el ciclo lento.
+    if (VISTA === 'salud' || VISTA === 'vencimientos') cargar(true);
+  }));
+
+$('#refrescar').addEventListener('click', async () => {
+  const b = $('#refrescar');
+  b.classList.add('girando');
+  await cargar(true);
+  b.classList.remove('girando');
+});
+
+function auto(){
+  clearInterval(TIMER);
+  TIMER = setInterval(() => {
+    if (document.hidden) return;
+    const ae = document.activeElement;
+    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT')) return;
+    cargar();
+  }, 30000);
+}
+
+/* ---------- carga ----------
+   Dos ritmos. Panorama e incidencias son consultas baratas y van
+   cada 30 s. salud() recorre percentiles sobre siete días de
+   mensajes por cada cliente: a 30 s sería un escaneo continuo
+   contra un plan Free. Va cada 5 minutos, o cuando se pide. */
+let ULTIMA_LENTA = 0;
+
+async function cargar(forzarLenta = false){
+  const lenta = forzarLenta || Date.now() - ULTIMA_LENTA > 300000;
+
+  const [p, i] = await Promise.all([
+    rpc('panorama').catch(() => []),
+    rpc('mis_incidencias', { p_estado: FILTRO_INC, p_limite: 200 }).catch(() => [])
+  ]);
+  PANORAMA = p || []; INCID = i || [];
+
+  if (lenta){
+    const [s, v] = await Promise.all([
+      rpc('salud').catch(() => []),
+      rpc('mis_vencimientos').catch(() => [])
+    ]);
+    CHECKS = s || []; VENC = v || [];
+    ULTIMA_LENTA = Date.now();
+  }
+
+  ULTIMA = Date.now(); cuando();
+  avisarNuevas();
+  insignia();
+  pintar();
+}
+
+function cuando(){
+  const el = $('#rcuando'); if (!el || !ULTIMA) return;
+  const s = Math.round((Date.now() - ULTIMA)/1000);
+  el.textContent = s < 10 ? 'ahora' : s < 60 ? `hace ${s} s`
+    : s < 3600 ? `hace ${Math.round(s/60)} min` : `hace ${Math.round(s/3600)} h`;
+}
+setInterval(cuando, 10000);
+
+/* ---------- detector: avisar de lo nuevo ---------- */
+function insignia(){
+  const vivas = INCID.filter(i => i.estado !== 'resuelta');
+  const crit  = vivas.filter(i => i.severidad === 'critico').length;
+  const b = $('#bdg');
+  if (!vivas.length){ b.hidden = true; document.title = 'SimpliaSpain · Panel maestro'; return; }
+  b.hidden = false;
+  b.textContent = vivas.length;
+  b.className = 'bdg' + (crit ? '' : ' am');
+  document.title = (crit ? `(${crit}!) ` : `(${vivas.length}) `) + 'SimpliaSpain · Panel maestro';
+}
+
+function avisarNuevas(){
+  const vivas = INCID.filter(i => i.estado !== 'resuelta' && i.severidad !== 'info');
+  const nuevas = vivas.filter(i => !VISTAS_CRIT.has(i.huella));
+  vivas.forEach(i => VISTAS_CRIT.add(i.huella));
+  if (ARRANCANDO) return;                 // al entrar no se grita lo ya conocido
+  nuevas.forEach(i => {
+    tosta(i.severidad, i.titulo, (i.tenant_slug || 'global') + ' · ' + i.codigo);
+    if (i.severidad === 'critico' && 'Notification' in window
+        && Notification.permission === 'granted'){
+      try { new Notification('SimpliaSpain · ' + (i.tenant_slug || 'global'),
+                             { body: i.titulo, tag: i.huella }); } catch {}
+    }
+  });
+}
+
+function tosta(sev, titulo, pie){
+  const d = document.createElement('div');
+  d.className = 'tosta ' + sev;
+  d.innerHTML = `<strong>${esc(titulo)}</strong>${esc(pie)}`;
+  $('#tostadas').appendChild(d);
+  setTimeout(() => d.remove(), 12000);
+}
+
+/* ============================================================
+   Vistas
+   ============================================================ */
+function pintar(){
+  const y = window.scrollY;
+  $('#vista').innerHTML =
+      VISTA === 'clientes'     ? vistaClientes()
+    : VISTA === 'incidencias'  ? vistaIncidencias()
+    : VISTA === 'salud'        ? vistaSalud()
+    :                            vistaVencimientos();
+  enlazar();
+  window.scrollTo({ top: y, behavior: 'instant' });
+}
+
+/* ---------- clientes ---------- */
+// El semáforo se explica siempre en palabras. Un color sin motivo
+// obliga a investigar cada vez; con el motivo, se actúa.
+function diagnostico(c){
+  const rojo = [], ambar = [];
+  if (Number(c.sin_respuesta_24h) > 0)
+    rojo.push(`${c.sin_respuesta_24h} persona(s) escribieron y el asistente no respondió`);
+  if (Number(c.incid_criticas) > 0)
+    rojo.push(`${c.incid_criticas} incidencia(s) crítica(s) abierta(s)`);
+
+  const h = Number(c.horas_sin_mensaje);
+  if (h > 48) ambar.push(`sin mensajes desde hace ${h} h`);
+  if (Number(c.lat_p95_s) > 25) ambar.push(`p95 de respuesta en ${c.lat_p95_s} s`);
+  if (Number(c.incid_abiertas) > Number(c.incid_criticas))
+    ambar.push(`${c.incid_abiertas - c.incid_criticas} incidencia(s) abierta(s)`);
+  if (Number(c.convs_7d) > 0 && Number(c.no_supo_7d) / Number(c.convs_7d) > 0.25)
+    ambar.push(`el asistente no supo responder en el ${
+      Math.round(c.no_supo_7d / c.convs_7d * 100)} % de las conversaciones`);
+
+  if (rojo.length) return { cl:'rj', tono:'mal', txt: rojo.join(' · ') };
+  if (ambar.length) return { cl:'am', tono:'med', txt: ambar.join(' · ') };
+  if (!Number(c.conversaciones)) return { cl:'gr', tono:'ok', txt:'Sin datos todavía' };
+  return { cl:'', tono:'ok', txt:'Sin señales de alarma' };
+}
+
+const mt = (l, v, p, cl) => `<div class="mt">
+  <div class="l">${esc(l)}</div>
+  <div class="v${cl ? ' ' + cl : ''}">${v}</div>
+  ${p ? `<div class="p">${p}</div>` : ''}</div>`;
+
+function vistaClientes(){
+  if (!PANORAMA.length) return `<h2 class="tit">Clientes</h2>
+    <div class="panel"><div class="vacio">
+      <strong>No se ha podido leer el panorama.</strong><br>
+      Comprueba que 020_maestro.sql está aplicado y que tu cuenta está en <code>staff</code>.
+    </div></div>`;
+
+  const mal = PANORAMA.filter(c => diagnostico(c).cl === 'rj').length;
+  const med = PANORAMA.filter(c => diagnostico(c).cl === 'am').length;
+
+  return `<h2 class="tit">Clientes</h2>
+    <p class="sub">${nf.format(PANORAMA.length)} ${
+      PANORAMA.length === 1 ? 'cliente' : 'clientes'}${
+      mal ? ` · <strong>${mal} requiere${mal===1?'':'n'} atención</strong>` : ''}${
+      med ? ` · ${med} con avisos` : ''}${
+      !mal && !med ? ' · todo en orden' : ''}.</p>
+    <div class="clientes">${PANORAMA.map(fichaCliente).join('')}</div>`;
+}
+
+function fichaCliente(c){
+  const d = diagnostico(c);
+  const v7 = Number(c.convs_7d), p7 = Number(c.convs_7d_previos);
+  const delta = p7 > 0 ? Math.round((v7 - p7) / p7 * 100) : null;
+  const h = c.horas_sin_mensaje == null ? null : Number(c.horas_sin_mensaje);
+
+  return `<div class="cli ${d.cl}">
+    <div class="clicab">
+      <span class="clinom">${esc(c.nombre)}</span>
+      <span class="clislug">${esc(c.slug)}</span>
+      ${c.sector ? `<span class="pill gris">${esc(c.sector)}</span>` : ''}
+    </div>
+    <div class="clidiag ${d.tono}">${esc(d.txt)}</div>
+    <div class="met">
+      ${mt('Personas', nf.format(c.personas), `${nf.format(c.conversaciones)} conversaciones`)}
+      ${mt('Últimas 24 h', nf.format(c.convs_24h),
+           `${nf.format(c.msgs_24h)} entrantes · ${nf.format(c.resp_24h)} respuestas`)}
+      ${mt('Últimos 7 días', nf.format(v7) + (delta === null ? ''
+           : `<span class="delta ${delta >= 0 ? 'up' : 'down'}">${
+              delta >= 0 ? '+' : ''}${delta} %</span>`),
+           p7 ? `frente a ${nf.format(p7)} la semana anterior` : 'sin comparativa')}
+      ${mt('Último mensaje',
+           h === null ? '—' : (h < 1 ? '<1 h' : `${Math.round(h)} h`),
+           h === null ? 'nunca' : 'de un cliente',
+           h === null ? 'gr' : h > 48 ? 'am' : '')}
+      ${mt('Respuesta p95',
+           c.lat_p95_s == null ? '—' : `${c.lat_p95_s}<small style="font-size:.55em">s</small>`,
+           c.lat_muestras ? `mediana ${c.lat_p50_s} s · ${nf.format(c.lat_muestras)} muestras`
+                          : 'sin mediciones',
+           c.lat_p95_s == null ? 'gr' : Number(c.lat_p95_s) > 25 ? 'am' : '')}
+      ${mt('Sin responder', nf.format(c.sin_respuesta_24h), 'en 24 h',
+           Number(c.sin_respuesta_24h) > 0 ? 'rj' : '')}
+      ${mt('No supo', nf.format(c.no_supo_7d), 'en 7 días',
+           v7 && c.no_supo_7d / v7 > 0.25 ? 'am' : '')}
+      ${mt('Interés', nf.format(c.interes_7d),
+           `${nf.format(c.contacto_7d)} dejaron contacto · 7 días`)}
+      ${mt('Incidencias', nf.format(c.incid_abiertas),
+           Number(c.incid_criticas) ? `${c.incid_criticas} crítica(s)` : 'abiertas',
+           Number(c.incid_criticas) ? 'rj' : Number(c.incid_abiertas) ? 'am' : '')}
+    </div>
+  </div>`;
+}
+
+/* ---------- incidencias ---------- */
+function vistaIncidencias(){
+  const estados = [['vivas','Abiertas y reconocidas'],['abierta','Solo abiertas'],
+                   ['resuelta','Resueltas'],['todas','Todas']];
+  return `<h2 class="tit">Incidencias</h2>
+    <p class="sub">Errores del panel, fallos de n8n y comprobaciones que no pasan.
+       Se agrupan por huella: un mismo error repetido es una fila con su contador.</p>
+    <div class="chips">
+      ${estados.map(([k,l]) => `<button class="chip${FILTRO_INC===k?' on':''}"
+        data-e="${k}">${l}</button>`).join('')}
+      ${'Notification' in window && Notification.permission === 'default'
+        ? '<button class="chip" id="permiso">Activar avisos del navegador</button>' : ''}
+    </div>
+    <div class="panel">
+      ${INCID.length ? INCID.map(filaInc).join('')
+        : `<div class="vacio">Nada que mostrar con este filtro.<br>
+           Si es la primera vez, ejecuta una comprobación desde Salud.</div>`}
+    </div>
+    <p class="nota">Resolver una incidencia no la borra: la cierra. Si el mismo problema
+       vuelve a aparecer se abre una nueva, y así se ve que es reincidente.</p>`;
+}
+
+function filaInc(i){
+  const det = i.detalle && typeof i.detalle === 'object'
+    ? Object.entries(i.detalle).filter(([,v]) => v != null && v !== '')
+        .map(([k,v]) => `${k}: ${String(v)}`).join(' · ') : '';
+  return `<div class="inc ${i.estado === 'resuelta' ? 'resuelta' : ''}">
+    <span class="sev ${esc(i.severidad)}"></span>
+    <div class="incuerpo">
+      <div class="inctit">${esc(i.titulo)}</div>
+      <div class="incmeta">
+        ${i.tenant_slug ? `<span class="pill gris">${esc(i.tenant_slug)}</span> ` : ''}
+        <span class="pill gris">${esc(i.origen)}</span>
+        <span class="mono">${esc(i.codigo)}</span>
+        · ${Number(i.veces) > 1 ? `${nf.format(i.veces)} veces · ` : ''}última ${fechaHora(i.ultima_vez)}
+        ${Number(i.veces) > 1 ? ` · desde ${fechaCorta(i.primera_vez)}` : ''}
+        ${i.estado === 'reconocida' ? ' · <span class="pill am">reconocida</span>' : ''}
+        ${i.estado === 'resuelta' ? ' · <span class="pill gris">resuelta</span>' : ''}
+      </div>
+      ${det ? `<div class="incdet">${esc(det)}</div>` : ''}
+      ${i.nota ? `<div class="incdet">${esc(i.nota)}</div>` : ''}
+    </div>
+    <div class="incacc">
+      ${i.estado === 'abierta'
+        ? `<button class="cbtn sec" data-i="${i.id}" data-a="reconocida">Reconocer</button>` : ''}
+      ${i.estado !== 'resuelta'
+        ? `<button class="cbtn" data-i="${i.id}" data-a="resuelta">Resolver</button>`
+        : `<button class="cbtn sec" data-i="${i.id}" data-a="abierta">Reabrir</button>`}
+    </div>
+  </div>`;
+}
+
+/* ---------- salud ---------- */
+function vistaSalud(){
+  const fallan = CHECKS.filter(c => c.evaluable && !c.ok);
+  const nd     = CHECKS.filter(c => !c.evaluable);
+  return `<h2 class="tit">Salud</h2>
+    <p class="sub">Comprobaciones que se ejecutan contra la base de datos ahora mismo.
+       Las que no se pueden evaluar se marcan como tales en vez de darse por buenas.</p>
+    <div class="panel">
+      <div class="cabpanel">
+        <div>
+          <h3>${fallan.length ? `${fallan.length} comprobación${
+            fallan.length===1?'':'es'} sin pasar` : 'Todo pasa'}</h3>
+          <p class="ph">${nf.format(CHECKS.length)} comprobaciones${
+            nd.length ? ` · ${nd.length} no evaluable(s)` : ''}</p>
+        </div>
+        <button class="cbtn" id="evaluar">Evaluar y abrir incidencias</button>
+      </div>
+      ${CHECKS.length ? CHECKS.map(c => {
+        const ico = !c.evaluable ? ['na','?']
+          : c.ok ? ['ok','✓'] : (c.severidad === 'critico' ? ['mal','✕'] : ['med','!']);
+        return `<div class="chk">
+          <span class="cico ${ico[0]}">${ico[1]}</span>
+          <div>
+            <div class="chknom">${esc(c.titulo)}</div>
+            <div class="chkdet">${esc(c.detalle)}${
+              c.evaluable ? '' : ' · no se ha podido evaluar'}</div>
+          </div>
+          <span class="chkslug">${esc(c.slug || 'global')}</span>
+        </div>`;
+      }).join('') : '<div class="vacio">Sin comprobaciones. Revisa que salud() existe.</div>'}
+    </div>
+    <p class="nota">Este botón hace lo mismo que hará el workflow de vigilancia de n8n cada
+       diez minutos: lo que falla abre incidencia, lo que se arregla la cierra sola.</p>`;
+}
+
+/* ---------- vencimientos ---------- */
+function vistaVencimientos(){
+  return `<h2 class="tit">Vencimientos</h2>
+    <p class="sub">Lo que caduca y lo que está pendiente. Con fecha, cuenta atrás;
+       sin fecha, deuda que sigue ahí hasta que alguien la quite.</p>
+    <div class="panel">
+      ${VENC.length ? VENC.map(filaVen).join('')
+        : '<div class="vacio">Nada registrado. La carga inicial está al final de 020_maestro.sql.</div>'}
+    </div>`;
+}
+
+function filaVen(v){
+  let bloqueFecha, queda = '';
+  if (v.fecha){
+    const f = new Date(v.fecha + 'T00:00:00');
+    const dias = Math.round((f - new Date().setHours(0,0,0,0)) / 864e5);
+    bloqueFecha = `<span class="vdia">${f.getDate()}</span>
+      <span class="vmes">${f.toLocaleDateString('es-ES',{month:'short'})} ${
+        String(f.getFullYear()).slice(2)}</span>`;
+    const cl = dias < 0 ? 'rj' : dias <= Number(v.aviso_dias) ? 'am' : 'gr';
+    queda = `<div class="vqueda ${cl}">${
+      dias < 0 ? `vencido hace ${-dias} días`
+      : dias === 0 ? 'vence hoy' : `faltan ${dias} días`}</div>`;
+  } else {
+    bloqueFecha = `<span class="vsin">sin<br>fecha</span>`;
+  }
+  return `<div class="ven">
+    <div class="vfecha">${bloqueFecha}</div>
+    <div>
+      <div class="vque">${esc(v.que)}
+        ${v.tenant_slug ? `<span class="pill gris">${esc(v.tenant_slug)}</span>` : ''}
+        ${v.gravedad === 'critico' ? '<span class="pill rj">crítico</span>' : ''}</div>
+      ${v.detalle ? `<div class="vdet">${esc(v.detalle)}</div>` : ''}
+      ${queda}
+    </div>
+    <button class="cbtn sec" data-v="${v.id}">Hecho</button>
+  </div>`;
+}
+
+/* ---------- interacción ---------- */
+function enlazar(){
+  document.querySelectorAll('.chip[data-e]').forEach(b =>
+    b.addEventListener('click', async () => {
+      FILTRO_INC = b.dataset.e;
+      INCID = await rpc('mis_incidencias',
+        { p_estado: FILTRO_INC, p_limite: 200 }).catch(() => []);
+      pintar();
+    }));
+
+  $('#permiso')?.addEventListener('click', async () => {
+    try { await Notification.requestPermission(); } catch {}
+    pintar();
+  });
+
+  document.querySelectorAll('.cbtn[data-i]').forEach(b =>
+    b.addEventListener('click', async () => {
+      b.disabled = true;
+      try {
+        await rpc('atender_incidencia',
+          { p_id: Number(b.dataset.i), p_estado: b.dataset.a });
+        await cargar();
+      } catch { b.disabled = false; }
+    }));
+
+  document.querySelectorAll('.cbtn[data-v]').forEach(b =>
+    b.addEventListener('click', async () => {
+      b.disabled = true;
+      try {
+        await rpc('resolver_vencimiento', { p_id: Number(b.dataset.v), p_resuelto: true });
+        await cargar();
+      } catch { b.disabled = false; }
+    }));
+
+  $('#evaluar')?.addEventListener('click', async () => {
+    const b = $('#evaluar');
+    b.disabled = true; b.textContent = 'Evaluando…';
+    try {
+      const r = await rpc('evaluar_salud');
+      const x = Array.isArray(r) ? r[0] : r;
+      tosta('aviso', 'Comprobación terminada',
+            `${x?.abiertas ?? 0} abiertas · ${x?.cerradas ?? 0} cerradas`);
+      await cargar();
+    } catch {
+      b.disabled = false; b.textContent = 'Evaluar y abrir incidencias';
+    }
+  });
+}
+
+/* ---------- utilidades ---------- */
+const fechaCorta = d => new Date(d).toLocaleDateString('es-ES',
+  { day:'2-digit', month:'short', year:'2-digit' });
+const fechaHora = d => new Date(d).toLocaleString('es-ES',
+  { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+</script>
+</body>
+</html>
