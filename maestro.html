@@ -251,6 +251,7 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g,
 
 let VISTA = 'clientes', TIMER = null, ULTIMA = null;
 let PANORAMA = [], INCID = [], CHECKS = [], VENC = [];
+let VIVAS = [];   // siempre las no resueltas, independiente del filtro de pantalla
 let FILTRO_INC = 'vivas';
 let VISTAS_CRIT = new Set();     // huellas críticas ya avisadas
 let ARRANCANDO = true;           // no avisar de lo que ya existía al entrar
@@ -378,11 +379,17 @@ let ULTIMA_LENTA = 0;
 async function cargar(forzarLenta = false){
   const lenta = forzarLenta || Date.now() - ULTIMA_LENTA > 300000;
 
-  const [p, i] = await Promise.all([
+  // Las vivas se piden siempre. La insignia y los avisos no pueden
+  // depender del filtro que el operador tenga puesto en pantalla:
+  // con el filtro en "Resueltas" dejarían de avisar de lo nuevo.
+  const [p, v] = await Promise.all([
     rpc('panorama').catch(() => []),
-    rpc('mis_incidencias', { p_estado: FILTRO_INC, p_limite: 200 }).catch(() => [])
+    rpc('mis_incidencias', { p_estado: 'vivas', p_limite: 200 }).catch(() => [])
   ]);
-  PANORAMA = p || []; INCID = i || [];
+  PANORAMA = p || []; VIVAS = v || [];
+  INCID = FILTRO_INC === 'vivas' ? VIVAS
+    : (await rpc('mis_incidencias', { p_estado: FILTRO_INC, p_limite: 200 })
+        .catch(() => [])) || [];
 
   if (lenta){
     const [s, v] = await Promise.all([
@@ -409,7 +416,7 @@ setInterval(cuando, 10000);
 
 /* ---------- detector: avisar de lo nuevo ---------- */
 function insignia(){
-  const vivas = INCID.filter(i => i.estado !== 'resuelta');
+  const vivas = VIVAS.filter(i => i.estado !== 'resuelta');
   const crit  = vivas.filter(i => i.severidad === 'critico').length;
   const b = $('#bdg');
   if (!vivas.length){ b.hidden = true; document.title = 'SimpliaSpain · Panel maestro'; return; }
@@ -420,7 +427,7 @@ function insignia(){
 }
 
 function avisarNuevas(){
-  const vivas = INCID.filter(i => i.estado !== 'resuelta' && i.severidad !== 'info');
+  const vivas = VIVAS.filter(i => i.estado !== 'resuelta' && i.severidad !== 'info');
   const nuevas = vivas.filter(i => !VISTAS_CRIT.has(i.huella));
   vivas.forEach(i => VISTAS_CRIT.add(i.huella));
   if (ARRANCANDO) return;                 // al entrar no se grita lo ya conocido
@@ -679,9 +686,7 @@ function enlazar(){
   document.querySelectorAll('.chip[data-e]').forEach(b =>
     b.addEventListener('click', async () => {
       FILTRO_INC = b.dataset.e;
-      INCID = await rpc('mis_incidencias',
-        { p_estado: FILTRO_INC, p_limite: 200 }).catch(() => []);
-      pintar();
+      await cargar();
     }));
 
   $('#permiso')?.addEventListener('click', async () => {
