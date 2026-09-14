@@ -241,6 +241,7 @@
       <button data-v="salud">Salud</button>
       <button data-v="vencimientos">Vencimientos</button>
       <button data-v="web">Web</button>
+      <button data-v="excluidos">Excluidos</button>
     </nav>
     <div class="hend">
       <button class="refr" id="refrescar" title="Actualizar">
@@ -270,7 +271,7 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g,
   m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
 let VISTA = 'clientes', TIMER = null, ULTIMA = null;
-let PANORAMA = [], INCID = [], CHECKS = [], VENC = [], CFGOP = [];
+let PANORAMA = [], INCID = [], CHECKS = [], VENC = [], CFGOP = [], EXCL = [];
 let VIVAS = [];   // siempre las no resueltas, independiente del filtro de pantalla
 let FILTRO_INC = 'vivas';
 let VISTAS_CRIT = new Set();     // huellas críticas ya avisadas
@@ -369,7 +370,7 @@ document.querySelectorAll('nav button').forEach(b =>
     pintar();
     // Al abrir Salud o Vencimientos se pide dato fresco, aunque
     // no haya tocado el ciclo lento.
-    if (VISTA === 'salud' || VISTA === 'vencimientos') cargar(true);
+    if (VISTA === 'salud' || VISTA === 'vencimientos' || VISTA === 'excluidos') cargar(true);
     if (VISTA === 'web') montarWeb();
   }));
 
@@ -413,12 +414,13 @@ async function cargar(forzarLenta = false){
         .catch(() => [])) || [];
 
   if (lenta){
-    const [s, v, cf] = await Promise.all([
+    const [s, v, cf, ex] = await Promise.all([
       rpc('salud').catch(() => []),
       rpc('mis_vencimientos').catch(() => []),
-      rpc('mi_config_operador').catch(() => [])
+      rpc('mi_config_operador').catch(() => []),
+      rpc('mis_exclusiones').catch(() => [])
     ]);
-    CHECKS = s || []; VENC = v || []; CFGOP = cf || [];
+    CHECKS = s || []; VENC = v || []; CFGOP = cf || []; EXCL = ex || [];
     ULTIMA_LENTA = Date.now();
   }
 
@@ -481,6 +483,7 @@ function pintar(){
     : VISTA === 'incidencias'  ? vistaIncidencias()
     : VISTA === 'salud'        ? vistaSalud()
     : VISTA === 'web'          ? vistaWeb()
+    : VISTA === 'excluidos'    ? vistaExcluidos()
     :                            vistaVencimientos();
   enlazar();
   if (VISTA === 'web') montarWeb();
@@ -533,7 +536,8 @@ function vistaClientes(){
       mal ? ` · <strong>${mal} requiere${mal===1?'':'n'} atención</strong>` : ''}${
       med ? ` · ${med} con avisos` : ''}${
       !mal && !med ? ' · todo en orden' : ''}.</p>
-    <div class="clientes">${PANORAMA.map(fichaCliente).join('')}</div>`;
+    <div class="clientes">${PANORAMA.map(fichaCliente).join('')}</div>
+    ${bloqueExcluidos()}`;
 }
 
 function fichaCliente(c){
@@ -575,6 +579,8 @@ function fichaCliente(c){
            v7 && c.no_supo_7d / v7 > 0.25 ? 'am' : '')}
       ${mt('Interés', nf.format(c.interes_7d),
            `${nf.format(c.contacto_7d)} dejaron contacto · 7 días`)}
+      ${Number(c.excluidos) ? mt('Excluidos', nf.format(c.excluidos),
+           'fuera de las métricas', 'gr') : ''}
       ${mt('Incidencias', nf.format(c.incid_abiertas),
            Number(c.incid_criticas) ? `${c.incid_criticas} crítica(s)` : 'abiertas',
            Number(c.incid_criticas) ? 'rj' : Number(c.incid_abiertas) ? 'am' : '')}
@@ -716,6 +722,25 @@ function enlazar(){
       await cargar();
     }));
 
+  document.querySelectorAll('.cbtn[data-incl]').forEach(b =>
+    b.addEventListener('click', async () => {
+      const [sl, ct] = b.dataset.incl.split('|');
+      b.disabled = true;
+      try { await rpc('incluir_contacto', { p_slug: sl, p_contact: ct }); await cargar(true); }
+      catch { b.disabled = false; }
+    }));
+
+  $('#exadd')?.addEventListener('click', async () => {
+    const num = $('#exnum').value.trim().replace(/[^0-9]/g, '');
+    if (!num){ tosta('aviso', 'Falta el número', 'Solo dígitos, sin espacios'); return; }
+    const b = $('#exadd'); b.disabled = true;
+    try {
+      await rpc('excluir_contacto', { p_slug: $('#exsl').value,
+        p_contact: num, p_motivo: $('#exmot').value.trim() || null });
+      await cargar(true);
+    } catch { b.disabled = false; tosta('critico', 'No se ha podido excluir', num); }
+  });
+
   $('#permiso')?.addEventListener('click', async () => {
     try { await Notification.requestPermission(); } catch {}
     pintar();
@@ -754,6 +779,36 @@ function enlazar(){
       try {
         await rpc('resolver_vencimiento', { p_id: Number(b.dataset.v), p_resuelto: true });
         await cargar();
+      } catch { b.disabled = false; }
+    }));
+
+  $('#exadd')?.addEventListener('click', async () => {
+    const num = $('#exnum').value.trim();
+    const msg = $('#exmsg');
+    if (!num){ msg.textContent = 'Escribe el teléfono del contacto.'; return; }
+    $('#exadd').disabled = true;
+    try {
+      const n = await rpc('excluir_contacto', {
+        p_contact: num,
+        p_motivo:  $('#exmot').value.trim() || null,
+        p_cliente: $('#excli').value
+      });
+      tosta('aviso', 'Contacto excluido',
+            `${num} · ${n} conversaciones fuera de la muestra`);
+      await cargar(true);
+    } catch (e) {
+      msg.textContent = e.message || 'No se ha podido excluir.';
+      $('#exadd').disabled = false;
+    }
+  });
+
+  document.querySelectorAll('.cbtn[data-inc]').forEach(b =>
+    b.addEventListener('click', async () => {
+      b.disabled = true;
+      try {
+        await rpc('incluir_contacto',
+          { p_contact: b.dataset.inc, p_cliente: b.dataset.slug });
+        await cargar(true);
       } catch { b.disabled = false; }
     }));
 
@@ -864,6 +919,134 @@ function montarWeb(){
       if (!cargado) document.getElementById('wb' + i)?.classList.add('on');
     }, 7000);
   });
+}
+
+
+/* ---------- excluidos ----------
+   Los números con los que probáis inflan todos los indicadores, y
+   lo hacen de forma invisible: el cliente ve una cifra creíble y
+   equivocada. Aquí se sacan de la muestra sin borrar nada. */
+function vistaExcluidos(){
+  const porCliente = PANORAMA.map(c => ({
+    slug: c.slug, nombre: c.nombre,
+    n: EXCL.filter(x => x.slug === c.slug).length
+  }));
+
+  return `<h2 class="tit">Excluidos</h2>
+    <p class="sub">Contactos que no cuentan en las estadísticas. Las conversaciones
+       siguen guardadas y se pueden consultar; simplemente dejan de sumar en
+       personas atendidas, señales, tiempos y coste evitado.</p>
+
+    <div class="panel">
+      <div class="cabpanel">
+        <div>
+          <h3>Excluir un contacto</h3>
+          <p class="ph">El teléfono tal y como aparece en Conversaciones.</p>
+        </div>
+      </div>
+      <div class="segm" style="justify-content:flex-start">
+        <select class="sel" id="excli" aria-label="Cliente">
+          ${porCliente.map(c => `<option value="${esc(c.slug)}">${esc(c.nombre)}</option>`).join('')}
+        </select>
+        <input class="busca" id="exnum" type="tel" inputmode="tel"
+               placeholder="34600000000" autocomplete="off" style="flex:1 1 170px">
+        <input class="busca" id="exmot" type="text"
+               placeholder="Motivo (p. ej. pruebas internas)" style="flex:1 1 220px">
+        <button class="cbtn" id="exadd">Excluir</button>
+      </div>
+      <p class="nota" id="exmsg" style="margin-top:12px"></p>
+    </div>
+
+    <div class="panel">
+      <div class="cabpanel">
+        <div>
+          <h3>${EXCL.length ? `${nf.format(EXCL.length)} excluido${
+            EXCL.length === 1 ? '' : 's'}` : 'Nadie excluido'}</h3>
+          <p class="ph">Con lo que dejan de aportar a las cifras.</p>
+        </div>
+      </div>
+      ${EXCL.length ? EXCL.map(filaExcl).join('')
+        : `<div class="vacio">Ningún contacto excluido.<br>
+           Todas las conversaciones cuentan en las estadísticas.</div>`}
+    </div>
+
+    <p class="nota">Una conversación nueva de un número ya excluido nace
+       excluida: no hay que acordarse de nada después de cada prueba.</p>`;
+}
+
+function filaExcl(x){
+  return `<div class="inc">
+    <span class="sev info"></span>
+    <div class="incuerpo">
+      <div class="inctit">${x.nombre ? esc(x.nombre) + ' · ' : ''}<span
+        class="mono">${esc(x.contact_ref)}</span></div>
+      <div class="incmeta">
+        <span class="pill gris">${esc(x.slug)}</span>
+        ${esc(x.motivo || 'sin motivo indicado')}
+        · desde ${fechaCorta(x.creado_en)}
+      </div>
+      <div class="incdet">Fuera de la muestra:
+        ${nf.format(x.conversaciones)} ${Number(x.conversaciones) === 1
+          ? 'conversación' : 'conversaciones'} y
+        ${nf.format(x.mensajes)} mensajes.</div>
+    </div>
+    <div class="incacc">
+      <button class="cbtn sec" data-inc="${esc(x.contact_ref)}"
+              data-slug="${esc(x.slug)}">Volver a incluir</button>
+    </div>
+  </div>`;
+}
+
+
+/* ---------- contactos excluidos ----------
+   Nuestros números de prueba entran en los mismos KPIs que los
+   clientes reales. Con pocas conversaciones, tres pruebas nuestras
+   mueven el tiempo medio de respuesta y las señales. Se excluyen,
+   no se borran: el mensaje sigue ahí y se puede volver a incluir.
+   Y el panel dice cuántos hay fuera, porque esconder datos sin
+   decirlo sería peor que no esconderlos. */
+function bloqueExcluidos(){
+  const clientes = PANORAMA.map(c => c.slug);
+  return `<div class="panel">
+    <div class="cabpanel">
+      <div>
+        <h3>Fuera de las métricas</h3>
+        <p class="ph">Contactos que no cuentan en ningún indicador.
+           Sus conversaciones siguen guardadas.</p>
+      </div>
+    </div>
+    ${EXCL.length ? EXCL.map(x => `<div class="inc">
+      <span class="sev info"></span>
+      <div class="incuerpo">
+        <div class="inctit mono">${esc(x.contact_ref)}</div>
+        <div class="incmeta">
+          <span class="pill gris">${esc(x.slug)}</span>
+          ${esc(x.motivo || 'sin motivo anotado')}
+          · ${nf.format(x.conversaciones)} ${
+            Number(x.conversaciones) === 1 ? 'conversación' : 'conversaciones'} ocultas
+        </div>
+      </div>
+      <div class="incacc">
+        <button class="cbtn sec" data-incl="${esc(x.slug)}|${esc(x.contact_ref)}"
+          >Volver a incluir</button>
+      </div>
+    </div>`).join('')
+    : '<div class="vacio">Ningún contacto excluido. Todo lo que hay cuenta.</div>'}
+
+    <div class="segm" style="justify-content:flex-start;margin-top:18px;
+         padding-top:16px;border-top:1px solid var(--linea)">
+      <select class="sel" id="exsl" aria-label="Cliente">
+        ${clientes.map(s2 => `<option value="${esc(s2)}">${esc(s2)}</option>`).join('')}
+      </select>
+      <input class="sel" id="exnum" style="font-family:'JetBrains Mono',monospace"
+             placeholder="34600000000" aria-label="Número a excluir">
+      <input class="sel" id="exmot" placeholder="Motivo (ej. pruebas)"
+             aria-label="Motivo">
+      <button class="cbtn" id="exadd">Excluir</button>
+    </div>
+    <p class="nota">Se indica el contacto tal y como aparece en Conversaciones,
+       sin espacios ni signos.</p>
+  </div>`;
 }
 
 /* ---------- utilidades ---------- */

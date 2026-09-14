@@ -85,7 +85,7 @@
   .btn:hover{filter:brightness(1.08)}
   .btn:disabled{opacity:.55;cursor:not-allowed}
   .card h2{text-align:center;font-size:26px;line-height:1.2;
-           margin:13px 0 6px;letter-spacing:-.02em}
+           margin:13px 0;letter-spacing:-.02em}
   .estado{
     display:flex;align-items:center;justify-content:center;gap:7px;
     font-size:12.5px;color:var(--gris);margin-bottom:26px;
@@ -432,6 +432,55 @@
     nav button{padding:12px 9px;font-size:12.5px}
     .marca{font-size:14px}
   }
+  /* ---------- LISTA DE PERSONAS ----------
+     Antes era una tabla de cinco columnas. En móvil obligaba a
+     desplazar en horizontal para ver la última señal, y el dato
+     principal —quién es— competía en peso con el número de
+     mensajes. Ahora cada persona es una fila que se reordena
+     sola: identidad a la izquierda, actividad a la derecha. */
+  .lista{display:grid;gap:0}
+  .pers{display:grid;grid-template-columns:42px 1fr auto;gap:14px;align-items:center;
+        padding:15px 2px;border-top:1px solid var(--linea);cursor:pointer;
+        transition:background .12s}
+  .pers:first-child{border-top:0}
+  .pers:hover{background:var(--fondo)}
+  .ini{width:42px;height:42px;border-radius:99px;display:flex;align-items:center;
+       justify-content:center;font-weight:800;font-size:15px;
+       background:var(--aire);color:var(--profundo);flex:none}
+  .ini.anon{background:var(--fondo);color:#94A3B8;font-size:17px}
+  .pcuerpo{min-width:0}
+  .pnom{font-size:14.5px;font-weight:700;letter-spacing:-.01em;
+        overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pnom .csin{color:var(--gris);font-weight:600}
+  .pdat{font-size:12px;color:var(--gris);margin-top:2px;
+        overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pdat mark{background:#FEF0C7;color:var(--tinta);padding:0 2px;border-radius:3px}
+  .pnom mark{background:#FEF0C7;padding:0 2px;border-radius:3px}
+  .pseñas{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+  .pact{text-align:right;flex:none}
+  .pcuando{font-size:12.5px;font-weight:600;white-space:nowrap}
+  .pcuando.frio{color:var(--gris);font-weight:500}
+  .pmsg{font-size:11.5px;color:var(--gris);margin-top:3px;white-space:nowrap}
+  .orden{display:flex;gap:4px;background:var(--fondo);padding:3px;border-radius:10px;
+         max-width:100%;overflow-x:auto;scrollbar-width:none}
+  .orden::-webkit-scrollbar{display:none}
+  .orden button{background:none;padding:6px 12px;border-radius:8px;font-size:12.5px;
+                font-weight:600;color:var(--gris);white-space:nowrap}
+  .orden button.on{background:var(--blanco);color:var(--tinta);
+                   box-shadow:0 1px 2px rgba(10,31,74,.08)}
+  .barrafil{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 16px}
+  .barrafil .busca{flex:1 1 220px;min-width:0}
+  @media(max-width:600px){
+    .pers{grid-template-columns:36px 1fr;gap:11px;padding:14px 2px}
+    .ini{width:36px;height:36px;font-size:13.5px}
+    .pact{grid-column:2;text-align:left;display:flex;gap:10px;align-items:baseline;
+          margin-top:-2px}
+    .pmsg{margin-top:0}
+    .barrafil .busca{flex:1 1 100%}
+    .orden{width:100%}
+    .orden button{flex:1 1 0;text-align:center;padding:6px 8px}
+  }
+
   /* ---------- SELECTOR DE PERSONA ---------- */
   .sel{
     font-family:inherit;font-size:13px;font-weight:600;color:var(--tinta);
@@ -483,7 +532,7 @@
     <div class="der">
       <div class="card">
         <div class="marca cardmarca">Simplia<span>Spain</span></div>
-        <h2>Tu operación<br><em>nunca duerme.</em></h2>
+        <h2 class="lema">Tu operación <em>nunca duerme.</em></h2>
         <div class="estado"><span class="dot on"></span><span id="ping">Conectando…</span></div>
         <div class="err" id="err"></div>
         <label for="em">Email</label>
@@ -742,17 +791,14 @@ async function arrancar(){
     $('#refrescar').addEventListener('click', refrescar);
     $('#refrescar').dataset.listo = '1';
   }
-  // La Agenda solo se muestra si aporta algo: sin citas sería
-  // una pestaña vacía. 'auto' decide según haya datos.
-  const mAg = CFG.modulos?.agenda;
-  let verAgenda = mAg === true;
-  if (mAg !== false && mAg !== true){
-    try {
-      const { data: n } = await supabase.rpc('tengo_citas');
-      verAgenda = Number(n) > 0;
-    } catch { verAgenda = false; }
-  }
-  if (!verAgenda) document.querySelector('nav button[data-v="agenda"]')?.remove();
+  // La Agenda se muestra siempre. Una pestaña vacía que explica
+  // qué aparecerá ahí vale más que una pestaña ausente: el cliente
+  // no puede echar de menos lo que no sabe que existe, y agendar
+  // visitas es el paso donde más se cae el proceso de venta.
+  // Un cliente sin agenda puede ocultarla con
+  // settings.modulos.agenda = false.
+  if (CFG.modulos?.agenda === false)
+    document.querySelector('nav button[data-v="agenda"]')?.remove();
 
   await pintarLatido();
   autoRefresco();
@@ -795,19 +841,24 @@ async function datos(){
   }
 
   const [convs, evR, evTot, lat, reciente, lugares, patron] = await Promise.all([
+    // `excluido` deja fuera los números de prueba. El filtro va en
+    // todas las lecturas directas, no solo en las funciones: si
+    // una se olvidara, el indicador contaría pruebas como clientes.
     supabase.from('conversations')
       .select('id,contact_ref,started_at,last_at,msg_count,human_count,ai_count,is_backfilled,seq,fecha_origen,fecha_estimada,senal_interes,senal_frustracion,senal_contacto,senal_sin_respuesta')
+      .eq('excluido', false)
       .order('last_at', { ascending:false }).limit(1000),
     supabase.from('message_events')
       .select('role,observed_at')
-      .eq('is_backfilled', false).gte('observed_at', desde),
-    supabase.from('message_events').select('id', { count:'exact', head:true }),
+      .eq('is_backfilled', false).eq('excluido', false).gte('observed_at', desde),
+    supabase.from('message_events').select('id', { count:'exact', head:true })
+      .eq('excluido', false),
     supabase.from('message_events')
-      .select('latency_ms').not('latency_ms', 'is', null)
+      .select('latency_ms').not('latency_ms', 'is', null).eq('excluido', false)
       .order('id', { ascending:false }).limit(200),
     supabase.from('message_events')
       .select('conversation_id,role,content,observed_at,is_backfilled')
-      .eq('is_backfilled', false)
+      .eq('is_backfilled', false).eq('excluido', false)
       .order('id', { ascending:false }).limit(12),
     supabase.from('v_demanda_temas').select('*').limit(40),
     supabase.from('v_patron_horario').select('*')
@@ -1572,6 +1623,17 @@ let CONTACTOS = [];
 // Filtros activos en Conversaciones. Se combinan con Y: marcar
 // "Interés" y "Contacto" da los leads listos para llamar.
 let FILTRO = new Set();
+// Ordenar importa más de lo que parece: con 26 personas se navega
+// a ojo, con 300 no. Por defecto, quien escribió más recientemente.
+let ORDEN = 'reciente';
+const ORDENES = {
+  reciente: { etq:'Más reciente', fn:(a,b) => new Date(b.ultima) - new Date(a.ultima) },
+  antigua:  { etq:'Más antigua',  fn:(a,b) => new Date(a.primera) - new Date(b.primera) },
+  mensajes: { etq:'Más mensajes', fn:(a,b) => Number(b.mensajes) - Number(a.mensajes) },
+  nombre:   { etq:'Por nombre',   fn:(a,b) =>
+      (a.nombre || '\uffff').localeCompare(b.nombre || '\uffff', 'es') }
+};
+const ordena = l => [...l].sort(ORDENES[ORDEN].fn);
 const SENALES = {
   interes:       { etq: 'Interés',       campo: c => c.interes,        pill: 'az' },
   contacto:      { etq: 'Con contacto',  campo: c => c.contacto,       pill: 'nt' },
@@ -1637,9 +1699,16 @@ function render(busqueda){
           vueltos ? ` · ${nf.format(vueltos)} ${vueltos === 1 ? 'ha vuelto' : 'han vuelto'} a escribir` : ''}${
           FILTRO.size ? ` · filtrado de ${nf.format(CONTACTOS.length)}` : ''}</p>
       </div>
+    </div>
+
+    <div class="barrafil">
       <input id="buscar" class="busca" type="search"
-             placeholder="Buscar por nombre, teléfono o texto…"
+             placeholder="Buscar por nombre, teléfono, email o texto…"
              autocomplete="off" value="${esc(busqueda || '')}">
+      <div class="orden">
+        ${Object.entries(ORDENES).map(([k,o]) =>
+          `<button class="${ORDEN===k?'on':''}" data-o="${k}">${o.etq}</button>`).join('')}
+      </div>
     </div>
 
     <div class="chips">
@@ -1650,15 +1719,11 @@ function render(busqueda){
       ${FILTRO.size ? '<button class="chip limpia" id="limpiar">Quitar filtros</button>' : ''}
     </div>
 
-    <div class="tabla"><table>
-      <thead><tr>
-        <th>Contacto</th><th>Mensajes</th><th>Primera</th>
-        <th>Última</th><th>Señales</th>
-      </tr></thead>
-      <tbody>${lista.length
-        ? lista.slice(0,150).map(filaC).join('')
-        : `<tr><td colspan="5" class="vacio">Ninguna persona con esos filtros.</td></tr>`}</tbody>
-    </table></div>`;
+    <div class="lista" id="plista">${lista.length
+      ? ordena(lista).slice(0,150).map(filaC).join('')
+      : '<div class="vacio">Ninguna persona con esos filtros.</div>'}</div>
+    ${lista.length > 150 ? `<p class="nota">Se muestran las 150 primeras de
+       ${nf.format(lista.length)}. Afina con el buscador o los filtros.</p>` : ''}`;
 
   enlazarFilas();
 
@@ -1670,67 +1735,173 @@ function render(busqueda){
     }));
   $('#limpiar')?.addEventListener('click', () => { FILTRO.clear(); render(); });
 
+  cont.querySelectorAll('.orden button[data-o]').forEach(b =>
+    b.addEventListener('click', () => {
+      ORDEN = b.dataset.o;
+      render($('#buscar')?.value.trim() || '');
+    }));
+
   const inp = $('#buscar');
   let tmr = null;
   inp.addEventListener('input', () => {
     clearTimeout(tmr);
     tmr = setTimeout(() => filtrar(inp.value.trim()), 280);
   });
+  BUSCA = busqueda || '';
   if (busqueda) filtrar(busqueda);
 }
 
 async function filtrar(q){
-  const tb = document.querySelector('#pconvs tbody');
-  if (!tb) return;
+  const cont = $('#plista');
+  if (!cont) return;
+  BUSCA = q || '';
   const base = aplicaFiltros(CONTACTOS, FILTRO);
+  const pinta = (l, vacio) => {
+    cont.innerHTML = l.length ? ordena(l).slice(0,150).map(filaC).join('')
+                              : `<div class="vacio">${vacio}</div>`;
+    enlazarFilas();
+  };
 
-  if (!q){ tb.innerHTML = base.slice(0,150).map(filaC).join(''); enlazarFilas(); return; }
+  if (!q){ pinta(base, 'Ninguna persona con esos filtros.'); return; }
 
-  const n = q.toLowerCase();
+  // Se normalizan acentos y mayúsculas en ambos lados: buscar
+  // "jose" tiene que encontrar a "José", y era el fallo más
+  // frecuente del buscador anterior.
+  const norm = t => String(t || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const n = norm(q);
+  const soloNum = q.replace(/[^0-9]/g, '');
+
   const local = base.filter(c =>
-    (c.nombre   || '').toLowerCase().includes(n) ||
-    (c.telefono || '').includes(q.replace(/[^0-9]/g,'')) ||
-    (c.email    || '').toLowerCase().includes(n));
+    norm(c.nombre).includes(n) ||
+    norm(c.email).includes(n) ||
+    (soloNum.length >= 3 &&
+      ((c.telefono || '') + (c.contact_ref || '')).includes(soloNum)));
 
-  if (local.length || /^[0-9+ ]{3,}$/.test(q)){
-    tb.innerHTML = local.length ? local.map(filaC).join('')
-      : `<tr><td colspan="5" class="vacio">Ningún contacto coincide.</td></tr>`;
-    enlazarFilas(); return;
+  // Con un texto que parece un teléfono no se busca en los
+  // mensajes: encontraría cualquier conversación que mencione
+  // esos dígitos y confundiría más que ayudar.
+  if (local.length || /^[0-9+ ()-]{3,}$/.test(q)){
+    pinta(local, `Nadie coincide con «${esc(q)}».`);
+    return;
   }
 
-  tb.innerHTML = `<tr><td colspan="5" class="vacio">Buscando en los mensajes…</td></tr>`;
+  cont.innerHTML = '<div class="vacio">Buscando en los mensajes…</div>';
   const { data } = await supabase.from('message_events')
-    .select('conversation_id').ilike('content', `%${q}%`).limit(500);
+    .select('conversation_id').eq('excluido', false)
+    .ilike('content', `%${q}%`).limit(500);
   const ids = new Set((data || []).map(r => r.conversation_id));
   const r = base.filter(c => (c.ids || []).some(i => ids.has(i)));
-  tb.innerHTML = r.length ? r.map(filaC).join('')
-    : `<tr><td colspan="5" class="vacio">Ninguna conversación contiene «${esc(q)}».</td></tr>`;
+  // Al buscar dentro de los mensajes, resaltar el nombre no
+  // aporta: la coincidencia está en la conversación, no aquí.
+  BUSCA = '';
+  cont.innerHTML = r.length
+    ? ordena(r).slice(0,150).map(filaC).join('')
+      + `<p class="nota">${nf.format(r.length)} ${r.length === 1
+          ? 'persona escribió' : 'personas escribieron'} «${esc(q)}» en sus mensajes.</p>`
+    : `<div class="vacio">Ninguna conversación contiene «${esc(q)}».</div>`;
   enlazarFilas();
 }
 
-const filaC = c => `<tr data-c="${esc(c.contact_ref)}">
-  <td>
-    <div class="cnom">${c.nombre ? esc(c.nombre) : '<span class="csin">Sin nombre</span>'}</div>
-    <div class="cdat mono">${esc(c.telefono || c.contact_ref)}</div>
-    ${c.email ? `<div class="cdat">${esc(c.email)}</div>` : ''}
-  </td>
-  <td class="mono">${c.mensajes}
-    ${Number(c.conversaciones) > 1
-      ? `<span class="ses">${c.conversaciones} veces</span>` : ''}</td>
-  <td>${c.primera ? fechaCorta(c.primera) : '—'}</td>
-  <td>${c.historico ? '<span class="aprox">histórico</span>' : fechaCorta(c.ultima)}</td>
-  <td>${[
-      c.cita     ? '<span class="pill vd">Cita</span>'      : '',
-      c.interes  ? '<span class="pill az">Interés</span>'   : '',
-      c.contacto ? '<span class="pill nt">Contacto</span>'  : '',
-      c.sin_respuesta ? '<span class="pill am">Sin respuesta</span>' : '',
-      c.friccion ? '<span class="pill rj">Fricción</span>'  : ''
-    ].join('') || '<span class="pill hist">—</span>'}</td>
-</tr>`;
+// Una persona por fila. El identificador manda: si tiene nombre,
+// el nombre; si no, el teléfono, y se dice que no hay nombre en
+// vez de dejar el hueco. Antes ambos casos se veían igual de
+// pequeños y costaba distinguir a quién estabas mirando.
+let BUSCA = '';
+
+const inicial = c => {
+  const n = (c.nombre || '').trim();
+  if (n) return n[0].toUpperCase();
+  return null;
+};
+
+// Resalta lo buscado sin romper el escapado: se escapa primero y
+// se marca después sobre el texto ya seguro.
+//
+// El resaltado tiene que ignorar los acentos igual que la
+// búsqueda. Si no, escribes "jose", la fila de José aparece y
+// nada se marca: parece que el buscador se ha equivocado. No se
+// puede normalizar el texto y buscar en él, porque quitar los
+// acentos cambia las posiciones; se amplía cada letra de la
+// consulta a las variantes que puede tener en el texto.
+const ACENTOS = {
+  a:'aáàâäã', e:'eéèêë', i:'iíìîï', o:'oóòôöõ',
+  u:'uúùûü',  n:'nñ',    c:'cç',    y:'yý'
+};
+function regexBusqueda(q){
+  const partes = [...q].map(ch => {
+    const b = ch.toLowerCase();
+    if (ACENTOS[b]) return '[' + ACENTOS[b] + ACENTOS[b].toUpperCase() + ']';
+    return ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  });
+  return new RegExp(partes.join(''), 'gi');
+}
+
+function marca(txt){
+  const t = esc(String(txt ?? ''));
+  if (!BUSCA) return t;
+  try {
+    // Se marca sobre el texto ya escapado, así que hay que evitar
+    // pintar dentro de una entidad como &amp; o &lt;.
+    return t.replace(regexBusqueda(BUSCA), m =>
+      m.includes('&') || m.includes(';') ? m : `<mark>${m}</mark>`);
+  } catch { return t; }
+}
+
+// "hace 3 h" dice más que una fecha para saber si alguien acaba
+// de escribir. Pasada la semana, la fecha vuelve a ser más útil.
+function desdeEntonces(d){
+  if (!d) return { txt:'—', frio:true };
+  const ms = Date.now() - new Date(d).getTime();
+  const min = Math.round(ms/6e4);
+  if (min < 2)     return { txt:'ahora mismo', frio:false };
+  if (min < 60)    return { txt:`hace ${min} min`, frio:false };
+  const h = Math.round(min/60);
+  if (h < 24)      return { txt:`hace ${h} h`, frio:false };
+  const dd = Math.round(h/24);
+  if (dd < 7)      return { txt:`hace ${dd} ${dd===1?'día':'días'}`, frio:false };
+  return { txt: fechaCorta(d), frio:true };
+}
+
+const filaC = c => {
+  const ini = inicial(c);
+  const act = c.historico ? { txt:'histórico', frio:true } : desdeEntonces(c.ultima);
+  const senales = [
+    c.cita          ? '<span class="pill vd">Cita</span>'          : '',
+    c.interes       ? '<span class="pill az">Interés</span>'       : '',
+    c.contacto      ? '<span class="pill nt">Contacto</span>'      : '',
+    c.sin_respuesta ? '<span class="pill am">Sin respuesta</span>' : '',
+    c.friccion      ? '<span class="pill rj">Fricción</span>'      : ''
+  ].join('');
+
+  return `<div class="pers" data-c="${esc(c.contact_ref)}" tabindex="0" role="button">
+    <div class="ini${ini ? '' : ' anon'}">${ini ? esc(ini) : '·'}</div>
+    <div class="pcuerpo">
+      <div class="pnom">${c.nombre
+        ? marca(c.nombre)
+        : `<span class="mono">${marca(c.telefono || c.contact_ref)}</span>
+           <span class="csin"> · sin nombre</span>`}</div>
+      <div class="pdat">${c.nombre
+        ? `<span class="mono">${marca(c.telefono || c.contact_ref)}</span>` : ''}${
+        c.email ? (c.nombre ? ' · ' : '') + marca(c.email) : ''}</div>
+      ${senales ? `<div class="pseñas">${senales}</div>` : ''}
+    </div>
+    <div class="pact">
+      <div class="pcuando${act.frio ? ' frio' : ''}">${esc(act.txt)}</div>
+      <div class="pmsg">${nf.format(c.mensajes)} mensajes${
+        Number(c.conversaciones) > 1 ? ` · ${c.conversaciones} veces` : ''}</div>
+    </div>
+  </div>`;
+};
 
 function enlazarFilas(){
-  document.querySelectorAll('tbody tr[data-c]').forEach(tr =>
-    tr.addEventListener('click', () => abrir(tr.dataset.c)));
+  document.querySelectorAll('.pers[data-c]').forEach(el => {
+    const ir = () => abrir(el.dataset.c);
+    el.addEventListener('click', ir);
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ir(); }
+    });
+  });
 }
 
 /* ---------- vista: agenda ----------
@@ -1996,21 +2167,6 @@ async function pintarAjustes(silencioso){
     b.disabled = false; b.textContent = 'Guardar cambios';
   });
 }
-
-const fila = c => `<tr data-id="${c.id}">
-  <td class="mono">${ofusca(c.contact_ref)}</td>
-  <td class="mono">${c.msg_count}</td>
-  <td class="mono">${c.human_count}</td>
-  <td class="mono">${c.ai_count}</td>
-  <td>${c.fecha_origen
-        ? fecha(c.fecha_origen) + (c.fecha_estimada ? ' <span class="aprox">aprox.</span>' : '')
-        : '—'}</td>
-  <td>${[
-      c.senal_interes     ? '<span class="pill az">Interés</span>'   : '',
-      c.senal_contacto    ? '<span class="pill vd">Contacto</span>'  : '',
-      c.senal_frustracion ? '<span class="pill rj">Fricción</span>'  : ''
-    ].join('') || '<span class="pill hist">—</span>'}</td>
-</tr>`;
 
 function horarioTexto(){
   const H = CFG.horario || {};
