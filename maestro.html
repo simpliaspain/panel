@@ -170,6 +170,32 @@
   .chip.on{background:var(--profundo);color:#fff;border-color:transparent}
 
   /* ---------- avisos flotantes ---------- */
+  /* ---------- EXCLUIR PERSONAS ---------- */
+  .exbusca{display:grid;grid-template-columns:minmax(0,180px) 1fr;gap:10px;
+           align-items:center;margin-bottom:14px}
+  .exlista{display:grid;gap:0;max-height:330px;overflow-y:auto;
+           border:1px solid var(--linea);border-radius:12px}
+  .expers{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;
+          padding:11px 14px;border-top:1px solid var(--linea)}
+  .expers:first-child{border-top:0}
+  .expers.ya{background:var(--fondo)}
+  .exini{width:36px;height:36px;border-radius:99px;display:flex;align-items:center;
+         justify-content:center;font-weight:800;font-size:13.5px;
+         background:var(--aire);color:var(--profundo)}
+  .exini.anon{background:#F1F5F9;color:#94A3B8}
+  .exnom{font-size:13.5px;font-weight:700;overflow:hidden;
+         text-overflow:ellipsis;white-space:nowrap}
+  .exmeta{font-size:11.5px;color:var(--gris);margin-top:2px;
+          overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .exmanual{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;
+            padding-top:14px;border-top:1px solid var(--linea)}
+  .exmanual .sel{flex:1 1 150px;min-width:0}
+  @media(max-width:600px){
+    .exbusca{grid-template-columns:1fr}
+    .expers{grid-template-columns:36px 1fr;row-gap:8px}
+    .expers .cbtn{grid-column:2}
+  }
+
   /* ---------- APARTADO WEB ---------- */
   .marco{position:relative;border:1px solid var(--linea);border-radius:12px;
          overflow:hidden;background:var(--blanco);min-height:640px}
@@ -272,6 +298,9 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g,
 
 let VISTA = 'clientes', TIMER = null, ULTIMA = null;
 let PANORAMA = [], INCID = [], CHECKS = [], VENC = [], CFGOP = [], EXCL = [];
+// Contactos por cliente, para poder excluir por nombre en vez de
+// por número. Se piden al elegir cliente y se guardan en memoria.
+let EXCONT = {}, EXSLUG = '', EXQ = '';
 let VIVAS = [];   // siempre las no resueltas, independiente del filtro de pantalla
 let FILTRO_INC = 'vivas';
 let VISTAS_CRIT = new Set();     // huellas críticas ya avisadas
@@ -372,6 +401,7 @@ document.querySelectorAll('nav button').forEach(b =>
     // no haya tocado el ciclo lento.
     if (VISTA === 'salud' || VISTA === 'vencimientos' || VISTA === 'excluidos') cargar(true);
     if (VISTA === 'web') montarWeb();
+    if (VISTA === 'clientes' && EXSLUG) cargarContactos(EXSLUG);
   }));
 
 $('#refrescar').addEventListener('click', async () => {
@@ -418,7 +448,7 @@ async function cargar(forzarLenta = false){
       rpc('salud').catch(() => []),
       rpc('mis_vencimientos').catch(() => []),
       rpc('mi_config_operador').catch(() => []),
-      rpc('mis_exclusiones').catch(() => [])
+      rpc('mis_excluidos').catch(() => [])
     ]);
     CHECKS = s || []; VENC = v || []; CFGOP = cf || []; EXCL = ex || [];
     ULTIMA_LENTA = Date.now();
@@ -487,6 +517,7 @@ function pintar(){
     :                            vistaVencimientos();
   enlazar();
   if (VISTA === 'web') montarWeb();
+  if (VISTA === 'clientes' && EXSLUG && EXCONT[EXSLUG] === undefined) cargarContactos(EXSLUG);
   window.scrollTo({ top: y, behavior: 'instant' });
 }
 
@@ -730,12 +761,50 @@ function enlazar(){
       catch { b.disabled = false; }
     }));
 
+  // cambiar de cliente: se piden sus contactos y se limpia la búsqueda
+  $('#exsl')?.addEventListener('change', () => {
+    EXSLUG = $('#exsl').value; EXQ = '';
+    pintar();
+    cargarContactos(EXSLUG);
+  });
+
+  // Se repinta al escribir, con un respiro para no repintar por tecla.
+  const bq = $('#exq');
+  if (bq){
+    let t = null;
+    bq.addEventListener('input', () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        EXQ = bq.value.trim();
+        const foco = document.activeElement === bq;
+        pintar();
+        if (foco){
+          const n = $('#exq');
+          n?.focus();
+          n?.setSelectionRange(n.value.length, n.value.length);
+        }
+      }, 220);
+    });
+  }
+
+  // excluir desde la lista, con el nombre ya puesto como motivo
+  document.querySelectorAll('.cbtn[data-excl]').forEach(b =>
+    b.addEventListener('click', async () => {
+      b.disabled = true; b.textContent = 'Excluyendo…';
+      try {
+        await rpc('excluir_contacto', { p_slug: EXSLUG, p_contact: b.dataset.excl,
+          p_motivo: $('#exmot')?.value.trim() || null });
+        tosta('aviso', 'Fuera de las métricas', b.dataset.nom);
+        await cargar(true);
+      } catch { b.disabled = false; b.textContent = 'Excluir'; }
+    }));
+
   $('#exadd')?.addEventListener('click', async () => {
     const num = $('#exnum').value.trim().replace(/[^0-9]/g, '');
     if (!num){ tosta('aviso', 'Falta el número', 'Solo dígitos, sin espacios'); return; }
     const b = $('#exadd'); b.disabled = true;
     try {
-      await rpc('excluir_contacto', { p_slug: $('#exsl').value,
+      await rpc('excluir_contacto', { p_slug: EXSLUG || $('#exsl').value,
         p_contact: num, p_motivo: $('#exmot').value.trim() || null });
       await cargar(true);
     } catch { b.disabled = false; tosta('critico', 'No se ha podido excluir', num); }
@@ -1007,49 +1076,113 @@ function filaExcl(x){
    decirlo sería peor que no esconderlos. */
 function bloqueExcluidos(){
   const clientes = PANORAMA.map(c => c.slug);
+  if (!EXSLUG && clientes.length) EXSLUG = clientes[0];
+  const yaFuera = new Set(EXCL.filter(x => x.slug === EXSLUG).map(x => x.contact_ref));
+
   return `<div class="panel">
     <div class="cabpanel">
       <div>
         <h3>Fuera de las métricas</h3>
-        <p class="ph">Contactos que no cuentan en ningún indicador.
-           Sus conversaciones siguen guardadas.</p>
+        <p class="ph">Contactos que no cuentan en ningún indicador, ni aquí ni
+           en el panel del cliente. Sus conversaciones siguen guardadas.</p>
       </div>
     </div>
-    ${EXCL.length ? EXCL.map(x => `<div class="inc">
-      <span class="sev info"></span>
-      <div class="incuerpo">
-        <div class="inctit mono">${esc(x.contact_ref)}</div>
-        <div class="incmeta">
-          <span class="pill gris">${esc(x.slug)}</span>
-          ${esc(x.motivo || 'sin motivo anotado')}
-          · ${nf.format(x.conversaciones)} ${
-            Number(x.conversaciones) === 1 ? 'conversación' : 'conversaciones'} ocultas
+
+    ${EXCL.length ? `<div class="exlista" style="margin-bottom:20px">
+      ${EXCL.map(x => `<div class="expers ya">
+        <div class="exini anon">·</div>
+        <div style="min-width:0">
+          <div class="exnom">${esc(x.nombre || x.contact_ref)}</div>
+          <div class="exmeta"><span class="pill gris">${esc(x.slug)}</span>
+            ${esc(x.motivo || 'sin motivo anotado')} ·
+            ${nf.format(x.conversaciones)} ${Number(x.conversaciones) === 1
+              ? 'conversación oculta' : 'conversaciones ocultas'}</div>
         </div>
-      </div>
-      <div class="incacc">
         <button class="cbtn sec" data-incl="${esc(x.slug)}|${esc(x.contact_ref)}"
           >Volver a incluir</button>
-      </div>
-    </div>`).join('')
-    : '<div class="vacio">Ningún contacto excluido. Todo lo que hay cuenta.</div>'}
+      </div>`).join('')}
+    </div>` : `<div class="vacio" style="padding:26px">
+      Ningún contacto excluido. Todo lo que hay cuenta.</div>`}
 
-    <div class="segm" style="justify-content:flex-start;margin-top:18px;
-         padding-top:16px;border-top:1px solid var(--linea)">
+    <h3 style="font-size:14px;margin-bottom:3px">Excluir a alguien</h3>
+    <p class="ph">Busca por nombre, teléfono o email entre quienes han escrito.</p>
+    <div class="exbusca">
       <select class="sel" id="exsl" aria-label="Cliente">
-        ${clientes.map(s2 => `<option value="${esc(s2)}">${esc(s2)}</option>`).join('')}
+        ${clientes.map(sl => `<option value="${esc(sl)}"${
+          sl === EXSLUG ? ' selected' : ''}>${esc(sl)}</option>`).join('')}
       </select>
+      <input class="sel" id="exq" type="search" value="${esc(EXQ)}"
+             placeholder="Nombre, teléfono o email…" aria-label="Buscar persona">
+    </div>
+    ${listaPersonas(yaFuera)}
+
+    <div class="exmanual">
+      <span class="et" style="font-size:12px;color:var(--gris);font-weight:600"
+        >o un número suelto:</span>
       <input class="sel" id="exnum" style="font-family:'JetBrains Mono',monospace"
              placeholder="34600000000" aria-label="Número a excluir">
-      <input class="sel" id="exmot" placeholder="Motivo (ej. pruebas)"
-             aria-label="Motivo">
+      <input class="sel" id="exmot" placeholder="Motivo (ej. pruebas)" aria-label="Motivo">
       <button class="cbtn" id="exadd">Excluir</button>
     </div>
-    <p class="nota">Se indica el contacto tal y como aparece en Conversaciones,
-       sin espacios ni signos.</p>
   </div>`;
 }
 
-/* ---------- utilidades ---------- */
+// La lista solo aparece al escribir: con muchos contactos, volcarlos
+// todos no ayuda a encontrar a nadie.
+function listaPersonas(yaFuera){
+  const lista = EXCONT[EXSLUG];
+  if (lista === undefined)
+    return '<div class="vacio" style="padding:20px">Cargando contactos…</div>';
+  if (!EXQ)
+    return `<div class="vacio" style="padding:20px">${
+      nf.format(lista.length)} ${lista.length === 1 ? 'persona' : 'personas'} en este cliente.
+      Escribe para buscar.</div>`;
+
+  const norm = t => String(t || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const q = norm(EXQ), num = EXQ.replace(/[^0-9]/g, '');
+  const r = lista.filter(c =>
+    norm(c.nombre).includes(q) || norm(c.email).includes(q) ||
+    (num.length >= 3 && String(c.telefono || c.contact_ref).includes(num)))
+    .slice(0, 12);
+
+  if (!r.length) return `<div class="vacio" style="padding:20px">
+    Nadie coincide con «${esc(EXQ)}».</div>`;
+
+  return `<div class="exlista">${r.map(c => {
+    const ini = (c.nombre || '').trim()[0];
+    const fuera = yaFuera.has(c.contact_ref);
+    return `<div class="expers${fuera ? ' ya' : ''}">
+      <div class="exini${ini ? '' : ' anon'}">${ini ? esc(ini.toUpperCase()) : '·'}</div>
+      <div style="min-width:0">
+        <div class="exnom">${c.nombre ? esc(c.nombre)
+          : `<span class="mono">${esc(c.telefono || c.contact_ref)}</span>`}</div>
+        <div class="exmeta">${c.nombre
+          ? `<span class="mono">${esc(c.telefono || c.contact_ref)}</span>` : ''}${
+          c.email ? (c.nombre ? ' · ' : '') + esc(c.email) : ''} ·
+          ${nf.format(c.mensajes)} mensajes</div>
+      </div>
+      ${fuera
+        ? `<button class="cbtn sec" data-incl="${esc(EXSLUG)}|${esc(c.contact_ref)}"
+             >Volver a incluir</button>`
+        : `<button class="cbtn" data-excl="${esc(c.contact_ref)}"
+             data-nom="${esc(c.nombre || c.telefono || c.contact_ref)}">Excluir</button>`}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// Los contactos se piden una vez por cliente. mis_contactos acepta
+// el slug, así que el operador puede pedir los de cualquiera.
+async function cargarContactos(slug){
+  if (EXCONT[slug]) return;
+  try {
+    const d = await rpc('mis_contactos', { p_cliente: slug });
+    EXCONT[slug] = d || [];
+  } catch { EXCONT[slug] = []; }
+  if (VISTA === 'clientes') pintar();
+}
+
+/* ---------- utilidades ---------- *//* ---------- utilidades ---------- */
 const fechaCorta = d => new Date(d).toLocaleDateString('es-ES',
   { day:'2-digit', month:'short', year:'2-digit' });
 const fechaHora = d => new Date(d).toLocaleString('es-ES',
