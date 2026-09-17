@@ -432,6 +432,82 @@
     nav button{padding:12px 9px;font-size:12.5px}
     .marca{font-size:14px}
   }
+  /* ---------- EMBUDO COMERCIAL ----------
+     La pregunta que hace un comercial no es "enséñame un tablero",
+     es "a quién llamo ahora". Por eso la vista no es un mural con
+     columnas: es una cola ordenada por urgencia, y el embudo va
+     arriba como orientación, no como herramienta.
+
+     Un mural con arrastrar y soltar además se maneja fatal en el
+     móvil, que es donde se consulta esto entre visita y visita. */
+  .fbarra{display:flex;gap:3px;margin:0 0 6px;height:34px;border-radius:9px;overflow:hidden}
+  .ftramo{display:flex;align-items:center;justify-content:center;font-size:12px;
+          font-weight:800;color:#fff;min-width:34px;transition:flex .3s}
+  .fleyenda{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--gris);
+            margin-bottom:22px}
+  .fleyenda i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:5px}
+  .fe1{background:#94A3B8} .fe2{background:var(--pulso)} .fe3{background:#7C5CFF}
+  .fe4{background:#00A6A6} .fe5{background:var(--ambar)} .fe6{background:var(--verde)}
+  .fe7{background:#CBD5E1}
+
+  .lfiltros{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 16px;align-items:center}
+  .lfiltros .busca{flex:1 1 200px;min-width:0}
+
+  .lead{display:grid;grid-template-columns:4px 1fr auto;gap:0;
+        border:1px solid var(--linea);border-radius:13px;background:var(--blanco);
+        margin-bottom:10px;overflow:hidden;cursor:pointer;transition:border-color .12s}
+  .lead:hover{border-color:#CBD5E1}
+  .lead.urg{border-color:#FDA29B}
+  .lcinta{background:#CBD5E1}
+  .lead.urg .lcinta{background:var(--rojo)}
+  .lead.oro .lcinta{background:var(--ambar)}
+  .lcuerpo{padding:14px 16px;min-width:0}
+  .lcab{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  .lnom{font-size:15px;font-weight:800;letter-spacing:-.02em}
+  .lnom .csin{color:var(--gris);font-weight:600;font-size:13px}
+  .lpide{font-size:12.5px;color:#475569;margin-top:5px;line-height:1.5;
+         overflow-wrap:anywhere}
+  .lpie{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--gris);
+        margin-top:8px;align-items:center}
+  .lpie b{color:var(--tinta);font-weight:700}
+  .lurge{color:#B42318;font-weight:700}
+  .laccion{display:flex;flex-direction:column;justify-content:center;gap:6px;
+           padding:14px 16px 14px 0}
+  .lcual{display:flex;gap:3px;margin-top:8px}
+  .lcual span{width:16px;height:4px;border-radius:99px;background:var(--linea)}
+  .lcual span.si{background:var(--verde)}
+
+  /* ---------- FICHA DEL LEAD ---------- */
+  .fcab{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+        flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--linea)}
+  .fetapas{display:flex;gap:5px;flex-wrap:wrap;margin:16px 0 20px}
+  .fet{font-size:12px;font-weight:700;padding:7px 12px;border-radius:99px;
+       border:1px solid var(--linea);background:var(--blanco);color:var(--gris)}
+  .fet.on{background:var(--profundo);color:#fff;border-color:transparent}
+  .fet.gana{border-color:var(--verde);color:#027A48}
+  .fet.gana.on{background:var(--verde);color:#fff}
+  .fet.pierde{border-color:#FDA29B;color:#B42318}
+  .fet.pierde.on{background:var(--rojo);color:#fff}
+  .fcinco{display:grid;gap:12px;margin-bottom:20px}
+  .fpreg label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
+  .fpreg label small{color:var(--gris);font-weight:500}
+  .fpreg input{width:100%;padding:10px 13px;border:1.5px solid var(--linea);
+               border-radius:10px;font-size:14px;font-family:inherit;margin:0;
+               background:var(--blanco);color:var(--tinta)}
+  .fpreg input:focus{border-color:var(--pulso);outline:none}
+  .fpreg textarea{width:100%;padding:10px 13px;border:1.5px solid var(--linea);
+                  border-radius:10px;font-size:14px;font-family:inherit;
+                  min-height:80px;resize:vertical;background:var(--blanco);color:var(--tinta)}
+  .fdos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .fguardar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;
+            padding-top:16px;border-top:1px solid var(--linea);margin-top:4px}
+  .fok{font-size:12.5px;color:var(--verde);font-weight:700;display:none}
+  @media(max-width:600px){
+    .lead{grid-template-columns:4px 1fr}
+    .laccion{grid-column:2;padding:0 16px 14px;flex-direction:row;flex-wrap:wrap}
+    .fdos{grid-template-columns:1fr}
+  }
+
   /* ---------- LISTA DE PERSONAS ----------
      Antes era una tabla de cinco columnas. En móvil obligaba a
      desplazar en horizontal para ver la última señal, y el dato
@@ -552,6 +628,7 @@
     <nav>
       <button class="on" data-v="latido">Latido</button>
       <button data-v="convs">Conversaciones</button>
+      <button data-v="embudo">Embudo</button>
       <button data-v="agenda">Agenda</button>
       <button data-v="ajustes">Configuración</button>
     </nav>
@@ -724,6 +801,7 @@ function autoRefresco(){
     if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT')) return;
     if (VISTA === 'latido') pintarLatido(true);
     else if (VISTA === 'convs' && !$('#buscar')?.value) pintarConvs(true);
+    else if (VISTA === 'embudo' && !$('#lbusca')?.value) pintarEmbudo(true);
     else if (VISTA === 'agenda') pintarAgenda(true);
   }, 30000);
 }
@@ -746,6 +824,7 @@ function enlazarNav(){
       if (v !== 'latido' && LMAP){ LMAP.remove(); LMAP = null; LCAPA = null; }
       if (v === 'latido') pintarLatido();
       else if (v === 'convs') pintarConvs();
+      else if (v === 'embudo') pintarEmbudo();
       else if (v === 'agenda') pintarAgenda();
       else pintarAjustes();
     });
@@ -822,6 +901,7 @@ async function refrescar(){
   b?.classList.add('girando');
   if (VISTA === 'latido')       await pintarLatido(true);
   else if (VISTA === 'convs')   await pintarConvs(true);
+  else if (VISTA === 'embudo')  await pintarEmbudo(true);
   else if (VISTA === 'agenda')  await pintarAgenda(true);
   else                          await pintarAjustes(true);
   b?.classList.remove('girando');
@@ -977,7 +1057,8 @@ async function pintarLatido(silencioso){
             <span class="fdot ${m.role === 'human' ? 'h' : 'a'}"></span>
             <span class="fh mono">${hora(m.observed_at)}</span>
             <span class="fq">${m.role === 'human' ? 'Cliente' : 'IA'}</span>
-            <span class="ft">${esc((m.content || '').slice(0, 90))}${(m.content||'').length > 90 ? '…' : ''}</span>
+            <span class="ft">${esc(limpiaMensaje(m.content).slice(0, 90))}${
+              limpiaMensaje(m.content).length > 90 ? '…' : ''}</span>
             ${ref ? '<span class="fgo" aria-hidden="true">›</span>' : ''}
           </li>`;
         }).join('')}
@@ -2223,7 +2304,7 @@ async function abrir(contact){
           f ? ' · ' + fecha(f) : ''}</span></div>`;
       }
       return sep + `<div class="msg ${m.role === 'human' ? 'h' : 'a'}">
-        <div class="burb">${esc(m.content || '')}
+        <div class="burb">${esc(limpiaMensaje(m.content))}
           <div class="hora">${m.is_backfilled ? 'sin hora registrada' : hora(m.observed_at)}${
             m.latency_ms ? ` · ${(m.latency_ms/1000).toFixed(1)}s` : ''}</div>
         </div></div>`;
@@ -2243,9 +2324,411 @@ function cerrar(){ $('#modal').style.display = 'none'; }
 $('#modal').addEventListener('click', e => e.target.id === 'modal' && cerrar());
 document.addEventListener('keydown', e => e.key === 'Escape' && cerrar());
 
+
+/* ============================================================
+   EMBUDO COMERCIAL
+
+   El orden de la lista es el producto. Un comercial no necesita
+   ver 27 leads: necesita saber a quién llama ahora. Por eso la
+   cola se ordena por urgencia real y no por fecha:
+
+     1. Acción vencida — se comprometió a algo y ha pasado
+     2. Dejó contacto y nadie le ha tocado — el dinero sobre la mesa
+     3. Visita agendada próxima — confirmarla evita el no-show
+     4. El resto, por antigüedad del último mensaje
+
+   La cualificación se muestra como cinco barritas, no como un
+   número: se ve de un vistazo cuánto falta sin tener que leer.
+   ============================================================ */
+
+let LEADS = [], EMBUDO = [], LFILTRO = 'todo', LABIERTO = null;
+
+const ETAPAS = [
+  ['entrada',        'Entrada',   'fe1'],
+  ['cualificado',    'Cualificado','fe2'],
+  ['visita_agendada','Visita',    'fe3'],
+  ['visita_hecha',   'Visitado',  'fe4'],
+  ['propuesta',      'Propuesta', 'fe5'],
+  ['ganado',         'Ganado',    'fe6'],
+  ['perdido',        'Perdido',   'fe7']
+];
+const NOMBRE_ETAPA = Object.fromEntries(ETAPAS.map(e => [e[0], e[1]]));
+
+// Devuelve por qué este lead es urgente, o null. Que el motivo sea
+// texto y no un color permite escribirlo en la tarjeta: un comercial
+// no debería tener que descifrar por qué algo está en rojo.
+function urgencia(l){
+  const hoy = new Date().toISOString().slice(0,10);
+  if (l.proxima_fecha && l.proxima_fecha < hoy)
+    return { nivel:'urg', txt:`Acción vencida el ${fechaCorta(l.proxima_fecha)}`, peso:0 };
+  if (l.proxima_fecha === hoy)
+    return { nivel:'urg', txt:'Acción prevista para hoy', peso:1 };
+  if (Number(l.toques) === 0 && (l.email || l.telefono) &&
+      ['cualificado','visita_hecha','propuesta'].includes(l.etapa))
+    return { nivel:'oro', txt:'Dejó contacto y nadie le ha llamado', peso:2 };
+  if (l.cita && new Date(l.cita) - Date.now() < 3*864e5)
+    return { nivel:'oro', txt:`Visita el ${fechaCorta(l.cita)}: confirmar`, peso:3 };
+  if (Number(l.toques) === 0 && l.etapa === 'entrada')
+    return { nivel:'', txt:'Sin tocar', peso:5 };
+  return null;
+}
+
+function ordenLeads(a, b){
+  const ua = urgencia(a), ub = urgencia(b);
+  const pa = ua ? ua.peso : 4, pb = ub ? ub.peso : 4;
+  if (pa !== pb) return pa - pb;
+  return new Date(b.ultima || 0) - new Date(a.ultima || 0);
+}
+
+async function pintarEmbudo(silencioso){
+  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando el embudo…</div>';
+
+  const [a, b] = await Promise.all([
+    supabase.rpc('mis_leads'),
+    supabase.rpc('embudo')
+  ]);
+  ULTIMA = Date.now(); pintarCuando();
+
+  if (a.error){
+    pintaEn(`<h2 class="tit">Embudo</h2><div class="panel"><div class="vacio">
+      No se ha podido cargar.<br>${esc(a.error.message)}</div></div>`, silencioso);
+    return;
+  }
+  LEADS = a.data || []; EMBUDO = b.data || [];
+
+  if (!LEADS.length){
+    pintaEn(`<h2 class="tit">Embudo</h2>
+      <p class="sub">Cada persona que ha mostrado interés, y en qué punto está.</p>
+      <div class="panel"><div class="vacio">
+        <strong>Todavía no hay ningún lead.</strong><br>
+        Aparecerán solos en cuanto alguien pregunte por precios,
+        disponibilidad o deje su contacto.</div></div>`, silencioso);
+    return;
+  }
+
+  const vivos = LEADS.filter(l => !['ganado','perdido'].includes(l.etapa));
+  const urg   = vivos.filter(l => urgencia(l)?.nivel === 'urg').length;
+  const oro   = vivos.filter(l => urgencia(l)?.nivel === 'oro').length;
+
+  pintaEn(`
+    <h2 class="tit">Embudo</h2>
+    <p class="sub">Cada persona que ha mostrado interés, y en qué punto está.
+       Se crean solos a partir de las conversaciones; tú los mueves.</p>
+
+    ${bloqueFunnel()}
+
+    <div class="panel">
+      <div class="cabpanel">
+        <div>
+          <h3>${urg ? `${urg} ${urg === 1 ? 'necesita' : 'necesitan'} atención hoy`
+                    : oro ? `${oro} sin tocar con el contacto ya dado`
+                    : 'Nada urgente'}</h3>
+          <p class="ph">${nf.format(vivos.length)} en marcha ·
+             ${nf.format(LEADS.length - vivos.length)} cerrados</p>
+        </div>
+      </div>
+
+      <div class="lfiltros">
+        <input id="lbusca" class="busca" type="search"
+               placeholder="Buscar por nombre, teléfono o email…" autocomplete="off">
+        <div class="orden">
+          ${[['todo','Todos'],['urg','Urgentes'],['sin','Sin tocar'],['cerrado','Cerrados']]
+            .map(([k,t]) => `<button class="${LFILTRO===k?'on':''}" data-lf="${k}">${t}</button>`)
+            .join('')}
+        </div>
+      </div>
+
+      <div id="lista-leads"></div>
+    </div>
+
+    <p class="nota">Un lead entra solo cuando el asistente detecta interés o recibe
+       un contacto. Lo que escribas aquí no se sobrescribe nunca: la sincronización
+       solo rellena huecos.</p>`, silencioso);
+
+  // Los filtros y el buscador se enlazan aquí, no en la vista de
+  // Conversaciones: cada vista enlaza lo suyo.
+  document.querySelectorAll('.orden button[data-lf]').forEach(b =>
+    b.addEventListener('click', () => {
+      LFILTRO = b.dataset.lf;
+      document.querySelectorAll('.orden button[data-lf]')
+        .forEach(x => x.classList.toggle('on', x === b));
+      pintarLista($('#lbusca')?.value.trim());
+    }));
+
+  const lb = $('#lbusca');
+  if (lb){
+    let t = null;
+    lb.addEventListener('input', () => {
+      clearTimeout(t);
+      t = setTimeout(() => pintarLista(lb.value.trim()), 200);
+    });
+  }
+
+  pintarLista($('#lbusca')?.value.trim());
+}
+
+function bloqueFunnel(){
+  const total = EMBUDO.reduce((s,e) => s + Number(e.leads), 0) || 1;
+  const con = EMBUDO.filter(e => Number(e.leads) > 0);
+  return `<div class="panel">
+    <h3>El recorrido</h3>
+    <p class="ph">De la primera pregunta al contrato firmado.</p>
+    <div class="fbarra">
+      ${con.map(e => {
+        const cl = (ETAPAS.find(x => x[0] === e.etapa) || [,,'fe1'])[2];
+        return `<div class="ftramo ${cl}" style="flex:${Number(e.leads)}"
+          title="${esc(NOMBRE_ETAPA[e.etapa] || e.etapa)}">${e.leads}</div>`;
+      }).join('')}
+    </div>
+    <div class="fleyenda">
+      ${con.map(e => {
+        const cl = (ETAPAS.find(x => x[0] === e.etapa) || [,,'fe1'])[2];
+        return `<span><i class="${cl}"></i>${esc(NOMBRE_ETAPA[e.etapa] || e.etapa)}
+          · ${e.leads} (${Math.round(Number(e.leads)/total*100)} %)</span>`;
+      }).join('')}
+    </div>
+    ${Number(EMBUDO.find(e => e.etapa==='ganado')?.leads || 0) === 0
+      ? `<p class="nota" style="margin:0">Todavía no hay ningún cerrado. En cuanto
+         marques el primero como ganado, aquí aparecerá la conversión real.</p>` : ''}
+  </div>`;
+}
+
+function pintarLista(q){
+  const cont = $('#lista-leads'); if (!cont) return;
+  const norm = t => String(t || '').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  let l = LEADS.slice();
+  if (LFILTRO === 'cerrado') l = l.filter(x => ['ganado','perdido'].includes(x.etapa));
+  else {
+    l = l.filter(x => !['ganado','perdido'].includes(x.etapa));
+    if (LFILTRO === 'urg') l = l.filter(x => ['urg','oro'].includes(urgencia(x)?.nivel));
+    if (LFILTRO === 'sin') l = l.filter(x => Number(x.toques) === 0);
+  }
+  if (q){
+    const n = norm(q), num = q.replace(/[^0-9]/g, '');
+    l = l.filter(x => norm(x.nombre).includes(n) || norm(x.email).includes(n) ||
+      (num.length >= 3 && String(x.telefono || x.contact_ref).includes(num)));
+  }
+
+  cont.innerHTML = l.length
+    ? l.sort(ordenLeads).map(tarjetaLead).join('')
+    : `<div class="vacio">Ningún lead con este filtro.</div>`;
+  enlazarLeads();
+}
+
+function tarjetaLead(l){
+  const u = urgencia(l);
+  const pide = [l.servicio, l.ubicacion].filter(Boolean).join(' · ');
+  const cual = [l.personas, l.cuando_necesita, l.permanencia,
+                l.situacion_actual, l.quien_decide];
+
+  return `<div class="lead ${u?.nivel || ''}" data-lead="${l.id}" tabindex="0" role="button">
+    <div class="lcinta"></div>
+    <div class="lcuerpo">
+      <div class="lcab">
+        <span class="lnom">${l.nombre ? esc(l.nombre)
+          : `<span class="mono">${esc(l.telefono || l.contact_ref)}</span>
+             <span class="csin"> sin nombre</span>`}</span>
+        <span class="pill az">${esc(NOMBRE_ETAPA[l.etapa] || l.etapa)}</span>
+        ${l.valor_mes ? `<span class="pill vd">${nf.format(l.valor_mes)} €/mes</span>` : ''}
+      </div>
+      <div class="lpide">${pide ? esc(pide) : 'Sin concretar qué busca'}</div>
+      <div class="lcual" title="${cual.filter(Boolean).length} de 5 preguntas respondidas">
+        ${cual.map(v => `<span class="${v ? 'si' : ''}"></span>`).join('')}
+      </div>
+      <div class="lpie">
+        ${u ? `<span class="${u.nivel === 'urg' ? 'lurge' : ''}">${esc(u.txt)}</span>` : ''}
+        ${l.ultima ? `<span>Escribió ${desdeEntonces(l.ultima).txt}</span>` : ''}
+        <span><b>${l.toques}</b> ${Number(l.toques) === 1 ? 'toque' : 'toques'}</span>
+        ${l.respuesta_s != null
+          ? `<span>Respondido en <b>${l.respuesta_s} s</b></span>` : ''}
+      </div>
+    </div>
+    <div class="laccion">
+      <button class="cbtn" data-lead="${l.id}">Abrir</button>
+    </div>
+  </div>`;
+}
+
+function enlazarLeads(){
+  document.querySelectorAll('.lead[data-lead]').forEach(el => {
+    const ir = () => abrirLead(Number(el.dataset.lead));
+    el.addEventListener('click', ir);
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ir(); }
+    });
+  });
+}
+
+/* ---------- ficha ---------- */
+function abrirLead(id){
+  const l = LEADS.find(x => x.id === id); if (!l) return;
+  LABIERTO = id;
+  const v = (x) => x == null ? '' : esc(String(x));
+
+  $('#mbox').innerHTML = `
+    <div class="fcab">
+      <div style="min-width:0">
+        <h3 style="font-size:20px;letter-spacing:-.02em">${l.nombre
+          ? esc(l.nombre) : `<span class="mono">${esc(l.telefono || l.contact_ref)}</span>`}</h3>
+        <p class="ph" style="margin:4px 0 0">
+          <span class="mono">${esc(l.telefono || l.contact_ref)}</span>${
+          l.email ? ' · ' + esc(l.email) : ''}</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start">
+        <button class="cbtn sec" id="fver">Ver la conversación</button>
+        <button class="cerrar" id="fx" aria-label="Cerrar">×</button>
+      </div>
+    </div>
+
+    <div class="fetapas">
+      ${ETAPAS.map(([k,t]) => `<button class="fet ${l.etapa===k?'on':''}${
+        k==='ganado'?' gana':k==='perdido'?' pierde':''}" data-et="${k}">${t}</button>`).join('')}
+    </div>
+
+    <h3 style="font-size:14px;margin-bottom:3px">Las cinco preguntas</h3>
+    <p class="ph">Las que deciden cuánto vale este lead. Rellena lo que sepas;
+       lo que dejes vacío se queda vacío.</p>
+    <div class="fcinco">
+      <div class="fpreg"><label>Cuántos son <small>· define el producto y multiplica el ticket</small></label>
+        <input id="f_personas" type="number" min="1" value="${v(l.personas)}" placeholder="4"></div>
+      <div class="fpreg"><label>Para cuándo <small>· la urgencia predice el cierre</small></label>
+        <input id="f_cuando" value="${v(l.cuando_necesita)}" placeholder="1 de octubre"></div>
+      <div class="fpreg"><label>Cuánto tiempo <small>· la permanencia es el valor real</small></label>
+        <input id="f_perma" value="${v(l.permanencia)}" placeholder="12 meses"></div>
+      <div class="fpreg"><label>Qué tienen ahora <small>· de casa, de otro coworking, de oficina propia</small></label>
+        <input id="f_situacion" value="${v(l.situacion_actual)}" placeholder="Trabaja desde casa"></div>
+      <div class="fpreg"><label>Quién decide</label>
+        <input id="f_decide" value="${v(l.quien_decide)}" placeholder="Él mismo"></div>
+    </div>
+
+    <div class="fdos" style="margin-bottom:16px">
+      <div class="fpreg"><label>De dónde viene</label>
+        <select class="sel" id="f_canal" style="width:100%">
+          ${[['desconocido','Sin saber'],['whatsapp_directo','WhatsApp directo'],
+             ['portal','Portal (Coworking Spain…)'],['web','Web propia'],['google','Google'],
+             ['referido','Referido'],['walkin','Entró por la puerta'],
+             ['broker','Broker'],['evento','Evento'],['otro','Otro']]
+            .map(([k,t]) => `<option value="${k}"${l.canal===k?' selected':''}>${t}</option>`).join('')}
+        </select></div>
+      <div class="fpreg"><label>Valor al mes <small>· € + IVA</small></label>
+        <input id="f_valor" type="number" step="0.01" value="${v(l.valor_mes)}" placeholder="1638"></div>
+    </div>
+
+    <div class="fdos" style="margin-bottom:16px">
+      <div class="fpreg"><label>Próxima acción</label>
+        <input id="f_accion" value="${v(l.proxima_accion)}" placeholder="Llamar para cerrar visita"></div>
+      <div class="fpreg"><label>Para cuándo</label>
+        <input id="f_fecha" type="date" value="${v(l.proxima_fecha)}"></div>
+    </div>
+
+    <div class="fpreg" style="margin-bottom:16px">
+      <label>Notas</label>
+      <textarea id="f_notas" placeholder="Lo que haga falta recordar">${v(l.notas)}</textarea>
+    </div>
+
+    <div class="fguardar">
+      <button class="btn" id="fguardar" style="width:auto;margin:0;padding:11px 20px">Guardar</button>
+      <button class="cbtn" id="ftoque">Apuntar un contacto</button>
+      <span class="fok" id="fok">Guardado</span>
+    </div>
+    <p class="nota">Apuntar un contacto suma un toque. La cadencia que funciona son
+       seis a doce toques repartidos en tres o cuatro semanas.</p>`;
+
+  $('#modal').style.display = 'block';
+  enlazarFicha(l);
+}
+
+function enlazarFicha(l){
+  const leer = () => ({
+    personas:         $('#f_personas').value.trim() || null,
+    cuando_necesita:  $('#f_cuando').value.trim()   || null,
+    permanencia:      $('#f_perma').value.trim()    || null,
+    situacion_actual: $('#f_situacion').value.trim()|| null,
+    quien_decide:     $('#f_decide').value.trim()   || null,
+    canal:            $('#f_canal').value,
+    valor_mes:        $('#f_valor').value.trim()    || null,
+    proxima_accion:   $('#f_accion').value.trim()   || null,
+    proxima_fecha:    $('#f_fecha').value           || null,
+    notas:            $('#f_notas').value.trim()    || null
+  });
+
+  const aviso = (t, ok) => {
+    const e = $('#fok'); e.textContent = t;
+    e.style.color = ok ? 'var(--verde)' : 'var(--rojo)';
+    e.style.display = 'inline'; setTimeout(() => { e.style.display = 'none'; }, 2600);
+  };
+
+  $('#fguardar').addEventListener('click', async () => {
+    const b = $('#fguardar'); b.disabled = true; b.textContent = 'Guardando…';
+    const { error } = await supabase.rpc('guardar_lead',
+      { p_id: l.id, p_campos: leer() });
+    b.disabled = false; b.textContent = 'Guardar';
+    if (error) return aviso(error.message.includes('lectura')
+      ? 'Estás en modo lectura' : 'No se ha podido guardar', false);
+    aviso('Guardado', true);
+    await pintarEmbudo(true);
+  });
+
+  document.querySelectorAll('.fet[data-et]').forEach(b =>
+    b.addEventListener('click', async () => {
+      const et = b.dataset.et;
+      let nota = null;
+      if (et === 'perdido'){
+        nota = prompt('¿Por qué se ha perdido? (precio, plazo, se fue a otro…)');
+        if (nota === null) return;
+      }
+      const { error } = await supabase.rpc('mover_lead',
+        { p_id: l.id, p_etapa: et, p_nota: nota });
+      if (error) return aviso('No se ha podido mover', false);
+      await pintarEmbudo(true);
+      const nuevo = LEADS.find(x => x.id === l.id);
+      if (nuevo) abrirLead(nuevo.id);
+    }));
+
+  $('#ftoque').addEventListener('click', async () => {
+    const d = prompt('¿Qué has hecho? (llamada, email, WhatsApp…)');
+    if (!d) return;
+    const { error } = await supabase.rpc('apuntar_toque',
+      { p_id: l.id, p_detalle: d, p_proxima: $('#f_fecha').value || null });
+    if (error) return aviso('No se ha podido apuntar', false);
+    aviso('Toque apuntado', true);
+    await pintarEmbudo(true);
+  });
+
+  $('#fx').addEventListener('click', cerrar);
+
+  $('#fver').addEventListener('click', () => {
+    cerrar();
+    document.querySelector('nav button[data-v="convs"]')?.click();
+    setTimeout(() => {
+      const b = $('#buscar');
+      if (b){ b.value = l.telefono || l.contact_ref; filtrar(b.value); }
+    }, 700);
+  });
+}
+
 /* ---------- utilidades ---------- */
 // El teléfono completo no se muestra en pantalla: se ve lo justo para reconocer al contacto.
 const ofusca = t => t ? t.slice(0,4) + '···' + t.slice(-3) : '—';
+// El agente de n8n guarda su traza de herramientas delante de la
+// respuesta. mensajes_contacto ya la quita, pero la actividad
+// reciente lee `content` directo de la tabla. Mismo criterio:
+// se cuentan corchetes, porque el JSON de la traza lleva
+// corchetes dentro y cortar por el primer "]]" falla con arrays
+// anidados.
+function limpiaMensaje(t){
+  const s = String(t ?? '').trimStart();
+  if (!s.startsWith('[Used tools:')) return t ?? '';
+  let d = 0;
+  for (let i = 0; i < s.length; i++){
+    if (s[i] === '[') d++;
+    else if (s[i] === ']' && --d === 0) return s.slice(i + 1).trim();
+  }
+  return t ?? '';
+}
+
 const esc = s => s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const fechaCorta = d => new Date(d).toLocaleDateString('es-ES',
   { day:'2-digit', month:'short', year:'2-digit' });
