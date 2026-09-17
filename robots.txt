@@ -1,2 +1,4 @@
+# El panel de cliente no tiene nada que hacer en un buscador.
+# Cubre también /staging/ y /maestro.html.
 User-agent: *
 Disallow: /

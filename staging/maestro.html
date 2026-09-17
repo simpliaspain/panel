@@ -170,6 +170,19 @@
   .chip.on{background:var(--profundo);color:#fff;border-color:transparent}
 
   /* ---------- avisos flotantes ---------- */
+  /* Estas tres se usaban en el maestro sin estar definidas aquí:
+     estaban en index.html, que es otro archivo. Sin build ni
+     comprobación, un `class="busca"` sin estilo no falla, solo se
+     ve mal. Lo encontró la revisión previa al despliegue. */
+  .segm{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .busca{font-family:inherit;font-size:13px;color:var(--tinta);background:var(--blanco);
+         border:1px solid var(--linea);border-radius:10px;padding:9px 13px;
+         max-width:100%;min-width:0}
+  .busca:focus{border-color:var(--pulso);outline:none}
+  .busca::placeholder{color:#94A3B8}
+  .et{color:var(--gris);font-weight:600;white-space:nowrap}
+  @media (pointer:coarse){.busca{font-size:16px}}
+
   /* ---------- EXCLUIR PERSONAS ---------- */
   .exbusca{display:grid;grid-template-columns:minmax(0,180px) 1fr;gap:10px;
            align-items:center;margin-bottom:14px}
