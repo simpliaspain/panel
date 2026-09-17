@@ -477,53 +477,81 @@
   .lcual span{width:16px;height:4px;border-radius:99px;background:var(--linea)}
   .lcual span.si{background:var(--verde)}
 
-  /* ---------- FICHA DEL LEAD ---------- */
+  /* ---------- FICHA DEL LEAD ----------
+     Todo va colgado de .ficha y no de .panel. Las clases h3, .ph y
+     .nota están definidas DENTRO de .panel, y la ficha vive en el
+     modal: sin este ámbito propio perdían sus márgenes y el texto
+     se montaba encima del siguiente campo. */
+  .ficha h3{font-size:15px;font-weight:800;letter-spacing:-.01em;margin:0 0 4px}
+  .ficha .ph{color:var(--gris);font-size:12.5px;line-height:1.55;margin:0 0 14px}
+  .ficha .nota{font-size:12px;color:var(--gris);line-height:1.6;
+               margin:14px 0 0;max-width:none}
+
   .fcab{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
-        flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid var(--linea)}
-  .fetapas{display:flex;gap:5px;flex-wrap:wrap;margin:16px 0 20px}
-  .fet{font-size:12px;font-weight:700;padding:7px 12px;border-radius:99px;
-       border:1px solid var(--linea);background:var(--blanco);color:var(--gris)}
+        flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--linea)}
+  .fcab h2{font-size:21px;letter-spacing:-.02em;line-height:1.2}
+  .fcab .dmeta{font-size:12.5px;color:var(--gris);margin-top:5px;overflow-wrap:anywhere}
+  .fcabacc{display:flex;gap:8px;align-items:flex-start;flex:none}
+
+  /* Cada bloque, separado del anterior por una línea. Sin esa
+     separación, cinco preguntas seguidas de dos desplegables y un
+     área de notas se leen como una única lista interminable. */
+  .fsec{padding:22px 0;border-bottom:1px solid var(--linea)}
+  .fsec:last-of-type{border-bottom:0}
+
+  .fetapas{display:flex;gap:6px;flex-wrap:wrap;padding:18px 0}
+  .fet{font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:99px;
+       border:1.5px solid var(--linea);background:var(--blanco);color:var(--gris);
+       transition:all .12s}
+  .fet:hover{border-color:#CBD5E1;color:var(--tinta)}
   .fet.on{background:var(--profundo);color:#fff;border-color:transparent}
-  .fet.gana{border-color:var(--verde);color:#027A48}
-  .fet.gana.on{background:var(--verde);color:#fff}
+  .fet.gana{border-color:#6CE9A6;color:#027A48}
+  .fet.gana.on{background:var(--verde);color:#fff;border-color:transparent}
   .fet.pierde{border-color:#FDA29B;color:#B42318}
-  .fet.pierde.on{background:var(--rojo);color:#fff}
-  .fcinco{display:grid;gap:12px;margin-bottom:20px}
-  .fpreg label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
-  .fpreg label small{color:var(--gris);font-weight:500}
-  .fpreg input{width:100%;padding:10px 13px;border:1.5px solid var(--linea);
-               border-radius:10px;font-size:14px;font-family:inherit;margin:0;
-               background:var(--blanco);color:var(--tinta)}
-  .fpreg input:focus{border-color:var(--pulso);outline:none}
-  .fpreg textarea{width:100%;padding:10px 13px;border:1.5px solid var(--linea);
-                  border-radius:10px;font-size:14px;font-family:inherit;
-                  min-height:80px;resize:vertical;background:var(--blanco);color:var(--tinta)}
-  .fdos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .fguardar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;
-            padding-top:18px;border-top:1px solid var(--linea);margin-top:8px}
+  .fet.pierde.on{background:var(--rojo);color:#fff;border-color:transparent}
+
+  .fcinco{display:grid;gap:16px}
+  .fpreg label{display:block;font-size:12.5px;font-weight:700;margin:0 0 6px;
+               line-height:1.4}
+  .fpreg label small{color:var(--gris);font-weight:500;font-size:11.5px}
+  .fpreg input,.fpreg select,.fpreg textarea{
+    width:100%;padding:11px 14px;border:1.5px solid var(--linea);border-radius:10px;
+    font-size:14px;font-family:inherit;margin:0;background:var(--blanco);
+    color:var(--tinta);display:block}
+  .fpreg textarea{min-height:88px;resize:vertical;line-height:1.5}
+  .fpreg input:focus,.fpreg select:focus,.fpreg textarea:focus{
+    border-color:var(--pulso);outline:none}
+  .fdos{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+  .fguardar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding-top:22px}
   .fguardar .btn{width:auto;margin:0;padding:12px 22px;flex:0 0 auto}
   .fguardar .cbtn{padding:12px 18px;font-size:13px}
 
-  /* El aviso va ARRIBA del formulario, no al final: en el móvil,
-     un mensaje al pie de una ficha larga no se ve nunca, y por eso
+  /* El aviso va ARRIBA del formulario, no al final: en el móvil, un
+     mensaje al pie de una ficha larga no se ve nunca, y por eso
      parecía que el botón no hacía nada. */
-  .faviso{display:none;padding:11px 14px;border-radius:10px;font-size:13px;
-          font-weight:600;margin-bottom:16px;line-height:1.5}
+  .faviso{display:none;padding:12px 15px;border-radius:10px;font-size:13px;
+          font-weight:600;margin:18px 0 0;line-height:1.5}
   .faviso.ok{display:block;background:#ECFDF3;color:#027A48;border:1px solid #A6F4C5}
   .faviso.mal{display:block;background:#FEF3F2;color:#B42318;border:1px solid #FDA29B}
 
   /* Confirmaciones en línea, no prompt(): prompt se bloquea en
-     algunos navegadores, no se puede cancelar bien con el teclado
-     y en el móvil es una ventana del sistema fuera de contexto. */
+     algunos navegadores y en el móvil es una ventana del sistema
+     fuera de contexto. */
   .fcaja{display:none;background:var(--fondo);border:1px solid var(--linea);
-         border-radius:12px;padding:15px;margin-top:14px}
+         border-radius:12px;padding:16px;margin-top:16px}
   .fcaja.on{display:block}
-  .fcaja h4{font-size:13.5px;margin-bottom:10px}
-  .fcaja .fila{display:flex;gap:9px;flex-wrap:wrap;margin-top:11px}
+  .fcaja h4{font-size:13.5px;margin:0 0 10px}
+  .fcaja .fila{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .fcaja .fila .btn{width:auto;margin:0;padding:11px 18px}
+
   @media(max-width:600px){
     .lead{grid-template-columns:4px 1fr}
     .laccion{grid-column:2;padding:0 16px 14px;flex-direction:row;flex-wrap:wrap}
     .fdos{grid-template-columns:1fr}
+    .fcab{flex-direction:column}
+    .fcabacc{width:100%;justify-content:space-between}
+    .fguardar .btn,.fguardar .cbtn{flex:1 1 auto;text-align:center}
   }
 
   /* ---------- LISTA DE PERSONAS ----------
@@ -2409,6 +2437,16 @@ function ordenLeads(a, b){
 async function pintarEmbudo(silencioso){
   if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando el embudo…</div>';
 
+  // Sincronizar ANTES de leer: si no, una conversación nueva no
+  // aparece hasta que alguien se acuerde de refrescar el CRM a
+  // mano, y nadie se acuerda. Es idempotente y no pisa nada de lo
+  // que haya escrito el comercial.
+  //
+  // Si falla —por permisos, por ejemplo— se sigue adelante y se
+  // muestra lo que ya hay: una lista algo vieja es mejor que una
+  // pantalla en blanco.
+  await supabase.rpc('sincronizar_leads').catch(() => {});
+
   const [a, b] = await Promise.all([
     supabase.rpc('mis_leads'),
     supabase.rpc('embudo')
@@ -2426,9 +2464,9 @@ async function pintarEmbudo(silencioso){
     pintaEn(`<h2 class="tit">Embudo</h2>
       <p class="sub">Cada persona que ha mostrado interés, y en qué punto está.</p>
       <div class="panel"><div class="vacio">
-        <strong>Todavía no hay ningún lead.</strong><br>
-        Aparecerán solos en cuanto alguien pregunte por precios,
-        disponibilidad o deje su contacto.</div></div>`, silencioso);
+        <strong>Todavía no ha escrito nadie.</strong><br>
+        Cada persona que escriba al asistente entra aquí sola,
+        en cuanto lo haga.</div></div>`, silencioso);
     return;
   }
 
@@ -2467,9 +2505,10 @@ async function pintarEmbudo(silencioso){
       <div id="lista-leads"></div>
     </div>
 
-    <p class="nota">Un lead entra solo cuando el asistente detecta interés o recibe
-       un contacto. Lo que escribas aquí no se sobrescribe nunca: la sincronización
-       solo rellena huecos.</p>`, silencioso);
+    <p class="nota">Entra aquí todo el que escribe al asistente, no solo quien
+       muestra interés: lo que más se pierde es precisamente lo que nadie llega a
+       mirar. Los que no vayan a ninguna parte se descartan en dos clics.
+       Lo que escribas tú no se sobrescribe nunca.</p>`, silencioso);
 
   // Los filtros y el buscador se enlazan aquí, no en la vista de
   // Conversaciones: cada vista enlaza lo suyo.
@@ -2594,15 +2633,21 @@ function abrirLead(id){
   const v = (x) => x == null ? '' : esc(String(x));
 
   $('#mbox').innerHTML = `
+   <div class="ficha">
     <div class="fcab">
       <div style="min-width:0">
-        <h3 style="font-size:20px;letter-spacing:-.02em">${l.nombre
-          ? esc(l.nombre) : `<span class="mono">${esc(l.telefono || l.contact_ref)}</span>`}</h3>
-        <p class="ph" style="margin:4px 0 0">
-          <span class="mono">${esc(l.telefono || l.contact_ref)}</span>${
-          l.email ? ' · ' + esc(l.email) : ''}</p>
+        <h2>${l.nombre ? esc(l.nombre)
+          : `<span class="mono">${esc(l.telefono || l.contact_ref)}</span>`}</h2>
+        <p class="dmeta">
+          <a href="tel:${esc(l.telefono || l.contact_ref)}" class="mono"
+            >${esc(l.telefono || l.contact_ref)}</a>${
+          l.email ? ` · <a href="mailto:${esc(l.email)}">${esc(l.email)}</a>` : ''}</p>
+        <p class="dmeta">${nf.format(l.mensajes || 0)} mensajes${
+          Number(l.conversaciones) > 1 ? ` en ${l.conversaciones} conversaciones` : ''}${
+          l.respuesta_s != null ? ` · respondido en ${l.respuesta_s} s` : ''}${
+          Number(l.toques) ? ` · ${l.toques} ${Number(l.toques)===1?'toque':'toques'}` : ''}</p>
       </div>
-      <div style="display:flex;gap:8px;align-items:flex-start">
+      <div class="fcabacc">
         <button class="cbtn sec" id="fver">Ver la conversación</button>
         <button class="cerrar" id="fx" aria-label="Cerrar">×</button>
       </div>
@@ -2615,45 +2660,72 @@ function abrirLead(id){
         k==='ganado'?' gana':k==='perdido'?' pierde':''}" data-et="${k}">${t}</button>`).join('')}
     </div>
 
-    <h3 style="font-size:14px;margin-bottom:3px">Las cinco preguntas</h3>
-    <p class="ph">Las que deciden cuánto vale este lead. Rellena lo que sepas;
-       lo que dejes vacío se queda vacío.</p>
-    <div class="fcinco">
-      <div class="fpreg"><label>Cuántos son <small>· define el producto y multiplica el ticket</small></label>
-        <input id="f_personas" type="number" min="1" value="${v(l.personas)}" placeholder="4"></div>
-      <div class="fpreg"><label>Para cuándo <small>· la urgencia predice el cierre</small></label>
-        <input id="f_cuando" value="${v(l.cuando_necesita)}" placeholder="1 de octubre"></div>
-      <div class="fpreg"><label>Cuánto tiempo <small>· la permanencia es el valor real</small></label>
-        <input id="f_perma" value="${v(l.permanencia)}" placeholder="12 meses"></div>
-      <div class="fpreg"><label>Qué tienen ahora <small>· de casa, de otro coworking, de oficina propia</small></label>
-        <input id="f_situacion" value="${v(l.situacion_actual)}" placeholder="Trabaja desde casa"></div>
-      <div class="fpreg"><label>Quién decide</label>
-        <input id="f_decide" value="${v(l.quien_decide)}" placeholder="Él mismo"></div>
+    <div class="fcaja" id="fcajaperdido">
+      <h4>¿Por qué se ha perdido?</h4>
+      <p class="ph">Saberlo es lo que permite dejar de perderlos por lo mismo.</p>
+      <div class="fpreg">
+        <input id="p_motivo" placeholder="Precio, plazo, se fue a otro espacio…">
+      </div>
+      <div class="fila">
+        <button class="btn" id="p_ok">Marcar como perdido</button>
+        <button class="cbtn sec" id="p_no">Cancelar</button>
+      </div>
     </div>
 
-    <div class="fdos" style="margin-bottom:16px">
-      <div class="fpreg"><label>De dónde viene</label>
-        <select class="sel" id="f_canal" style="width:100%">
-          ${[['desconocido','Sin saber'],['whatsapp_directo','WhatsApp directo'],
-             ['portal','Portal (Coworking Spain…)'],['web','Web propia'],['google','Google'],
-             ['referido','Referido'],['walkin','Entró por la puerta'],
-             ['broker','Broker'],['evento','Evento'],['otro','Otro']]
-            .map(([k,t]) => `<option value="${k}"${l.canal===k?' selected':''}>${t}</option>`).join('')}
-        </select></div>
-      <div class="fpreg"><label>Valor al mes <small>· € + IVA</small></label>
-        <input id="f_valor" type="number" step="0.01" value="${v(l.valor_mes)}" placeholder="1638"></div>
+    <div class="fsec">
+      <h3>Las cinco preguntas</h3>
+      <p class="ph">Las que deciden cuánto vale este lead. Rellena lo que sepas;
+         lo que dejes vacío se queda vacío.</p>
+      <div class="fcinco">
+        <div class="fpreg"><label>Cuántos son
+          <small>· define el producto y multiplica el ticket</small></label>
+          <input id="f_personas" type="number" min="1" value="${v(l.personas)}" placeholder="4"></div>
+        <div class="fpreg"><label>Para cuándo
+          <small>· la urgencia predice el cierre</small></label>
+          <input id="f_cuando" value="${v(l.cuando_necesita)}" placeholder="1 de octubre"></div>
+        <div class="fpreg"><label>Cuánto tiempo
+          <small>· la permanencia es el valor real</small></label>
+          <input id="f_perma" value="${v(l.permanencia)}" placeholder="12 meses"></div>
+        <div class="fpreg"><label>Qué tienen ahora
+          <small>· de casa, de otro coworking, de oficina propia</small></label>
+          <input id="f_situacion" value="${v(l.situacion_actual)}" placeholder="Trabaja desde casa"></div>
+        <div class="fpreg"><label>Quién decide</label>
+          <input id="f_decide" value="${v(l.quien_decide)}" placeholder="Él mismo"></div>
+      </div>
     </div>
 
-    <div class="fdos" style="margin-bottom:16px">
-      <div class="fpreg"><label>Próxima acción</label>
-        <input id="f_accion" value="${v(l.proxima_accion)}" placeholder="Llamar para cerrar visita"></div>
-      <div class="fpreg"><label>Para cuándo</label>
-        <input id="f_fecha" type="date" value="${v(l.proxima_fecha)}"></div>
+    <div class="fsec">
+      <h3>El negocio</h3>
+      <p class="ph">De dónde vino y cuánto vale. Sin el canal no se puede saber qué
+         cuesta conseguir un cliente por cada vía.</p>
+      <div class="fdos">
+        <div class="fpreg"><label>De dónde viene</label>
+          <select id="f_canal">
+            ${[['desconocido','Sin saber'],['whatsapp_directo','WhatsApp directo'],
+               ['portal','Portal (Coworking Spain…)'],['web','Web propia'],['google','Google'],
+               ['referido','Referido'],['walkin','Entró por la puerta'],
+               ['broker','Broker'],['evento','Evento'],['otro','Otro']]
+              .map(([k,t]) => `<option value="${k}"${l.canal===k?' selected':''}>${t}</option>`).join('')}
+          </select></div>
+        <div class="fpreg"><label>Valor al mes <small>· € + IVA</small></label>
+          <input id="f_valor" type="number" step="0.01" value="${v(l.valor_mes)}" placeholder="1638"></div>
+      </div>
     </div>
 
-    <div class="fpreg" style="margin-bottom:16px">
-      <label>Notas</label>
-      <textarea id="f_notas" placeholder="Lo que haga falta recordar">${v(l.notas)}</textarea>
+    <div class="fsec">
+      <h3>Qué toca ahora</h3>
+      <p class="ph">Lo que aparece en la cola del embudo. Si pones fecha y pasa,
+         el lead sube arriba del todo.</p>
+      <div class="fdos" style="margin-bottom:16px">
+        <div class="fpreg"><label>Próxima acción</label>
+          <input id="f_accion" value="${v(l.proxima_accion)}" placeholder="Llamar para cerrar visita"></div>
+        <div class="fpreg"><label>Para cuándo</label>
+          <input id="f_fecha" type="date" value="${v(l.proxima_fecha)}"></div>
+      </div>
+      <div class="fpreg">
+        <label>Notas</label>
+        <textarea id="f_notas" placeholder="Lo que haga falta recordar">${v(l.notas)}</textarea>
+      </div>
     </div>
 
     <div class="fguardar">
@@ -2666,32 +2738,20 @@ function abrirLead(id){
       <div class="fpreg">
         <input id="t_detalle" placeholder="Llamada, email, WhatsApp…">
       </div>
-      <div class="fpreg" style="margin-top:10px">
+      <div class="fpreg" style="margin-top:12px">
         <label>Y la próxima vez, ¿cuándo? <small>· opcional</small></label>
         <input id="t_fecha" type="date">
       </div>
       <div class="fila">
-        <button class="btn" id="t_ok" style="width:auto;margin:0;padding:10px 18px">Apuntar</button>
+        <button class="btn" id="t_ok">Apuntar</button>
         <button class="cbtn sec" id="t_no">Cancelar</button>
-      </div>
-    </div>
-
-    <div class="fcaja" id="fcajaperdido">
-      <h4>¿Por qué se ha perdido?</h4>
-      <p class="ph" style="margin-bottom:10px">Saberlo es lo que permite dejar de
-         perderlos por lo mismo.</p>
-      <div class="fpreg">
-        <input id="p_motivo" placeholder="Precio, plazo, se fue a otro espacio…">
-      </div>
-      <div class="fila">
-        <button class="btn" id="p_ok" style="width:auto;margin:0;padding:10px 18px">Marcar como perdido</button>
-        <button class="cbtn sec" id="p_no">Cancelar</button>
       </div>
     </div>
 
     <p class="nota">Apuntar un contacto suma un toque. La cadencia que funciona son
        seis a doce toques repartidos en tres o cuatro semanas; un espacio medio
-       da uno solo.</p>`;
+       da uno solo.</p>
+   </div>`;
 
   $('#modal').style.display = 'block';
   enlazarFicha(l);
