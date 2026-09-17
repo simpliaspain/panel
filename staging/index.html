@@ -2845,8 +2845,12 @@ const hora = d => new Date(d).toLocaleTimeString('es-ES', { hour:'2-digit', minu
    hay forma de confundir un panel con otro, y nadie tiene que
    acordarse de quitarlo al desplegar. */
 (function(){
-  if (location.hostname === 'panel.simpliaspain.com') return;
-  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') return;
+  const enProduccion =
+    location.hostname === 'panel.simpliaspain.com' &&
+    !location.pathname.startsWith('/staging');
+  const enLocal =
+    location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (enProduccion || enLocal) return;
   const d = document.createElement('div');
   d.className = 'staging';
   d.textContent = 'Staging · no es lo que ve el cliente';
