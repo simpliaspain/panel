@@ -1115,8 +1115,9 @@ async function datos(){
   // devolvía datos de todos los clientes, una columna que no
   // existía y daba ceros en silencio — porque el filtro de
   // exclusiones vive dentro de la función y no se puede olvidar.
-  const [convs, evR, lat, reciente, lugares, patron] = await Promise.all([
+  const [convs, resumen, porHora, lat, reciente, lugares, patron] = await Promise.all([
     supabase.rpc('mt_conversaciones_lista', { p_limite: 1000 }),
+    supabase.rpc('mt_resumen',    { p_horas: RANGO }),
     supabase.rpc('mt_por_hora',   { p_horas: RANGO }),
     supabase.rpc('mt_latencias',  { p_limite: 200 }),
     supabase.rpc('mt_actividad',  { p_limite: 12 }),
@@ -1139,10 +1140,16 @@ async function datos(){
     return (b.seq || 0) - (a.seq || 0);
   });
   const lats = (lat.data || []).map(r => r.latencia_ms);
+  // mt_resumen devuelve una fila con los recuentos ya hechos. Antes
+  // se traían todos los mensajes del periodo para contarlos en el
+  // navegador: con volumen, eso es traerse media base para calcular
+  // dos números.
+  const res = (Array.isArray(resumen.data) ? resumen.data[0] : resumen.data) || {};
   return {
     convs: CONVS,
-    evR:   evR.data || [],
-    total: evTot.count || 0,
+    res,
+    porHora: porHora.data || [],
+    total: res.mensajes || 0,
     lats,
     latMedia: lats.length
       ? lats.reduce((a,b) => a+b, 0) / lats.length / 1000
@@ -1175,8 +1182,8 @@ async function pintarLatido(silencioso){
   const auto      = d.convs.reduce((s,c) => s + (c.del_asistente||0), 0);
 
   const cR   = d.vivas.filter(c => new Date(c.ultima_en) > Date.now() - RANGO*36e5);
-  const entr = d.evR.filter(e => e.papel === 'human').length;
-  const resp = d.evR.filter(e => e.papel === 'ai').length;
+  const entr = d.res.del_cliente   || 0;
+  const resp = d.res.del_asistente || 0;
   const et   = RANGO === 24 ? '24 horas' : RANGO === 168 ? '7 días' : '30 días';
   const etc  = RANGO === 24 ? '24h'       : RANGO === 168 ? '7 días' : '30 días';
 
@@ -1215,7 +1222,7 @@ async function pintarLatido(silencioso){
         <span><strong class="mono">${nf.format(entr)}</strong> mensajes recibidos</span>
         <span><strong class="mono">${nf.format(resp)}</strong> respuestas enviadas</span>
       </div>
-      ${grafica(d.evR)}
+      ${grafica(d.porHora)}
     </div>
 
     ${bloqueSenales(d)}
@@ -1802,16 +1809,21 @@ function grafica(ev){
   const paso   = porDia ? 864e5 : 36e5;
   const n      = porDia ? Math.round(RANGO/24) : RANGO;
 
+  // `ev` viene de mt_por_hora, ya agrupado por la base EN LA ZONA
+  // HORARIA DEL CLIENTE. Agrupar aquí lo haría en la del navegador,
+  // y un mensaje de las 10:30 de Madrid caería en otra hora según
+  // dónde esté quien mira el panel.
+  const conteo = new Map();
+  ev.forEach(e => {
+    const t = new Date(e.tramo);
+    porDia ? t.setHours(0,0,0,0) : t.setMinutes(0,0,0);
+    conteo.set(t.getTime(), (conteo.get(t.getTime()) || 0) + Number(e.mensajes || 0));
+  });
+
   const cubos = Array.from({length:n}, (_,i) => {
     const t = new Date(Date.now() - (n-1-i)*paso);
     porDia ? t.setHours(0,0,0,0) : t.setMinutes(0,0,0);
-    return { t, n:0 };
-  });
-  ev.filter(e => e.papel === 'human').forEach(e => {
-    const t = new Date(e.cuando);
-    porDia ? t.setHours(0,0,0,0) : t.setMinutes(0,0,0);
-    const s = cubos.find(x => x.t.getTime() === t.getTime());
-    if (s) s.n++;
+    return { t, n: conteo.get(t.getTime()) || 0 };
   });
 
   const max = Math.max(...cubos.map(h => h.n), 1);
@@ -2322,9 +2334,9 @@ async function pintarAjustes(silencioso){
 
   let r = null, err = null;
   try {
-    const { data, error } = await supabase.rpc('mt_resumen');
+    const { data, error } = await supabase.rpc('mt_resumen_servicio');
     if (error) throw error;
-    r = data;
+    r = Array.isArray(data) ? data[0] : data;
   } catch (e) { err = e; }
 
   if (!r){
