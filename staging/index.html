@@ -825,7 +825,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const URL = 'https://gwibsjohvfxasslcrxuq.supabase.co';
-const KEY = 'PEGA_AQUI_LA_CLAVE';
+const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
 const supabase = createClient(URL, KEY, {
@@ -949,10 +949,21 @@ async function entrar(){
   });
 
   if (error){
-    e.textContent = error.message.includes('Invalid')
-      ? 'Email o contraseña incorrectos. Revísalos e inténtalo otra vez.'
-      : error.message;
+    // El mensaje tiene que distinguir qué ha fallado. Decir "email o
+    // contraseña incorrectos" cuando el problema es la conexión o la
+    // configuración manda a la gente a cambiar su contraseña por algo
+    // que no tiene nada que ver.
+    const m = String(error.message || '');
+    e.textContent =
+      /Invalid login/i.test(m)      ? 'Email o contraseña incorrectos. Revísalos e inténtalo otra vez.' :
+      /Email not confirmed/i.test(m)? 'Tu cuenta existe pero no está confirmada todavía.' :
+      /Failed to fetch|NetworkError|fetch/i.test(m)
+                                    ? 'No se ha podido contactar con el servidor. Revisa la conexión.' :
+      /API key|apikey|JWT|anon/i.test(m)
+                                    ? 'La configuración del panel no es válida. Avisa a SimpliaSpain.' :
+      m || 'No se ha podido entrar.';
     e.style.display = 'block';
+    console.error('Entrada rechazada:', error);
     b.disabled = false; b.textContent = 'Entrar al panel →';
     return;
   }
