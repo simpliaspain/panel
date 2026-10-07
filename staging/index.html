@@ -644,6 +644,51 @@
     .fguardar .btn,.fguardar .cbtn{flex:1 1 auto;text-align:center}
   }
 
+  /* ---------- EMBUDO · LISTA AGRUPADA ----------
+     La cola deja de ser tarjetas sueltas y pasa a estar agrupada
+     por urgencia, con el motivo en el título del grupo. Antes cada
+     fila repetía "Dejó contacto y nadie le ha llamado"; dicho una
+     vez como cabecera, se lee de un vistazo y la lista cabe en
+     media pantalla. */
+  .lgcab{display:flex;align-items:baseline;gap:8px;padding:8px 20px;
+         background:var(--fondo);border-bottom:1px solid var(--fondo-hueco);
+         font-size:13px;font-weight:700;color:var(--tinta)}
+  .lgcab .mono{font-size:12px;font-weight:500;color:var(--gris)}
+  .lgcab.urg{color:var(--rojo-texto)}
+  .lgcab.oro{color:var(--ambar-texto)}
+  .lgcab.sin{color:var(--tinta-suave)}
+
+  .lfila{display:flex;align-items:center;gap:16px;padding:16px 20px;cursor:pointer;
+         background:var(--blanco);border-bottom:1px solid var(--fondo-hueco);
+         transition:background .15s ease;width:100%;text-align:left}
+  .lfila:hover,.lfila:focus-visible{background:var(--fondo)}
+  .lfila-txt{flex:1 1 auto;min-width:0}
+  /* line-height fija y no 1.2: Noto Sans Arabic tiene el ascendente
+     mayor que Jakarta, y un nombre en árabe hacía la fila 4 px más
+     alta que las demás. Es un valor fuera de escala, a sabiendas. */
+  .lfila-nom{font-size:15px;font-weight:700;letter-spacing:-.01em;
+             line-height:20px;height:20px;overflow:hidden;
+             text-overflow:ellipsis;white-space:nowrap}
+  .lfila-nom.mono{font-family:'JetBrains Mono',monospace}
+  .lfila-pide{font-size:13px;color:var(--gris);margin-top:2px;line-height:1.5;
+              overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lfila-urg{font-size:12px;font-weight:700;color:var(--rojo-texto);
+             margin-top:2px;line-height:1.5}
+  .lfila-hace{flex:none;font-size:12px;color:var(--gris);white-space:nowrap}
+
+  .lmas{display:block;width:100%;text-align:left;background:none;padding:16px 20px;
+        border-bottom:1px solid var(--fondo-hueco);font-size:13px;font-weight:700;
+        color:var(--pulso-texto);transition:background .15s ease}
+  .lmas:hover{background:var(--fondo)}
+
+  @media (max-width:820px){
+    .lgcab{padding:8px 16px}
+    .lfila,.lmas{padding:12px 16px}
+    /* En el móvil el "hace 2 h" roba el sitio al nombre, que es lo
+       que de verdad hace falta para reconocer a alguien. */
+    .lfila-hace{display:none}
+  }
+
   /* ---------- HISTORIAL Y LEYENDA ---------- */
   .hist{display:grid;gap:0;margin-top:4px}
   .hev{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:baseline;
@@ -2654,7 +2699,7 @@ document.addEventListener('keydown', e => e.key === 'Escape' && cerrar());
    número: se ve de un vistazo cuánto falta sin tener que leer.
    ============================================================ */
 
-let LEADS = [], EMBUDO = [], LFILTRO = 'todo', LABIERTO = null;
+let LEADS = [], EMBUDO = [], LFILTRO = 'activos', LABIERTO = null;
 
 const ETAPAS = [
   ['entrada',        'Entrada',   'fe1'],
@@ -2670,21 +2715,40 @@ const NOMBRE_ETAPA = Object.fromEntries(ETAPAS.map(e => [e[0], e[1]]));
 // Devuelve por qué este lead es urgente, o null. Que el motivo sea
 // texto y no un color permite escribirlo en la tarjeta: un comercial
 // no debería tener que descifrar por qué algo está en rojo.
+// Los textos son más cortos que antes porque el título del grupo ya
+// dice el motivo: dentro de "Sin llamar" no hace falta repetir en
+// cada fila "dejó contacto y nadie le ha llamado". Solo el grupo de
+// hoy conserva su texto, porque ahí la FECHA importa.
 function urgencia(l){
   const hoy = new Date().toISOString().slice(0,10);
   if (l.proxima_fecha && l.proxima_fecha < hoy)
-    return { nivel:'urg', txt:`Acción vencida el ${fechaCorta(l.proxima_fecha)}`, peso:0 };
+    return { nivel:'urg', txt:`Vencido el ${fechaCorta(l.proxima_fecha)}`, peso:0 };
   if (l.proxima_fecha === hoy)
-    return { nivel:'urg', txt:'Acción prevista para hoy', peso:1 };
+    return { nivel:'urg', txt:'Para hoy', peso:1 };
+  // Una visita en menos de tres días pasa a 'urg': confirmarla es lo
+  // que evita el no-show, y eso corre tanto como una acción vencida.
+  if (l.cita && new Date(l.cita) - Date.now() < 3*864e5)
+    return { nivel:'urg', txt:`Visita el ${fechaCorta(l.cita)}`, peso:2 };
   if (Number(l.toques) === 0 && (l.email || l.telefono) &&
       ['cualificado','visita_hecha','propuesta'].includes(l.etapa))
-    return { nivel:'oro', txt:'Dejó contacto y nadie le ha llamado', peso:2 };
-  if (l.cita && new Date(l.cita) - Date.now() < 3*864e5)
-    return { nivel:'oro', txt:`Visita el ${fechaCorta(l.cita)}: confirmar`, peso:3 };
+    return { nivel:'oro', txt:'', peso:3 };
   if (Number(l.toques) === 0 && l.etapa === 'entrada')
-    return { nivel:'', txt:'Sin tocar', peso:5 };
+    return { nivel:'sin', txt:'', peso:5 };
   return null;
 }
+
+// Los grupos, en el orden en que se pintan. Un grupo vacío no se
+// pinta: una cabecera con cero debajo es ruido.
+const GRUPOS = [
+  ['urg',    'Para hoy',   'urg'],
+  ['oro',    'Sin llamar', 'oro'],
+  ['marcha', 'En marcha',  ''],
+  ['sin',    'Sin tocar',  'sin'],
+];
+// Un grupo de más de ocho se corta a seis. La holgura evita el caso
+// absurdo de ocultar uno solo tras un botón que ocupa lo mismo.
+const MOSTRAR = 6, HOLGURA = 2;
+let LEXP = {};
 
 function ordenLeads(a, b){
   const ua = urgencia(a), ub = urgencia(b);
@@ -2758,9 +2822,9 @@ async function pintarEmbudo(silencioso){
         <input id="lbusca" class="busca" type="search"
                placeholder="Buscar por nombre, teléfono o email…" autocomplete="off">
         <div class="orden">
-          ${[['todo','Todos'],['urg','Urgentes'],['sin','Sin tocar'],['cerrado','Cerrados']]
-            .map(([k,t]) => `<button class="${LFILTRO===k?'on':''}" data-lf="${k}">${t}</button>`)
-            .join('')}
+          ${[['activos','En marcha'],['cerrados','Cerrados']]
+            .map(([k,t]) => `<button class="${LFILTRO===k?'on':''}" data-lf="${k}"
+                   aria-pressed="${LFILTRO===k}">${t}</button>`).join('')}
         </div>
       </div>
 
@@ -2780,8 +2844,11 @@ async function pintarEmbudo(silencioso){
   document.querySelectorAll('.orden button[data-lf]').forEach(b =>
     b.addEventListener('click', () => {
       LFILTRO = b.dataset.lf;
-      document.querySelectorAll('.orden button[data-lf]')
-        .forEach(x => x.classList.toggle('on', x === b));
+      LEXP = {};   // lo desplegado era de la lista anterior
+      document.querySelectorAll('.orden button[data-lf]').forEach(x => {
+        x.classList.toggle('on', x === b);
+        x.setAttribute('aria-pressed', String(x === b));
+      });
       pintarLista($('#lbusca')?.value.trim());
     }));
 
@@ -2898,59 +2965,81 @@ function pintarLista(q){
   const norm = t => String(t || '').toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-  let l = LEADS.slice();
-  if (LFILTRO === 'cerrado') l = l.filter(x => ['ganado','perdido'].includes(x.etapa));
-  else {
-    l = l.filter(x => !['ganado','perdido'].includes(x.etapa));
-    if (LFILTRO === 'urg') l = l.filter(x => ['urg','oro'].includes(urgencia(x)?.nivel));
-    if (LFILTRO === 'sin') l = l.filter(x => Number(x.toques) === 0);
-  }
+  const cerrados = LFILTRO === 'cerrados';
+  let l = LEADS.filter(x => cerrados === ['ganado','perdido'].includes(x.etapa));
+
   if (q){
     const n = norm(q), num = q.replace(/[^0-9]/g, '');
     l = l.filter(x => norm(x.nombre).includes(n) || norm(x.email).includes(n) ||
       (num.length >= 3 && String(x.telefono || x.user_ref).includes(num)));
   }
+  l.sort(ordenLeads);
 
-  cont.innerHTML = l.length
-    ? l.sort(ordenLeads).map(tarjetaLead).join('')
-    : `<div class="vacio">Ningún lead con este filtro.</div>`;
+  if (!l.length){
+    cont.innerHTML = `<div class="vacio">${q
+      ? 'Nadie con ese nombre, teléfono o email.'
+      : cerrados ? 'Todavía no has cerrado ninguno.'
+                 : 'Nadie en marcha ahora mismo.'}</div>`;
+    return;
+  }
+
+  // Agrupado: por etapa si son cerrados, por urgencia si no. El
+  // motivo vive en el título del grupo y no se repite en cada fila.
+  const grupos = cerrados
+    ? [['ganado','Ganado',''], ['perdido','Perdido','sin']]
+    : GRUPOS;
+  const de = cerrados
+    ? (x => x.etapa)
+    : (x => urgencia(x)?.nivel || 'marcha');
+
+  cont.innerHTML = grupos.map(([clave, titulo, tono]) => {
+    const dentro = l.filter(x => de(x) === clave);
+    if (!dentro.length) return '';          // un grupo vacío es ruido
+
+    const corta = dentro.length > MOSTRAR + HOLGURA && !LEXP[clave];
+    const vistos = corta ? dentro.slice(0, MOSTRAR) : dentro;
+    const faltan = dentro.length - vistos.length;
+
+    return `<div class="lgcab ${tono}">${esc(titulo)}
+              <span class="mono">${dentro.length}</span></div>
+            ${vistos.map(x => filaLead(x, clave)).join('')}
+            ${faltan ? `<button class="lmas" data-g="${esc(clave)}">Ver ${faltan} más</button>` : ''}`;
+  }).join('');
+
   enlazarLeads();
 }
 
-function tarjetaLead(l){
+function filaLead(l, grupo){
   const u = urgencia(l);
-  const pide = [l.servicio, l.ubicacion].filter(Boolean).join(' · ');
-  const cual = [l.personas, l.cuando_necesita, l.permanencia,
-                l.situacion_actual, l.quien_decide];
+  const pide = [l.servicio, l.ubicacion].filter(Boolean).join(', ');
+  const tel  = l.telefono || l.user_ref;
+  const hace = l.ultima ? desdeEntonces(l.ultima).txt : '';
 
-  return `<div class="lead ${u?.nivel || ''}" data-lead="${l.id}" tabindex="0" role="button">
-    <div class="lcinta"></div>
-    <div class="lcuerpo">
-      <div class="lcab">
-        <span class="lnom">${nom(l.nombre, l.telefono || l.user_ref)}</span>
-        <span class="pill az">${esc(NOMBRE_ETAPA[l.etapa] || l.etapa)}</span>
-        ${l.valor_mes ? `<span class="pill vd">${nf.format(l.valor_mes)} €/mes</span>` : ''}
-      </div>
-      <div class="lpide">${pide ? esc(pide) : 'Sin concretar qué busca'}</div>
-      <div class="lcual" title="${cual.filter(Boolean).length} de 5 preguntas respondidas">
-        ${cual.map(v => `<span class="${v ? 'si' : ''}"></span>`).join('')}
-      </div>
-      <div class="lpie">
-        ${u ? `<span class="${u.nivel === 'urg' ? 'lurge' : ''}">${esc(u.txt)}</span>` : ''}
-        ${l.ultima ? `<span>Escribió ${desdeEntonces(l.ultima).txt}</span>` : ''}
-        <span><b>${l.toques}</b> ${Number(l.toques) === 1 ? 'toque' : 'toques'}</span>
-        ${l.respuesta_s != null
-          ? `<span>Respondido en <b>${l.respuesta_s} s</b></span>` : ''}
-      </div>
+  // El motivo solo se escribe en el grupo de hoy, donde la fecha
+  // importa. En los demás, el título del grupo ya lo dice.
+  const motivo = grupo === 'urg' && u?.txt ? u.txt : '';
+
+  return `<div class="lfila" data-lead="${l.id}" tabindex="0" role="button"
+    aria-label="${esc(l.nombre || tel)}${motivo ? '. ' + esc(motivo) : ''}">
+    <div class="lfila-txt">
+      <div class="lfila-nom${l.nombre ? '' : ' mono'}">${
+        l.nombre ? `<bdi>${esc(l.nombre)}</bdi>` : esc(tel)}</div>
+      <div class="lfila-pide">${pide ? esc(pide) : 'Sin concretar qué busca'}</div>
+      ${motivo ? `<div class="lfila-urg">${esc(motivo)}</div>` : ''}
     </div>
-    <div class="laccion">
-      <button class="cbtn" data-lead="${l.id}">Abrir</button>
-    </div>
+    ${hace ? `<span class="lfila-hace">${esc(hace)}</span>` : ''}
   </div>`;
 }
 
 function enlazarLeads(){
-  document.querySelectorAll('.lead[data-lead]').forEach(el => {
+  document.querySelectorAll('.lmas[data-g]').forEach(b =>
+    b.addEventListener('click', e => {
+      e.stopPropagation();           // el botón vive dentro de la lista
+      LEXP[b.dataset.g] = true;
+      pintarLista($('#lbusca')?.value.trim());
+    }));
+
+  document.querySelectorAll('.lfila[data-lead]').forEach(el => {
     const ir = () => abrirLead(Number(el.dataset.lead));
     el.addEventListener('click', ir);
     el.addEventListener('keydown', e => {
