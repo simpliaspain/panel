@@ -523,6 +523,25 @@
   .lfiltros .busca{flex:1 1 200px;min-width:0}
 
 
+  /* ---------- CAMPOS CON UNIDAD ----------
+     El "€/mes" dentro del propio campo quita la duda de si la cifra
+     va en euros al mes o al año. Un `hint` debajo se lee después de
+     haber escrito, que es tarde. */
+  .campo-u{display:flex;align-items:center;border:1.5px solid var(--linea);
+           border-radius:10px;background:var(--blanco);transition:border-color .15s ease}
+  .campo-u:focus-within{border-color:var(--pulso)}
+  .campo-u input{border:0;margin:0;flex:1 1 auto;min-width:0;
+                 font-family:'JetBrains Mono',monospace}
+  .campo-u input:focus-visible{outline:none}
+  .campo-u span{flex:none;padding:0 16px;font-size:13px;color:var(--gris)}
+  .campos{align-items:end}
+
+  /* Al llegar aquí desde el botón «i» del Latido, el panel se marca
+     un momento: si no, el usuario aterriza en una pantalla llena de
+     paneles y tiene que buscar a cuál venía. */
+  #parametros{scroll-margin-top:96px;transition:border-color .15s ease}
+  #parametros.destaca{border-color:var(--pulso)}
+
   /* ---------- EMBUDO · CABECERA ----------
      La barra del recorrido se sustituye por una línea de cuentas.
      Aquella ocupaba un panel entero para decir lo mismo, y con cero
@@ -2487,29 +2506,40 @@ async function pintarAjustes(silencioso){
       </dl>
     </div>
 
-    <div class="panel">
+    <div class="panel" id="parametros">
       <h3>Parámetros de cálculo</h3>
-      <p class="ph">Los usamos para estimar el coste de atención evitado.
-         ${r.puede_editar_coste ? 'Puedes ajustarlos a tu realidad.'
-           : 'Los fija SimpliaSpain para que la cifra sea comparable entre periodos. Si no encajan con tu operación, dínoslo y los actualizamos.'}</p>
-      ${r.puede_editar_coste ? `
+      <p class="ph">Con ellos se calcula «Tus números» en el Latido.
+         ${r.rol === 'operador' ? 'Cámbialos con cuidado: esa cifra acaba en una pantalla que el cliente enseña a su jefe.'
+           : 'Los fija SimpliaSpain para que la cifra sea comparable entre periodos. Si no encajan con tu operación, dínoslo.'}</p>
+      ${r.rol === 'operador' ? `
         <div class="campos">
           <div>
-            <label for="ch">Coste por hora de una persona (€)</label>
-            <input id="ch" type="number" min="0" max="1000" step="0.5"
-                   value="${a.coste_hora_eur ?? ''}">
+            <label for="tk">Pago medio de un cliente</label>
+            <div class="campo-u"><input id="tk" type="number" min="0" step="1"
+              inputmode="decimal" value="${a.ticket_medio_eur ?? ''}"><span>€/mes</span></div>
           </div>
           <div>
-            <label for="mn">Minutos que llevaría atender una conversación</label>
-            <input id="mn" type="number" min="0" max="480" step="0.5"
-                   value="${a.minutos_por_conversacion ?? ''}">
+            <label for="mn">Minutos por conversación</label>
+            <div class="campo-u"><input id="mn" type="number" min="0" max="480" step="0.5"
+              inputmode="decimal" value="${a.minutos_por_conversacion ?? ''}"><span>min</span></div>
           </div>
+          <div>
+            <label for="ch">Coste por hora de trabajo</label>
+            <div class="campo-u"><input id="ch" type="number" min="0" max="1000" step="0.5"
+              inputmode="decimal" value="${a.coste_hora_eur ?? ''}"><span>€/h</span></div>
+          </div>
+        </div>
+        <div class="acc">
+          <button class="btn corto" id="guardarpar">Guardar</button>
+          <span id="msgpar" class="msg-ok" role="status" aria-live="polite"></span>
         </div>`
         : `<dl class="ficha">
-          <dt>Coste por hora</dt>
-          <dd>${a.coste_hora_eur != null ? a.coste_hora_eur + ' €' : '—'}</dd>
+          <dt>Pago medio de un cliente</dt>
+          <dd>${a.ticket_medio_eur != null ? a.ticket_medio_eur + ' €/mes' : '—'}</dd>
           <dt>Minutos por conversación</dt>
           <dd>${a.minutos_por_conversacion != null ? a.minutos_por_conversacion + ' min' : '—'}</dd>
+          <dt>Coste por hora</dt>
+          <dd>${a.coste_hora_eur != null ? a.coste_hora_eur + ' €/h' : '—'}</dd>
         </dl>`}
     </div>
 
@@ -2560,28 +2590,48 @@ async function pintarAjustes(silencioso){
       </p>
     </div>` : ''}`;
 
-  $('#guardar').addEventListener('click', async () => {
-    const b = $('#guardar'), m = $('#msg');
+  // Dos guardados separados: el email es del cliente y los
+  // parámetros de cálculo son de SimpliaSpain. Un solo botón
+  // mezclaba dos permisos distintos y el cliente no podía guardar
+  // su email sin tocar unas cifras que no son suyas.
+  const guardar = async (boton, mensaje, campos, textoOk) => {
+    const b = $(boton), m = $(mensaje);
+    const antes = b.textContent;
     b.disabled = true; b.textContent = 'Guardando…'; m.textContent = '';
-    const num = v => v === '' ? null : Number(v);
     try {
-      const args = { p_email_avisos: $('#ea').value.trim() };
-      if ($('#ch')){
-        args.p_coste_hora = num($('#ch').value);
-        args.p_minutos    = num($('#mn').value);
-      }
-      const { error } = await supabase.rpc('mt_guardar_ajustes', args);
+      const { data, error } = await supabase.rpc('mt_guardar_ajustes',
+        { p_ajustes: campos() });
       if (error) throw error;
-      m.textContent = 'Cambios guardados.';
+      // Los ajustes se refrescan en memoria para que el Latido use
+      // los valores nuevos sin recargar la página.
+      if (data) CFG.ajustes = data;
+      m.textContent = textoOk;
       m.className = 'msg-ok';
+      anunciar(textoOk);
     } catch (e) {
-      m.textContent = e.message === 'Sin acceso'
-        ? 'Tu cuenta no tiene permiso para modificar estos ajustes.'
+      m.textContent = /acceso|lectura|42501/.test(e.message || '')
+        ? 'Tu cuenta no tiene permiso para modificar esto.'
         : (e.message || 'No se han podido guardar los cambios.');
       m.className = 'msg-err';
     }
-    b.disabled = false; b.textContent = 'Guardar cambios';
-  });
+    b.disabled = false; b.textContent = antes;
+  };
+
+  const num = v => (v === '' || v == null) ? null : Number(v);
+
+  $('#guardar').addEventListener('click', () =>
+    guardar('#guardar', '#msg',
+      () => ({ email_avisos: $('#ea').value.trim() }),
+      'Cambios guardados.'));
+
+  $('#guardarpar')?.addEventListener('click', () =>
+    guardar('#guardarpar', '#msgpar',
+      () => ({
+        ticket_medio_eur:         num($('#tk').value),
+        minutos_por_conversacion: num($('#mn').value),
+        coste_hora_eur:           num($('#ch').value)
+      }),
+      'Guardado. El Latido ya usa los nuevos valores.'));
 }
 
 function horarioTexto(){
