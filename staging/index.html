@@ -1461,9 +1461,11 @@ async function pintarLatido(silencioso){
 const kpi = (l,n,p,az) => `<div class="kpi">
   <div class="lab">${l}</div><div class="num${az?' az':''}">${n}</div><div class="pie">${p}</div></div>`;
 
-// Coste evitado: estimación, no medición. Se muestra la fórmula
-// para que el cliente pueda juzgar si le encaja, en lugar de
-// presentarle una cifra que tiene que creerse.
+// Un indicador sin datos todavía. Enseña un guion y por qué, en vez
+// de un cero: un cero parece una medición que salió cero.
+const kpiPend = (l, p) => `<div class="kpi pend">
+  <div class="lab">${l}</div><div class="num">—</div><div class="pie">${p}</div></div>`;
+
 // Sustituye al antiguo bloque de coste. Tres partidas, cada una con su cuenta
 // escrita: una cifra sin la operación que la produce no se puede
 // defender delante de nadie.
@@ -2964,6 +2966,22 @@ async function pintarEmbudo(silencioso){
   pintarLista($('#lbusca')?.value.trim());
 }
 
+
+// Refresca los datos SIN repintar la vista entera. Repintar `#vista`
+// con la ficha abierta vacía el fondo un instante, la página se
+// encoge y el modal salta.
+async function refrescarEmbudo(){
+  const [a, b] = await Promise.all([
+    supabase.rpc('mt_mis_leads'),
+    supabase.rpc('mt_embudo_resumen')
+  ]);
+  if (a.data) LEADS = a.data;
+  if (b.data) EMBUDO = b.data;
+
+  const c = document.querySelector('.fcuentas');
+  if (c) c.outerHTML = cuentasEtapa();
+  pintarLista($('#lbusca')?.value.trim());
+}
 
 // Una línea con las etapas que tienen gente. Sustituye a la barra
 // del recorrido: aquella ocupaba un panel entero para decir lo
