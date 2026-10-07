@@ -11,7 +11,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700;1,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700;1,800&family=Noto+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   /* ============================================================
      SISTEMA
@@ -128,14 +128,15 @@
   }
   .btn:hover{filter:brightness(1.08)}
   .btn:disabled{opacity:.55;cursor:not-allowed}
-  .card h2{text-align:center;font-size:26px;line-height:1.2;
-           margin:12px 0;letter-spacing:-.02em}
+  .card h2{text-align:center;font-size:32px;line-height:1.2;
+    margin:12px 0 16px;letter-spacing:-.02em}
   .estado{
     display:flex;align-items:center;justify-content:center;gap:8px;
-    font-size:13px;color:var(--gris);margin-bottom:26px;
+    font-size:13px;color:var(--gris);margin-bottom:24px;
   }
   .dot{width:7px;height:7px;border-radius:999px;background:var(--verde);flex:none}
   .dot.on{animation:lat 2s ease-in-out infinite}
+  .dot.mal{background:var(--gris-claro);animation:none}
   @keyframes lat{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}}
   .err{
     background:var(--rojo-fondo);border:1px solid var(--rojo-borde);color:var(--rojo-texto);
@@ -166,7 +167,44 @@
   h2.tit{font-size:32px;letter-spacing:-.03em;margin-bottom:5px}
   .sub{color:var(--gris);font-size:15px;margin-bottom:28px;max-width:70ch;line-height:1.6}
 
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:16px;margin-bottom:26px}
+  /* 2x2 en lugar de auto-fit. Con auto-fit, entre 820 y 1080 px
+     caían tres arriba y uno solo abajo, descolgado. Y en móvil
+     quedaban cuatro apilados ocupando una pantalla entera para
+     cuatro números. */
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+        gap:16px;margin-bottom:16px}
+  @media (max-width:1080px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+  /* Bloques en pareja. Si uno de los dos no se pinta, el otro ocupa
+     el ancho entero en vez de quedarse huérfano en la mitad. */
+  .rejilla2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:16px;margin-bottom:16px;align-items:stretch}
+  .rejilla2 > .panel{margin-bottom:0}
+  .rejilla2:has(> .panel:only-child){grid-template-columns:minmax(0,1fr)}
+  @media (max-width:820px){.rejilla2{grid-template-columns:minmax(0,1fr)}}
+
+  @media (max-width:820px){
+  }
+
+  /* ---------- TUS NÚMEROS ----------
+     Cada partida con su cuenta escrita debajo. Una cifra sin la
+     operación que la produce no se puede defender delante de nadie. */
+  .tn-total{font-size:41px;font-weight:800;letter-spacing:-.035em;line-height:1;
+            color:var(--pulso);margin:20px 0 20px}
+  .tn-total span{font-size:17px;font-weight:700;color:var(--pulso);margin-left:2px}
+  .tn{display:grid;gap:14px}
+  .tn-fila{padding-bottom:14px;border-bottom:1px solid var(--linea)}
+  .tn-fila:last-of-type{border-bottom:0;padding-bottom:0}
+  .tn-cab{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+  .tn-cab b{font-size:13px;font-weight:700}
+  .tn-eur{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;
+          white-space:nowrap}
+  .tn-cuenta{font-size:12px;color:var(--gris);margin-top:4px;line-height:1.5}
+  .tn-cuenta strong{color:var(--tinta-suave);font-weight:700}
+  .tn-tot{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+          margin-top:16px;padding-top:14px;border-top:1.5px solid var(--borde-fuerte);
+          font-size:13px;font-weight:700}
+  .tn-falta{color:var(--ambar-texto);font-weight:600}
   .kpi{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:20px 24px}
   .kpi .lab{font-size:12px;color:var(--gris);font-weight:600;margin-bottom:9px}
   .kpi .num{font-size:41px;font-weight:800;letter-spacing:-.035em;line-height:1}
@@ -182,7 +220,6 @@
 
   .vacio{text-align:center;padding:48px 20px;color:var(--gris);font-size:13px;line-height:1.6}
 
-  .tabla{overflow-x:auto;margin:0 -24px;padding:0 24px;-webkit-overflow-scrolling:touch}
   table{width:100%;border-collapse:collapse;font-size:13px}
   td,th{white-space:nowrap}
   td:first-child,th:first-child{white-space:normal}
@@ -214,7 +251,11 @@
   .modal .cab{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
   .cerrar{background:none;font-size:26px;color:var(--gris);line-height:1;padding:0 6px}
   .msg{display:flex;margin-bottom:11px}
-  .msg .burb{max-width:76%;padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.6}
+  /* 76% dejaba un cuarto de la columna en blanco a cada lado de un
+     mensaje largo. Con 86% y un tope en caracteres, las líneas
+     salen a la longitud en la que se lee cómodo. */
+  .msg .burb{max-width:86%;max-width:min(86%, 62ch);padding:12px 16px;
+             border-radius:14px;font-size:13px;line-height:1.6}
   .msg.h{justify-content:flex-start}
   .msg.h .burb{background:var(--aire);border-bottom-left-radius:4px}
   .msg.a{justify-content:flex-end}
@@ -236,7 +277,6 @@
         padding-bottom:16px;border-bottom:1px solid var(--linea)}
   .mini strong{color:var(--tinta);font-size:15px;font-weight:700;margin-right:5px}
   .nota{font-size:12px;color:var(--gris);line-height:1.6;margin:-6px 0 32px;max-width:76ch}
-  .secc{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--gris);margin-bottom:13px}
   .ficha{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:2px 24px;font-size:13px}
   .ficha dt{color:var(--gris);font-weight:600;padding:8px 0;border-top:1px solid var(--linea)}
   .ficha dd{padding:8px 0;border-top:1px solid var(--linea);line-height:1.6}
@@ -250,26 +290,29 @@
   .msg-ok{font-size:13px;color:var(--verde-texto);font-weight:600}
   .msg-err{font-size:13px;color:var(--rojo-texto);font-weight:600}
   .feed{list-style:none;margin:0;padding:0}
-  .feed li{display:grid;grid-template-columns:auto 52px 62px 1fr;gap:12px;align-items:baseline;
-           padding:8px 0;border-top:1px solid var(--linea);font-size:13px}
+  /* Tres columnas: hora, quién y texto. El punto de color y la
+     flecha se quitaron del marcado — el punto obligaba a aprenderse
+     un código que la palabra "Cliente" ya dice. */
+  .feed li{display:grid;grid-template-columns:52px 62px minmax(0,1fr);gap:12px;
+           align-items:baseline;padding:12px 0;
+           border-top:1px solid var(--linea);font-size:13px}
   .feed li:first-child{border-top:0}
-  .fdot{width:7px;height:7px;border-radius:999px;margin-top:6px}
-  .fdot.h{background:var(--pulso)}
-  .fdot.a{background:var(--gris-claro)}
   .fh{font-size:12px;color:var(--gris)}
   .fq{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.04em}
-  .ft{color:var(--tinta);line-height:1.5;min-width:0;overflow-wrap:anywhere}
+  .ft{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext;color:var(--tinta);line-height:1.5;min-width:0;overflow-wrap:anywhere}
   .feed li[data-ir]{cursor:pointer;border-radius:10px;margin:0 -12px;padding-left:10px;
                     padding-right:10px;transition:background .15s ease}
   .feed li[data-ir]:hover,.feed li[data-ir]:focus-visible{background:var(--fondo)}
   .feed li[data-ir]:hover .fgo{color:var(--pulso-texto);transform:translateX(2px)}
-  .fgo{color:transparent;font-size:17px;font-weight:700;line-height:1;
-       transition:color .15s,transform .15s ease;align-self:center}
-  .feed li{grid-template-columns:auto 52px 62px 1fr auto}
+  .feed li{grid-template-columns:52px 62px minmax(0,1fr)}
   .dacc{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 20px;
         padding-bottom:18px;border-bottom:1px solid var(--linea)}
-  @media(max-width:640px){.feed li{grid-template-columns:auto 52px 1fr auto}.fq{display:none}}
+  @media(max-width:640px){.feed li{grid-template-columns:44px 52px minmax(0,1fr)}}
   .barras{display:grid;gap:20px}
+  /* Dentro de un panel con cabecera las barras van más juntas:
+     el panel ya tiene su propio aire alrededor. */
+  .barras.compacta{gap:16px}
+  .barras.compacta .bcab{margin-bottom:8px}
   .bfila{border-radius:10px;padding:2px}
   .bfila.pulsa{cursor:pointer;margin:0 -12px;padding:8px 12px 8px;
                transition:background .15s ease}
@@ -309,14 +352,6 @@
   .bfill.rj{background:var(--coral)}
   .bpie{font-size:12px;color:var(--gris);margin-top:6px}
 
-  .zonas{display:grid;gap:8px}
-  .zfila{display:grid;grid-template-columns:minmax(120px,1.4fr) 68px 1fr 42px;
-         gap:12px;align-items:center;font-size:13px}
-  .zn{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .zz{font-size:11px;color:var(--gris)}
-  .ztrack{height:7px;background:var(--aire);border-radius:999px;overflow:hidden;min-width:30px}
-  .zfill{display:block;height:100%;background:var(--pulso);border-radius:999px}
-  .zc{text-align:right;font-weight:700}
   @media(max-width:600px){.zfila{grid-template-columns:1fr 46px;gap:4px 12px}
     .zz,.ztrack{display:none}}
 
@@ -331,7 +366,6 @@
 
   .busca{width:auto;min-width:260px;flex:0 1 320px;max-width:100%;margin:0;padding:8px 12px;font-size:13px}
   @media(max-width:600px){.busca{width:100%;min-width:0}}
-  .aprox{font-size:11px;color:var(--gris);font-weight:600}
   .pill.az{background:#E5EFFE;color:var(--azul-texto)}
   .pill.vd{background:var(--verde-tenue);color:var(--verde-oscuro)}
   td .pill{margin-right:4px}
@@ -345,23 +379,23 @@
   @keyframes gira{to{transform:rotate(360deg)}}
   @media(max-width:820px){.rtxt{display:none}}
 
-  .lmapa{width:100%;height:min(58vh,440px);border-radius:14px;overflow:hidden;
+  /* Altura en píxeles y no en vh: con vh, el mapa cambiaba de
+     tamaño al aparecer y desaparecer la barra del navegador en el
+     móvil, y el contenido saltaba mientras se desplazaba. */
+  /* El globo del mapa. `.ltip` y `.tz` las escribe Leaflet dentro
+     de su propio marcado, así que no aparecen como class="" en este
+     archivo y una limpieza automática se las lleva por delante. */
+  .ltip{font-size:13px;font-weight:700;line-height:1.4}
+  .tz{display:block;font-size:12px;font-weight:500;color:var(--gris);margin-top:2px}
+
+  .lmapa{width:100%;height:360px;border-radius:14px;overflow:hidden;
          border:1px solid var(--linea);background:#F7FAFF;z-index:1}
-  @media(max-width:600px){.lmapa{height:min(52vh,340px)}}
+  @media(max-width:600px){.lmapa{height:300px}}
   .leaflet-container{font-family:'Plus Jakarta Sans',sans-serif;background:#F7FAFF}
   /* aspecto minimalista sobre teselas estándar, sin depender de
      un proveedor de pago ni de una clave de API */
-  .tsuave{filter:grayscale(.92) brightness(1.06) contrast(.92)}
   .leaflet-control-attribution{font-size:11px;background:rgba(255,255,255,.82)}
   .leaflet-control-zoom a{border-radius:10px!important;color:var(--profundo)!important}
-  .pmarca{cursor:pointer;transition:fill-opacity .15s,stroke-width .15s ease}
-  .ltip{background:var(--tinta);color:#fff;border:0;border-radius:10px;
-        padding:8px 12px;font-size:12px;line-height:1.5;white-space:nowrap;
-        box-shadow:0 6px 18px rgba(10,31,74,.22)}
-  .ltip strong{display:block;font-size:13px;font-weight:800}
-  .ltip span{color:var(--borde-fuerte);font-size:11px;display:block}
-  .ltip .tz{color:var(--gris-claro);font-size:11px}
-  .ltip::before{border-top-color:var(--tinta)!important}
 
   .docs{display:grid;gap:12px}
   .doc{display:flex;align-items:center;gap:12px;padding:16px 16px;
@@ -381,11 +415,7 @@
   .tip strong{display:block;font-size:15px;font-weight:800}
   .tip span{color:var(--borde-fuerte);font-size:11px}
 
-  .cnom{font-weight:700;font-size:13px}
   .csin{color:var(--gris);font-weight:500;font-style:italic}
-  .cdat{font-size:12px;color:var(--gris);margin-top:2px}
-  .ses{display:inline-block;font-size:11px;color:var(--gris);margin-left:5px;
-       background:var(--fondo);padding:2px 6px;border-radius:999px;font-weight:600}
   .pill.nt{background:var(--fondo-hueco);color:var(--tinta-suave)}
   td .cnom,td .cdat{white-space:normal}
 
@@ -420,14 +450,39 @@
     .cita{grid-template-columns:52px 1fr;gap:12px}
     .cacc{grid-column:1/-1;justify-content:flex-start}
   }
-  .coste{display:flex;align-items:center;gap:clamp(24px,5vw,56px);flex-wrap:wrap}
-  .cifra{font-size:clamp(44px,6vw,64px);font-weight:800;letter-spacing:-.04em;
-         line-height:1;color:var(--pulso)}
-  .cifra span{font-size:.45em;font-weight:700;margin-left:4px}
-  .formula{display:grid;gap:6px;font-size:13px;color:var(--gris);line-height:1.5}
-  .formula strong{color:var(--tinta);font-weight:700}
-  .ftot{padding-top:6px;margin-top:2px;border-top:1px solid var(--linea)}
-  .cargando{text-align:center;padding:64px;color:var(--gris);font-size:13px}
+  /* ---------- NOMBRES EN CUALQUIER ALFABETO ----------
+     Un tercio largo de los contactos no tiene nombre, y entre los
+     que lo tienen hay árabe (أبو مكه) y nombres que son solo emoji.
+     Plus Jakarta Sans no trae árabe: sin esta fuente de reserva, el
+     navegador cae a la que tenga y el nombre se ve descolocado.
+
+     Las alturas de línea del árabe son mayores, por eso 20px: es un
+     valor fuera de la escala, y está aquí a propósito. */
+  bdi{unicode-bidi:isolate}
+
+  /* ---------- LO QUE OYE UN LECTOR DE PANTALLA ----------
+     El panel se refresca solo cada 30 segundos y confirma cada
+     guardado. Sin esto, quien no ve la pantalla no se entera de
+     nada: ni de que hay datos nuevos ni de que se ha guardado. */
+  .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+  /* ---------- ESQUELETOS ----------
+     Un "Cargando…" en texto plano hace que la espera se perciba más
+     larga de lo que es, porque no se sabe qué va a aparecer ni
+     cuánto. Un esqueleto con la forma del contenido lo cuenta. */
+  .esq{background:linear-gradient(90deg,
+        var(--linea) 25%, var(--fondo-hueco) 37%, var(--linea) 63%);
+       background-size:400% 100%;border-radius:10px;
+       animation:esq 1.4s ease infinite}
+  @keyframes esq{0%{background-position:100% 50%}100%{background-position:0 50%}}
+  .esq-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .esq-kpi{height:96px}
+  .esq-panel{height:220px;margin-bottom:20px}
+  .esq-fila{height:64px;margin-bottom:8px}
+  @media(max-width:700px){.esq-kpis{grid-template-columns:repeat(2,1fr)}}
+  @media (prefers-reduced-motion:reduce){.esq{animation:none}}
+
 
   /* ---------- MÓVIL ---------- */
   @media(max-width:820px){
@@ -445,7 +500,6 @@
     .panel{padding:20px 16px}
     .kpi{padding:20px 20px}
     .kpi .num{font-size:32px}
-    .tabla{margin:0 -16px;padding:0 16px}
     .mini{gap:16px 20px}
     .modal{padding:0}
     .modal .box{margin:0;border-radius:0;min-height:100vh;padding:24px 20px}
@@ -461,11 +515,7 @@
     .campos{grid-template-columns:1fr}
     main{padding:20px 12px 64px}
     .panel{padding:16px 16px}
-    .tabla{margin:0 -16px;padding:0 16px}
     .mapa{margin:0 -16px;padding:0 16px}
-    .svgmapa{max-height:none}
-    .mtxt{font-size:15px}
-    .mnum{font-size:15px}
     h2.tit{font-size:21px}
     .kpi .num{font-size:32px}
     .doc{padding:12px 12px;gap:12px}
@@ -484,140 +534,263 @@
 
      Un mural con arrastrar y soltar además se maneja fatal en el
      móvil, que es donde se consulta esto entre visita y visita. */
-  .fbarra{display:flex;gap:4px;margin:0 0 6px;height:34px;border-radius:10px;overflow:hidden}
-  .ftramo{display:flex;align-items:center;justify-content:center;font-size:12px;
-          font-weight:800;color:#fff;min-width:34px;transition:flex .15s ease}
-  .fleyenda{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--gris);
-            margin-bottom:22px}
-  .fleyenda i{width:9px;height:9px;border-radius:4px;display:inline-block;margin-right:5px}
-  .fe1{background:var(--gris-claro)} .fe2{background:var(--pulso)} .fe3{background:var(--violeta)}
-  .fe4{background:var(--turquesa)} .fe5{background:var(--ambar)} .fe6{background:var(--verde)}
-  .fe7{background:var(--borde-fuerte)}
 
   .lfiltros{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px;align-items:center}
   .lfiltros .busca{flex:1 1 200px;min-width:0}
 
-  .lead{display:grid;grid-template-columns:4px 1fr auto;gap:0;
-        border:1px solid var(--linea);border-radius:14px;background:var(--blanco);
-        margin-bottom:10px;overflow:hidden;cursor:pointer;transition:border-color .15s ease}
-  .lead:hover{border-color:var(--borde-fuerte)}
-  .lead.urg{border-color:var(--rojo-borde)}
-  .lcinta{background:var(--borde-fuerte)}
-  .lead.urg .lcinta{background:var(--rojo)}
-  .lead.oro .lcinta{background:var(--ambar)}
-  .lcuerpo{padding:16px 16px;min-width:0}
-  .lcab{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-  .lnom{font-size:15px;font-weight:800;letter-spacing:-.02em}
-  .lnom .csin{color:var(--gris);font-weight:600;font-size:13px}
-  .lpide{font-size:13px;color:var(--tinta-suave);margin-top:5px;line-height:1.5;
-         overflow-wrap:anywhere}
-  .lpie{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--gris);
-        margin-top:8px;align-items:center}
-  .lpie b{color:var(--tinta);font-weight:700}
-  .lurge{color:var(--rojo-texto);font-weight:700}
-  .laccion{display:flex;flex-direction:column;justify-content:center;gap:6px;
-           padding:16px 16px 16px 0}
-  .lcual{display:flex;gap:4px;margin-top:8px}
-  .lcual span{width:16px;height:4px;border-radius:999px;background:var(--linea)}
-  .lcual span.si{background:var(--verde)}
+
+  /* El botón «i» vuelve: lleva de Tus números a Configuración. Se
+     borró al quitar la leyenda del embudo y aquí sí tiene sentido,
+     porque lleva a otro sitio en vez de desplegar texto. */
+  .binfo{background:var(--aire);color:var(--profundo);width:28px;height:28px;
+         border-radius:999px;font-size:13px;font-weight:800;line-height:1;
+         flex:none;margin-top:20px}
+  .binfo:hover{background:var(--pulso);color:#fff}
+  @media (pointer:coarse){.binfo{min-width:44px;min-height:44px}}
+
+  /* Entre 821 y 1080 px la cabecera se partía en dos líneas y las
+     pestañas quedaban debajo del logotipo. Ni es móvil ni es
+     escritorio: es el portátil de mucha gente. */
+  @media (min-width:821px) and (max-width:1080px){
+    header{flex-wrap:nowrap;gap:16px}
+    nav{overflow-x:auto;scrollbar-width:none}
+    nav::-webkit-scrollbar{display:none}
+    nav button{padding:20px 8px 16px;font-size:13px;white-space:nowrap}
+    .rtxt{display:none}
+  }
+
+  /* ---------- CAMPOS CON UNIDAD ----------
+     El "€/mes" dentro del propio campo quita la duda de si la cifra
+     va en euros al mes o al año. Un `hint` debajo se lee después de
+     haber escrito, que es tarde. */
+  .campo-u{display:flex;align-items:center;border:1.5px solid var(--linea);
+           border-radius:10px;background:var(--blanco);transition:border-color .15s ease}
+  .campo-u:focus-within{border-color:var(--pulso)}
+  .campo-u input{border:0;margin:0;flex:1 1 auto;min-width:0;
+                 font-family:'JetBrains Mono',monospace}
+  .campo-u input:focus-visible{outline:none}
+  .campo-u span{flex:none;padding:0 16px;font-size:13px;color:var(--gris)}
+  .campos{align-items:end}
+
+  /* Al llegar aquí desde el botón «i» del Latido, el panel se marca
+     un momento: si no, el usuario aterriza en una pantalla llena de
+     paneles y tiene que buscar a cuál venía. */
+  #parametros{scroll-margin-top:96px;transition:border-color .15s ease}
+  #parametros.destaca{border-color:var(--pulso)}
+
+  /* ---------- CONFIGURACIÓN ----------
+     Ancho limitado: son fichas y formularios que se leen en
+     columna, no un tablero. A pantalla completa, una fila con la
+     etiqueta a un extremo y el valor al otro obliga a barrer con la
+     vista para emparejarlos. */
+  .ajustes{max-width:860px}
+
+  /* ---------- CONVERSACIONES EN DOS COLUMNAS ----------
+     La conversación se lee AL LADO de la lista, no en una ventana
+     encima. Con un modal hay que cerrarlo para pasar al siguiente,
+     y revisar diez contactos son veinte clics de más. */
+  /* La conversación es lo que se LEE; la lista solo sirve para
+     elegir. A 420 px las burbujas salían a dos palabras por línea,
+     que es justo lo que hace que un chat canse. */
+  .convs2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);
+          gap:16px;align-items:start}
+  .convs2 > .panel{margin-bottom:0}
+
+  /* La conversación se queda fija mientras se recorre la lista, y
+     se desplaza por dentro. */
+  #pdetalle,#pficha{position:sticky;top:88px;max-height:calc(100vh - 104px);
+                    overflow-y:auto;overscroll-behavior:contain}
+  /* El embudo es un formulario, no un texto que se lee: ahí la
+     lista vale más y la ficha no gana nada con ser más ancha. */
+  .embudo2{grid-template-columns:minmax(0,1fr) 440px}
+  @media (max-width:1080px){.embudo2{grid-template-columns:minmax(0,1fr) 380px}}
+  @media (max-width:820px){.embudo2{grid-template-columns:minmax(0,1fr)}}
+  .vacio-det{display:flex;align-items:center;justify-content:center;
+             min-height:200px;color:var(--gris);font-size:13px;text-align:center}
+
+  .dcab{padding-bottom:16px;border-bottom:1px solid var(--linea);margin-bottom:16px}
+  .dcab h2{font-size:21px;letter-spacing:-.02em;line-height:1.2}
+  .dcab .dmeta{font-size:13px;color:var(--gris);margin-top:4px;overflow-wrap:anywhere}
+  .dcab .dacc{margin:16px 0 0;padding:0;border:0}
+
+  @media (max-width:1080px){
+    .convs2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+    #pdetalle,#pficha{top:80px}
+  }
+  @media (max-width:820px){
+    /* Sin sitio para dos columnas: la conversación vuelve a abrirse
+       encima, que es lo que cabe en un teléfono. */
+    .convs2{grid-template-columns:minmax(0,1fr)}
+    #pdetalle,#pficha{display:none}
+  }
+
+  /* ---------- EMBUDO · CABECERA ----------
+     La barra del recorrido se sustituye por una línea de cuentas.
+     Aquella ocupaba un panel entero para decir lo mismo, y con cero
+     cerrados sus proporciones no decían nada. */
+  .sub.corta{margin-bottom:16px}
+  .fcuentas{display:flex;gap:4px 16px;flex-wrap:wrap;font-size:13px;
+            color:var(--gris);margin:0 0 24px}
+  .fcuentas b{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--tinta)}
+
+  /* La lista va a sangre dentro del panel: sin padding alrededor,
+     las filas llegan al borde y las separa su propia línea. */
+  .panel.lpanel{padding:0;overflow:hidden}
+  .lpanel .lfiltros{margin:0;padding:16px 20px;border-bottom:1px solid var(--linea)}
+
+  /* ---------- EMBUDO · LISTA AGRUPADA ----------
+     Agrupada por urgencia, con el motivo en el título del grupo.
+     Antes cada fila repetía "dejó contacto y nadie le ha llamado";
+     dicho una vez como cabecera, la lista cabe en media pantalla. */
+  .lgcab{display:flex;align-items:baseline;gap:8px;padding:8px 20px;
+         background:var(--fondo);border-bottom:1px solid var(--fondo-hueco);
+         font-size:13px;font-weight:700;color:var(--tinta)}
+  .lgcab .mono{font-size:12px;font-weight:500;color:var(--gris)}
+  .lgcab.urg{color:var(--rojo-texto)}
+  .lgcab.oro{color:var(--ambar-texto)}
+  .lgcab.sin{color:var(--tinta-suave)}
+
+  .lfila{display:flex;align-items:center;gap:16px;padding:16px 20px;cursor:pointer;
+         background:var(--blanco);border-bottom:1px solid var(--fondo-hueco);
+         transition:background .15s ease;width:100%;text-align:left}
+  .lfila:hover,.lfila:focus-visible{background:var(--fondo)}
+  .lfila.on{background:var(--aire)}
+  .lfila.on .lfila-nom{color:var(--pulso-texto)}
+  .lfila-txt{flex:1 1 auto;min-width:0}
+  /* line-height fija y no 1.2: Noto Sans Arabic tiene el ascendente
+     mayor que Jakarta, y un nombre en árabe hacía la fila 4 px más
+     alta. Es un valor fuera de escala, a sabiendas. */
+  .lfila-nom{font-size:15px;font-weight:700;letter-spacing:-.01em;
+             line-height:20px;height:20px;overflow:hidden;
+             text-overflow:ellipsis;white-space:nowrap}
+  .lfila-nom.mono{font-family:'JetBrains Mono',monospace}
+  .lfila-pide{font-size:13px;color:var(--gris);margin-top:2px;line-height:1.5;
+              overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lfila-urg{font-size:12px;font-weight:700;color:var(--rojo-texto);
+             margin-top:2px;line-height:1.5}
+  .lfila-hace{flex:none;font-size:12px;color:var(--gris);white-space:nowrap}
+
+  .lmas{display:block;width:100%;text-align:left;background:none;padding:16px 20px;
+        border-bottom:1px solid var(--fondo-hueco);font-size:13px;font-weight:700;
+        color:var(--pulso-texto);transition:background .15s ease}
+  .lmas:hover{background:var(--fondo)}
+
+  @media (max-width:820px){
+    .lpanel .lfiltros{padding:12px 16px}
+    .lgcab{padding:8px 16px}
+    .lfila,.lmas{padding:12px 16px}
+    /* En el móvil el "hace 2 h" roba el sitio al nombre, que es lo
+       que de verdad hace falta para reconocer a alguien. */
+    .lfila-hace{display:none}
+  }
 
   /* ---------- FICHA DEL LEAD ----------
      OJO con el nombre: `.ficha` ya está cogido por la vista de
      Configuración, y es una rejilla de dos columnas. Usar ese
-     nombre partía toda la ficha del lead en dos columnas. Aquí
-     se llama `.lficha`.
-
-     Todo va colgado de .lficha y no de .panel. Las clases h3, .ph y
-     .nota están definidas DENTRO de .panel, y la ficha vive en el
-     modal: sin este ámbito propio perdían sus márgenes y el texto
-     se montaba encima del siguiente campo. */
+     nombre partía toda la ficha del lead en dos columnas. */
   .lficha{display:block}
   .lficha h3{font-size:15px;font-weight:800;letter-spacing:-.01em;margin:0 0 4px}
-  .lficha .ph{color:var(--gris);font-size:13px;line-height:1.6;margin:0 0 16px}
-  .lficha .nota{font-size:12px;color:var(--gris);line-height:1.6;
-               margin:16px 0 0;max-width:none}
+  .lficha .ph{color:var(--gris);font-size:13px;line-height:1.5;margin:0 0 12px}
+  .lficha .nota{font-size:12px;color:var(--gris);line-height:1.6;margin:12px 0 0}
 
-  .fcab{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
-        flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--linea)}
+  .fcab{padding-bottom:16px;border-bottom:1px solid var(--linea)}
+  .lficha .fcab{display:flex;flex-direction:column;gap:0}
   .fcab h2{font-size:21px;letter-spacing:-.02em;line-height:1.2}
-  .fcab .dmeta{font-size:13px;color:var(--gris);margin-top:5px;overflow-wrap:anywhere}
-  .fcabacc{display:flex;gap:8px;align-items:flex-start;flex:none}
+  .fcab .dmeta{font-size:13px;color:var(--gris);margin-top:4px;overflow-wrap:anywhere}
+  .lficha .fcab .dmeta + .dmeta{margin-top:2px}
 
-  /* Cada bloque, separado del anterior por una línea. Sin esa
-     separación, cinco preguntas seguidas de dos desplegables y un
-     área de notas se leen como una única lista interminable. */
-  .fsec{padding:24px 0;border-bottom:1px solid var(--linea)}
+  /* Lo último que dijo el cliente, en su propia caja. Es lo que
+     recuerda de qué iba la conversación sin tener que abrirla, y
+     `unicode-bidi:plaintext` hace que un mensaje en árabe se lea
+     en su dirección sin arrastrar al resto de la ficha. */
+  .frecuento{margin-top:16px;padding:12px 16px;background:var(--fondo);border-radius:10px}
+  .frecuento figcaption{font-size:12px;font-weight:600;color:var(--gris)}
+  .frecuento blockquote{font-size:13px;line-height:1.6;margin-top:4px;unicode-bidi:plaintext}
+
+  /* Llamar y WhatsApp arriba del todo: es lo que el comercial venía
+     a hacer. 44px de alto, que es el mínimo para el dedo. */
+  .fllamar{display:flex;gap:8px;margin-top:16px}
+  .fllamar a{flex:1 1 0;display:inline-flex;justify-content:center;align-items:center;
+             min-height:44px;border-radius:10px;font-size:15px;font-weight:700;
+             text-decoration:none;transition:filter .15s ease,border-color .15s ease}
+  .fllamar .pri{background:var(--pulso);color:#fff}
+  .fllamar .pri:hover{filter:brightness(1.08)}
+  .fllamar .secu{background:var(--blanco);color:var(--tinta);
+                 border:1px solid var(--borde-fuerte);font-weight:600}
+  .fllamar .secu:hover{border-color:var(--gris-claro)}
+
+  .fsec{padding:20px 0;border-bottom:1px solid var(--linea)}
   .fsec:last-of-type{border-bottom:0}
+  .lficha .fsec > label.h{display:block;font-size:15px;font-weight:800;
+                          letter-spacing:-.01em;margin:0 0 8px}
+  .fsec-cab{display:flex;justify-content:space-between;align-items:baseline;
+            gap:12px;margin-bottom:12px}
+  .fsec-cab span{font-size:12px;color:var(--gris)}
+  .fsec-cab button{background:none;padding:4px 0;font-size:13px;font-weight:700;
+                   color:var(--pulso-texto)}
 
-  .fetapas{display:flex;gap:6px;flex-wrap:wrap;padding:20px 0}
-  .fet{font-size:13px;font-weight:700;padding:8px 16px;border-radius:999px;
-       border:1.5px solid var(--linea);background:var(--blanco);color:var(--gris);
-       transition:all .15s ease}
-  .fet:hover{border-color:var(--borde-fuerte);color:var(--tinta)}
-  .fet.on{background:var(--profundo);color:#fff;border-color:transparent}
-  .fet.gana{border-color:var(--verde-claro);color:var(--verde-texto)}
-  .fet.gana.on{background:var(--verde);color:#fff;border-color:transparent}
-  .fet.pierde{border-color:var(--rojo-borde);color:var(--rojo-texto)}
-  .fet.pierde.on{background:var(--rojo);color:#fff;border-color:transparent}
+  .ftoque{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:8px}
+  .ftoque .fpreg{flex:1 1 160px;min-width:0}
+  .ftoque .btn{width:auto;margin:0;min-height:44px;padding:0 20px;background:var(--profundo)}
+  .ftoque label{font-size:12px;font-weight:600;color:var(--gris);margin:0 0 4px}
 
-  .fcinco{display:grid;gap:16px}
-  .fpreg label{display:block;font-size:13px;font-weight:700;margin:0 0 6px;
-               line-height:1.5}
+  /* Etiqueta a la izquierda y campo a la derecha: así se recorren
+     los ocho datos de un vistazo en vez de leer ocho titulares. */
+  .fdatos{display:grid;gap:12px}
+  .fdatos .fpreg{display:grid;grid-template-columns:120px minmax(0,1fr);
+                 gap:4px 12px;align-items:center}
+  .fdatos .fpreg.arriba{align-items:start}
+  .fdatos .fpreg.arriba label{padding-top:12px}
+  .fdatos .fpreg label{margin:0;font-size:13px;font-weight:600;color:var(--tinta-suave)}
+  .fdatos .fpreg input,.fdatos .fpreg select{padding:8px 12px}
+
+  .fpreg label{display:block;font-size:13px;font-weight:700;margin:0 0 6px;line-height:1.5}
   .fpreg label small{color:var(--gris);font-weight:500;font-size:12px}
   .fpreg input,.fpreg select,.fpreg textarea{
-    width:100%;padding:12px 16px;border:1.5px solid var(--linea);border-radius:10px;
+    width:100%;padding:12px 13px;border:1.5px solid var(--linea);border-radius:10px;
     font-size:15px;font-family:inherit;margin:0;background:var(--blanco);
     color:var(--tinta);display:block}
   .fpreg textarea{min-height:88px;resize:vertical;line-height:1.5}
   .fpreg input:focus,.fpreg select:focus,.fpreg textarea:focus{
     border-color:var(--pulso);outline:none}
-  /* min-width:0 es imprescindible: por defecto una celda de rejilla
-     no encoge por debajo del ancho intrínseco de su contenido, y un
-     campo de fecha es ancho. Sin esto, "Próxima acción" se quedaba
-     en "Lla". */
-  .fdos{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .fdos > *{min-width:0}
 
-  .fguardar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding-top:22px}
-  .fguardar .btn{width:auto;margin:0;padding:12px 24px;flex:0 0 auto}
-  .fguardar .cbtn{padding:12px 20px;font-size:13px}
+  /* Guardar solo aparece cuando hay algo que guardar, y se queda
+     pegado abajo: en una ficha larga, llegar al botón obligaba a
+     recorrerla entera. */
+  .fguardar{display:none;position:sticky;bottom:0;z-index:2;background:var(--blanco);
+            border-top:1px solid var(--linea);gap:12px;align-items:center;
+            margin:0 -20px -20px;
+            padding:12px 20px calc(12px + env(safe-area-inset-bottom))}
+  #mbox .fguardar{margin:0 -32px -32px;padding:12px 32px calc(12px + env(safe-area-inset-bottom))}
+  .fguardar.on{display:flex}
+  .fguardar .btn{width:auto;margin:0;padding:12px 22px;flex:0 0 auto}
+  .fguardar .cbtn{padding:12px 18px;font-size:13px}
 
-  /* El aviso va ARRIBA del formulario, no al final: en el móvil, un
-     mensaje al pie de una ficha larga no se ve nunca, y por eso
-     parecía que el botón no hacía nada. */
-  .faviso{display:none;padding:12px 16px;border-radius:10px;font-size:13px;
-          font-weight:600;margin:20px 0 0;line-height:1.5}
-  .faviso.ok{display:block;background:var(--verde-fondo);color:var(--verde-texto);border:1px solid var(--verde-borde)}
-  .faviso.mal{display:block;background:var(--rojo-fondo);color:var(--rojo-texto);border:1px solid var(--rojo-borde)}
+  .faviso{display:none;padding:12px 15px;border-radius:10px;font-size:13px;
+          font-weight:600;margin:16px 0 0;line-height:1.5}
+  .faviso.ok{display:block;background:var(--verde-fondo);color:var(--verde-texto);
+             border:1px solid var(--verde-borde)}
+  .faviso.mal{display:block;background:var(--rojo-fondo);color:var(--rojo-texto);
+              border:1px solid var(--rojo-borde)}
 
-  /* Confirmaciones en línea, no prompt(): prompt se bloquea en
-     algunos navegadores y en el móvil es una ventana del sistema
-     fuera de contexto. */
   .fcaja{display:none;background:var(--fondo);border:1px solid var(--linea);
          border-radius:14px;padding:16px;margin-top:16px}
   .fcaja.on{display:block}
-  .fcaja h4{font-size:13px;margin:0 0 12px}
-  .fcaja .fila{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+  .fcaja h4{font-size:13px;margin:0 0 8px}
+  .fcaja .fila{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
   .fcaja .fila .btn{width:auto;margin:0;padding:12px 20px}
 
-  @media(max-width:600px){
-    .lead{grid-template-columns:4px 1fr}
-    .laccion{grid-column:2;padding:0 16px 16px;flex-direction:row;flex-wrap:wrap}
-    .fdos{grid-template-columns:1fr}
-    .fcab{flex-direction:column}
-    .fcabacc{width:100%;justify-content:space-between}
-    .fguardar .btn,.fguardar .cbtn{flex:1 1 auto;text-align:center}
+  @media (max-width:820px){
+    .fdatos .fpreg{grid-template-columns:minmax(0,1fr)}
+    .fdatos .fpreg.arriba label{padding-top:0}
+    .fguardar{margin:0 -20px -20px;padding:12px 20px calc(12px + env(safe-area-inset-bottom))}
   }
 
   /* ---------- HISTORIAL Y LEYENDA ---------- */
   .hist{display:grid;gap:0;margin-top:4px}
-  .hev{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:baseline;
+  .hev{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:baseline;
        padding:12px 0;border-top:1px solid var(--linea);font-size:13px}
   .hev:first-child{border-top:0}
-  .hpunto{width:8px;height:8px;border-radius:999px;background:var(--borde-fuerte);margin-top:5px}
-  .hpunto.toque{background:var(--pulso)}
-  .hpunto.etapa{background:var(--violeta)}
-  .hpunto.alta{background:var(--borde-fuerte)}
   .hcuerpo{min-width:0;overflow-wrap:anywhere}
   .hcuando{font-size:12px;color:var(--gris);margin-top:3px}
   .hacc{display:flex;gap:6px;flex:none}
@@ -632,24 +805,11 @@
   .cbtn.sec{background:var(--fondo);color:var(--gris)}
   .cbtn.sec:hover{background:#E2E8F0;color:var(--tinta)}
 
-  .binfo{background:var(--aire);color:var(--profundo);width:26px;height:26px;
-         border-radius:999px;font-size:13px;font-weight:800;line-height:1;flex:none}
-  .binfo:hover{background:var(--pulso);color:#fff}
-  .leyenda{display:none;background:var(--blanco);border:1px solid var(--linea);
-           border-radius:14px;padding:24px 24px;margin-bottom:20px}
-  .leyenda.on{display:block}
-  .leyenda h3{font-size:15px;margin:0 0 4px}
-  .leyenda h4{font-size:13px;margin:20px 0 8px;text-transform:uppercase;
-              letter-spacing:.05em;color:var(--gris)}
-  .leyenda p{font-size:13px;line-height:1.6;color:var(--tinta-suave);margin:0}
-  .lgfila{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;
-          padding:8px 0;font-size:13px;line-height:1.6}
-  .lgtira{width:5px;height:34px;border-radius:999px;background:var(--borde-fuerte)}
-  .lgtira.urg{background:var(--rojo)} .lgtira.oro{background:var(--ambar)}
-  .lgbarras{display:flex;gap:4px;padding-top:12px}
-  .lgbarras span{width:16px;height:4px;border-radius:999px;background:var(--linea)}
-  .lgbarras span.si{background:var(--verde)}
-  .lgfila b{display:block}
+
+
+
+
+
 
   /* ---------- ZONAS PULSABLES ----------
      44×44 px es el mínimo para el dedo. Los botones medían entre 24
@@ -670,7 +830,7 @@
       height:44px; min-width:44px;
     }
     /* Botones sueltos y pequeños sí crecen: no compiten por sitio */
-    .cerrar, .binfo { min-width:44px; min-height:44px }
+    .cerrar { min-width:44px; min-height:44px }
   }
 
   /* ---------- LISTA DE PERSONAS ----------
@@ -685,6 +845,10 @@
         transition:background .15s ease}
   .pers:first-child{border-top:0}
   .pers:hover{background:var(--fondo)}
+  /* La fila que se está leyendo. Sin esto, con la conversación al
+     lado no se sabe de quién es lo que hay en pantalla. */
+  .pers.on{background:var(--aire)}
+  .pers.on .pnom{color:var(--pulso-texto)}
   .ini{width:42px;height:42px;border-radius:999px;display:flex;align-items:center;
        justify-content:center;font-weight:800;font-size:15px;
        background:var(--aire);color:var(--profundo);flex:none}
@@ -732,11 +896,13 @@
     background-repeat:no-repeat;background-position:right 12px center;background-size:11px;
   }
   .sel:focus{border-color:var(--pulso);outline:none}
-  .segm{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+  /* Bajo el título, alineado a la izquierda: en la cabecera iba a
+     la derecha y chocaba con el subtítulo en pantallas medianas. */
+  .segm{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0 4px}
   .rangos{max-width:100%;overflow-x:auto;scrollbar-width:none}
   .rangos::-webkit-scrollbar{display:none}
   .rangos .rg{white-space:nowrap}
-  .segpie{font-size:12px;color:var(--gris);line-height:1.6;
+  .segpie{margin-top:8px;font-size:12px;color:var(--gris);line-height:1.6;
           margin:-4px 0 16px;padding-bottom:14px;border-bottom:1px solid var(--linea)}
   .segpie strong{color:var(--tinta);font-weight:700}
   @media(max-width:820px){
@@ -782,13 +948,13 @@
       <div class="card">
         <div class="marca cardmarca">Simplia<span>Spain</span></div>
         <h2>Tu operación<br><em>nunca duerme.</em></h2>
-        <div class="estado"><span class="dot on"></span><span id="ping">Conectando…</span></div>
+        <div class="estado"><span class="dot"></span><span id="ping">Comprobando el servicio</span></div>
         <div class="err" id="err"></div>
         <label for="em">Email</label>
         <input id="em" type="email" autocomplete="email" placeholder="tu@empresa.com">
         <label for="pw">Contraseña</label>
         <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••">
-        <button class="btn" id="entrar">Entrar al panel →</button>
+        <button class="btn" id="entrar">Entrar al panel</button>
       </div>
     </div>
   </div>
@@ -815,11 +981,17 @@
     </div>
   </header>
   <main>
-    <div id="vista"><div class="cargando">Cargando datos…</div></div>
+    <div id="vista"></div>
   </main>
 </div>
 
 <div class="modal" id="modal"><div class="box" id="mbox"></div></div>
+
+<!-- Lo que se anuncia a quien usa lector de pantalla. No se ve.
+     aria-live="polite" espera a que termine de leer lo que esté
+     leyendo: con "assertive" interrumpiría a media frase cada vez
+     que el panel se refresca solo. -->
+<div class="sr" id="anuncio" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -928,10 +1100,17 @@ const E = k => CFG.etiquetas[k] || '';
 
 /* ---------- comprobación de conexión ---------- */
 (async () => {
+  const punto = document.querySelector('.card .dot');
+  const poner = (txt, ok) => {
+    $('#ping').textContent = txt;
+    // El punto deja de latir y se pone gris si no hay servicio: en
+    // verde junto a «sin conexión» se contradecía a sí mismo.
+    if (punto) punto.className = 'dot' + (ok ? ' on' : ' mal');
+  };
   try {
     const { error } = await supabase.rpc('mt_ping');
-    $('#ping').textContent = error ? 'Sin conexión con el servicio' : 'Servicio disponible';
-  } catch { $('#ping').textContent = 'Sin conexión con el servicio'; }
+    poner(error ? 'Sin conexión con el servicio' : 'Servicio disponible', !error);
+  } catch { poner('Sin conexión con el servicio', false); }
 })();
 
 /* ---------- login ---------- */
@@ -964,7 +1143,7 @@ async function entrar(){
       m || 'No se ha podido entrar.';
     e.style.display = 'block';
     console.error('Entrada rechazada:', error);
-    b.disabled = false; b.textContent = 'Entrar al panel →';
+    b.disabled = false; b.textContent = 'Entrar al panel';
     return;
   }
   $('#login').style.display = 'none';
@@ -1115,14 +1294,15 @@ async function datos(){
   // devolvía datos de todos los clientes, una columna que no
   // existía y daba ceros en silencio — porque el filtro de
   // exclusiones vive dentro de la función y no se puede olvidar.
-  const [convs, resumen, porHora, lat, reciente, lugares, patron] = await Promise.all([
+  const [convs, resumen, porHora, lat, reciente, lugares, patron, numeros] = await Promise.all([
     supabase.rpc('mt_conversaciones_lista', { p_limite: 1000 }),
     supabase.rpc('mt_resumen',    { p_horas: RANGO }),
     supabase.rpc('mt_por_hora',   { p_horas: RANGO }),
     supabase.rpc('mt_latencias',  { p_limite: 200 }),
     supabase.rpc('mt_actividad',  { p_limite: 12 }),
     supabase.rpc('mt_demanda'),
-    supabase.rpc('mt_patron_horario')
+    supabase.rpc('mt_patron_horario'),
+    supabase.rpc('mt_mis_numeros')
   ]);
 
   // Orden: primero lo registrado con fecha real (más reciente arriba);
@@ -1147,6 +1327,7 @@ async function datos(){
   const res = (Array.isArray(resumen.data) ? resumen.data[0] : resumen.data) || {};
   return {
     convs: CONVS,
+    num: (Array.isArray(numeros.data) ? numeros.data[0] : numeros.data) || null,
     res,
     porHora: porHora.data || [],
     total: res.mensajes || 0,
@@ -1166,6 +1347,50 @@ async function datos(){
 // `silencioso` = refresco automático o manual sobre contenido ya
 // visible: se evita el estado de carga y se conserva el scroll,
 // para que la página no dé el salto que reportaba el usuario.
+// Dice algo a quien no ve la pantalla. Se vacía antes de escribir
+// porque, si el texto es idéntico al anterior, el lector no lo
+// vuelve a leer y el usuario se queda sin enterarse.
+function anunciar(texto){
+  const a = document.getElementById('anuncio');
+  if (!a) return;
+  a.textContent = '';
+  setTimeout(() => { a.textContent = texto; }, 60);
+}
+
+// Un nombre puede ser árabe, emoji o venir vacío. <bdi> aísla la
+// dirección del texto: sin él, un nombre en árabe junto a un número
+// de teléfono reordena la línea entera y el teléfono aparece al
+// revés.
+function nom(valor, refPorDefecto){
+  const t = String(valor ?? '').trim();
+  if (!t) return `<span class="mono">${esc(refPorDefecto ?? '')}</span>` +
+                 `<span class="csin"> sin nombre</span>`;
+  return `<bdi>${esc(t)}</bdi>`;
+}
+
+// La inicial de un nombre que puede empezar por emoji: [...t] parte
+// por caracteres reales, no por unidades UTF-16, que partiría un
+// emoji por la mitad y dejaría un signo roto.
+function inicial(valor, refPorDefecto){
+  const t = String(valor ?? '').trim();
+  if (!t) return String(refPorDefecto ?? '?').slice(-2);
+  return [...t][0].toUpperCase();
+}
+
+// Esqueleto con la forma de lo que va a aparecer. Que la espera
+// tenga forma la hace percibirse más corta que un "Cargando…".
+function esqueleto(tipo){
+  if (tipo === 'latido') return `
+    <div class="esq-kpis">${'<div class="esq esq-kpi"></div>'.repeat(4)}</div>
+    <div class="esq esq-panel"></div>
+    <div class="esq esq-panel" style="height:150px"></div>`;
+  if (tipo === 'lista') return `
+    <div class="esq esq-panel" style="height:72px"></div>
+    ${'<div class="esq esq-fila"></div>'.repeat(6)}`;
+  return `<div class="esq esq-panel"></div>
+          <div class="esq esq-panel" style="height:140px"></div>`;
+}
+
 function pintaEn(html, silencioso){
   const y = window.scrollY;
   $('#vista').innerHTML = html;
@@ -1173,7 +1398,7 @@ function pintaEn(html, silencioso){
 }
 
 async function pintarLatido(silencioso){
-  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando datos…</div>';
+  if (!silencioso) $('#vista').innerHTML = esqueleto('latido');
   const d = await datos();
 
   const contactos = new Set(d.convs.map(c => c.user_ref)).size;
@@ -1189,20 +1414,19 @@ async function pintarLatido(silencioso){
 
   pintaEn(`
     <h2 class="tit">El <em>latido</em></h2>
-    <p class="sub">Qué está haciendo tu asistente, mensaje a mensaje.</p>
+    <p class="sub">Cada conversación que atiende la IA con tus clientes, registrada según entra.</p>
 
     <div class="kpis">
       ${kpi('Personas atendidas', nf.format(contactos),
-            d.convs.length > contactos
-              ? `${nf.format(d.convs.length)} conversaciones · ${nf.format(d.convs.length - contactos)} han vuelto`
-              : `${nf.format(msgs)} mensajes en total`)}
+            `En ${nf.format(d.convs.length)} ${
+              d.convs.length === 1 ? 'conversación' : 'conversaciones'}`)}
       ${kpi(`Conversaciones en ${etc}`, nf.format(cR.length),
-            `${nf.format(entr + resp)} mensajes en ${etc}`)}
+            `${nf.format(entr + resp)} ${entr + resp === 1 ? 'mensaje' : 'mensajes'}`)}
       ${kpi('Respuestas de la IA', nf.format(auto), 'Sin intervención humana', true)}
       ${d.latMedia
         ? kpi('Tiempo medio de respuesta',
-              `${d.latMedia.toFixed(1)}<small>s</small>`,
-              'Con 4s de margen para agrupar mensajes')
+              `${d.latMedia.toFixed(1).replace('.', ',')}<small> s</small>`,
+              'Incluye 4 s de espera para agrupar mensajes')
         : kpiPend('Tiempo medio de respuesta', 'Aún sin mediciones registradas')}
     </div>
 
@@ -1217,49 +1441,31 @@ async function pintarLatido(silencioso){
             `<button class="rg${RANGO===h?' on':''}" data-h="${h}">${l}</button>`).join('')}
         </div>
       </div>
-      <div class="mini">
-        <span><strong class="mono">${nf.format(cR.length)}</strong> conversaciones activas</span>
-        <span><strong class="mono">${nf.format(entr)}</strong> mensajes recibidos</span>
-        <span><strong class="mono">${nf.format(resp)}</strong> respuestas enviadas</span>
-      </div>
       ${grafica(d.porHora)}
     </div>
 
-    ${bloqueSenales(d)}
-    ${bloqueTemas(d, 'servicio')}
-    ${bloqueTemas(d, 'ubicacion')}
-    ${bloqueMapa(d)}
+    <div class="rejilla2">
+      ${bloqueSenales(d)}
+      ${bloqueTemas(d, 'servicio')}
+    </div>
+
+    <div class="rejilla2">
+      ${bloqueTemas(d, 'ubicacion')}
+      ${bloqueNumeros(d.num)}
+    </div>
+
     ${bloquePatron(d)}
 
-    ${d.reciente.length ? `<div class="panel">
-      <h3>Actividad reciente</h3>
-      <p class="ph">Últimos mensajes registrados, del más nuevo al más antiguo.</p>
-      <ul class="feed">
-        ${d.reciente.map(m => {
-          // mt_actividad ya devuelve la referencia y el nombre: no
-          // hace falta cruzarlo con las conversaciones cargadas.
-          const ref = m.user_ref || null;
-          return `<li${ref ? ` data-ir="${esc(ref)}" tabindex="0" role="button"` : ''}>
-            <span class="fdot ${m.papel === 'human' ? 'h' : 'a'}"></span>
-            <span class="fh mono">${hora(m.cuando)}</span>
-            <span class="fq">${m.papel === 'human' ? 'Cliente' : 'IA'}</span>
-            <span class="ft">${esc(limpiaMensaje(m.contenido).slice(0, 90))}${
-              limpiaMensaje(m.contenido).length > 90 ? '…' : ''}</span>
-            ${ref ? '<span class="fgo" aria-hidden="true">›</span>' : ''}
-          </li>`;
-        }).join('')}
-      </ul>
-    </div>` : ''}
-
-    <p class="nota">El registro con marca de tiempo se activó el 14 de agosto de 2026.
-       Las conversaciones anteriores se conservan íntegras y se pueden consultar en
-       Conversaciones, pero no aparecen en la gráfica por hora.</p>
-
-    ${bloqueCoste(d)}`, silencioso);
+    <div class="rejilla2">
+      ${bloqueMapa(d)}
+      ${bloqueActividad(d)}
+    </div>`, silencioso);
 
   activarGrafico();
+  enlazarPlegables();
   ULTIMOS = d;
-  activarMapa();
+  // El mapa lo monta su observador cuando entra en pantalla, no
+  // aquí: así Leaflet solo se descarga si alguien baja hasta él.
   activarSenales();
 
   // desde la actividad reciente se abre la conversación completa
@@ -1283,68 +1489,152 @@ async function pintarLatido(silencioso){
 const kpi = (l,n,p,az) => `<div class="kpi">
   <div class="lab">${l}</div><div class="num${az?' az':''}">${n}</div><div class="pie">${p}</div></div>`;
 
-// Coste evitado: estimación, no medición. Se muestra la fórmula
-// para que el cliente pueda juzgar si le encaja, en lugar de
-// presentarle una cifra que tiene que creerse.
-function bloqueCoste(d){
-  const a = CFG.ajustes || {};
-  const ch = Number(a.coste_hora_eur);
-  const mn = Number(a.minutos_por_conversacion);
+// Un indicador sin datos todavía. Enseña un guion y por qué, en vez
+// de un cero: un cero parece una medición que salió cero.
+const kpiPend = (l, p) => `<div class="kpi pend">
+  <div class="lab">${l}</div><div class="num">—</div><div class="pie">${p}</div></div>`;
 
-  // solo las conversaciones que el asistente llevó a término:
-  // respondió y no hubo que intervenir
-  const atendidas = d.convs.filter(c =>
-    Number(c.del_asistente) > 0 && !c.friccion).length;
+// Sustituye al antiguo bloque de coste. Tres partidas, cada una con su cuenta
+// escrita: una cifra sin la operación que la produce no se puede
+// defender delante de nadie.
+//
+// Lo calcula la base (mt_mis_numeros), no el navegador: el horario y
+// la zona horaria del cliente ya viven allí, y así la cifra es la
+// misma la mire quien la mire.
+// Lo que hay que enganchar después de pintar el Latido: la carga
+// diferida del mapa y el botón que lleva a Configuración.
+//
+// PENDIENTE: el plegado de los bloques pesados en móvil. En el
+// diseño los paneles se pliegan con «Ver» / «Ocultar» en pantalla
+// pequeña, y aquí todos salen abiertos: en un teléfono el Latido
+// es muy largo.
+function enlazarPlegables(){
+  // El mapa se ve desde el principio, como en el diseño, pero
+  // Leaflet son 150 KB y está al final de la página: se pide cuando
+  // el panel entra en pantalla, no al cargar. Quien no baja hasta
+  // ahí no lo descarga nunca.
+  const cont = document.getElementById('panelmapa');
+  if (cont && !cont.dataset.observado){
+    cont.dataset.observado = '1';
+    if ('IntersectionObserver' in window){
+      const obs = new IntersectionObserver(es => {
+        if (es.some(e => e.isIntersecting)){
+          obs.disconnect();
+          activarMapa().then(() => setTimeout(() => LMAP?.invalidateSize(), 60));
+        }
+      }, { rootMargin: '200px' });
+      obs.observe(cont);
+    } else {
+      activarMapa();   // navegador antiguo: se carga y ya
+    }
+  }
 
-  if (!ch || !mn || !atendidas) return '';
-  const horas = atendidas * mn / 60;
-  const eur   = horas * ch;
+  // El botón «i» lleva a Configuración y marca el panel: sin eso,
+  // el usuario aterriza en una pantalla llena de paneles y tiene
+  // que buscar a cuál venía.
+  $('#binum')?.addEventListener('click', async e => {
+    e.stopPropagation();
+    document.querySelector('nav button[data-v="ajustes"]')?.click();
+    await new Promise(r => setTimeout(r, 400));
+    const el = $('#parametros'); if (!el) return;
+    const alto = document.querySelector('header')?.getBoundingClientRect().height || 0;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - alto - 16,
+                      behavior: 'smooth' });
+    el.classList.add('destaca');
+    setTimeout(() => el.classList.remove('destaca'), 2400);
+    $('#tk')?.focus({ preventScroll: true });
+  });
+}
 
+// La actividad reciente, en su propia función para poder ponerla
+// junto al mapa. Sin punto de color: la palabra "Cliente" o "IA" ya
+// dice de quién es, y el punto obligaba a aprenderse un código.
+function bloqueActividad(d){
+  if (!d.reciente || !d.reciente.length) return '';
   return `<div class="panel">
-    <h3>Coste de atención evitado</h3>
-    <p class="ph">Estimación de lo que habría costado atender estas conversaciones
-       con una persona.</p>
-    <div class="coste">
-      <div class="cifra">${nf.format(Math.round(eur))}<span>€</span></div>
-      <div class="formula">
-        <span><strong class="mono">${nf.format(atendidas)}</strong> conversaciones
-              resueltas por el asistente</span>
-        <span>× <strong class="mono">${mn}</strong> min que llevaría atender cada una</span>
-        <span>× <strong class="mono">${ch} €</strong> por hora de una persona</span>
-        <span class="ftot">= <strong class="mono">${nf.format(Math.round(horas))}</strong>
-              horas de trabajo</span>
-      </div>
-    </div>
-    <p class="nota" style="margin:16px 0 0">
-      Los dos parámetros se pueden ajustar en Configuración. No se cuentan las
-      conversaciones en las que hubo fricción, porque en esas es probable que
-      alguien tuviera que intervenir igualmente.
-    </p>
+    <h3>Actividad reciente</h3>
+    <p class="ph">Últimos mensajes, del más nuevo al más antiguo.</p>
+    <ul class="feed">
+      ${d.reciente.map(m => {
+        const ref = m.user_ref || null;
+        const t = limpiaMensaje(m.contenido);
+        return `<li${ref ? ` data-ir="${esc(ref)}" tabindex="0" role="button"` : ''}>
+          <span class="fh mono">${hora(m.cuando)}</span>
+          <span class="fq">${m.papel === 'human' ? 'Cliente' : 'IA'}</span>
+          <span class="ft">${esc(t.slice(0, 90))}${t.length > 90 ? '\u2026' : ''}</span>
+        </li>`;
+      }).join('')}
+    </ul>
   </div>`;
 }
 
-const kpiPend = (l,p) => `<div class="kpi pend">
-  <div class="lab">${l}</div><div class="num">—</div><div class="pie">${p}</div></div>`;
+function bloqueNumeros(n){
+  if (!n) return '';
+  const falta = new Set(n.faltan || []);
+  const eur = v => nf.format(Math.round(Number(v) || 0)) + ' €';
 
-/* ---------- señales de conversación ----------
-   El bloque se puede segmentar por periodo y por persona. El
-   denominador se recalcula siempre sobre el mismo subconjunto que
-   los numeradores: si se filtrara solo el "n" y el total siguiera
-   siendo el histórico, los porcentajes serían falsos. */
+  // Una partida sin su parámetro no enseña un cero, que parecería un
+  // dato: dice qué falta y dónde se pone.
+  const fila = (titulo, importe, cuenta, falta_de) => `
+    <div class="tn-fila">
+      <div class="tn-cab"><b>${titulo}</b>
+        <span class="tn-eur">${falta_de ? '—' : eur(importe)}</span></div>
+      <div class="tn-cuenta${falta_de ? ' tn-falta' : ''}">${
+        falta_de ? 'Falta el dato en Configuración' : cuenta}</div>
+    </div>`;
 
-let SEN_PER = 'todo';    // dia | semana | mes | ano | todo
-let SEN_QUIEN = '';      // user_ref, o '' para todas las personas
+  // Las tres partidas, ordenadas por importe. "Captados fuera de
+  // horario" entra en el total, como en el diseño.
+  //
+  // Conviene saber que no es lo mismo que las otras dos: tiempo
+  // liberado son horas que nadie ha trabajado y ventas cerradas es
+  // dinero firmado, mientras que esto es ingreso POSIBLE de gente
+  // que quizá se habría perdido. Si alguna vez el cliente discute
+  // la cifra, será por esta partida.
+  const partidas = [
+    [Number(n.fuera_horario_eur) || 0, fila('Captados fuera de horario', n.fuera_horario_eur,
+      `<strong>${nf.format(n.fuera_horario)}</strong>
+       ${n.fuera_horario === 1 ? 'contacto' : 'contactos'} de noche o en fin de semana
+       × <strong>${nf.format(n.ticket_medio)} €</strong> al mes`,
+      falta.has('ticket') ? 'el pago medio de un cliente' : null)],
+    [Number(n.tiempo_eur) || 0, fila('Tiempo liberado', n.tiempo_eur,
+      `<strong>${nf.format(n.conversaciones)}</strong> conversaciones
+       × <strong>${n.minutos_por_conv} min</strong>
+       × <strong>${n.coste_hora} €</strong> la hora`,
+      falta.has('minutos') || falta.has('coste_hora')
+        ? 'el coste por hora o los minutos por conversación' : null)],
+    [Number(n.ventas_eur) || 0, fila('Ventas cerradas', n.ventas_eur,
+      `<strong>${nf.format(n.ganados)}</strong>
+       ${n.ganados === 1 ? 'cliente ganado' : 'clientes ganados'}
+       × <strong>${nf.format(n.ticket_medio)} €</strong> al mes`,
+      falta.has('ticket') ? 'el pago medio de un cliente' : null)],
+  ].sort((a,b) => b[0] - a[0]).map(x => x[1]).join('');
 
-const SEN_PERIODOS = [
-  ['dia',    'Hoy'],
-  ['semana', 'Semana'],
-  ['mes',    'Mes'],
-  ['ano',    'Año'],
-  ['todo',   'Todo']
-];
+  // El total lo suma el navegador y no la base, porque la base
+  // devuelve el total SIN lo de fuera de horario. Se escribe como
+  // suma para que añadir una partida no obligue a acordarse de
+  // tocar el total.
+  const total = (Number(n.tiempo_eur) || 0)
+              + (Number(n.ventas_eur) || 0)
+              + (falta.has('ticket') ? 0 : Number(n.fuera_horario_eur) || 0);
 
-// Periodos de calendario, no ventanas móviles: "Semana" es la semana
-// en curso desde el lunes, no los últimos siete días.
+  return `<div class="panel" id="p-numeros">
+    <div class="cabpanel">
+      <div>
+        <h3>Tus números</h3>
+        <p class="ph">Calculado con tus datos de este mes.</p>
+      </div>
+      <button class="binfo" id="binum" title="Cambiar los valores del cálculo"
+        aria-label="Cambiar los valores del cálculo en Configuración">i</button>
+    </div>
+    <div class="tn-total">${nf.format(Math.round(total))}<span>€/mes</span></div>
+    <div class="tn">${partidas}
+      <div class="tn-tot"><span>= Total al mes</span>
+        <span class="tn-eur">${eur(total)}</span></div>
+    </div>
+  </div>`;
+}
+
 function inicioPeriodo(p){
   const d = new Date();
   if (p === 'dia'){ d.setHours(0,0,0,0); return d; }
@@ -1356,6 +1646,11 @@ function inicioPeriodo(p){
   if (p === 'ano'){ d.setMonth(0,1); d.setHours(0,0,0,0); return d; }
   return null;                       // 'todo'
 }
+
+// Estado de la segmentacion de senales: por periodo y por persona.
+// Vive fuera de la funcion porque sobrevive a los repintados.
+const SEN_PERIODOS = [['dia','Hoy'], ['semana','Semana'], ['mes','Mes'], ['ano','Año'], ['todo','Todo']];
+let SEN_PER = 'todo', SEN_QUIEN = '';
 
 // primera_en es el dato real (users.created_at en el histórico).
 // Si faltara, se recurre al inicio de la sesión registrada.
@@ -1400,6 +1695,10 @@ function interiorSenales(d){
   const quien = personas.find(p => p.ref === SEN_QUIEN);
   const segmentado = SEN_PER !== 'todo' || !!SEN_QUIEN;
 
+  // Las píldoras van bajo el título, como en el diseño. El
+  // desplegable de personas se queda: con 39 contactos, mirar las
+  // señales de uno concreto es justo lo que hace útil el bloque, y
+  // sin él habría que irse a Conversaciones y perder el periodo.
   const controles = `
     <div class="segm">
       ${personas.length > 1 ? `<select class="sel" id="senquien"
@@ -1414,28 +1713,21 @@ function interiorSenales(d){
       </div>
     </div>`;
 
-  // Qué se está midiendo exactamente, en palabras. Sin esto el
-  // usuario no puede juzgar si la cifra le cuadra.
+  // El alcance solo se escribe cuando hay algo que aclarar: sin
+  // segmentar, "todas las personas, todo el histórico" es decir lo
+  // obvio, y la maqueta no lo lleva.
+  const quienTxt = quien ? `<strong>${esc(String(quien.n))}</strong>, ` : '';
   const nomPer = { dia:'Hoy', semana:'Esta semana', mes:'Este mes',
-                   ano:'Este año', todo:'Todo el histórico' }[SEN_PER];
-  const alcance = [
-    quien ? `<strong>${esc(String(quien.n))}</strong>` : 'Todas las personas',
-    nomPer + (desde ? ` (desde el ${fechaCorta(desde)})` : ''),
-    `<strong>${nf.format(t)}</strong> ${t === 1 ? 'conversación' : 'conversaciones'}`
-  ].join(' · ');
-
-  const pie = `<p class="segpie">${alcance}${
-    sinFecha ? ` · ${nf.format(sinFecha)} sin fecha registrada quedan fuera del periodo` : ''
-  }</p>`;
+                   ano:'Este año', todo:'' }[SEN_PER];
+  const pie = (segmentado || sinFecha) ? `<p class="segpie">${quienTxt}${
+    nomPer ? nomPer + (desde ? ` desde el ${fechaCorta(desde)}` : '') + ', ' : ''
+  }<strong>${nf.format(t)}</strong> ${t === 1 ? 'conversación' : 'conversaciones'}${
+    sinFecha ? `, ${nf.format(sinFecha)} sin fecha quedan fuera` : ''}</p>` : '';
 
   const cab = `
-    <div class="cabpanel">
-      <div>
-        <h3>${esc(E('senales_titulo'))}</h3>
-        <p class="ph">Señales detectadas en el texto de las conversaciones.</p>
-      </div>
-      ${controles}
-    </div>
+    <h3>${esc(E('senales_titulo'))}</h3>
+    <p class="ph">Señales detectadas en el texto de las conversaciones.</p>
+    ${controles}
     ${pie}`;
 
   if (!t) return `${cab}<div class="vacio">
@@ -1462,15 +1754,7 @@ function interiorSenales(d){
     ${quien ? `<div class="dacc" style="margin:18px 0 0;padding:0;border:0">
       <button class="cbtn" id="senabrir">Ver la conversación completa</button>
     </div>` : ''}
-    <p class="nota" style="margin:18px 0 0">
-      Se detectan por las expresiones que aparecen en los mensajes, así que
-      pueden quedarse cortas: una queja formulada de forma poco habitual puede
-      pasar desapercibida. Los datos de contacto y la falta de respuesta del
-      asistente son los indicadores más fiables de los cuatro.${
-      segmentado
-        ? ' Los porcentajes se calculan solo sobre las conversaciones del segmento.'
-        : ''}
-    </p>`;
+`;
 }
 
 // Repinta solo el interior del bloque: no hace falta volver a
@@ -1515,7 +1799,7 @@ const barra = (lab, n, t, pie, cl, tipo) => {
       <span class="blab">${lab}${act ? '<span class="bver">Ver</span>' : ''}</span>
       <span class="bnum mono">${nf.format(n)} <small>de ${nf.format(t)}</small></span></div>
     <div class="btrack"><div class="bfill ${cl}" style="width:${Math.max(p,0.6).toFixed(1)}%"></div></div>
-    <div class="bpie">${pie} · ${p.toFixed(0)}%</div>
+    <div class="bpie">${pie}</div>
   </div>`;
 };
 
@@ -1524,42 +1808,34 @@ function bloqueTemas(d, cat){
   const todos = (d.temas || []).filter(t => t.categoria === cat);
   if (!todos.length) return '';
   const gen  = todos.filter(t => t.generico);
+  // Cuatro y no diez: los que van detrás tienen una o dos menciones
+  // y solo alargan el panel. Lo que importa es qué piden más.
   const list = todos.filter(t => !t.generico)
-    .sort((a,b) => b.conversaciones - a.conversaciones).slice(0, 10);
+    .sort((a,b) => b.conversaciones - a.conversaciones).slice(0, 4);
   if (!list.length && !gen.length) return '';
   const max = Math.max(...list.map(t => t.conversaciones), 1);
+  const id = 'p-' + cat;
 
-  return `<div class="panel">
-    <h3>${esc(E(cat + '_titulo'))}</h3>
-    <p class="ph">${esc(E(cat + '_desc'))}
-       ${gen.length ? gen.map(g =>
-         `${nf.format(g.conversaciones)} conversaciones nombran
-          ${esc(g.nombre)} sin concretar.`).join(' ') : ''}</p>
-    ${list.length ? `<div class="zonas">
-      ${list.map(t => `<div class="zfila">
-        <span class="zn">${esc(t.nombre)}</span>
-        <span class="zz">${esc(t.zona || '')}</span>
-        <span class="ztrack"><span class="zfill"
-              style="width:${(t.conversaciones / max * 100).toFixed(1)}%"></span></span>
-        <span class="zc mono">${nf.format(t.conversaciones)}</span>
-      </div>`).join('')}
-    </div>` : `<div class="vacio">Sin menciones a
-        ${esc(E(cat + '_vacio'))} concretos.</div>`}
+  return `<div class="panel" id="${id}">
+      <h3>${esc(E(cat + '_titulo'))}</h3>
+      <p class="ph">${esc(E(cat + '_desc'))}</p>
+      ${list.length ? `<div class="barras compacta">
+        ${list.map(t => `<div class="bfila">
+          <div class="bcab">
+            <span class="blab">${esc(t.nombre)}</span>
+            <span class="bnum mono">${nf.format(t.conversaciones)}</span>
+          </div>
+          <div class="btrack"><div class="bfill az"
+            style="width:${(t.conversaciones / max * 100).toFixed(1)}%"></div></div>
+        </div>`).join('')}
+      </div>` : ''}
+      ${gen.length ? `<p class="nota" style="margin:${list.length ? '16px' : '0'} 0 0">
+        ${gen.map(g => `${nf.format(g.conversaciones)} conversaciones nombran
+          ${esc(g.nombre)} sin concretar.`).join(' ')}</p>` : ''}
+      ${!list.length ? `<div class="vacio">Sin menciones a
+        ${esc(E(cat + '_vacio'))} concretos.</div>` : ''}
   </div>`;
 }
-
-/* ---------- mapa ----------
-   Genérico: el encuadre se calcula desde las propias coordenadas
-   del cliente, así que funciona en cualquier geografía. La silueta
-   de referencia es opcional y vive en su configuración.          */
-
-/* ---------- mapa ----------
-   Cartografía real con Leaflet y teselas CartoDB Positron: un
-   estilo minimalista en grises que funciona en cualquier punto
-   del mundo. Así el mapa vale para cualquier cliente sin que
-   nadie tenga que dibujar un contorno.                        */
-
-let LMAP = null, LCAPA = null;
 
 function bloqueMapa(d){
   const pts = (d.temas || []).filter(t =>
@@ -1577,19 +1853,21 @@ function bloqueMapa(d){
   const etq = k => CFG.mapas[k]?.etiqueta || k.charAt(0).toUpperCase() + k.slice(1);
   PUNTOS = grupos;
 
+  // Plegado por defecto, y por un motivo que no es estético: hasta
+  // que no se abre, no se descargan los 150 KB de Leaflet ni las
+  // teselas. En el móvil eso es la diferencia entre un panel que
+  // carga y uno que se queda pensando.
   return `<div class="panel" id="panelmapa">
-    <div class="cabpanel">
-      <div>
-        <h3>Mapa de demanda</h3>
-        <p class="ph">Cada punto es una zona que nombran los clientes.
-           El tamaño es cuántas veces la nombran.</p>
-      </div>
-      ${claves.length > 1 ? `<div class="rangos">
+    <h3>Mapa de demanda</h3>
+    <p class="ph">Zonas que nombran los clientes. Cada punto marca la zona,
+       no la dirección del centro.</p>
+    <div>
+      ${claves.length > 1 ? `<div class="rangos" style="margin-bottom:12px">
         ${claves.map(k => `<button class="rg mp${MAPA===k?' on':''}" data-m="${esc(k)}">
           ${esc(etq(k))}</button>`).join('')}
       </div>` : ''}
+      <div id="lmapa" class="lmapa"></div>
     </div>
-    <div id="lmapa" class="lmapa"></div>
   </div>`;
 }
 
@@ -1638,6 +1916,10 @@ function ponerTeselas(){
 // en la cabecera, bloqueando el primer pintado, para un bloque que
 // vive en una pestaña y que muchos clientes no miran nunca.
 // Ahora se pide la primera vez que hay un mapa que dibujar.
+// El mapa y su capa de puntos. Se guardan fuera de la funcion
+// porque hay que poder destruirlos al cambiar de pestana: Leaflet
+// deja el contenedor vivo y, sin esto, se acumulan mapas huerfanos.
+let LMAP = null, LCAPA = null;
 let leafletCargando = null;
 function cargarLeaflet(){
   if (window.L) return Promise.resolve();
@@ -1792,7 +2074,7 @@ function bloquePatron(d){
         ${grid[dd].map((v,h) => {
           const o = v ? (0.14 + 0.86 * (v / max)) : 0;
           return `<span class="mc" style="background:rgba(27,124,255,${o.toFixed(3)})"
-            title="${dias[dd]} ${h}:00 · ${v} mensajes"></span>`;
+            title="${dias[dd]}, ${h}:00, ${v} ${v === 1 ? 'mensaje' : 'mensajes'}"></span>`;
         }).join('')}
       </div>`).join('')}
     </div>
@@ -1869,7 +2151,7 @@ function grafica(ev){
          class="mono">
       <span>${et(cubos[0].t)}</span>
       <span>${et(cubos[Math.floor(cubos.length/2)].t)}</span>
-      <span>${et(cubos[cubos.length-1].t)} · ahora</span>
+      <span>${et(cubos[cubos.length-1].t)}</span>
     </div>
   </div>`;
 }
@@ -1925,7 +2207,7 @@ function irASenal(tipo){
    Se agrupa por PERSONA, no por sesión. El corte a 30 minutos
    sigue existiendo para las métricas, pero aquí sería confuso:
    el usuario piensa en "mi conversación con X", no en sesiones. */
-let CONTACTOS = [];
+let CONTACTOS = [], ABIERTO = null;
 // Filtros activos en Conversaciones. Se combinan con Y: marcar
 // "Interés" y "Contacto" da los leads listos para llamar.
 let FILTRO = new Set();
@@ -1934,7 +2216,6 @@ let FILTRO = new Set();
 let ORDEN = 'reciente';
 const ORDENES = {
   reciente: { etq:'Más reciente', fn:(a,b) => new Date(b.ultima) - new Date(a.ultima) },
-  antigua:  { etq:'Más antigua',  fn:(a,b) => new Date(a.primera) - new Date(b.primera) },
   mensajes: { etq:'Más mensajes', fn:(a,b) => Number(b.mensajes) - Number(a.mensajes) },
   nombre:   { etq:'Por nombre',   fn:(a,b) =>
       (a.nombre || '\uffff').localeCompare(b.nombre || '\uffff', 'es') }
@@ -1953,7 +2234,7 @@ const aplicaFiltros = (lista, filtros) =>
 
 async function pintarConvs(silencioso){
   if (!silencioso) $('#vista').innerHTML =
-    '<div class="cargando">Cargando conversaciones…</div>';
+    esqueleto('lista');
 
   const { data, error } = await supabase.rpc('mt_mis_contactos');
   ULTIMA = Date.now(); pintarCuando();
@@ -1968,9 +2249,14 @@ async function pintarConvs(silencioso){
 
   pintaEn(`
     <h2 class="tit">Conversaciones</h2>
-    <p class="sub">Una fila por persona. Ábrela para ver todo el intercambio,
-       incluidas las veces que volvió a escribir.</p>
-    <div class="panel" id="pconvs"></div>`, silencioso);
+    <p class="sub">Todas las personas que han escrito a tu asistente,
+       con su historial completo.</p>
+    <div class="convs2">
+      <div class="panel" id="pconvs"></div>
+      <div id="pdetalle" class="panel vacio-det">
+        Elige a alguien de la lista para ver su conversación.
+      </div>
+    </div>`, silencioso);
 
   render();
 }
@@ -1994,22 +2280,18 @@ function render(busqueda){
     return { k, s, activo, n };
   }).filter(c => c.activo || c.n > 0);
 
-  const sesiones = lista.reduce((a,c) => a + Number(c.conversaciones), 0);
-  const vueltos  = lista.filter(c => Number(c.conversaciones) > 1).length;
 
   cont.innerHTML = `
     <div class="cabpanel">
       <div>
         <h3>${nf.format(lista.length)} ${lista.length === 1 ? 'persona' : 'personas'}</h3>
-        <p class="ph" style="margin:2px 0 0">${nf.format(sesiones)} conversaciones${
-          vueltos ? ` · ${nf.format(vueltos)} ${vueltos === 1 ? 'ha vuelto' : 'han vuelto'} a escribir` : ''}${
-          FILTRO.size ? ` · filtrado de ${nf.format(CONTACTOS.length)}` : ''}</p>
+        ${FILTRO.size ? `<p class="ph" style="margin:2px 0 0">de ${nf.format(CONTACTOS.length)}</p>` : ''}
       </div>
     </div>
 
     <div class="barrafil">
       <input id="buscar" class="busca" type="search"
-             placeholder="Buscar por nombre, teléfono, email o texto…"
+             placeholder="Buscar por nombre, teléfono o email…"
              autocomplete="off" value="${esc(busqueda || '')}">
       <div class="orden">
         ${Object.entries(ORDENES).map(([k,o]) =>
@@ -2115,10 +2397,13 @@ async function filtrar(q){
 // pequeños y costaba distinguir a quién estabas mirando.
 let BUSCA = '';
 
-const inicial = c => {
+// Esta tomaba un contacto y partía con n[0], que corta por unidades
+// UTF-16: un nombre que empieza por emoji devolvía medio carácter y
+// se veía un signo roto. Ahora delega en inicial(), que parte por
+// caracteres reales.
+const inicialDe = c => {
   const n = (c.nombre || '').trim();
-  if (n) return n[0].toUpperCase();
-  return null;
+  return n ? inicial(n) : null;
 };
 
 // Resalta lo buscado sin romper el escapado: se escapa primero y
@@ -2170,7 +2455,7 @@ function desdeEntonces(d){
 }
 
 const filaC = c => {
-  const ini = inicial(c);
+  const ini = inicialDe(c);
   const act = c.historico ? { txt:'histórico', frio:true } : desdeEntonces(c.ultima);
   const senales = [
     c.cita          ? '<span class="pill vd">Cita</span>'          : '',
@@ -2180,22 +2465,21 @@ const filaC = c => {
     c.friccion      ? '<span class="pill rj">Fricción</span>'      : ''
   ].join('');
 
-  return `<div class="pers" data-c="${esc(c.user_ref)}" tabindex="0" role="button">
+  return `<div class="pers${c.user_ref === ABIERTO ? ' on' : ''}" data-c="${esc(c.user_ref)}" tabindex="0" role="button">
     <div class="ini${ini ? '' : ' anon'}">${ini ? esc(ini) : '·'}</div>
     <div class="pcuerpo">
       <div class="pnom">${c.nombre
-        ? marca(c.nombre)
+        ? `<bdi>${marca(c.nombre)}</bdi>`
         : `<span class="mono">${marca(c.telefono || c.user_ref)}</span>
-           <span class="csin"> · sin nombre</span>`}</div>
+           <span class="csin"> sin nombre</span>`}</div>
       <div class="pdat">${c.nombre
-        ? `<span class="mono">${marca(c.telefono || c.user_ref)}</span>` : ''}${
-        c.email ? (c.nombre ? ' · ' : '') + marca(c.email) : ''}</div>
+        ? `<span class="mono">${marca(c.telefono || c.user_ref)}</span>`
+        : (c.email ? marca(c.email) : '')}</div>
       ${senales ? `<div class="pmarcas">${senales}</div>` : ''}
     </div>
     <div class="pact">
       <div class="pcuando${act.frio ? ' frio' : ''}">${esc(act.txt)}</div>
-      <div class="pmsg">${nf.format(c.mensajes)} mensajes${
-        Number(c.conversaciones) > 1 ? ` · ${c.conversaciones} veces` : ''}</div>
+      <div class="pmsg">${nf.format(c.mensajes)} mensajes</div>
     </div>
   </div>`;
 };
@@ -2214,7 +2498,7 @@ function enlazarFilas(){
    Las citas ya las guarda el agente en la tabla users mediante
    su herramienta "Save Data". Aquí solo se presentan.          */
 async function pintarAgenda(silencioso){
-  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando agenda…</div>';
+  if (!silencioso) $('#vista').innerHTML = esqueleto('lista');
 
   const { data, error } = await supabase.rpc('mt_mis_citas');
   ULTIMA = Date.now(); pintarCuando();
@@ -2239,8 +2523,7 @@ async function pintarAgenda(silencioso){
 
   pintaEn(`
     <h2 class="tit">Agenda</h2>
-    <p class="sub">Citas que ha ido registrando el asistente en sus conversaciones.
-       Puedes añadir cada una a tu calendario.</p>
+    <p class="sub">Las citas que ha agendado el asistente.</p>
 
     <div class="kpis">
       ${kpi('Próximas citas', nf.format(proximas.length),
@@ -2257,8 +2540,8 @@ async function pintarAgenda(silencioso){
     ${canceladas.length ? bloqueCitas('Canceladas', canceladas.slice(0, 15), false) : ''}
 
     ${!citas.length ? `<div class="panel"><div class="vacio">
-      Sin citas por ahora.<br>
-        Aparecen aquí en cuanto se agende la primera desde Calendly.</div></div>` : ''}`,
+      <strong>Sin citas por ahora.</strong><br>
+        Aparecerán aquí cuando el asistente agende la primera.</div></div>` : ''}`,
     silencioso);
 
   document.querySelectorAll('.ics').forEach(b =>
@@ -2280,13 +2563,13 @@ function bloqueCitas(titulo, lista, destacar){
                 {month:'short'})}</span>
             <span class="chora mono">${new Date(c.cuando).toLocaleTimeString('es-ES',
                 {hour:'2-digit',minute:'2-digit'})}</span>`
-            : `<span class="cdia">·</span><span class="cmes">s/f</span>`}
+            : `<span class="cmes">sin fecha</span>`}
         </div>
         <div class="ccuerpo">
           <strong>${c.nombre ? esc(c.nombre) : esc(c.telefono || c.email || 'Contacto')}</strong>
           ${c.descripcion ? `<span>${esc(c.descripcion)}</span>` : ''}
           <span class="cmeta mono">${esc(c.telefono || '')}${
-            c.email ? ' · ' + esc(c.email) : ''}</span>
+            c.email ? '' : ''}</span>
           ${c.ubicacion ? `<span class="cmeta">${esc(c.ubicacion)}</span>` : ''}
         </div>
         <div class="cacc">
@@ -2316,7 +2599,7 @@ function descargarICS(c){
     'DTSTAMP:' + z(new Date()),
     'DTSTART:' + z(ini),
     'DTEND:'   + z(fin),
-    'SUMMARY:' + esc2('Cita · ' + c.t),
+    'SUMMARY:' + esc2('Cita con ' + c.t),
     'DESCRIPTION:' + esc2((c.d ? c.d + '\n' : '') +
         (c.p ? 'Teléfono: ' + c.p + '\n' : '') + (c.e ? 'Email: ' + c.e : '')),
     'END:VEVENT','END:VCALENDAR'
@@ -2330,7 +2613,7 @@ function descargarICS(c){
 
 /* ---------- vista: configuración ---------- */
 async function pintarAjustes(silencioso){
-  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando configuración…</div>';
+  if (!silencioso) $('#vista').innerHTML = esqueleto();
 
   let r = null, err = null;
   try {
@@ -2348,6 +2631,17 @@ async function pintarAjustes(silencioso){
   }
 
   const a = r.ajustes || {};
+
+  // La base devuelve los canales en bruto ("prueba, whatsapp_evolution").
+  // El cliente no sabe qué es Evolution, y "prueba" es nuestro
+  // probador: ni es un canal suyo ni debería verlo.
+  const CANALES = { whatsapp_evolution:'WhatsApp', whatsapp_cloud:'WhatsApp',
+                    voz_retell:'Teléfono', web:'Web' };
+  const canal = String(r.canal || '').split(',').map(x => x.trim())
+    .filter(x => x && x !== 'prueba')
+    .map(x => CANALES[x] || x)
+    .filter((x,i,v) => v.indexOf(x) === i)
+    .join(', ') || '—';
   const alta = r.alta ? new Date(r.alta).toLocaleDateString('es-ES',
     { day:'2-digit', month:'long', year:'numeric' }) : '—';
   const desde = r.primer_registro ? new Date(r.primer_registro).toLocaleDateString('es-ES',
@@ -2355,19 +2649,18 @@ async function pintarAjustes(silencioso){
 
   $('#vista').innerHTML = `
     <h2 class="tit">Configuración</h2>
-    <p class="sub">Datos del servicio, parámetros de cálculo y qué información
-       se trata. Lo editable se guarda al pulsar Guardar.</p>
+    <p class="sub">Datos de tu servicio y preferencias.</p>
+    <div class="ajustes">
 
     <div class="panel">
       <h3>Servicio</h3>
-      <p class="ph">No se puede editar desde aquí.</p>
+      <p class="ph">Solo lectura.</p>
       <dl class="ficha">
         <dt>Cliente</dt><dd>${esc(r.cliente || '—')}</dd>
-        <dt>Canal</dt><dd>${esc(r.canal)}</dd>
+        <dt>Canal</dt><dd>${esc(canal)}</dd>
         <dt>Alta del servicio</dt><dd>${alta}</dd>
         <dt>Registro con fecha desde</dt><dd>${desde}</dd>
         <dt>Conversaciones</dt><dd class="mono">${nf.format(r.conversaciones)}</dd>
-        <dt>Mensajes</dt><dd class="mono">${nf.format(r.mensajes)}</dd>
         <dt>Personas atendidas</dt><dd class="mono">${nf.format(r.contactos)}</dd>
         <dt>Usuarios con acceso</dt><dd class="mono">${nf.format(r.usuarios)}</dd>
         <dt>Ubicaciones monitorizadas</dt><dd class="mono">${nf.format(r.ubicaciones || 0)}</dd>
@@ -2378,33 +2671,8 @@ async function pintarAjustes(silencioso){
     </div>
 
     <div class="panel">
-      <h3>Parámetros de cálculo</h3>
-      <p class="ph">Los usamos para estimar el coste de atención evitado.
-         ${r.puede_editar_coste ? 'Puedes ajustarlos a tu realidad.'
-           : 'Los fija SimpliaSpain para que la cifra sea comparable entre periodos. Si no encajan con tu operación, dínoslo y los actualizamos.'}</p>
-      ${r.puede_editar_coste ? `
-        <div class="campos">
-          <div>
-            <label for="ch">Coste por hora de una persona (€)</label>
-            <input id="ch" type="number" min="0" max="1000" step="0.5"
-                   value="${a.coste_hora_eur ?? ''}">
-          </div>
-          <div>
-            <label for="mn">Minutos que llevaría atender una conversación</label>
-            <input id="mn" type="number" min="0" max="480" step="0.5"
-                   value="${a.minutos_por_conversacion ?? ''}">
-          </div>
-        </div>`
-        : `<dl class="ficha">
-          <dt>Coste por hora</dt>
-          <dd>${a.coste_hora_eur != null ? a.coste_hora_eur + ' €' : '—'}</dd>
-          <dt>Minutos por conversación</dt>
-          <dd>${a.minutos_por_conversacion != null ? a.minutos_por_conversacion + ' min' : '—'}</dd>
-        </dl>`}
-    </div>
-
-    <div class="panel">
       <h3>Tus preferencias</h3>
+      <p class="ph">A qué dirección te avisamos de cambios en el servicio.</p>
       
       <div class="campos">
         <div>
@@ -2420,10 +2688,45 @@ async function pintarAjustes(silencioso){
       </div>
     </div>
 
+    <div class="panel" id="parametros">
+      <h3>Parámetros de cálculo</h3>
+      <p class="ph">Con ellos se calcula «Tus números» en el Latido.</p>
+      ${r.rol === 'operador' ? `
+        <div class="campos">
+          <div>
+            <label for="tk">Pago medio de un cliente</label>
+            <div class="campo-u"><input id="tk" type="number" min="0" step="1"
+              inputmode="decimal" value="${a.ticket_medio_eur ?? ''}"><span>€/mes</span></div>
+          </div>
+          <div>
+            <label for="mn">Minutos por conversación</label>
+            <div class="campo-u"><input id="mn" type="number" min="0" max="480" step="0.5"
+              inputmode="decimal" value="${a.minutos_por_conversacion ?? ''}"><span>min</span></div>
+          </div>
+          <div>
+            <label for="ch">Coste por hora de trabajo</label>
+            <div class="campo-u"><input id="ch" type="number" min="0" max="1000" step="0.5"
+              inputmode="decimal" value="${a.coste_hora_eur ?? ''}"><span>€/h</span></div>
+          </div>
+        </div>
+        <div class="acc">
+          <button class="btn corto" id="guardarpar">Guardar</button>
+          <span id="msgpar" class="msg-ok" role="status" aria-live="polite"></span>
+        </div>`
+        : `<dl class="ficha">
+          <dt>Pago medio de un cliente</dt>
+          <dd>${a.ticket_medio_eur != null ? a.ticket_medio_eur + ' €/mes' : '—'}</dd>
+          <dt>Minutos por conversación</dt>
+          <dd>${a.minutos_por_conversacion != null ? a.minutos_por_conversacion + ' min' : '—'}</dd>
+          <dt>Coste por hora</dt>
+          <dd>${a.coste_hora_eur != null ? a.coste_hora_eur + ' €/h' : '—'}</dd>
+        </dl>`}
+    </div>
+
     ${CFG.documentos && CFG.documentos.length ? `<div class="panel">
       <h3>Información del servicio</h3>
-      <p class="ph">Documentación que usa el asistente para responder.
-         Solo lectura: si necesitas cambiar algo, escríbenos y lo actualizamos.</p>
+      <p class="ph">Documentos que usa el asistente para responder.
+         Para cambiarlos, escríbenos.</p>
       <div class="docs">
         ${CFG.documentos.map(doc => `<a class="doc" href="${esc(doc.url)}"
             target="_blank" rel="noopener noreferrer">
@@ -2439,7 +2742,7 @@ async function pintarAjustes(silencioso){
 
     ${CFG.tratamiento && CFG.tratamiento.length ? `<div class="panel">
       <h3>Tratamiento de datos</h3>
-      <p class="ph">Qué se registra de las conversaciones y para qué.</p>
+      <p class="ph">Qué se guarda de cada conversación y para qué.</p>
       <dl class="ficha">
         ${CFG.tratamiento.map(x =>
           `<dt>${esc(x.t)}</dt><dd>${esc(x.d)}</dd>`).join('')}
@@ -2448,30 +2751,51 @@ async function pintarAjustes(silencioso){
         Para ejercer derechos de acceso, rectificación o supresión sobre un
         contacto concreto, escríbenos y lo tramitamos.
       </p>
-    </div>` : ''}`;
+    </div>` : ''}
+    </div>`;
 
-  $('#guardar').addEventListener('click', async () => {
-    const b = $('#guardar'), m = $('#msg');
+  // Dos guardados separados: el email es del cliente y los
+  // parámetros de cálculo son de SimpliaSpain. Un solo botón
+  // mezclaba dos permisos distintos y el cliente no podía guardar
+  // su email sin tocar unas cifras que no son suyas.
+  const guardar = async (boton, mensaje, campos, textoOk) => {
+    const b = $(boton), m = $(mensaje);
+    const antes = b.textContent;
     b.disabled = true; b.textContent = 'Guardando…'; m.textContent = '';
-    const num = v => v === '' ? null : Number(v);
     try {
-      const args = { p_email_avisos: $('#ea').value.trim() };
-      if ($('#ch')){
-        args.p_coste_hora = num($('#ch').value);
-        args.p_minutos    = num($('#mn').value);
-      }
-      const { error } = await supabase.rpc('mt_guardar_ajustes', args);
+      const { data, error } = await supabase.rpc('mt_guardar_ajustes',
+        { p_ajustes: campos() });
       if (error) throw error;
-      m.textContent = 'Cambios guardados.';
+      // Los ajustes se refrescan en memoria para que el Latido use
+      // los valores nuevos sin recargar la página.
+      if (data) CFG.ajustes = data;
+      m.textContent = textoOk;
       m.className = 'msg-ok';
+      anunciar(textoOk);
     } catch (e) {
-      m.textContent = e.message === 'Sin acceso'
-        ? 'Tu cuenta no tiene permiso para modificar estos ajustes.'
+      m.textContent = /acceso|lectura|42501/.test(e.message || '')
+        ? 'Tu cuenta no tiene permiso para modificar esto.'
         : (e.message || 'No se han podido guardar los cambios.');
       m.className = 'msg-err';
     }
-    b.disabled = false; b.textContent = 'Guardar cambios';
-  });
+    b.disabled = false; b.textContent = antes;
+  };
+
+  const num = v => (v === '' || v == null) ? null : Number(v);
+
+  $('#guardar').addEventListener('click', () =>
+    guardar('#guardar', '#msg',
+      () => ({ email_avisos: $('#ea').value.trim() }),
+      'Cambios guardados.'));
+
+  $('#guardarpar')?.addEventListener('click', () =>
+    guardar('#guardarpar', '#msgpar',
+      () => ({
+        ticket_medio_eur:         num($('#tk').value),
+        minutos_por_conversacion: num($('#mn').value),
+        coste_hora_eur:           num($('#ch').value)
+      }),
+      'Guardado. El Latido ya usa los nuevos valores.'));
 }
 
 function horarioTexto(){
@@ -2483,9 +2807,19 @@ function horarioTexto(){
 }
 
 /* ---------- detalle de un contacto ---------- */
+// Pinta una conversación. En pantalla ancha va en la columna de la
+// derecha; en móvil, donde esa columna no cabe, se abre encima.
 async function abrir(contact){
-  $('#mbox').innerHTML = '<div class="cargando">Cargando…</div>';
-  $('#modal').style.display = 'block';
+  const ancho = window.innerWidth > 820;
+  const caja = ancho && VISTA === 'convs' && $('#pdetalle') ? '#pdetalle' : '#mbox';
+
+  if (caja === '#mbox'){
+    $('#mbox').innerHTML = esqueleto('lista');
+    $('#modal').style.display = 'block';
+  } else {
+    $('#pdetalle').className = 'panel';
+    $('#pdetalle').innerHTML = esqueleto('lista');
+  }
 
   // Se puede llegar aquí desde el Latido, donde la lista de
   // contactos todavía no se ha pedido: se carga al vuelo.
@@ -2494,56 +2828,54 @@ async function abrir(contact){
     CONTACTOS = cs || [];
   }
   const c = CONTACTOS.find(x => x.user_ref === contact) || {};
+  ABIERTO = contact;
 
-  const { data } = await supabase.rpc('mt_mensajes_contacto', { p_contact: contact });
+  const { data } = await supabase.rpc('mt_mensajes_contacto', { p_user_ref: contact });
   const msgs = data || [];
-  let sesion = null;
+  let dia = null;
 
-  $('#mbox').innerHTML = `
-    <div class="cab">
-      <div>
-        <h2 style="font-size:21px;letter-spacing:-.02em">
-          ${c.nombre ? esc(c.nombre) : 'Contacto'}</h2>
-        <p class="dmeta">
-          <a href="tel:${esc(c.telefono||'')}" class="mono">${esc(c.telefono || contact)}</a>
-          ${c.email ? ` · <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}
-        </p>
-        <p class="dmeta">${msgs.length} mensajes${
-          Number(c.conversaciones) > 1 ? ` en ${c.conversaciones} conversaciones` : ''}${
-          c.cita ? ` · cita: ${esc(c.cita)}` : ''}</p>
+  const tel = c.telefono || contact;
+  $(caja).innerHTML = `
+    <div class="dcab">
+      <div style="display:flex;justify-content:space-between;gap:16px">
+        <h2>${nom(c.nombre, tel)}</h2>
+        ${caja === '#mbox'
+          ? '<button class="cerrar" id="cx" aria-label="Cerrar">×</button>' : ''}
       </div>
-      <button class="cerrar" id="cx" aria-label="Cerrar">×</button>
+      ${c.nombre ? `<p class="dmeta"><a href="tel:${esc(tel)}" class="mono">${esc(tel)}</a></p>` : ''}
+      ${c.email ? `<p class="dmeta"><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></p>` : ''}
+      <div class="dacc">
+        <a class="cbtn pri" href="tel:${esc(tel)}">Llamar</a>
+        <button class="cbtn" id="verembudo">Abrir en Embudo</button>
+      </div>
     </div>
-    <div class="dacc">
-      ${c.telefono ? `<a class="cbtn" href="tel:${esc(c.telefono)}">Llamar</a>` : ''}
-      ${c.email ? `<a class="cbtn" href="mailto:${esc(c.email)}">Escribir</a>` : ''}
-      <button class="cbtn" id="verconvs">Ver en Conversaciones</button>
-    </div>
-    ${msgs.map(m => {
+    ${msgs.length ? msgs.map(m => {
+      // Separador por DÍA, no por sesión: el usuario piensa en
+      // "lo del martes", no en cuántas sesiones hubo.
       let sep = '';
-      if (m.sesion !== sesion){
-        sesion = m.sesion;
-        const f = m.historico ? null : (m.fecha_ref || m.cuando);
-        sep = `<div class="sep"><span>${
-          msgs.filter(x => x.sesion === m.sesion).length} mensajes${
-          f ? ' · ' + fecha(f) : ''}</span></div>`;
-      }
+      const f = m.cuando ? new Date(m.cuando).toDateString() : null;
+      if (f && f !== dia){ dia = f; sep = `<div class="sep"><span>${fecha(m.cuando)}</span></div>`; }
       return sep + `<div class="msg ${m.papel === 'human' ? 'h' : 'a'}">
         <div class="burb">${esc(limpiaMensaje(m.contenido))}
-          <div class="hora">${m.historico ? 'sin hora registrada' : hora(m.cuando)}${
-            m.latencia_ms ? ` · ${(m.latencia_ms/1000).toFixed(1)}s` : ''}</div>
+          <div class="hora">${m.cuando ? hora(m.cuando) : 'sin hora'}${
+            m.latencia_ms ? `, ${(m.latencia_ms/1000).toFixed(1).replace('.', ',')} s` : ''}</div>
         </div></div>`;
-    }).join('')}`;
+    }).join('') : '<div class="vacio">Sin mensajes guardados.</div>'}`;
 
-  $('#cx').addEventListener('click', cerrar);
-  $('#verconvs')?.addEventListener('click', () => {
-    cerrar();
-    document.querySelectorAll('nav button').forEach(x =>
-      x.classList.toggle('on', x.dataset.v === 'convs'));
-    VISTA = 'convs';
-    FILTRO.clear();
-    pintarConvs().then(() => render(c.telefono || contact));
+  // Marcar en la lista quién se está leyendo
+  document.querySelectorAll('.pers[data-c]').forEach(el =>
+    el.classList.toggle('on', el.dataset.c === contact));
+
+  $('#verembudo')?.addEventListener('click', () => {
+    if (caja === '#mbox') cerrar();
+    document.querySelector('nav button[data-v="embudo"]')?.click();
+    setTimeout(() => {
+      const l = LEADS.find(x => x.user_ref === contact);
+      if (l) abrirLead(l.id);
+    }, 700);
   });
+
+  $('#cx')?.addEventListener('click', cerrar);
 }
 function cerrar(){ $('#modal').style.display = 'none'; }
 $('#modal').addEventListener('click', e => e.target.id === 'modal' && cerrar());
@@ -2566,7 +2898,7 @@ document.addEventListener('keydown', e => e.key === 'Escape' && cerrar());
    número: se ve de un vistazo cuánto falta sin tener que leer.
    ============================================================ */
 
-let LEADS = [], EMBUDO = [], LFILTRO = 'todo', LABIERTO = null;
+let LEADS = [], EMBUDO = [], LFILTRO = 'activos', LABIERTO = null;
 
 const ETAPAS = [
   ['entrada',        'Entrada',   'fe1'],
@@ -2582,21 +2914,42 @@ const NOMBRE_ETAPA = Object.fromEntries(ETAPAS.map(e => [e[0], e[1]]));
 // Devuelve por qué este lead es urgente, o null. Que el motivo sea
 // texto y no un color permite escribirlo en la tarjeta: un comercial
 // no debería tener que descifrar por qué algo está en rojo.
+// Los textos son más cortos que antes porque el título del grupo ya
+// dice el motivo: dentro de "Sin llamar" no hace falta repetir en
+// cada fila "dejó contacto y nadie le ha llamado". Solo el grupo de
+// hoy conserva su texto, porque ahí la FECHA importa.
 function urgencia(l){
   const hoy = new Date().toISOString().slice(0,10);
   if (l.proxima_fecha && l.proxima_fecha < hoy)
-    return { nivel:'urg', txt:`Acción vencida el ${fechaCorta(l.proxima_fecha)}`, peso:0 };
+    return { nivel:'urg', txt:`Vencido el ${fechaCorta(l.proxima_fecha)}`, peso:0 };
   if (l.proxima_fecha === hoy)
-    return { nivel:'urg', txt:'Acción prevista para hoy', peso:1 };
-  if (Number(l.toques) === 0 && (l.email || l.telefono) &&
-      ['cualificado','visita_hecha','propuesta'].includes(l.etapa))
-    return { nivel:'oro', txt:'Dejó contacto y nadie le ha llamado', peso:2 };
+    return { nivel:'urg', txt:'Para hoy', peso:1 };
+  // Una visita en menos de tres días pasa a 'urg': confirmarla es lo
+  // que evita el no-show, y eso corre tanto como una acción vencida.
   if (l.cita && new Date(l.cita) - Date.now() < 3*864e5)
-    return { nivel:'oro', txt:`Visita el ${fechaCorta(l.cita)}: confirmar`, peso:3 };
-  if (Number(l.toques) === 0 && l.etapa === 'entrada')
-    return { nivel:'', txt:'Sin tocar', peso:5 };
+    return { nivel:'urg', txt:`Visita el ${fechaCorta(l.cita)}`, peso:2 };
+  // El teléfono NO cuenta como "dejó su contacto": viene de
+  // WhatsApp, lo tenemos de todos y no significa que quieran que
+  // les llamen. El email sí lo dieron ellos.
+  if (Number(l.toques) === 0 && l.email)
+    return { nivel:'oro', txt:'', peso:3 };
+  if (Number(l.toques) === 0)
+    return { nivel:'sin', txt:'', peso:5 };
   return null;
 }
+
+// Los grupos, en el orden en que se pintan. Un grupo vacío no se
+// pinta: una cabecera con cero debajo es ruido.
+const GRUPOS = [
+  ['urg',    'Para hoy',   'urg'],
+  ['oro',    'Sin llamar', 'oro'],
+  ['marcha', 'En marcha',  ''],
+  ['sin',    'Sin contacto', 'sin'],
+];
+// Un grupo de más de ocho se corta a seis. La holgura evita el caso
+// absurdo de ocultar uno solo tras un botón que ocupa lo mismo.
+const MOSTRAR = 6, HOLGURA = 2;
+let LEXP = {};
 
 function ordenLeads(a, b){
   const ua = urgencia(a), ub = urgencia(b);
@@ -2606,7 +2959,7 @@ function ordenLeads(a, b){
 }
 
 async function pintarEmbudo(silencioso){
-  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando el embudo…</div>';
+  if (!silencioso) $('#vista').innerHTML = esqueleto('lista');
 
   // Sincronizar ANTES de leer: si no, una conversación nueva no
   // aparece hasta que alguien se acuerde de refrescar el CRM a
@@ -2633,7 +2986,7 @@ async function pintarEmbudo(silencioso){
 
   if (!LEADS.length){
     pintaEn(`<h2 class="tit">Embudo</h2>
-      <p class="sub">Todo el que escribe al asistente, y en qué punto está.</p>
+      <p class="sub corta">Quien ha escrito a tu asistente, ordenado por lo que hay que hacer primero.</p>
       <div class="panel"><div class="vacio">
         <strong>Nadie ha escrito aún.</strong><br>
         Quien escriba al asistente entra aquí solo, sin hacer nada.</div></div>`, silencioso);
@@ -2641,59 +2994,44 @@ async function pintarEmbudo(silencioso){
   }
 
   const vivos = LEADS.filter(l => !['ganado','perdido'].includes(l.etapa));
-  const urg   = vivos.filter(l => urgencia(l)?.nivel === 'urg').length;
-  const oro   = vivos.filter(l => urgencia(l)?.nivel === 'oro').length;
 
   pintaEn(`
     <h2 class="tit">Embudo</h2>
-    <p class="sub">Todo el que escribe al asistente, y en qué punto está.
-       Se crean solos a partir de las conversaciones; tú los mueves.</p>
+    <p class="sub corta">Quien ha escrito a tu asistente, ordenado por lo que hay
+       que hacer primero.</p>
 
-    ${bloqueFunnel()}
+    ${cuentasEtapa()}
 
-    <div class="panel">
-      <div class="cabpanel">
-        <div>
-          <h3>${urg ? `${urg} ${urg === 1 ? 'necesita' : 'necesitan'} atención hoy`
-                    : oro ? `${oro} sin tocar con el contacto ya dado`
-                    : 'Nada urgente'}</h3>
-          <p class="ph">${nf.format(vivos.length)} en marcha ·
-             ${nf.format(LEADS.length - vivos.length)} cerrados</p>
-        </div>
-        <button class="binfo" id="binfo" title="Cómo se lee esto"
-          aria-label="Cómo se lee esto">i</button>
-      </div>
-
-      ${leyenda()}
-
+    <div class="convs2 embudo2">
+     <div class="panel lpanel">
       <div class="lfiltros">
-        <input id="lbusca" class="busca" type="search"
-               placeholder="Buscar por nombre, teléfono o email…" autocomplete="off">
-        <div class="orden">
-          ${[['todo','Todos'],['urg','Urgentes'],['sin','Sin tocar'],['cerrado','Cerrados']]
-            .map(([k,t]) => `<button class="${LFILTRO===k?'on':''}" data-lf="${k}">${t}</button>`)
-            .join('')}
+        <input id="lbusca" class="busca" type="search" aria-label="Buscar leads"
+               placeholder="Buscar por nombre o teléfono" autocomplete="off">
+        <div class="orden" role="group" aria-label="Qué mostrar">
+          ${[['activos','Abiertos', vivos.length],
+             ['cerrados','Cerrados', LEADS.length - vivos.length]]
+            .map(([k,t,n]) => `<button class="${LFILTRO===k?'on':''}" data-lf="${k}"
+                   aria-pressed="${LFILTRO===k}">${t} ${nf.format(n)}</button>`).join('')}
         </div>
       </div>
 
       <div id="lista-leads"></div>
-    </div>
-
-    <p class="nota">Entra aquí todo el que escribe al asistente, no solo quien
-       muestra interés: lo que más se pierde es precisamente lo que nadie llega a
-       mirar. Los que no vayan a ninguna parte se descartan en dos clics.
-       Lo que escribas tú no se sobrescribe nunca.</p>`, silencioso);
-
-  $('#binfo')?.addEventListener('click', () =>
-    $('#leyenda').classList.toggle('on'));
+     </div>
+     <div id="pficha" class="panel vacio-det">
+       Elige a alguien de la lista para ver su ficha.
+     </div>
+    </div>`, silencioso);
 
   // Los filtros y el buscador se enlazan aquí, no en la vista de
   // Conversaciones: cada vista enlaza lo suyo.
   document.querySelectorAll('.orden button[data-lf]').forEach(b =>
     b.addEventListener('click', () => {
       LFILTRO = b.dataset.lf;
-      document.querySelectorAll('.orden button[data-lf]')
-        .forEach(x => x.classList.toggle('on', x === b));
+      LEXP = {};   // lo desplegado era de la lista anterior
+      document.querySelectorAll('.orden button[data-lf]').forEach(x => {
+        x.classList.toggle('on', x === b);
+        x.setAttribute('aria-pressed', String(x === b));
+      });
       pintarLista($('#lbusca')?.value.trim());
     }));
 
@@ -2710,59 +3048,9 @@ async function pintarEmbudo(silencioso){
 }
 
 
-// La leyenda, no un color sin explicación. El comercial no escogió
-// este sistema ni estaba cuando se diseñó: si no puede averiguar
-// qué significa una franja naranja, la franja no sirve de nada.
-function leyenda(){
-  return `<div class="leyenda" id="leyenda">
-    <h3>Cómo se lee esta lista</h3>
-    <p>El orden no es por fecha. Está ordenada por lo que más corre,
-       para que lo primero de la lista sea siempre lo siguiente que hacer.</p>
-
-    <h4>La franja de la izquierda</h4>
-    <div class="lgfila"><div class="lgtira urg"></div>
-      <div><b>Roja · corre</b>Te comprometiste a algo y la fecha ya pasó,
-        o es para hoy.</div></div>
-    <div class="lgfila"><div class="lgtira oro"></div>
-      <div><b>Naranja · dinero parado</b>Dejó su email o su teléfono y nadie
-        le ha llamado todavía. O tiene una visita en menos de tres días sin
-        confirmar, que es donde más gente falla.</div></div>
-    <div class="lgfila"><div class="lgtira"></div>
-      <div><b>Gris · sin prisa</b>Está en marcha y no hay nada vencido.</div></div>
-    <p style="margin-top:10px">El motivo va escrito en cada ficha, debajo del
-       nombre. No hace falta descifrar el color.</p>
-
-    <h4>Las cinco rayitas</h4>
-    <div class="lgbarras"><span class="si"></span><span class="si"></span>
-      <span></span><span></span><span></span></div>
-    <p style="margin-top:10px">Cuántas de las cinco preguntas sabes de esa
-       persona: cuántos son, para cuándo, cuánto tiempo, qué tienen ahora y
-       quién decide. Verde, respondida. Gris, en blanco. Un lead con cinco
-       verdes se puede cerrar; con cero, aún no sabes qué vale.</p>
-
-    <h4>Las etapas</h4>
-    <p><b>Entrada</b> · escribió y poco más.
-       <b>Cualificado</b> · dejó contacto.
-       <b>Visita</b> · tiene cita.
-       <b>Visitado</b> · ya vino.
-       <b>Propuesta</b> · tiene precio encima de la mesa.
-       <b>Ganado</b> o <b>Perdido</b> · cerrado.</p>
-    <p style="margin-top:10px">Se mueven solas hasta donde los datos lo
-       permiten: si el asistente le coge una cita, pasa a Visita sin que hagas
-       nada. De Propuesta en adelante mandas tú, y a partir de ahí nada
-       automático las cambia.</p>
-
-    <h4>Los toques</h4>
-    <p>Cada contacto que anotas suma uno. La cadencia que funciona son seis a
-       doce en tres o cuatro semanas; un espacio medio da uno solo. Por eso
-       "0 toques" con el contacto ya dado sale en naranja.</p>
-  </div>`;
-}
-
-// Refresca los datos SIN repintar la vista entera. Repintar
-// `#vista` con la ficha abierta vacía el fondo un instante, la
-// página se encoge y el modal salta y se deforma. Aquí solo se
-// tocan la barra del embudo y la lista.
+// Refresca los datos SIN repintar la vista entera. Repintar `#vista`
+// con la ficha abierta vacía el fondo un instante, la página se
+// encoge y el modal salta.
 async function refrescarEmbudo(){
   const [a, b] = await Promise.all([
     supabase.rpc('mt_mis_leads'),
@@ -2771,38 +3059,20 @@ async function refrescarEmbudo(){
   if (a.data) LEADS = a.data;
   if (b.data) EMBUDO = b.data;
 
-  const f = $('#panel-funnel');
-  if (f) f.innerHTML = interiorFunnel();
+  const c = document.querySelector('.fcuentas');
+  if (c) c.outerHTML = cuentasEtapa();
   pintarLista($('#lbusca')?.value.trim());
 }
 
-function bloqueFunnel(){
-  return `<div class="panel" id="panel-funnel">${interiorFunnel()}</div>`;
-}
-
-function interiorFunnel(){
-  const total = EMBUDO.reduce((s,e) => s + Number(e.leads), 0) || 1;
-  const con = EMBUDO.filter(e => Number(e.leads) > 0);
-  return `
-    <h3>El recorrido</h3>
-    <p class="ph">De la primera pregunta al contrato firmado.</p>
-    <div class="fbarra">
-      ${con.map(e => {
-        const cl = (ETAPAS.find(x => x[0] === e.etapa) || [,,'fe1'])[2];
-        return `<div class="ftramo ${cl}" style="flex:${Number(e.leads)}"
-          title="${esc(NOMBRE_ETAPA[e.etapa] || e.etapa)}">${e.leads}</div>`;
-      }).join('')}
-    </div>
-    <div class="fleyenda">
-      ${con.map(e => {
-        const cl = (ETAPAS.find(x => x[0] === e.etapa) || [,,'fe1'])[2];
-        return `<span><i class="${cl}"></i>${esc(NOMBRE_ETAPA[e.etapa] || e.etapa)}
-          · ${e.leads} (${Math.round(Number(e.leads)/total*100)} %)</span>`;
-      }).join('')}
-    </div>
-    ${Number(EMBUDO.find(e => e.etapa==='ganado')?.leads || 0) === 0
-      ? `<p class="nota" style="margin:0">Sin cerrados todavía. Al marcar el primero como ganado
-         aparecerá aquí la conversión real.</p>` : ''}`;
+// Una línea con las etapas que tienen gente. Sustituye a la barra
+// del recorrido: aquella ocupaba un panel entero para decir lo
+// mismo, y con cero cerrados sus proporciones no decían nada.
+function cuentasEtapa(){
+  const con = (EMBUDO || []).filter(e => Number(e.leads) > 0);
+  if (!con.length) return '';
+  return `<div class="fcuentas">${con.map(e =>
+    `<span>${esc(NOMBRE_ETAPA[e.etapa] || e.etapa)} <b>${nf.format(e.leads)}</b></span>`
+  ).join('')}</div>`;
 }
 
 function pintarLista(q){
@@ -2810,61 +3080,80 @@ function pintarLista(q){
   const norm = t => String(t || '').toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-  let l = LEADS.slice();
-  if (LFILTRO === 'cerrado') l = l.filter(x => ['ganado','perdido'].includes(x.etapa));
-  else {
-    l = l.filter(x => !['ganado','perdido'].includes(x.etapa));
-    if (LFILTRO === 'urg') l = l.filter(x => ['urg','oro'].includes(urgencia(x)?.nivel));
-    if (LFILTRO === 'sin') l = l.filter(x => Number(x.toques) === 0);
-  }
+  const cerrados = LFILTRO === 'cerrados';
+  let l = LEADS.filter(x => cerrados === ['ganado','perdido'].includes(x.etapa));
+
   if (q){
     const n = norm(q), num = q.replace(/[^0-9]/g, '');
     l = l.filter(x => norm(x.nombre).includes(n) || norm(x.email).includes(n) ||
       (num.length >= 3 && String(x.telefono || x.user_ref).includes(num)));
   }
+  l.sort(ordenLeads);
 
-  cont.innerHTML = l.length
-    ? l.sort(ordenLeads).map(tarjetaLead).join('')
-    : `<div class="vacio">Ningún lead con este filtro.</div>`;
+  if (!l.length){
+    cont.innerHTML = `<div class="vacio">${q
+      ? `Nadie coincide con «${esc(q)}».`
+      : cerrados ? 'Ninguno cerrado.' : 'Ninguno abierto.'}</div>`;
+    return;
+  }
+
+  // Agrupado: por etapa si son cerrados, por urgencia si no. El
+  // motivo vive en el título del grupo y no se repite en cada fila.
+  const grupos = cerrados
+    ? [['ganado','Ganado',''], ['perdido','Perdido','sin']]
+    : GRUPOS;
+  const de = cerrados
+    ? (x => x.etapa)
+    : (x => urgencia(x)?.nivel || 'marcha');
+
+  cont.innerHTML = grupos.map(([clave, titulo, tono]) => {
+    const dentro = l.filter(x => de(x) === clave);
+    if (!dentro.length) return '';          // un grupo vacío es ruido
+
+    const corta = dentro.length > MOSTRAR + HOLGURA && !LEXP[clave];
+    const vistos = corta ? dentro.slice(0, MOSTRAR) : dentro;
+    const faltan = dentro.length - vistos.length;
+
+    return `<div class="lgcab ${tono}">${esc(titulo)}
+              <span class="mono">${dentro.length}</span></div>
+            ${vistos.map(x => filaLead(x, clave)).join('')}
+            ${faltan ? `<button class="lmas" data-g="${esc(clave)}">Ver ${faltan} más</button>` : ''}`;
+  }).join('');
+
   enlazarLeads();
 }
 
-function tarjetaLead(l){
+function filaLead(l, grupo){
   const u = urgencia(l);
-  const pide = [l.servicio, l.ubicacion].filter(Boolean).join(' · ');
-  const cual = [l.personas, l.cuando_necesita, l.permanencia,
-                l.situacion_actual, l.quien_decide];
+  const pide = [l.servicio, l.ubicacion].filter(Boolean).join(', ');
+  const tel  = l.telefono || l.user_ref;
+  const hace = l.ultima ? desdeEntonces(l.ultima).txt : '';
 
-  return `<div class="lead ${u?.nivel || ''}" data-lead="${l.id}" tabindex="0" role="button">
-    <div class="lcinta"></div>
-    <div class="lcuerpo">
-      <div class="lcab">
-        <span class="lnom">${l.nombre ? esc(l.nombre)
-          : `<span class="mono">${esc(l.telefono || l.user_ref)}</span>
-             <span class="csin"> sin nombre</span>`}</span>
-        <span class="pill az">${esc(NOMBRE_ETAPA[l.etapa] || l.etapa)}</span>
-        ${l.valor_mes ? `<span class="pill vd">${nf.format(l.valor_mes)} €/mes</span>` : ''}
-      </div>
-      <div class="lpide">${pide ? esc(pide) : 'Sin concretar qué busca'}</div>
-      <div class="lcual" title="${cual.filter(Boolean).length} de 5 preguntas respondidas">
-        ${cual.map(v => `<span class="${v ? 'si' : ''}"></span>`).join('')}
-      </div>
-      <div class="lpie">
-        ${u ? `<span class="${u.nivel === 'urg' ? 'lurge' : ''}">${esc(u.txt)}</span>` : ''}
-        ${l.ultima ? `<span>Escribió ${desdeEntonces(l.ultima).txt}</span>` : ''}
-        <span><b>${l.toques}</b> ${Number(l.toques) === 1 ? 'toque' : 'toques'}</span>
-        ${l.respuesta_s != null
-          ? `<span>Respondido en <b>${l.respuesta_s} s</b></span>` : ''}
-      </div>
+  // El motivo solo se escribe en el grupo de hoy, donde la fecha
+  // importa. En los demás, el título del grupo ya lo dice.
+  const motivo = grupo === 'urg' && u?.txt ? u.txt : '';
+
+  return `<div class="lfila" data-lead="${l.id}" tabindex="0" role="button"
+    aria-label="${esc(l.nombre || tel)}${motivo ? '. ' + esc(motivo) : ''}">
+    <div class="lfila-txt">
+      <div class="lfila-nom${l.nombre ? '' : ' mono'}">${
+        l.nombre ? `<bdi>${esc(l.nombre)}</bdi>` : esc(tel)}</div>
+      <div class="lfila-pide">${pide ? esc(pide) : 'Sin concretar qué busca'}</div>
+      ${motivo ? `<div class="lfila-urg">${esc(motivo)}</div>` : ''}
     </div>
-    <div class="laccion">
-      <button class="cbtn" data-lead="${l.id}">Abrir</button>
-    </div>
+    ${hace ? `<span class="lfila-hace">${esc(hace)}</span>` : ''}
   </div>`;
 }
 
 function enlazarLeads(){
-  document.querySelectorAll('.lead[data-lead]').forEach(el => {
+  document.querySelectorAll('.lmas[data-g]').forEach(b =>
+    b.addEventListener('click', e => {
+      e.stopPropagation();           // el botón vive dentro de la lista
+      LEXP[b.dataset.g] = true;
+      pintarLista($('#lbusca')?.value.trim());
+    }));
+
+  document.querySelectorAll('.lfila[data-lead]').forEach(el => {
     const ir = () => abrirLead(Number(el.dataset.lead));
     el.addEventListener('click', ir);
     el.addEventListener('keydown', e => {
@@ -2879,134 +3168,127 @@ function abrirLead(id){
   LABIERTO = id;
   const v = (x) => x == null ? '' : esc(String(x));
 
-  $('#mbox').innerHTML = `
+  const tel = (l.telefono || l.user_ref || '').replace(/[^0-9+]/g, '');
+
+  // En pantalla ancha la ficha va en la columna de la derecha; en
+  // móvil, donde no cabe, se abre encima.
+  const ancho = window.innerWidth > 820;
+  const caja = ancho && VISTA === 'embudo' && $('#pficha') ? '#pficha' : '#mbox';
+  if (caja === '#mbox') $('#modal').style.display = 'block';
+  else $('#pficha').className = 'panel';
+
+  $(caja).innerHTML = `
    <div class="lficha">
     <div class="fcab">
-      <div style="min-width:0">
-        <h2>${l.nombre ? esc(l.nombre)
-          : `<span class="mono">${esc(l.telefono || l.user_ref)}</span>`}</h2>
-        <p class="dmeta">
-          <a href="tel:${esc(l.telefono || l.user_ref)}" class="mono"
-            >${esc(l.telefono || l.user_ref)}</a>${
-          l.email ? ` · <a href="mailto:${esc(l.email)}">${esc(l.email)}</a>` : ''}</p>
-        <p class="dmeta">${nf.format(l.mensajes || 0)} mensajes${
-          Number(l.conversaciones) > 1 ? ` en ${l.conversaciones} conversaciones` : ''}${
-          l.respuesta_s != null ? ` · respondido en ${l.respuesta_s} s` : ''}${
-          Number(l.toques) ? ` · ${l.toques} ${Number(l.toques)===1?'toque':'toques'}` : ''}</p>
+      <div style="display:flex;justify-content:space-between;gap:16px">
+        <h2>${nom(l.nombre, l.telefono || l.user_ref)}</h2>
+        ${caja === '#mbox'
+          ? '<button class="cerrar" id="fx" aria-label="Cerrar">×</button>' : ''}
       </div>
-      <div class="fcabacc">
-        <button class="cbtn sec" id="fver">Ver la conversación</button>
-        <button class="cerrar" id="fx" aria-label="Cerrar">×</button>
+      ${l.nombre ? `<p class="dmeta"><a href="tel:${esc(tel)}" class="mono">${esc(tel)}</a></p>` : ''}
+      ${l.email ? `<p class="dmeta"><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></p>` : ''}
+      ${[l.servicio, l.ubicacion].filter(Boolean).length
+        ? `<p class="dmeta">${esc([l.servicio, l.ubicacion].filter(Boolean).join(', '))}</p>` : ''}
+
+      ${l.ultimo_texto ? `
+      <figure class="frecuento">
+        <figcaption>Último mensaje${l.ultimo_cuando
+          ? ', ' + desdeEntonces(l.ultimo_cuando).txt : ''}</figcaption>
+        <blockquote>${esc(l.ultimo_texto)}</blockquote>
+      </figure>` : ''}
+
+      <div class="fllamar">
+        <a class="pri" href="tel:${esc(tel)}">Llamar</a>
+        <a class="secu" href="https://wa.me/${esc(tel.replace(/\+/g,''))}"
+           target="_blank" rel="noopener noreferrer">WhatsApp</a>
       </div>
     </div>
 
-    <div class="faviso" id="faviso"></div>
+    <div class="faviso" id="faviso" role="status" aria-live="polite"></div>
 
-    <div class="fetapas">
-      ${ETAPAS.map(([k,t]) => `<button class="fet ${l.etapa===k?'on':''}${
-        k==='ganado'?' gana':k==='perdido'?' pierde':''}" data-et="${k}">${t}</button>`).join('')}
-    </div>
-
-    <div class="fcaja" id="fcajaperdido">
-      <h4>¿Por qué se ha perdido?</h4>
-      <p class="ph">Saberlo es lo que permite dejar de perderlos por lo mismo.</p>
+    <div class="fsec">
+      <label class="h" for="t_detalle">Apuntar contacto</label>
       <div class="fpreg">
-        <input id="p_motivo" placeholder="Precio, plazo, se fue a otro espacio…">
+        <input id="t_detalle" placeholder="Llamada, email, WhatsApp…">
       </div>
-      <div class="fila">
-        <button class="btn" id="p_ok">Marcar como perdido</button>
-        <button class="cbtn sec" id="p_no">Cancelar</button>
-      </div>
-    </div>
-
-    <div class="fsec">
-      <h3>Las cinco preguntas</h3>
-      <p class="ph">Las que deciden cuánto vale este lead. Rellena lo que sepas;
-         lo que dejes vacío se queda vacío.</p>
-      <div class="fcinco">
-        <div class="fpreg"><label>Cuántos son
-          <small>· define el producto y multiplica el ticket</small></label>
-          <input id="f_personas" type="number" min="1" value="${v(l.personas)}" placeholder="4"></div>
-        <div class="fpreg"><label>Para cuándo
-          <small>· la urgencia predice el cierre</small></label>
-          <input id="f_cuando" value="${v(l.cuando_necesita)}" placeholder="1 de octubre"></div>
-        <div class="fpreg"><label>Cuánto tiempo
-          <small>· la permanencia es el valor real</small></label>
-          <input id="f_perma" value="${v(l.permanencia)}" placeholder="12 meses"></div>
-        <div class="fpreg"><label>Qué tienen ahora
-          <small>· de casa, de otro coworking, de oficina propia</small></label>
-          <input id="f_situacion" value="${v(l.situacion_actual)}" placeholder="Trabaja desde casa"></div>
-        <div class="fpreg"><label>Quién decide</label>
-          <input id="f_decide" value="${v(l.quien_decide)}" placeholder="Él mismo"></div>
+      <div class="ftoque">
+        <div class="fpreg">
+          <label for="t_fecha">Próxima vez</label>
+          <input id="t_fecha" type="date" value="${v(l.proxima_fecha)}">
+        </div>
+        <button class="btn" id="t_ok">Apuntar</button>
       </div>
     </div>
 
     <div class="fsec">
-      <h3>El negocio</h3>
-      <p class="ph">De dónde vino y cuánto vale. Sin el canal no se puede saber qué
-         cuesta conseguir un cliente por cada vía.</p>
-      <div class="fdos">
-        <div class="fpreg"><label>De dónde viene</label>
+      <label class="h" for="fetapa">Etapa</label>
+      <div class="fpreg">
+        <select id="fetapa">
+          ${ETAPAS.map(([k,t]) =>
+            `<option value="${k}"${l.etapa===k?' selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fcaja" id="fcajaperdido">
+        <h4>Motivo</h4>
+        <div class="fpreg">
+          <input id="p_motivo" placeholder="Precio, plazo, otro centro…">
+        </div>
+        <div class="fila">
+          <button class="btn" id="p_ok">Marcar como perdido</button>
+          <button class="cbtn sec" id="p_no">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="fsec">
+      <div class="fsec-cab">
+        <h3>Datos</h3>
+        <span>${l.cualificado_de} de 5 respondidas</span>
+      </div>
+      <div class="fdatos">
+        <div class="fpreg"><label for="f_personas">Cuántos son</label>
+          <input id="f_personas" type="number" min="1" value="${v(l.personas)}"></div>
+        <div class="fpreg"><label for="f_cuando">Para cuándo</label>
+          <input id="f_cuando" value="${v(l.cuando_necesita)}"></div>
+        <div class="fpreg"><label for="f_perma">Cuánto tiempo</label>
+          <input id="f_perma" value="${v(l.permanencia)}"></div>
+        <div class="fpreg"><label for="f_situacion">Qué tienen ahora</label>
+          <input id="f_situacion" value="${v(l.situacion_actual)}"></div>
+        <div class="fpreg"><label for="f_decide">Quién decide</label>
+          <input id="f_decide" value="${v(l.quien_decide)}"></div>
+        <div class="fpreg"><label for="f_valor">Valor €/mes</label>
+          <input id="f_valor" type="number" step="0.01" inputmode="decimal"
+                 value="${v(l.valor_mes)}"></div>
+        <div class="fpreg"><label for="f_canal">Canal</label>
           <select id="f_canal">
             ${[['desconocido','Sin saber'],['whatsapp_directo','WhatsApp directo'],
-               ['portal','Portal (Coworking Spain…)'],['web','Web propia'],['google','Google'],
+               ['portal','Portal'],['web','Web propia'],['google','Google'],
                ['referido','Referido'],['walkin','Entró por la puerta'],
                ['broker','Broker'],['evento','Evento'],['otro','Otro']]
               .map(([k,t]) => `<option value="${k}"${l.canal===k?' selected':''}>${t}</option>`).join('')}
           </select></div>
-        <div class="fpreg"><label>Valor al mes <small>· € + IVA</small></label>
-          <input id="f_valor" type="number" step="0.01" value="${v(l.valor_mes)}" placeholder="1638"></div>
+        <div class="fpreg arriba"><label for="f_notas">Notas</label>
+          <textarea id="f_notas">${v(l.notas)}</textarea></div>
       </div>
     </div>
 
     <div class="fsec">
-      <h3>Qué toca ahora</h3>
-      <p class="ph">Lo que aparece en la cola del embudo. Si pones fecha y pasa,
-         el lead sube arriba del todo.</p>
-      <div class="fdos" style="margin-bottom:16px">
-        <div class="fpreg"><label>Próxima acción</label>
-          <input id="f_accion" value="${v(l.proxima_accion)}" placeholder="Llamar para cerrar visita"></div>
-        <div class="fpreg"><label>Para cuándo</label>
-          <input id="f_fecha" type="date" value="${v(l.proxima_fecha)}"></div>
+      <div class="fsec-cab">
+        <h3>Historial</h3>
+        <button id="fver">Ver conversación</button>
       </div>
-      <div class="fpreg">
-        <label>Notas</label>
-        <textarea id="f_notas" placeholder="Lo que haga falta recordar">${v(l.notas)}</textarea>
-      </div>
-    </div>
-
-    <div class="fguardar">
-      <button class="btn" id="fguardar">Guardar cambios</button>
-      <button class="cbtn" id="ftoque">Apuntar un contacto</button>
-    </div>
-
-    <div class="fcaja" id="fcajatoque">
-      <h4>¿Qué has hecho?</h4>
-      <div class="fpreg">
-        <input id="t_detalle" placeholder="Llamada, email, WhatsApp…">
-      </div>
-      <div class="fpreg" style="margin-top:12px">
-        <label>Y la próxima vez, ¿cuándo? <small>· opcional</small></label>
-        <input id="t_fecha" type="date">
-      </div>
-      <div class="fila">
-        <button class="btn" id="t_ok">Apuntar</button>
-        <button class="cbtn sec" id="t_no">Cancelar</button>
-      </div>
-    </div>
-
-    <div class="fsec" style="border-top:1px solid var(--linea);border-bottom:0;margin-top:8px">
-      <h3>Lo que ha pasado</h3>
-      <p class="ph">Cada contacto y cada movimiento.</p>
       <div class="hist" id="fhist"><div class="ph">Cargando…</div></div>
     </div>
 
-    <p class="nota">Apuntar un contacto suma un toque. La cadencia que funciona son
-       seis a doce toques repartidos en tres o cuatro semanas; un espacio medio
-       da uno solo.</p>
+    <div class="fguardar" id="fguardar">
+      <button class="btn" id="fguarda">Guardar</button>
+      <button class="cbtn sec" id="fdescarta">Descartar</button>
+    </div>
    </div>`;
 
-  $('#modal').style.display = 'block';
+  // La fila que se está leyendo, marcada en la lista.
+  document.querySelectorAll('.lfila[data-lead]').forEach(el =>
+    el.classList.toggle('on', Number(el.dataset.lead) === id));
   enlazarFicha(l);
   pintarHistorial(l.id);
 }
@@ -3023,15 +3305,12 @@ async function pintarHistorial(leadId){
 
   cont.innerHTML = ev.length ? ev.map(e => `
     <div class="hev">
-      <span class="hpunto ${esc(e.tipo)}"></span>
       <div class="hcuerpo">
         <div>${e.tipo === 'etapa'
           ? `De <b>${esc(NOMBRE_ETAPA[e.desde] || e.desde || '—')}</b> a
              <b>${esc(NOMBRE_ETAPA[e.hasta] || e.hasta)}</b>`
           : esc(e.detalle || ICONO_EV[e.tipo] || e.tipo)}</div>
-        <div class="hcuando">${esc(ICONO_EV[e.tipo] || e.tipo)} ·
-          ${fechaHoraCorta(e.cuando)}${
-          e.tipo === 'etapa' && e.detalle ? ' · ' + esc(e.detalle) : ''}</div>
+        <div class="hcuando">${fechaHoraCorta(e.cuando)}</div>
       </div>
       <div class="hacc">
         ${e.tipo === 'toque' ? `
@@ -3058,8 +3337,9 @@ function enlazarHistorial(leadId){
       const l = LEADS.find(x => x.id === leadId);
       if (l) $('#mbox').querySelector('.dmeta:last-of-type')?.replaceWith(
         Object.assign(document.createElement('p'), { className:'dmeta',
-          textContent: `${nf.format(l.mensajes || 0)} mensajes · ${l.toques} ${
-            Number(l.toques) === 1 ? 'toque' : 'toques'}` }));
+          textContent: `${nf.format(l.mensajes || 0)} ${
+            Number(l.mensajes) === 1 ? 'mensaje' : 'mensajes'}, ${l.toques} ${
+            Number(l.toques) === 1 ? 'contacto' : 'contactos'}` }));
     }));
 
   // Corregir sustituye el texto por un campo, en el sitio. Abrir otro
@@ -3100,14 +3380,9 @@ function enlazarFicha(l){
     quien_decide:     $('#f_decide').value.trim()   || null,
     canal:            $('#f_canal').value,
     valor_mes:        $('#f_valor').value.trim()    || null,
-    proxima_accion:   $('#f_accion').value.trim()   || null,
-    proxima_fecha:    $('#f_fecha').value           || null,
     notas:            $('#f_notas').value.trim()    || null
   });
 
-  // El aviso va arriba y se desplaza hasta él: un mensaje que no se
-  // ve equivale a que la acción no hizo nada, que es justo lo que
-  // parecía antes.
   const aviso = (txt, ok) => {
     const e = $('#faviso');
     e.textContent = txt;
@@ -3121,56 +3396,69 @@ function enlazarFicha(l){
       ? 'No tienes permiso para editar este cliente. Pídele a SimpliaSpain que te dé rol de administrador.'
       : 'No se ha podido guardar: ' + error.message, false);
 
-  const caja = (id, abrir) => {
-    ['#fcajatoque','#fcajaperdido'].forEach(x =>
-      $(x).classList.toggle('on', x === id && abrir));
-    if (abrir) $(id).scrollIntoView({ behavior:'smooth', block:'nearest' });
+  // La barra de guardar solo aparece cuando hay algo que guardar.
+  // Un botón siempre visible que casi nunca hace falta enseña a
+  // ignorarlo, y entonces no se ve el día que sí importa.
+  const inicial = JSON.stringify(leer());
+  const mirar = () => {
+    $('#fguardar').classList.toggle('on', JSON.stringify(leer()) !== inicial);
   };
+  $('#mbox').querySelectorAll('.fdatos input, .fdatos select, .fdatos textarea')
+    .forEach(i => { i.addEventListener('input', mirar); i.addEventListener('change', mirar); });
 
-  // ---- guardar ----
-  $('#fguardar').addEventListener('click', async () => {
-    const b = $('#fguardar'); b.disabled = true; b.textContent = 'Guardando…';
-    const { error } = await supabase.rpc('mt_guardar_lead', { p_id: l.id, p_campos: leer() });
-    b.disabled = false; b.textContent = 'Guardar cambios';
+  $('#fguarda').addEventListener('click', async () => {
+    const b = $('#fguarda'); b.disabled = true; b.textContent = 'Guardando…';
+    const { error } = await supabase.rpc('mt_guardar_lead',
+      { p_id: l.id, p_campos: leer() });
+    b.disabled = false; b.textContent = 'Guardar';
     if (error) return fallo(error);
+    $('#fguardar').classList.remove('on');
     aviso('Guardado', true);
+    anunciar('Guardado');
     await refrescarEmbudo();
   });
 
-  // ---- cambiar de etapa ----
-  document.querySelectorAll('.fet[data-et]').forEach(b =>
-    b.addEventListener('click', async () => {
-      const et = b.dataset.et;
-      if (et === l.etapa) return;
-      if (et === 'perdido'){ caja('#fcajaperdido', true); return; }
-      caja(null, false);
-      await moverA(et, null);
-    }));
+  $('#fdescarta').addEventListener('click', () => abrirLead(l.id));
+
+  // ---- etapa ----
+  const sel = $('#fetapa');
+  sel.addEventListener('change', async () => {
+    const et = sel.value;
+    if (et === l.etapa) return;
+    if (et === 'perdido'){
+      $('#fcajaperdido').classList.add('on');
+      $('#p_motivo').focus();
+      return;
+    }
+    $('#fcajaperdido').classList.remove('on');
+    await moverA(et, null);
+  });
 
   async function moverA(et, nota){
     const { error } = await supabase.rpc('mt_mover_lead',
       { p_id: l.id, p_etapa: et, p_nota: nota });
-    if (error) return fallo(error);
+    if (error){ sel.value = l.etapa; return fallo(error); }
     await refrescarEmbudo();
     const nuevo = LEADS.find(x => x.id === l.id);
-    if (nuevo){ abrirLead(nuevo.id); aviso('Movido a ' + NOMBRE_ETAPA[et], true); }
-    else cerrar();   // se ha excluido o filtrado: no dejar la ficha huérfana
+    if (nuevo){
+      abrirLead(nuevo.id);
+      const t = et === 'perdido' ? 'Marcado como perdido' : 'Etapa: ' + NOMBRE_ETAPA[et];
+      aviso(t, true); anunciar(t);
+    }
+    else cerrar();
   }
 
-  $('#p_no').addEventListener('click', () => caja(null, false));
+  $('#p_no').addEventListener('click', () => {
+    $('#fcajaperdido').classList.remove('on');
+    sel.value = l.etapa;      // el desplegable vuelve a donde estaba
+  });
   $('#p_ok').addEventListener('click', async () => {
     const m = $('#p_motivo').value.trim();
-    if (!m) return aviso('Escribe el motivo antes de cerrarlo', false);
+    if (!m) return aviso('Escribe el motivo', false);
     await moverA('perdido', m);
   });
 
-  // ---- apuntar un toque ----
-  $('#ftoque').addEventListener('click', () => {
-    caja('#fcajatoque', !$('#fcajatoque').classList.contains('on'));
-    $('#t_fecha').value = $('#f_fecha').value || '';
-    setTimeout(() => $('#t_detalle')?.focus(), 120);
-  });
-  $('#t_no').addEventListener('click', () => caja(null, false));
+  // ---- apuntar un contacto ----
   $('#t_ok').addEventListener('click', async () => {
     const d = $('#t_detalle').value.trim();
     if (!d) return aviso('Escribe qué has hecho', false);
@@ -3179,15 +3467,18 @@ function enlazarFicha(l){
       { p_id: l.id, p_detalle: d, p_proxima: $('#t_fecha').value || null });
     b.disabled = false;
     if (error) return fallo(error);
-    caja(null, false);
-    aviso('Contacto apuntado', true);
+    aviso('Apuntado', true);
+    anunciar('Apuntado');
     await refrescarEmbudo();
     const nuevo = LEADS.find(x => x.id === l.id);
     if (nuevo) abrirLead(nuevo.id);
   });
+  $('#t_detalle').addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ e.preventDefault(); $('#t_ok').click(); }
+  });
 
   // ---- ir a la conversación ----
-  $('#fx').addEventListener('click', cerrar);
+  $('#fx')?.addEventListener('click', cerrar);
   $('#fver').addEventListener('click', () => {
     cerrar();
     document.querySelector('nav button[data-v="convs"]')?.click();
@@ -3197,15 +3488,18 @@ function enlazarFicha(l){
     }, 700);
   });
 
-  // Enter guarda desde cualquier campo de texto de la ficha
-  $('#mbox').querySelectorAll('.fpreg input').forEach(i =>
+  // Enter dentro de los datos guarda. Fuera de ahí no, porque el
+  // campo de apuntar contacto y el del motivo tienen su propio
+  // Enter y harían dos cosas a la vez.
+  $('#mbox').querySelectorAll('.fdatos input').forEach(i =>
     i.addEventListener('keydown', e => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      if ($('#fcajatoque').classList.contains('on')) $('#t_ok').click();
-      else if ($('#fcajaperdido').classList.contains('on')) $('#p_ok').click();
-      else $('#fguardar').click();
+      $('#fguarda').click();
     }));
+  $('#p_motivo').addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ e.preventDefault(); $('#p_ok').click(); }
+  });
 }
 
 /* ---------- utilidades ---------- */
@@ -3247,7 +3541,7 @@ const hora = d => new Date(d).toLocaleTimeString('es-ES', { hour:'2-digit', minu
   if (enProduccion || enLocal) return;
   const d = document.createElement('div');
   d.className = 'staging';
-  d.textContent = 'Staging · no es lo que ve el cliente';
+  d.textContent = 'Staging, no es lo que ve el cliente';
   document.body.insertBefore(d, document.body.firstChild);
 })();
 </script>
