@@ -11,7 +11,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700;1,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700;1,800&family=Noto+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   /* ============================================================
      SISTEMA
@@ -427,6 +427,41 @@
   .formula{display:grid;gap:6px;font-size:13px;color:var(--gris);line-height:1.5}
   .formula strong{color:var(--tinta);font-weight:700}
   .ftot{padding-top:6px;margin-top:2px;border-top:1px solid var(--linea)}
+  /* ---------- NOMBRES EN CUALQUIER ALFABETO ----------
+     Un tercio largo de los contactos no tiene nombre, y entre los
+     que lo tienen hay árabe (أبو مكه) y nombres que son solo emoji.
+     Plus Jakarta Sans no trae árabe: sin esta fuente de reserva, el
+     navegador cae a la que tenga y el nombre se ve descolocado.
+
+     Las alturas de línea del árabe son mayores, por eso 20px: es un
+     valor fuera de la escala, y está aquí a propósito. */
+  .nom-ar, bdi{font-family:'Plus Jakarta Sans','Noto Sans Arabic',sans-serif}
+  bdi{unicode-bidi:isolate}
+  .lnom bdi, .dnom bdi{line-height:20px}
+
+  /* ---------- LO QUE OYE UN LECTOR DE PANTALLA ----------
+     El panel se refresca solo cada 30 segundos y confirma cada
+     guardado. Sin esto, quien no ve la pantalla no se entera de
+     nada: ni de que hay datos nuevos ni de que se ha guardado. */
+  .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+  /* ---------- ESQUELETOS ----------
+     Un "Cargando…" en texto plano hace que la espera se perciba más
+     larga de lo que es, porque no se sabe qué va a aparecer ni
+     cuánto. Un esqueleto con la forma del contenido lo cuenta. */
+  .esq{background:linear-gradient(90deg,
+        var(--linea) 25%, var(--fondo-hueco) 37%, var(--linea) 63%);
+       background-size:400% 100%;border-radius:10px;
+       animation:esq 1.4s ease infinite}
+  @keyframes esq{0%{background-position:100% 50%}100%{background-position:0 50%}}
+  .esq-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .esq-kpi{height:96px}
+  .esq-panel{height:220px;margin-bottom:20px}
+  .esq-fila{height:64px;margin-bottom:8px}
+  @media(max-width:700px){.esq-kpis{grid-template-columns:repeat(2,1fr)}}
+  @media (prefers-reduced-motion:reduce){.esq{animation:none}}
+
   .cargando{text-align:center;padding:64px;color:var(--gris);font-size:13px}
 
   /* ---------- MÓVIL ---------- */
@@ -815,11 +850,17 @@
     </div>
   </header>
   <main>
-    <div id="vista"><div class="cargando">Cargando datos…</div></div>
+    <div id="vista"></div>
   </main>
 </div>
 
 <div class="modal" id="modal"><div class="box" id="mbox"></div></div>
+
+<!-- Lo que se anuncia a quien usa lector de pantalla. No se ve.
+     aria-live="polite" espera a que termine de leer lo que esté
+     leyendo: con "assertive" interrumpiría a media frase cada vez
+     que el panel se refresca solo. -->
+<div class="sr" id="anuncio" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -1166,6 +1207,50 @@ async function datos(){
 // `silencioso` = refresco automático o manual sobre contenido ya
 // visible: se evita el estado de carga y se conserva el scroll,
 // para que la página no dé el salto que reportaba el usuario.
+// Dice algo a quien no ve la pantalla. Se vacía antes de escribir
+// porque, si el texto es idéntico al anterior, el lector no lo
+// vuelve a leer y el usuario se queda sin enterarse.
+function anunciar(texto){
+  const a = document.getElementById('anuncio');
+  if (!a) return;
+  a.textContent = '';
+  setTimeout(() => { a.textContent = texto; }, 60);
+}
+
+// Un nombre puede ser árabe, emoji o venir vacío. <bdi> aísla la
+// dirección del texto: sin él, un nombre en árabe junto a un número
+// de teléfono reordena la línea entera y el teléfono aparece al
+// revés.
+function nom(valor, refPorDefecto){
+  const t = String(valor ?? '').trim();
+  if (!t) return `<span class="mono">${esc(refPorDefecto ?? '')}</span>` +
+                 `<span class="csin"> sin nombre</span>`;
+  return `<bdi>${esc(t)}</bdi>`;
+}
+
+// La inicial de un nombre que puede empezar por emoji: [...t] parte
+// por caracteres reales, no por unidades UTF-16, que partiría un
+// emoji por la mitad y dejaría un signo roto.
+function inicial(valor, refPorDefecto){
+  const t = String(valor ?? '').trim();
+  if (!t) return String(refPorDefecto ?? '?').slice(-2);
+  return [...t][0].toUpperCase();
+}
+
+// Esqueleto con la forma de lo que va a aparecer. Que la espera
+// tenga forma la hace percibirse más corta que un "Cargando…".
+function esqueleto(tipo){
+  if (tipo === 'latido') return `
+    <div class="esq-kpis">${'<div class="esq esq-kpi"></div>'.repeat(4)}</div>
+    <div class="esq esq-panel"></div>
+    <div class="esq esq-panel" style="height:150px"></div>`;
+  if (tipo === 'lista') return `
+    <div class="esq esq-panel" style="height:72px"></div>
+    ${'<div class="esq esq-fila"></div>'.repeat(6)}`;
+  return `<div class="esq esq-panel"></div>
+          <div class="esq esq-panel" style="height:140px"></div>`;
+}
+
 function pintaEn(html, silencioso){
   const y = window.scrollY;
   $('#vista').innerHTML = html;
@@ -1173,7 +1258,7 @@ function pintaEn(html, silencioso){
 }
 
 async function pintarLatido(silencioso){
-  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando datos…</div>';
+  if (!silencioso) $('#vista').innerHTML = esqueleto('latido');
   const d = await datos();
 
   const contactos = new Set(d.convs.map(c => c.user_ref)).size;
@@ -1953,7 +2038,7 @@ const aplicaFiltros = (lista, filtros) =>
 
 async function pintarConvs(silencioso){
   if (!silencioso) $('#vista').innerHTML =
-    '<div class="cargando">Cargando conversaciones…</div>';
+    esqueleto('lista');
 
   const { data, error } = await supabase.rpc('mt_mis_contactos');
   ULTIMA = Date.now(); pintarCuando();
@@ -2115,10 +2200,13 @@ async function filtrar(q){
 // pequeños y costaba distinguir a quién estabas mirando.
 let BUSCA = '';
 
-const inicial = c => {
+// Esta tomaba un contacto y partía con n[0], que corta por unidades
+// UTF-16: un nombre que empieza por emoji devolvía medio carácter y
+// se veía un signo roto. Ahora delega en inicial(), que parte por
+// caracteres reales.
+const inicialDe = c => {
   const n = (c.nombre || '').trim();
-  if (n) return n[0].toUpperCase();
-  return null;
+  return n ? inicial(n) : null;
 };
 
 // Resalta lo buscado sin romper el escapado: se escapa primero y
@@ -2170,7 +2258,7 @@ function desdeEntonces(d){
 }
 
 const filaC = c => {
-  const ini = inicial(c);
+  const ini = inicialDe(c);
   const act = c.historico ? { txt:'histórico', frio:true } : desdeEntonces(c.ultima);
   const senales = [
     c.cita          ? '<span class="pill vd">Cita</span>'          : '',
@@ -2184,7 +2272,7 @@ const filaC = c => {
     <div class="ini${ini ? '' : ' anon'}">${ini ? esc(ini) : '·'}</div>
     <div class="pcuerpo">
       <div class="pnom">${c.nombre
-        ? marca(c.nombre)
+        ? `<bdi>${marca(c.nombre)}</bdi>`
         : `<span class="mono">${marca(c.telefono || c.user_ref)}</span>
            <span class="csin"> · sin nombre</span>`}</div>
       <div class="pdat">${c.nombre
@@ -2214,7 +2302,7 @@ function enlazarFilas(){
    Las citas ya las guarda el agente en la tabla users mediante
    su herramienta "Save Data". Aquí solo se presentan.          */
 async function pintarAgenda(silencioso){
-  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando agenda…</div>';
+  if (!silencioso) $('#vista').innerHTML = esqueleto('lista');
 
   const { data, error } = await supabase.rpc('mt_mis_citas');
   ULTIMA = Date.now(); pintarCuando();
@@ -2330,7 +2418,7 @@ function descargarICS(c){
 
 /* ---------- vista: configuración ---------- */
 async function pintarAjustes(silencioso){
-  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando configuración…</div>';
+  if (!silencioso) $('#vista').innerHTML = esqueleto();
 
   let r = null, err = null;
   try {
@@ -2484,7 +2572,7 @@ function horarioTexto(){
 
 /* ---------- detalle de un contacto ---------- */
 async function abrir(contact){
-  $('#mbox').innerHTML = '<div class="cargando">Cargando…</div>';
+  $('#mbox').innerHTML = esqueleto('lista');
   $('#modal').style.display = 'block';
 
   // Se puede llegar aquí desde el Latido, donde la lista de
@@ -2606,7 +2694,7 @@ function ordenLeads(a, b){
 }
 
 async function pintarEmbudo(silencioso){
-  if (!silencioso) $('#vista').innerHTML = '<div class="cargando">Cargando el embudo…</div>';
+  if (!silencioso) $('#vista').innerHTML = esqueleto('lista');
 
   // Sincronizar ANTES de leer: si no, una conversación nueva no
   // aparece hasta que alguien se acuerde de refrescar el CRM a
@@ -2839,9 +2927,7 @@ function tarjetaLead(l){
     <div class="lcinta"></div>
     <div class="lcuerpo">
       <div class="lcab">
-        <span class="lnom">${l.nombre ? esc(l.nombre)
-          : `<span class="mono">${esc(l.telefono || l.user_ref)}</span>
-             <span class="csin"> sin nombre</span>`}</span>
+        <span class="lnom">${nom(l.nombre, l.telefono || l.user_ref)}</span>
         <span class="pill az">${esc(NOMBRE_ETAPA[l.etapa] || l.etapa)}</span>
         ${l.valor_mes ? `<span class="pill vd">${nf.format(l.valor_mes)} €/mes</span>` : ''}
       </div>
@@ -2883,8 +2969,7 @@ function abrirLead(id){
    <div class="lficha">
     <div class="fcab">
       <div style="min-width:0">
-        <h2>${l.nombre ? esc(l.nombre)
-          : `<span class="mono">${esc(l.telefono || l.user_ref)}</span>`}</h2>
+        <h2>${nom(l.nombre, l.telefono || l.user_ref)}</h2>
         <p class="dmeta">
           <a href="tel:${esc(l.telefono || l.user_ref)}" class="mono"
             >${esc(l.telefono || l.user_ref)}</a>${
@@ -3134,6 +3219,7 @@ function enlazarFicha(l){
     b.disabled = false; b.textContent = 'Guardar cambios';
     if (error) return fallo(error);
     aviso('Guardado', true);
+    anunciar('Cambios guardados');
     await refrescarEmbudo();
   });
 
@@ -3153,7 +3239,8 @@ function enlazarFicha(l){
     if (error) return fallo(error);
     await refrescarEmbudo();
     const nuevo = LEADS.find(x => x.id === l.id);
-    if (nuevo){ abrirLead(nuevo.id); aviso('Movido a ' + NOMBRE_ETAPA[et], true); }
+    if (nuevo){ abrirLead(nuevo.id); aviso('Movido a ' + NOMBRE_ETAPA[et], true);
+                anunciar('Lead movido a ' + NOMBRE_ETAPA[et]); }
     else cerrar();   // se ha excluido o filtrado: no dejar la ficha huérfana
   }
 
@@ -3181,6 +3268,7 @@ function enlazarFicha(l){
     if (error) return fallo(error);
     caja(null, false);
     aviso('Contacto apuntado', true);
+    anunciar('Contacto apuntado');
     await refrescarEmbudo();
     const nuevo = LEADS.find(x => x.id === l.id);
     if (nuevo) abrirLead(nuevo.id);
