@@ -236,7 +236,6 @@
 
   .vacio{text-align:center;padding:48px 20px;color:var(--gris);font-size:13px;line-height:1.6}
 
-  .tabla{overflow-x:auto;margin:0 -24px;padding:0 24px;-webkit-overflow-scrolling:touch}
   table{width:100%;border-collapse:collapse;font-size:13px}
   td,th{white-space:nowrap}
   td:first-child,th:first-child{white-space:normal}
@@ -290,7 +289,6 @@
         padding-bottom:16px;border-bottom:1px solid var(--linea)}
   .mini strong{color:var(--tinta);font-size:15px;font-weight:700;margin-right:5px}
   .nota{font-size:12px;color:var(--gris);line-height:1.6;margin:-6px 0 32px;max-width:76ch}
-  .secc{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--gris);margin-bottom:13px}
   .ficha{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:2px 24px;font-size:13px}
   .ficha dt{color:var(--gris);font-weight:600;padding:8px 0;border-top:1px solid var(--linea)}
   .ficha dd{padding:8px 0;border-top:1px solid var(--linea);line-height:1.6}
@@ -381,7 +379,6 @@
 
   .busca{width:auto;min-width:260px;flex:0 1 320px;max-width:100%;margin:0;padding:8px 12px;font-size:13px}
   @media(max-width:600px){.busca{width:100%;min-width:0}}
-  .aprox{font-size:11px;color:var(--gris);font-weight:600}
   .pill.az{background:#E5EFFE;color:var(--azul-texto)}
   .pill.vd{background:var(--verde-tenue);color:var(--verde-oscuro)}
   td .pill{margin-right:4px}
@@ -398,23 +395,20 @@
   /* Altura en píxeles y no en vh: con vh, el mapa cambiaba de
      tamaño al aparecer y desaparecer la barra del navegador en el
      móvil, y el contenido saltaba mientras se desplazaba. */
+  /* El globo del mapa. `.ltip` y `.tz` las escribe Leaflet dentro
+     de su propio marcado, así que no aparecen como class="" en este
+     archivo y una limpieza automática se las lleva por delante. */
+  .ltip{font-size:13px;font-weight:700;line-height:1.4}
+  .tz{display:block;font-size:12px;font-weight:500;color:var(--gris);margin-top:2px}
+
   .lmapa{width:100%;height:360px;border-radius:14px;overflow:hidden;
          border:1px solid var(--linea);background:#F7FAFF;z-index:1}
   @media(max-width:600px){.lmapa{height:300px}}
   .leaflet-container{font-family:'Plus Jakarta Sans',sans-serif;background:#F7FAFF}
   /* aspecto minimalista sobre teselas estándar, sin depender de
      un proveedor de pago ni de una clave de API */
-  .tsuave{filter:grayscale(.92) brightness(1.06) contrast(.92)}
   .leaflet-control-attribution{font-size:11px;background:rgba(255,255,255,.82)}
   .leaflet-control-zoom a{border-radius:10px!important;color:var(--profundo)!important}
-  .pmarca{cursor:pointer;transition:fill-opacity .15s,stroke-width .15s ease}
-  .ltip{background:var(--tinta);color:#fff;border:0;border-radius:10px;
-        padding:8px 12px;font-size:12px;line-height:1.5;white-space:nowrap;
-        box-shadow:0 6px 18px rgba(10,31,74,.22)}
-  .ltip strong{display:block;font-size:13px;font-weight:800}
-  .ltip span{color:var(--borde-fuerte);font-size:11px;display:block}
-  .ltip .tz{color:var(--gris-claro);font-size:11px}
-  .ltip::before{border-top-color:var(--tinta)!important}
 
   .docs{display:grid;gap:12px}
   .doc{display:flex;align-items:center;gap:12px;padding:16px 16px;
@@ -434,11 +428,7 @@
   .tip strong{display:block;font-size:15px;font-weight:800}
   .tip span{color:var(--borde-fuerte);font-size:11px}
 
-  .cnom{font-weight:700;font-size:13px}
   .csin{color:var(--gris);font-weight:500;font-style:italic}
-  .cdat{font-size:12px;color:var(--gris);margin-top:2px}
-  .ses{display:inline-block;font-size:11px;color:var(--gris);margin-left:5px;
-       background:var(--fondo);padding:2px 6px;border-radius:999px;font-weight:600}
   .pill.nt{background:var(--fondo-hueco);color:var(--tinta-suave)}
   td .cnom,td .cdat{white-space:normal}
 
@@ -473,13 +463,6 @@
     .cita{grid-template-columns:52px 1fr;gap:12px}
     .cacc{grid-column:1/-1;justify-content:flex-start}
   }
-  .coste{display:flex;align-items:center;gap:clamp(24px,5vw,56px);flex-wrap:wrap}
-  .cifra{font-size:clamp(44px,6vw,64px);font-weight:800;letter-spacing:-.04em;
-         line-height:1;color:var(--pulso)}
-  .cifra span{font-size:.45em;font-weight:700;margin-left:4px}
-  .formula{display:grid;gap:6px;font-size:13px;color:var(--gris);line-height:1.5}
-  .formula strong{color:var(--tinta);font-weight:700}
-  .ftot{padding-top:6px;margin-top:2px;border-top:1px solid var(--linea)}
   /* ---------- NOMBRES EN CUALQUIER ALFABETO ----------
      Un tercio largo de los contactos no tiene nombre, y entre los
      que lo tienen hay árabe (أبو مكه) y nombres que son solo emoji.
@@ -488,7 +471,6 @@
 
      Las alturas de línea del árabe son mayores, por eso 20px: es un
      valor fuera de la escala, y está aquí a propósito. */
-  .nom-ar, bdi{font-family:'Plus Jakarta Sans','Noto Sans Arabic',sans-serif}
   bdi{unicode-bidi:isolate}
 
   /* ---------- LO QUE OYE UN LECTOR DE PANTALLA ----------
@@ -514,7 +496,6 @@
   @media(max-width:700px){.esq-kpis{grid-template-columns:repeat(2,1fr)}}
   @media (prefers-reduced-motion:reduce){.esq{animation:none}}
 
-  .cargando{text-align:center;padding:64px;color:var(--gris);font-size:13px}
 
   /* ---------- MÓVIL ---------- */
   @media(max-width:820px){
@@ -532,7 +513,6 @@
     .panel{padding:20px 16px}
     .kpi{padding:20px 20px}
     .kpi .num{font-size:32px}
-    .tabla{margin:0 -16px;padding:0 16px}
     .mini{gap:16px 20px}
     .modal{padding:0}
     .modal .box{margin:0;border-radius:0;min-height:100vh;padding:24px 20px}
@@ -548,11 +528,7 @@
     .campos{grid-template-columns:1fr}
     main{padding:20px 12px 64px}
     .panel{padding:16px 16px}
-    .tabla{margin:0 -16px;padding:0 16px}
     .mapa{margin:0 -16px;padding:0 16px}
-    .svgmapa{max-height:none}
-    .mtxt{font-size:15px}
-    .mnum{font-size:15px}
     h2.tit{font-size:21px}
     .kpi .num{font-size:32px}
     .doc{padding:12px 12px;gap:12px}
@@ -584,6 +560,17 @@
          flex:none;margin-top:20px}
   .binfo:hover{background:var(--pulso);color:#fff}
   @media (pointer:coarse){.binfo{min-width:44px;min-height:44px}}
+
+  /* Entre 821 y 1080 px la cabecera se partía en dos líneas y las
+     pestañas quedaban debajo del logotipo. Ni es móvil ni es
+     escritorio: es el portátil de mucha gente. */
+  @media (min-width:821px) and (max-width:1080px){
+    header{flex-wrap:nowrap;gap:16px}
+    nav{overflow-x:auto;scrollbar-width:none}
+    nav::-webkit-scrollbar{display:none}
+    nav button{padding:20px 8px 16px;font-size:13px;white-space:nowrap}
+    .rtxt{display:none}
+  }
 
   /* ---------- CAMPOS CON UNIDAD ----------
      El "€/mes" dentro del propio campo quita la duda de si la cifra
@@ -676,7 +663,6 @@
   .fcab h2{font-size:21px;letter-spacing:-.02em;line-height:1.2}
   .fcab .dmeta{font-size:13px;color:var(--gris);margin-top:4px;overflow-wrap:anywhere}
   .lficha .fcab .dmeta + .dmeta{margin-top:2px}
-  .fcabacc{display:flex;gap:8px;align-items:flex-start;flex:none}
 
   /* Lo último que dijo el cliente, en su propia caja. Es lo que
      recuerda de qué iba la conversación sin tener que abrirla, y
@@ -2211,8 +2197,8 @@ async function pintarConvs(silencioso){
 
   pintaEn(`
     <h2 class="tit">Conversaciones</h2>
-    <p class="sub">Una fila por persona. Ábrela para ver todo el intercambio,
-       incluidas las veces que volvió a escribir.</p>
+    <p class="sub">Todas las personas que han escrito a tu asistente,
+       con su historial completo.</p>
     <div class="panel" id="pconvs"></div>`, silencioso);
 
   render();
@@ -2237,16 +2223,12 @@ function render(busqueda){
     return { k, s, activo, n };
   }).filter(c => c.activo || c.n > 0);
 
-  const sesiones = lista.reduce((a,c) => a + Number(c.conversaciones), 0);
-  const vueltos  = lista.filter(c => Number(c.conversaciones) > 1).length;
 
   cont.innerHTML = `
     <div class="cabpanel">
       <div>
         <h3>${nf.format(lista.length)} ${lista.length === 1 ? 'persona' : 'personas'}</h3>
-        <p class="ph" style="margin:2px 0 0">${nf.format(sesiones)} conversaciones${
-          vueltos ? ` · ${nf.format(vueltos)} ${vueltos === 1 ? 'ha vuelto' : 'han vuelto'} a escribir` : ''}${
-          FILTRO.size ? ` · filtrado de ${nf.format(CONTACTOS.length)}` : ''}</p>
+        ${FILTRO.size ? `<p class="ph" style="margin:2px 0 0">de ${nf.format(CONTACTOS.length)}</p>` : ''}
       </div>
     </div>
 
@@ -2434,14 +2416,13 @@ const filaC = c => {
         : `<span class="mono">${marca(c.telefono || c.user_ref)}</span>
            <span class="csin"> · sin nombre</span>`}</div>
       <div class="pdat">${c.nombre
-        ? `<span class="mono">${marca(c.telefono || c.user_ref)}</span>` : ''}${
-        c.email ? (c.nombre ? ' · ' : '') + marca(c.email) : ''}</div>
+        ? `<span class="mono">${marca(c.telefono || c.user_ref)}</span>`
+        : (c.email ? marca(c.email) : '')}</div>
       ${senales ? `<div class="pmarcas">${senales}</div>` : ''}
     </div>
     <div class="pact">
       <div class="pcuando${act.frio ? ' frio' : ''}">${esc(act.txt)}</div>
-      <div class="pmsg">${nf.format(c.mensajes)} mensajes${
-        Number(c.conversaciones) > 1 ? ` · ${c.conversaciones} veces` : ''}</div>
+      <div class="pmsg">${nf.format(c.mensajes)} mensajes</div>
     </div>
   </div>`;
 };
@@ -2485,8 +2466,7 @@ async function pintarAgenda(silencioso){
 
   pintaEn(`
     <h2 class="tit">Agenda</h2>
-    <p class="sub">Citas que ha ido registrando el asistente en sus conversaciones.
-       Puedes añadir cada una a tu calendario.</p>
+    <p class="sub">Las citas que ha agendado el asistente.</p>
 
     <div class="kpis">
       ${kpi('Próximas citas', nf.format(proximas.length),
@@ -2503,8 +2483,8 @@ async function pintarAgenda(silencioso){
     ${canceladas.length ? bloqueCitas('Canceladas', canceladas.slice(0, 15), false) : ''}
 
     ${!citas.length ? `<div class="panel"><div class="vacio">
-      Sin citas por ahora.<br>
-        Aparecen aquí en cuanto se agende la primera desde Calendly.</div></div>` : ''}`,
+      <strong>Sin citas por ahora.</strong><br>
+        Aparecerán aquí cuando el asistente agende la primera.</div></div>` : ''}`,
     silencioso);
 
   document.querySelectorAll('.ics').forEach(b =>
@@ -2601,12 +2581,11 @@ async function pintarAjustes(silencioso){
 
   $('#vista').innerHTML = `
     <h2 class="tit">Configuración</h2>
-    <p class="sub">Datos del servicio, parámetros de cálculo y qué información
-       se trata. Lo editable se guarda al pulsar Guardar.</p>
+    <p class="sub">Datos de tu servicio y preferencias.</p>
 
     <div class="panel">
       <h3>Servicio</h3>
-      <p class="ph">No se puede editar desde aquí.</p>
+      <p class="ph">Solo lectura.</p>
       <dl class="ficha">
         <dt>Cliente</dt><dd>${esc(r.cliente || '—')}</dd>
         <dt>Canal</dt><dd>${esc(r.canal)}</dd>
@@ -2679,8 +2658,8 @@ async function pintarAjustes(silencioso){
 
     ${CFG.documentos && CFG.documentos.length ? `<div class="panel">
       <h3>Información del servicio</h3>
-      <p class="ph">Documentación que usa el asistente para responder.
-         Solo lectura: si necesitas cambiar algo, escríbenos y lo actualizamos.</p>
+      <p class="ph">Documentos que usa el asistente para responder.
+         Para cambiarlos, escríbenos.</p>
       <div class="docs">
         ${CFG.documentos.map(doc => `<a class="doc" href="${esc(doc.url)}"
             target="_blank" rel="noopener noreferrer">
@@ -2929,7 +2908,7 @@ async function pintarEmbudo(silencioso){
 
   if (!LEADS.length){
     pintaEn(`<h2 class="tit">Embudo</h2>
-      <p class="sub">Todo el que escribe al asistente, y en qué punto está.</p>
+      <p class="sub corta">Quien ha escrito a tu asistente, ordenado por lo que hay que hacer primero.</p>
       <div class="panel"><div class="vacio">
         <strong>Nadie ha escrito aún.</strong><br>
         Quien escriba al asistente entra aquí solo, sin hacer nada.</div></div>`, silencioso);
