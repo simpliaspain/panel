@@ -166,7 +166,61 @@
   h2.tit{font-size:32px;letter-spacing:-.03em;margin-bottom:5px}
   .sub{color:var(--gris);font-size:15px;margin-bottom:28px;max-width:70ch;line-height:1.6}
 
-  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:16px;margin-bottom:26px}
+  /* 2x2 en lugar de auto-fit. Con auto-fit, entre 820 y 1080 px
+     caían tres arriba y uno solo abajo, descolgado. Y en móvil
+     quedaban cuatro apilados ocupando una pantalla entera para
+     cuatro números. */
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+        gap:16px;margin-bottom:16px}
+  @media (max-width:1080px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+  /* Bloques en pareja. Si uno de los dos no se pinta, el otro ocupa
+     el ancho entero en vez de quedarse huérfano en la mitad. */
+  .rejilla2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:16px;margin-bottom:16px;align-items:stretch}
+  .rejilla2 > .panel{margin-bottom:0}
+  .rejilla2:has(> .panel:only-child){grid-template-columns:minmax(0,1fr)}
+  @media (max-width:820px){.rejilla2{grid-template-columns:minmax(0,1fr)}}
+
+  /* Panel plegable: la cabecera es el botón entero, no un icono
+     pequeño al que hay que apuntar. */
+  .panel.plegado{padding:0;overflow:hidden}
+  .pleg-fila{display:flex;align-items:flex-start;gap:8px;padding:0 20px 0 0}
+  .pleg{flex:1 1 auto;display:flex;justify-content:space-between;align-items:flex-start;
+        gap:16px;background:none;text-align:left;padding:20px;min-height:44px}
+  .pleg h3{margin:0}
+  .pleg .ph{margin:4px 0 0}
+  .pleg-ver{flex:none;font-size:13px;font-weight:700;color:var(--pulso-texto);
+            white-space:nowrap;padding-top:2px}
+  .pleg[aria-expanded="true"] .pleg-ver::after{content:'';}
+  .pleg-cuerpo{display:none;padding:0 20px 20px}
+  .panel.plegado.abierto .pleg-cuerpo{display:block}
+  @media (max-width:820px){
+    .pleg{padding:16px}
+    .pleg-fila{padding-right:16px}
+    .pleg-cuerpo{padding:0 16px 16px}
+  }
+
+  /* ---------- TUS NÚMEROS ----------
+     Cada partida con su cuenta escrita debajo. Una cifra sin la
+     operación que la produce no se puede defender delante de nadie. */
+  .tn-total{font-size:41px;font-weight:800;letter-spacing:-.035em;line-height:1;
+            margin-bottom:20px}
+  .tn-total span{font-size:17px;font-weight:700;color:var(--gris)}
+  .tn{display:grid;gap:14px}
+  .tn-fila{padding-bottom:14px;border-bottom:1px solid var(--linea)}
+  .tn-fila:last-of-type{border-bottom:0;padding-bottom:0}
+  .tn-cab{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+  .tn-cab b{font-size:13px;font-weight:700}
+  .tn-eur{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;
+          white-space:nowrap}
+  .tn-cuenta{font-size:12px;color:var(--gris);margin-top:4px;line-height:1.5}
+  .tn-cuenta strong{color:var(--tinta-suave);font-weight:700}
+  .tn-aparte{margin-top:16px;padding-top:14px;border-top:1px solid var(--linea)}
+  .tn-tot{display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+          margin-top:16px;padding-top:14px;border-top:1.5px solid var(--borde-fuerte);
+          font-size:13px;font-weight:700}
+  .tn-falta{color:var(--ambar-texto);font-weight:600}
   .kpi{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:20px 24px}
   .kpi .lab{font-size:12px;color:var(--gris);font-weight:600;margin-bottom:9px}
   .kpi .num{font-size:41px;font-weight:800;letter-spacing:-.035em;line-height:1}
@@ -522,6 +576,15 @@
   .lfiltros{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px;align-items:center}
   .lfiltros .busca{flex:1 1 200px;min-width:0}
 
+
+  /* El botón «i» vuelve: lleva de Tus números a Configuración. Se
+     borró al quitar la leyenda del embudo y aquí sí tiene sentido,
+     porque lleva a otro sitio en vez de desplegar texto. */
+  .binfo{background:var(--aire);color:var(--profundo);width:28px;height:28px;
+         border-radius:999px;font-size:13px;font-weight:800;line-height:1;
+         flex:none;margin-top:20px}
+  .binfo:hover{background:var(--pulso);color:#fff}
+  @media (pointer:coarse){.binfo{min-width:44px;min-height:44px}}
 
   /* ---------- CAMPOS CON UNIDAD ----------
      El "€/mes" dentro del propio campo quita la duda de si la cifra
@@ -1197,14 +1260,15 @@ async function datos(){
   // devolvía datos de todos los clientes, una columna que no
   // existía y daba ceros en silencio — porque el filtro de
   // exclusiones vive dentro de la función y no se puede olvidar.
-  const [convs, resumen, porHora, lat, reciente, lugares, patron] = await Promise.all([
+  const [convs, resumen, porHora, lat, reciente, lugares, patron, numeros] = await Promise.all([
     supabase.rpc('mt_conversaciones_lista', { p_limite: 1000 }),
     supabase.rpc('mt_resumen',    { p_horas: RANGO }),
     supabase.rpc('mt_por_hora',   { p_horas: RANGO }),
     supabase.rpc('mt_latencias',  { p_limite: 200 }),
     supabase.rpc('mt_actividad',  { p_limite: 12 }),
     supabase.rpc('mt_demanda'),
-    supabase.rpc('mt_patron_horario')
+    supabase.rpc('mt_patron_horario'),
+    supabase.rpc('mt_mis_numeros')
   ]);
 
   // Orden: primero lo registrado con fecha real (más reciente arriba);
@@ -1229,6 +1293,7 @@ async function datos(){
   const res = (Array.isArray(resumen.data) ? resumen.data[0] : resumen.data) || {};
   return {
     convs: CONVS,
+    num: (Array.isArray(numeros.data) ? numeros.data[0] : numeros.data) || null,
     res,
     porHora: porHora.data || [],
     total: res.mensajes || 0,
@@ -1381,9 +1446,10 @@ async function pintarLatido(silencioso){
        Las conversaciones anteriores se conservan íntegras y se pueden consultar en
        Conversaciones, pero no aparecen en la gráfica por hora.</p>
 
-    ${bloqueCoste(d)}`, silencioso);
+    ${bloqueNumeros(d.num)}`, silencioso);
 
   activarGrafico();
+  enlazarPlegables();
   ULTIMOS = d;
   activarMapa();
   activarSenales();
@@ -1412,65 +1478,104 @@ const kpi = (l,n,p,az) => `<div class="kpi">
 // Coste evitado: estimación, no medición. Se muestra la fórmula
 // para que el cliente pueda juzgar si le encaja, en lugar de
 // presentarle una cifra que tiene que creerse.
-function bloqueCoste(d){
-  const a = CFG.ajustes || {};
-  const ch = Number(a.coste_hora_eur);
-  const mn = Number(a.minutos_por_conversacion);
+// Sustituye al antiguo bloque de coste. Tres partidas, cada una con su cuenta
+// escrita: una cifra sin la operación que la produce no se puede
+// defender delante de nadie.
+//
+// Lo calcula la base (mt_mis_numeros), no el navegador: el horario y
+// la zona horaria del cliente ya viven allí, y así la cifra es la
+// misma la mire quien la mire.
+// Un solo gestor para todos los paneles plegables. aria-expanded
+// es lo que anuncia el lector de pantalla; la clase solo pinta.
+function enlazarPlegables(){
+  document.querySelectorAll('.panel.plegado .pleg').forEach(b => {
+    if (b.dataset.listo) return;
+    b.dataset.listo = '1';
+    b.addEventListener('click', () => {
+      const panel = b.closest('.panel.plegado');
+      const abierto = panel.classList.toggle('abierto');
+      b.setAttribute('aria-expanded', String(abierto));
+      b.querySelector('.pleg-ver').textContent = abierto ? 'Ocultar' : 'Ver';
+    });
+  });
 
-  // solo las conversaciones que el asistente llevó a término:
-  // respondió y no hubo que intervenir
-  const atendidas = d.convs.filter(c =>
-    Number(c.del_asistente) > 0 && !c.friccion).length;
+  // El botón «i» lleva a Configuración y marca el panel: sin eso,
+  // el usuario aterriza en una pantalla llena de paneles y tiene
+  // que buscar a cuál venía.
+  $('#binum')?.addEventListener('click', async e => {
+    e.stopPropagation();
+    document.querySelector('nav button[data-v="ajustes"]')?.click();
+    await new Promise(r => setTimeout(r, 400));
+    const el = $('#parametros'); if (!el) return;
+    const alto = document.querySelector('header')?.getBoundingClientRect().height || 0;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - alto - 16,
+                      behavior: 'smooth' });
+    el.classList.add('destaca');
+    setTimeout(() => el.classList.remove('destaca'), 2400);
+    $('#tk')?.focus({ preventScroll: true });
+  });
+}
 
-  if (!ch || !mn || !atendidas) return '';
-  const horas = atendidas * mn / 60;
-  const eur   = horas * ch;
+function bloqueNumeros(n){
+  if (!n) return '';
+  const falta = new Set(n.faltan || []);
+  const eur = v => nf.format(Math.round(Number(v) || 0)) + ' €';
 
-  return `<div class="panel">
-    <h3>Coste de atención evitado</h3>
-    <p class="ph">Estimación de lo que habría costado atender estas conversaciones
-       con una persona.</p>
-    <div class="coste">
-      <div class="cifra">${nf.format(Math.round(eur))}<span>€</span></div>
-      <div class="formula">
-        <span><strong class="mono">${nf.format(atendidas)}</strong> conversaciones
-              resueltas por el asistente</span>
-        <span>× <strong class="mono">${mn}</strong> min que llevaría atender cada una</span>
-        <span>× <strong class="mono">${ch} €</strong> por hora de una persona</span>
-        <span class="ftot">= <strong class="mono">${nf.format(Math.round(horas))}</strong>
-              horas de trabajo</span>
-      </div>
+  // Una partida sin su parámetro no enseña un cero, que parecería un
+  // dato: dice qué falta y dónde se pone.
+  const fila = (titulo, importe, cuenta, falta_de) => `
+    <div class="tn-fila">
+      <div class="tn-cab"><b>${titulo}</b>
+        <span class="tn-eur">${falta_de ? '—' : eur(importe)}</span></div>
+      <div class="tn-cuenta${falta_de ? ' tn-falta' : ''}">${
+        falta_de ? 'Falta ' + falta_de + ' en Configuración' : cuenta}</div>
+    </div>`;
+
+  const partidas = [
+    [Number(n.ventas_eur) || 0, fila('Ventas cerradas', n.ventas_eur,
+      `<strong>${nf.format(n.ganados)}</strong> ${n.ganados === 1 ? 'cliente ganado' : 'clientes ganados'}
+       × <strong>${nf.format(n.ticket_medio)} €</strong> al mes`,
+      falta.has('ticket') ? 'el pago medio de un cliente' : null)],
+    [Number(n.tiempo_eur) || 0, fila('Tiempo liberado', n.tiempo_eur,
+      `<strong>${nf.format(n.conversaciones)}</strong> conversaciones
+       × <strong>${n.minutos_por_conv} min</strong>
+       × <strong>${n.coste_hora} €</strong> la hora`,
+      falta.has('minutos') || falta.has('coste_hora')
+        ? 'el coste por hora o los minutos por conversación' : null)],
+  ].sort((a,b) => b[0] - a[0]).map(x => x[1]).join('');
+
+  return `<div class="panel plegado" id="p-numeros">
+    <div class="pleg-fila">
+      <button class="pleg" aria-expanded="false" aria-controls="p-numeros-c">
+        <span><h3>Tus números</h3>
+          <p class="ph">Calculado con tus datos de este mes.</p></span>
+        <span class="pleg-ver">Ver</span>
+      </button>
+      <button class="binfo" id="binum" title="Cambiar los valores del cálculo"
+        aria-label="Cambiar los valores del cálculo en Configuración">i</button>
     </div>
-    <p class="nota" style="margin:16px 0 0">
-      Los dos parámetros se pueden ajustar en Configuración. No se cuentan las
-      conversaciones en las que hubo fricción, porque en esas es probable que
-      alguien tuviera que intervenir igualmente.
-    </p>
+    <div class="pleg-cuerpo" id="p-numeros-c">
+      <div class="tn-total">${nf.format(Math.round(Number(n.total_eur) || 0))}<span> €/mes</span></div>
+      <div class="tn">${partidas}
+        <div class="tn-tot"><span>= Total al mes</span>
+          <span class="tn-eur">${eur(n.total_eur)}</span></div>
+      </div>
+
+      ${Number(n.fuera_horario) ? `
+      <div class="tn-aparte">
+        <div class="tn-cab"><b>Captados fuera de horario</b>
+          <span class="tn-eur">${falta.has('ticket') ? '—' : eur(n.fuera_horario_eur)}</span></div>
+        <div class="tn-cuenta"><strong>${nf.format(n.fuera_horario)}</strong>
+          ${n.fuera_horario === 1 ? 'persona escribió' : 'personas escribieron'}
+          por primera vez de noche o en fin de semana</div>
+        <p class="nota" style="margin:8px 0 0">No suma en el total: es dinero
+          posible, no cobrado. Las otras dos partidas son horas que nadie ha
+          trabajado y ventas firmadas.</p>
+      </div>` : ''}
+    </div>
   </div>`;
 }
 
-const kpiPend = (l,p) => `<div class="kpi pend">
-  <div class="lab">${l}</div><div class="num">—</div><div class="pie">${p}</div></div>`;
-
-/* ---------- señales de conversación ----------
-   El bloque se puede segmentar por periodo y por persona. El
-   denominador se recalcula siempre sobre el mismo subconjunto que
-   los numeradores: si se filtrara solo el "n" y el total siguiera
-   siendo el histórico, los porcentajes serían falsos. */
-
-let SEN_PER = 'todo';    // dia | semana | mes | ano | todo
-let SEN_QUIEN = '';      // user_ref, o '' para todas las personas
-
-const SEN_PERIODOS = [
-  ['dia',    'Hoy'],
-  ['semana', 'Semana'],
-  ['mes',    'Mes'],
-  ['ano',    'Año'],
-  ['todo',   'Todo']
-];
-
-// Periodos de calendario, no ventanas móviles: "Semana" es la semana
-// en curso desde el lunes, no los últimos siete días.
 function inicioPeriodo(p){
   const d = new Date();
   if (p === 'dia'){ d.setHours(0,0,0,0); return d; }
