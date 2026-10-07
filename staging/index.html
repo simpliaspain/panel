@@ -589,6 +589,37 @@
   #parametros{scroll-margin-top:96px;transition:border-color .15s ease}
   #parametros.destaca{border-color:var(--pulso)}
 
+  /* ---------- CONVERSACIONES EN DOS COLUMNAS ----------
+     La conversación se lee AL LADO de la lista, no en una ventana
+     encima. Con un modal hay que cerrarlo para pasar al siguiente,
+     y revisar diez contactos son veinte clics de más. */
+  .convs2{display:grid;grid-template-columns:minmax(0,1fr) 420px;
+          gap:16px;align-items:start}
+  .convs2 > .panel{margin-bottom:0}
+
+  /* La conversación se queda fija mientras se recorre la lista, y
+     se desplaza por dentro. */
+  #pdetalle{position:sticky;top:88px;max-height:calc(100vh - 104px);
+            overflow-y:auto;overscroll-behavior:contain}
+  .vacio-det{display:flex;align-items:center;justify-content:center;
+             min-height:200px;color:var(--gris);font-size:13px;text-align:center}
+
+  .dcab{padding-bottom:16px;border-bottom:1px solid var(--linea);margin-bottom:16px}
+  .dcab h2{font-size:21px;letter-spacing:-.02em;line-height:1.2}
+  .dcab .dmeta{font-size:13px;color:var(--gris);margin-top:4px;overflow-wrap:anywhere}
+  .dcab .dacc{margin:16px 0 0;padding:0;border:0}
+
+  @media (max-width:1080px){
+    .convs2{grid-template-columns:minmax(0,1fr) 360px}
+    #pdetalle{top:80px}
+  }
+  @media (max-width:820px){
+    /* Sin sitio para dos columnas: la conversación vuelve a abrirse
+       encima, que es lo que cabe en un teléfono. */
+    .convs2{grid-template-columns:minmax(0,1fr)}
+    #pdetalle{display:none}
+  }
+
   /* ---------- EMBUDO · CABECERA ----------
      La barra del recorrido se sustituye por una línea de cuentas.
      Aquella ocupaba un panel entero para decir lo mismo, y con cero
@@ -807,6 +838,10 @@
         transition:background .15s ease}
   .pers:first-child{border-top:0}
   .pers:hover{background:var(--fondo)}
+  /* La fila que se está leyendo. Sin esto, con la conversación al
+     lado no se sabe de quién es lo que hay en pantalla. */
+  .pers.on{background:var(--aire)}
+  .pers.on .pnom{color:var(--pulso-texto)}
   .ini{width:42px;height:42px;border-radius:999px;display:flex;align-items:center;
        justify-content:center;font-weight:800;font-size:15px;
        background:var(--aire);color:var(--profundo);flex:none}
@@ -2153,7 +2188,7 @@ function irASenal(tipo){
    Se agrupa por PERSONA, no por sesión. El corte a 30 minutos
    sigue existiendo para las métricas, pero aquí sería confuso:
    el usuario piensa en "mi conversación con X", no en sesiones. */
-let CONTACTOS = [];
+let CONTACTOS = [], ABIERTO = null;
 // Filtros activos en Conversaciones. Se combinan con Y: marcar
 // "Interés" y "Contacto" da los leads listos para llamar.
 let FILTRO = new Set();
@@ -2162,7 +2197,6 @@ let FILTRO = new Set();
 let ORDEN = 'reciente';
 const ORDENES = {
   reciente: { etq:'Más reciente', fn:(a,b) => new Date(b.ultima) - new Date(a.ultima) },
-  antigua:  { etq:'Más antigua',  fn:(a,b) => new Date(a.primera) - new Date(b.primera) },
   mensajes: { etq:'Más mensajes', fn:(a,b) => Number(b.mensajes) - Number(a.mensajes) },
   nombre:   { etq:'Por nombre',   fn:(a,b) =>
       (a.nombre || '\uffff').localeCompare(b.nombre || '\uffff', 'es') }
@@ -2198,7 +2232,12 @@ async function pintarConvs(silencioso){
     <h2 class="tit">Conversaciones</h2>
     <p class="sub">Todas las personas que han escrito a tu asistente,
        con su historial completo.</p>
-    <div class="panel" id="pconvs"></div>`, silencioso);
+    <div class="convs2">
+      <div class="panel" id="pconvs"></div>
+      <div id="pdetalle" class="panel vacio-det">
+        Elige a alguien de la lista para ver su conversación.
+      </div>
+    </div>`, silencioso);
 
   render();
 }
@@ -2233,7 +2272,7 @@ function render(busqueda){
 
     <div class="barrafil">
       <input id="buscar" class="busca" type="search"
-             placeholder="Buscar por nombre, teléfono, email o texto…"
+             placeholder="Buscar por nombre, teléfono o email…"
              autocomplete="off" value="${esc(busqueda || '')}">
       <div class="orden">
         ${Object.entries(ORDENES).map(([k,o]) =>
@@ -2407,7 +2446,7 @@ const filaC = c => {
     c.friccion      ? '<span class="pill rj">Fricción</span>'      : ''
   ].join('');
 
-  return `<div class="pers" data-c="${esc(c.user_ref)}" tabindex="0" role="button">
+  return `<div class="pers${c.user_ref === ABIERTO ? ' on' : ''}" data-c="${esc(c.user_ref)}" tabindex="0" role="button">
     <div class="ini${ini ? '' : ' anon'}">${ini ? esc(ini) : '·'}</div>
     <div class="pcuerpo">
       <div class="pnom">${c.nombre
@@ -2738,9 +2777,19 @@ function horarioTexto(){
 }
 
 /* ---------- detalle de un contacto ---------- */
+// Pinta una conversación. En pantalla ancha va en la columna de la
+// derecha; en móvil, donde esa columna no cabe, se abre encima.
 async function abrir(contact){
-  $('#mbox').innerHTML = esqueleto('lista');
-  $('#modal').style.display = 'block';
+  const ancho = window.innerWidth > 820;
+  const caja = ancho && VISTA === 'convs' && $('#pdetalle') ? '#pdetalle' : '#mbox';
+
+  if (caja === '#mbox'){
+    $('#mbox').innerHTML = esqueleto('lista');
+    $('#modal').style.display = 'block';
+  } else {
+    $('#pdetalle').className = 'panel';
+    $('#pdetalle').innerHTML = esqueleto('lista');
+  }
 
   // Se puede llegar aquí desde el Latido, donde la lista de
   // contactos todavía no se ha pedido: se carga al vuelo.
@@ -2749,56 +2798,54 @@ async function abrir(contact){
     CONTACTOS = cs || [];
   }
   const c = CONTACTOS.find(x => x.user_ref === contact) || {};
+  ABIERTO = contact;
 
-  const { data } = await supabase.rpc('mt_mensajes_contacto', { p_contact: contact });
+  const { data } = await supabase.rpc('mt_mensajes_contacto', { p_user_ref: contact });
   const msgs = data || [];
-  let sesion = null;
+  let dia = null;
 
-  $('#mbox').innerHTML = `
-    <div class="cab">
-      <div>
-        <h2 style="font-size:21px;letter-spacing:-.02em">
-          ${c.nombre ? esc(c.nombre) : 'Contacto'}</h2>
-        <p class="dmeta">
-          <a href="tel:${esc(c.telefono||'')}" class="mono">${esc(c.telefono || contact)}</a>
-          ${c.email ? ` · <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ''}
-        </p>
-        <p class="dmeta">${msgs.length} mensajes${
-          Number(c.conversaciones) > 1 ? ` en ${c.conversaciones} conversaciones` : ''}${
-          c.cita ? ` · cita: ${esc(c.cita)}` : ''}</p>
+  const tel = c.telefono || contact;
+  $(caja).innerHTML = `
+    <div class="dcab">
+      <div style="display:flex;justify-content:space-between;gap:16px">
+        <h2>${nom(c.nombre, tel)}</h2>
+        ${caja === '#mbox'
+          ? '<button class="cerrar" id="cx" aria-label="Cerrar">×</button>' : ''}
       </div>
-      <button class="cerrar" id="cx" aria-label="Cerrar">×</button>
+      ${c.nombre ? `<p class="dmeta"><a href="tel:${esc(tel)}" class="mono">${esc(tel)}</a></p>` : ''}
+      ${c.email ? `<p class="dmeta"><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></p>` : ''}
+      <div class="dacc">
+        <a class="cbtn pri" href="tel:${esc(tel)}">Llamar</a>
+        <button class="cbtn" id="verembudo">Abrir en Embudo</button>
+      </div>
     </div>
-    <div class="dacc">
-      ${c.telefono ? `<a class="cbtn" href="tel:${esc(c.telefono)}">Llamar</a>` : ''}
-      ${c.email ? `<a class="cbtn" href="mailto:${esc(c.email)}">Escribir</a>` : ''}
-      <button class="cbtn" id="verconvs">Ver en Conversaciones</button>
-    </div>
-    ${msgs.map(m => {
+    ${msgs.length ? msgs.map(m => {
+      // Separador por DÍA, no por sesión: el usuario piensa en
+      // "lo del martes", no en cuántas sesiones hubo.
       let sep = '';
-      if (m.sesion !== sesion){
-        sesion = m.sesion;
-        const f = m.historico ? null : (m.fecha_ref || m.cuando);
-        sep = `<div class="sep"><span>${
-          msgs.filter(x => x.sesion === m.sesion).length} mensajes${
-          f ? ' · ' + fecha(f) : ''}</span></div>`;
-      }
+      const f = m.cuando ? new Date(m.cuando).toDateString() : null;
+      if (f && f !== dia){ dia = f; sep = `<div class="sep"><span>${fecha(m.cuando)}</span></div>`; }
       return sep + `<div class="msg ${m.papel === 'human' ? 'h' : 'a'}">
         <div class="burb">${esc(limpiaMensaje(m.contenido))}
-          <div class="hora">${m.historico ? 'sin hora registrada' : hora(m.cuando)}${
+          <div class="hora">${m.cuando ? hora(m.cuando) : 'sin hora'}${
             m.latencia_ms ? ` · ${(m.latencia_ms/1000).toFixed(1)}s` : ''}</div>
         </div></div>`;
-    }).join('')}`;
+    }).join('') : '<div class="vacio">Sin mensajes guardados.</div>'}`;
 
-  $('#cx').addEventListener('click', cerrar);
-  $('#verconvs')?.addEventListener('click', () => {
-    cerrar();
-    document.querySelectorAll('nav button').forEach(x =>
-      x.classList.toggle('on', x.dataset.v === 'convs'));
-    VISTA = 'convs';
-    FILTRO.clear();
-    pintarConvs().then(() => render(c.telefono || contact));
+  // Marcar en la lista quién se está leyendo
+  document.querySelectorAll('.pers[data-c]').forEach(el =>
+    el.classList.toggle('on', el.dataset.c === contact));
+
+  $('#verembudo')?.addEventListener('click', () => {
+    if (caja === '#mbox') cerrar();
+    document.querySelector('nav button[data-v="embudo"]')?.click();
+    setTimeout(() => {
+      const l = LEADS.find(x => x.user_ref === contact);
+      if (l) abrirLead(l.id);
+    }, 700);
   });
+
+  $('#cx')?.addEventListener('click', cerrar);
 }
 function cerrar(){ $('#modal').style.display = 'none'; }
 $('#modal').addEventListener('click', e => e.target.id === 'modal' && cerrar());
