@@ -266,7 +266,11 @@
   .modal .cab{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
   .cerrar{background:none;font-size:26px;color:var(--gris);line-height:1;padding:0 6px}
   .msg{display:flex;margin-bottom:11px}
-  .msg .burb{max-width:76%;padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.6}
+  /* 76% dejaba un cuarto de la columna en blanco a cada lado de un
+     mensaje largo. Con 86% y un tope en caracteres, las líneas
+     salen a la longitud en la que se lee cómodo. */
+  .msg .burb{max-width:86%;max-width:min(86%, 62ch);padding:12px 16px;
+             border-radius:14px;font-size:13px;line-height:1.6}
   .msg.h{justify-content:flex-start}
   .msg.h .burb{background:var(--aire);border-bottom-left-radius:4px}
   .msg.a{justify-content:flex-end}
@@ -600,7 +604,10 @@
      La conversación se lee AL LADO de la lista, no en una ventana
      encima. Con un modal hay que cerrarlo para pasar al siguiente,
      y revisar diez contactos son veinte clics de más. */
-  .convs2{display:grid;grid-template-columns:minmax(0,1fr) 420px;
+  /* La conversación es lo que se LEE; la lista solo sirve para
+     elegir. A 420 px las burbujas salían a dos palabras por línea,
+     que es justo lo que hace que un chat canse. */
+  .convs2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);
           gap:16px;align-items:start}
   .convs2 > .panel{margin-bottom:0}
 
@@ -608,6 +615,11 @@
      se desplaza por dentro. */
   #pdetalle,#pficha{position:sticky;top:88px;max-height:calc(100vh - 104px);
                     overflow-y:auto;overscroll-behavior:contain}
+  /* El embudo es un formulario, no un texto que se lee: ahí la
+     lista vale más y la ficha no gana nada con ser más ancha. */
+  .embudo2{grid-template-columns:minmax(0,1fr) 440px}
+  @media (max-width:1080px){.embudo2{grid-template-columns:minmax(0,1fr) 380px}}
+  @media (max-width:820px){.embudo2{grid-template-columns:minmax(0,1fr)}}
   .vacio-det{display:flex;align-items:center;justify-content:center;
              min-height:200px;color:var(--gris);font-size:13px;text-align:center}
 
@@ -617,7 +629,7 @@
   .dcab .dacc{margin:16px 0 0;padding:0;border:0}
 
   @media (max-width:1080px){
-    .convs2{grid-template-columns:minmax(0,1fr) 360px}
+    .convs2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
     #pdetalle,#pficha{top:80px}
   }
   @media (max-width:820px){
@@ -1851,7 +1863,8 @@ function bloqueMapa(d){
   // carga y uno que se queda pensando.
   return `<div class="panel" id="panelmapa">
     <h3>Mapa de demanda</h3>
-    <p class="ph">Zonas que nombran los clientes.</p>
+    <p class="ph">Zonas que nombran los clientes. Cada punto marca la zona,
+       no la dirección del centro.</p>
     <div>
       ${claves.length > 1 ? `<div class="rangos" style="margin-bottom:12px">
         ${claves.map(k => `<button class="rg mp${MAPA===k?' on':''}" data-m="${esc(k)}">
@@ -2733,7 +2746,7 @@ async function pintarAjustes(silencioso){
 
     ${CFG.tratamiento && CFG.tratamiento.length ? `<div class="panel">
       <h3>Tratamiento de datos</h3>
-      <p class="ph">Qué se registra de las conversaciones y para qué.</p>
+      <p class="ph">Qué se guarda de cada conversación y para qué.</p>
       <dl class="ficha">
         ${CFG.tratamiento.map(x =>
           `<dt>${esc(x.t)}</dt><dd>${esc(x.d)}</dd>`).join('')}
@@ -2993,7 +3006,7 @@ async function pintarEmbudo(silencioso){
 
     ${cuentasEtapa()}
 
-    <div class="convs2">
+    <div class="convs2 embudo2">
      <div class="panel lpanel">
       <div class="lfiltros">
         <input id="lbusca" class="busca" type="search" aria-label="Buscar leads"
