@@ -1582,6 +1582,11 @@ function inicioPeriodo(p){
   return null;                       // 'todo'
 }
 
+// Estado de la segmentacion de senales: por periodo y por persona.
+// Vive fuera de la funcion porque sobrevive a los repintados.
+const SEN_PERIODOS = [['todo','Todo'], ['mes','Este mes'], ['ano','Este ano']];
+let SEN_PER = 'todo', SEN_QUIEN = '';
+
 // primera_en es el dato real (users.created_at en el histórico).
 // Si faltara, se recurre al inicio de la sesión registrada.
 const fechaConv = c => {
@@ -1869,6 +1874,10 @@ function ponerTeselas(){
 // en la cabecera, bloqueando el primer pintado, para un bloque que
 // vive en una pestaña y que muchos clientes no miran nunca.
 // Ahora se pide la primera vez que hay un mapa que dibujar.
+// El mapa y su capa de puntos. Se guardan fuera de la funcion
+// porque hay que poder destruirlos al cambiar de pestana: Leaflet
+// deja el contenedor vivo y, sin esto, se acumulan mapas huerfanos.
+let LMAP = null, LCAPA = null;
 let leafletCargando = null;
 function cargarLeaflet(){
   if (window.L) return Promise.resolve();
