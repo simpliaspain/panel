@@ -589,6 +589,13 @@
   #parametros{scroll-margin-top:96px;transition:border-color .15s ease}
   #parametros.destaca{border-color:var(--pulso)}
 
+  /* ---------- CONFIGURACIÓN ----------
+     Ancho limitado: son fichas y formularios que se leen en
+     columna, no un tablero. A pantalla completa, una fila con la
+     etiqueta a un extremo y el valor al otro obliga a barrer con la
+     vista para emparejarlos. */
+  .ajustes{max-width:860px}
+
   /* ---------- CONVERSACIONES EN DOS COLUMNAS ----------
      La conversación se lee AL LADO de la lista, no en una ventana
      encima. Con un modal hay que cerrarlo para pasar al siguiente,
@@ -2615,6 +2622,17 @@ async function pintarAjustes(silencioso){
   }
 
   const a = r.ajustes || {};
+
+  // La base devuelve los canales en bruto ("prueba, whatsapp_evolution").
+  // El cliente no sabe qué es Evolution, y "prueba" es nuestro
+  // probador: ni es un canal suyo ni debería verlo.
+  const CANALES = { whatsapp_evolution:'WhatsApp', whatsapp_cloud:'WhatsApp',
+                    voz_retell:'Teléfono', web:'Web' };
+  const canal = String(r.canal || '').split(',').map(x => x.trim())
+    .filter(x => x && x !== 'prueba')
+    .map(x => CANALES[x] || x)
+    .filter((x,i,v) => v.indexOf(x) === i)
+    .join(', ') || '—';
   const alta = r.alta ? new Date(r.alta).toLocaleDateString('es-ES',
     { day:'2-digit', month:'long', year:'numeric' }) : '—';
   const desde = r.primer_registro ? new Date(r.primer_registro).toLocaleDateString('es-ES',
@@ -2623,17 +2641,17 @@ async function pintarAjustes(silencioso){
   $('#vista').innerHTML = `
     <h2 class="tit">Configuración</h2>
     <p class="sub">Datos de tu servicio y preferencias.</p>
+    <div class="ajustes">
 
     <div class="panel">
       <h3>Servicio</h3>
       <p class="ph">Solo lectura.</p>
       <dl class="ficha">
         <dt>Cliente</dt><dd>${esc(r.cliente || '—')}</dd>
-        <dt>Canal</dt><dd>${esc(r.canal)}</dd>
+        <dt>Canal</dt><dd>${esc(canal)}</dd>
         <dt>Alta del servicio</dt><dd>${alta}</dd>
         <dt>Registro con fecha desde</dt><dd>${desde}</dd>
         <dt>Conversaciones</dt><dd class="mono">${nf.format(r.conversaciones)}</dd>
-        <dt>Mensajes</dt><dd class="mono">${nf.format(r.mensajes)}</dd>
         <dt>Personas atendidas</dt><dd class="mono">${nf.format(r.contactos)}</dd>
         <dt>Usuarios con acceso</dt><dd class="mono">${nf.format(r.usuarios)}</dd>
         <dt>Ubicaciones monitorizadas</dt><dd class="mono">${nf.format(r.ubicaciones || 0)}</dd>
@@ -2643,11 +2661,27 @@ async function pintarAjustes(silencioso){
       </dl>
     </div>
 
+    <div class="panel">
+      <h3>Tus preferencias</h3>
+      <p class="ph">A qué dirección te avisamos de cambios en el servicio.</p>
+      
+      <div class="campos">
+        <div>
+          <label for="ea">Email para avisos del servicio</label>
+          <input id="ea" type="email" placeholder="avisos@empresa.com"
+                 value="${esc(a.email_avisos ?? '')}">
+          <p class="hint">Usaremos esta dirección para comunicaciones sobre el asistente.</p>
+        </div>
+      </div>
+      <div class="acc">
+        <button class="btn corto" id="guardar">Guardar cambios</button>
+        <span id="msg" class="msg-ok"></span>
+      </div>
+    </div>
+
     <div class="panel" id="parametros">
       <h3>Parámetros de cálculo</h3>
-      <p class="ph">Con ellos se calcula «Tus números» en el Latido.
-         ${r.rol === 'operador' ? 'Cámbialos con cuidado: esa cifra acaba en una pantalla que el cliente enseña a su jefe.'
-           : 'Los fija SimpliaSpain para que la cifra sea comparable entre periodos. Si no encajan con tu operación, dínoslo.'}</p>
+      <p class="ph">Con ellos se calcula «Tus números» en el Latido.</p>
       ${r.rol === 'operador' ? `
         <div class="campos">
           <div>
@@ -2680,23 +2714,6 @@ async function pintarAjustes(silencioso){
         </dl>`}
     </div>
 
-    <div class="panel">
-      <h3>Tus preferencias</h3>
-      
-      <div class="campos">
-        <div>
-          <label for="ea">Email para avisos del servicio</label>
-          <input id="ea" type="email" placeholder="avisos@empresa.com"
-                 value="${esc(a.email_avisos ?? '')}">
-          <p class="hint">Usaremos esta dirección para comunicaciones sobre el asistente.</p>
-        </div>
-      </div>
-      <div class="acc">
-        <button class="btn corto" id="guardar">Guardar cambios</button>
-        <span id="msg" class="msg-ok"></span>
-      </div>
-    </div>
-
     ${CFG.documentos && CFG.documentos.length ? `<div class="panel">
       <h3>Información del servicio</h3>
       <p class="ph">Documentos que usa el asistente para responder.
@@ -2725,7 +2742,8 @@ async function pintarAjustes(silencioso){
         Para ejercer derechos de acceso, rectificación o supresión sobre un
         contacto concreto, escríbenos y lo tramitamos.
       </p>
-    </div>` : ''}`;
+    </div>` : ''}
+    </div>`;
 
   // Dos guardados separados: el email es del cliente y los
   // parámetros de cálculo son de SimpliaSpain. Un solo botón
