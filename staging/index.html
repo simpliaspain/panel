@@ -128,14 +128,15 @@
   }
   .btn:hover{filter:brightness(1.08)}
   .btn:disabled{opacity:.55;cursor:not-allowed}
-  .card h2{text-align:center;font-size:26px;line-height:1.2;
-           margin:12px 0;letter-spacing:-.02em}
+  .card h2{text-align:center;font-size:32px;line-height:1.2;
+    margin:12px 0 16px;letter-spacing:-.02em}
   .estado{
     display:flex;align-items:center;justify-content:center;gap:8px;
-    font-size:13px;color:var(--gris);margin-bottom:26px;
+    font-size:13px;color:var(--gris);margin-bottom:24px;
   }
   .dot{width:7px;height:7px;border-radius:999px;background:var(--verde);flex:none}
   .dot.on{animation:lat 2s ease-in-out infinite}
+  .dot.mal{background:var(--gris-claro);animation:none}
   @keyframes lat{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}}
   .err{
     background:var(--rojo-fondo);border:1px solid var(--rojo-borde);color:var(--rojo-texto);
@@ -182,23 +183,7 @@
   .rejilla2:has(> .panel:only-child){grid-template-columns:minmax(0,1fr)}
   @media (max-width:820px){.rejilla2{grid-template-columns:minmax(0,1fr)}}
 
-  /* Panel plegable: la cabecera es el botón entero, no un icono
-     pequeño al que hay que apuntar. */
-  .panel.plegado{padding:0;overflow:hidden}
-  .pleg-fila{display:flex;align-items:flex-start;gap:8px;padding:0 20px 0 0}
-  .pleg{flex:1 1 auto;display:flex;justify-content:space-between;align-items:flex-start;
-        gap:16px;background:none;text-align:left;padding:20px;min-height:44px}
-  .pleg h3{margin:0}
-  .pleg .ph{margin:4px 0 0}
-  .pleg-ver{flex:none;font-size:13px;font-weight:700;color:var(--pulso-texto);
-            white-space:nowrap;padding-top:2px}
-  .pleg[aria-expanded="true"] .pleg-ver::after{content:'';}
-  .pleg-cuerpo{display:none;padding:0 20px 20px}
-  .panel.plegado.abierto .pleg-cuerpo{display:block}
   @media (max-width:820px){
-    .pleg{padding:16px}
-    .pleg-fila{padding-right:16px}
-    .pleg-cuerpo{padding:0 16px 16px}
   }
 
   /* ---------- TUS NÚMEROS ----------
@@ -324,8 +309,8 @@
         padding-bottom:18px;border-bottom:1px solid var(--linea)}
   @media(max-width:640px){.feed li{grid-template-columns:44px 52px minmax(0,1fr)}}
   .barras{display:grid;gap:20px}
-  /* Dentro de un plegable las barras van más juntas: ahí el panel
-     ya tiene su propio aire alrededor. */
+  /* Dentro de un panel con cabecera las barras van más juntas:
+     el panel ya tiene su propio aire alrededor. */
   .barras.compacta{gap:16px}
   .barras.compacta .bcab{margin-bottom:8px}
   .bfila{border-radius:10px;padding:2px}
@@ -963,13 +948,13 @@
       <div class="card">
         <div class="marca cardmarca">Simplia<span>Spain</span></div>
         <h2>Tu operación<br><em>nunca duerme.</em></h2>
-        <div class="estado"><span class="dot on"></span><span id="ping">Conectando…</span></div>
+        <div class="estado"><span class="dot"></span><span id="ping">Comprobando el servicio</span></div>
         <div class="err" id="err"></div>
         <label for="em">Email</label>
         <input id="em" type="email" autocomplete="email" placeholder="tu@empresa.com">
         <label for="pw">Contraseña</label>
         <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••">
-        <button class="btn" id="entrar">Entrar al panel →</button>
+        <button class="btn" id="entrar">Entrar al panel</button>
       </div>
     </div>
   </div>
@@ -1115,10 +1100,17 @@ const E = k => CFG.etiquetas[k] || '';
 
 /* ---------- comprobación de conexión ---------- */
 (async () => {
+  const punto = document.querySelector('.card .dot');
+  const poner = (txt, ok) => {
+    $('#ping').textContent = txt;
+    // El punto deja de latir y se pone gris si no hay servicio: en
+    // verde junto a «sin conexión» se contradecía a sí mismo.
+    if (punto) punto.className = 'dot' + (ok ? ' on' : ' mal');
+  };
   try {
     const { error } = await supabase.rpc('mt_ping');
-    $('#ping').textContent = error ? 'Sin conexión con el servicio' : 'Servicio disponible';
-  } catch { $('#ping').textContent = 'Sin conexión con el servicio'; }
+    poner(error ? 'Sin conexión con el servicio' : 'Servicio disponible', !error);
+  } catch { poner('Sin conexión con el servicio', false); }
 })();
 
 /* ---------- login ---------- */
@@ -1151,7 +1143,7 @@ async function entrar(){
       m || 'No se ha podido entrar.';
     e.style.display = 'block';
     console.error('Entrada rechazada:', error);
-    b.disabled = false; b.textContent = 'Entrar al panel →';
+    b.disabled = false; b.textContent = 'Entrar al panel';
     return;
   }
   $('#login').style.display = 'none';
@@ -1422,20 +1414,19 @@ async function pintarLatido(silencioso){
 
   pintaEn(`
     <h2 class="tit">El <em>latido</em></h2>
-    <p class="sub">Qué está haciendo tu asistente, mensaje a mensaje.</p>
+    <p class="sub">Cada conversación que atiende la IA con tus clientes, registrada según entra.</p>
 
     <div class="kpis">
       ${kpi('Personas atendidas', nf.format(contactos),
-            d.convs.length > contactos
-              ? `${nf.format(d.convs.length)} conversaciones · ${nf.format(d.convs.length - contactos)} han vuelto`
-              : `${nf.format(msgs)} mensajes en total`)}
+            `En ${nf.format(d.convs.length)} ${
+              d.convs.length === 1 ? 'conversación' : 'conversaciones'}`)}
       ${kpi(`Conversaciones en ${etc}`, nf.format(cR.length),
-            `${nf.format(entr + resp)} mensajes en ${etc}`)}
+            `${nf.format(entr + resp)} ${entr + resp === 1 ? 'mensaje' : 'mensajes'}`)}
       ${kpi('Respuestas de la IA', nf.format(auto), 'Sin intervención humana', true)}
       ${d.latMedia
         ? kpi('Tiempo medio de respuesta',
-              `${d.latMedia.toFixed(1)}<small>s</small>`,
-              'Con 4s de margen para agrupar mensajes')
+              `${d.latMedia.toFixed(1).replace('.', ',')}<small> s</small>`,
+              'Incluye 4 s de espera para agrupar mensajes')
         : kpiPend('Tiempo medio de respuesta', 'Aún sin mediciones registradas')}
     </div>
 
@@ -1473,8 +1464,8 @@ async function pintarLatido(silencioso){
   activarGrafico();
   enlazarPlegables();
   ULTIMOS = d;
-  // El mapa ya no se monta al pintar: lo hace su plegable al
-  // abrirse, y así Leaflet solo se descarga si alguien lo mira.
+  // El mapa lo monta su observador cuando entra en pantalla, no
+  // aquí: así Leaflet solo se descarga si alguien baja hasta él.
   activarSenales();
 
   // desde la actividad reciente se abre la conversación completa
@@ -1510,8 +1501,13 @@ const kpiPend = (l, p) => `<div class="kpi pend">
 // Lo calcula la base (mt_mis_numeros), no el navegador: el horario y
 // la zona horaria del cliente ya viven allí, y así la cifra es la
 // misma la mire quien la mire.
-// Un solo gestor para todos los paneles plegables. aria-expanded
-// es lo que anuncia el lector de pantalla; la clase solo pinta.
+// Lo que hay que enganchar después de pintar el Latido: la carga
+// diferida del mapa y el botón que lleva a Configuración.
+//
+// PENDIENTE: el plegado de los bloques pesados en móvil. En el
+// diseño los paneles se pliegan con «Ver» / «Ocultar» en pantalla
+// pequeña, y aquí todos salen abiertos: en un teléfono el Latido
+// es muy largo.
 function enlazarPlegables(){
   // El mapa se ve desde el principio, como en el diseño, pero
   // Leaflet son 150 KB y está al final de la página: se pide cuando
@@ -1557,7 +1553,7 @@ function bloqueActividad(d){
   if (!d.reciente || !d.reciente.length) return '';
   return `<div class="panel">
     <h3>Actividad reciente</h3>
-    <p class="ph">Últimos mensajes registrados, del más nuevo al más antiguo.</p>
+    <p class="ph">Últimos mensajes, del más nuevo al más antiguo.</p>
     <ul class="feed">
       ${d.reciente.map(m => {
         const ref = m.user_ref || null;
@@ -1584,7 +1580,7 @@ function bloqueNumeros(n){
       <div class="tn-cab"><b>${titulo}</b>
         <span class="tn-eur">${falta_de ? '—' : eur(importe)}</span></div>
       <div class="tn-cuenta${falta_de ? ' tn-falta' : ''}">${
-        falta_de ? 'Falta ' + falta_de + ' en Configuración' : cuenta}</div>
+        falta_de ? 'Falta el dato en Configuración' : cuenta}</div>
     </div>`;
 
   // Las tres partidas, ordenadas por importe. "Captados fuera de
@@ -1720,13 +1716,13 @@ function interiorSenales(d){
   // El alcance solo se escribe cuando hay algo que aclarar: sin
   // segmentar, "todas las personas, todo el histórico" es decir lo
   // obvio, y la maqueta no lo lleva.
-  const quienTxt = quien ? `<strong>${esc(String(quien.n))}</strong> · ` : '';
+  const quienTxt = quien ? `<strong>${esc(String(quien.n))}</strong>, ` : '';
   const nomPer = { dia:'Hoy', semana:'Esta semana', mes:'Este mes',
                    ano:'Este año', todo:'' }[SEN_PER];
   const pie = (segmentado || sinFecha) ? `<p class="segpie">${quienTxt}${
-    nomPer ? nomPer + (desde ? ` (desde el ${fechaCorta(desde)})` : '') + ' · ' : ''
+    nomPer ? nomPer + (desde ? ` desde el ${fechaCorta(desde)}` : '') + ', ' : ''
   }<strong>${nf.format(t)}</strong> ${t === 1 ? 'conversación' : 'conversaciones'}${
-    sinFecha ? ` · ${nf.format(sinFecha)} sin fecha quedan fuera` : ''}</p>` : '';
+    sinFecha ? `, ${nf.format(sinFecha)} sin fecha quedan fuera` : ''}</p>` : '';
 
   const cab = `
     <h3>${esc(E('senales_titulo'))}</h3>
@@ -1803,7 +1799,7 @@ const barra = (lab, n, t, pie, cl, tipo) => {
       <span class="blab">${lab}${act ? '<span class="bver">Ver</span>' : ''}</span>
       <span class="bnum mono">${nf.format(n)} <small>de ${nf.format(t)}</small></span></div>
     <div class="btrack"><div class="bfill ${cl}" style="width:${Math.max(p,0.6).toFixed(1)}%"></div></div>
-    <div class="bpie">${pie} · ${p.toFixed(0)}%</div>
+    <div class="bpie">${pie}</div>
   </div>`;
 };
 
@@ -2078,7 +2074,7 @@ function bloquePatron(d){
         ${grid[dd].map((v,h) => {
           const o = v ? (0.14 + 0.86 * (v / max)) : 0;
           return `<span class="mc" style="background:rgba(27,124,255,${o.toFixed(3)})"
-            title="${dias[dd]} ${h}:00 · ${v} mensajes"></span>`;
+            title="${dias[dd]}, ${h}:00, ${v} ${v === 1 ? 'mensaje' : 'mensajes'}"></span>`;
         }).join('')}
       </div>`).join('')}
     </div>
@@ -2155,7 +2151,7 @@ function grafica(ev){
          class="mono">
       <span>${et(cubos[0].t)}</span>
       <span>${et(cubos[Math.floor(cubos.length/2)].t)}</span>
-      <span>${et(cubos[cubos.length-1].t)} · ahora</span>
+      <span>${et(cubos[cubos.length-1].t)}</span>
     </div>
   </div>`;
 }
@@ -2475,7 +2471,7 @@ const filaC = c => {
       <div class="pnom">${c.nombre
         ? `<bdi>${marca(c.nombre)}</bdi>`
         : `<span class="mono">${marca(c.telefono || c.user_ref)}</span>
-           <span class="csin"> · sin nombre</span>`}</div>
+           <span class="csin"> sin nombre</span>`}</div>
       <div class="pdat">${c.nombre
         ? `<span class="mono">${marca(c.telefono || c.user_ref)}</span>`
         : (c.email ? marca(c.email) : '')}</div>
@@ -2567,13 +2563,13 @@ function bloqueCitas(titulo, lista, destacar){
                 {month:'short'})}</span>
             <span class="chora mono">${new Date(c.cuando).toLocaleTimeString('es-ES',
                 {hour:'2-digit',minute:'2-digit'})}</span>`
-            : `<span class="cdia">·</span><span class="cmes">s/f</span>`}
+            : `<span class="cmes">sin fecha</span>`}
         </div>
         <div class="ccuerpo">
           <strong>${c.nombre ? esc(c.nombre) : esc(c.telefono || c.email || 'Contacto')}</strong>
           ${c.descripcion ? `<span>${esc(c.descripcion)}</span>` : ''}
           <span class="cmeta mono">${esc(c.telefono || '')}${
-            c.email ? ' · ' + esc(c.email) : ''}</span>
+            c.email ? '' : ''}</span>
           ${c.ubicacion ? `<span class="cmeta">${esc(c.ubicacion)}</span>` : ''}
         </div>
         <div class="cacc">
@@ -2603,7 +2599,7 @@ function descargarICS(c){
     'DTSTAMP:' + z(new Date()),
     'DTSTART:' + z(ini),
     'DTEND:'   + z(fin),
-    'SUMMARY:' + esc2('Cita · ' + c.t),
+    'SUMMARY:' + esc2('Cita con ' + c.t),
     'DESCRIPTION:' + esc2((c.d ? c.d + '\n' : '') +
         (c.p ? 'Teléfono: ' + c.p + '\n' : '') + (c.e ? 'Email: ' + c.e : '')),
     'END:VEVENT','END:VCALENDAR'
@@ -2862,7 +2858,7 @@ async function abrir(contact){
       return sep + `<div class="msg ${m.papel === 'human' ? 'h' : 'a'}">
         <div class="burb">${esc(limpiaMensaje(m.contenido))}
           <div class="hora">${m.cuando ? hora(m.cuando) : 'sin hora'}${
-            m.latencia_ms ? ` · ${(m.latencia_ms/1000).toFixed(1)}s` : ''}</div>
+            m.latencia_ms ? `, ${(m.latencia_ms/1000).toFixed(1).replace('.', ',')} s` : ''}</div>
         </div></div>`;
     }).join('') : '<div class="vacio">Sin mensajes guardados.</div>'}`;
 
@@ -3096,9 +3092,8 @@ function pintarLista(q){
 
   if (!l.length){
     cont.innerHTML = `<div class="vacio">${q
-      ? 'Nadie con ese nombre, teléfono o email.'
-      : cerrados ? 'Todavía no has cerrado ninguno.'
-                 : 'Nadie en marcha ahora mismo.'}</div>`;
+      ? `Nadie coincide con «${esc(q)}».`
+      : cerrados ? 'Ninguno cerrado.' : 'Ninguno abierto.'}</div>`;
     return;
   }
 
@@ -3234,10 +3229,9 @@ function abrirLead(id){
         </select>
       </div>
       <div class="fcaja" id="fcajaperdido">
-        <h4>¿Por qué se ha perdido?</h4>
-        <p class="ph">Saberlo es lo que permite dejar de perderlos por lo mismo.</p>
+        <h4>Motivo</h4>
         <div class="fpreg">
-          <input id="p_motivo" placeholder="Precio, plazo, se fue a otro espacio…">
+          <input id="p_motivo" placeholder="Precio, plazo, otro centro…">
         </div>
         <div class="fila">
           <button class="btn" id="p_ok">Marcar como perdido</button>
@@ -3316,9 +3310,7 @@ async function pintarHistorial(leadId){
           ? `De <b>${esc(NOMBRE_ETAPA[e.desde] || e.desde || '—')}</b> a
              <b>${esc(NOMBRE_ETAPA[e.hasta] || e.hasta)}</b>`
           : esc(e.detalle || ICONO_EV[e.tipo] || e.tipo)}</div>
-        <div class="hcuando">${esc(ICONO_EV[e.tipo] || e.tipo)} ·
-          ${fechaHoraCorta(e.cuando)}${
-          e.tipo === 'etapa' && e.detalle ? ' · ' + esc(e.detalle) : ''}</div>
+        <div class="hcuando">${fechaHoraCorta(e.cuando)}</div>
       </div>
       <div class="hacc">
         ${e.tipo === 'toque' ? `
@@ -3345,8 +3337,9 @@ function enlazarHistorial(leadId){
       const l = LEADS.find(x => x.id === leadId);
       if (l) $('#mbox').querySelector('.dmeta:last-of-type')?.replaceWith(
         Object.assign(document.createElement('p'), { className:'dmeta',
-          textContent: `${nf.format(l.mensajes || 0)} mensajes · ${l.toques} ${
-            Number(l.toques) === 1 ? 'toque' : 'toques'}` }));
+          textContent: `${nf.format(l.mensajes || 0)} ${
+            Number(l.mensajes) === 1 ? 'mensaje' : 'mensajes'}, ${l.toques} ${
+            Number(l.toques) === 1 ? 'contacto' : 'contactos'}` }));
     }));
 
   // Corregir sustituye el texto por un campo, en el sitio. Abrir otro
@@ -3421,7 +3414,7 @@ function enlazarFicha(l){
     if (error) return fallo(error);
     $('#fguardar').classList.remove('on');
     aviso('Guardado', true);
-    anunciar('Cambios guardados');
+    anunciar('Guardado');
     await refrescarEmbudo();
   });
 
@@ -3447,7 +3440,11 @@ function enlazarFicha(l){
     if (error){ sel.value = l.etapa; return fallo(error); }
     await refrescarEmbudo();
     const nuevo = LEADS.find(x => x.id === l.id);
-    if (nuevo){ abrirLead(nuevo.id); anunciar('Lead movido a ' + NOMBRE_ETAPA[et]); }
+    if (nuevo){
+      abrirLead(nuevo.id);
+      const t = et === 'perdido' ? 'Marcado como perdido' : 'Etapa: ' + NOMBRE_ETAPA[et];
+      aviso(t, true); anunciar(t);
+    }
     else cerrar();
   }
 
@@ -3457,7 +3454,7 @@ function enlazarFicha(l){
   });
   $('#p_ok').addEventListener('click', async () => {
     const m = $('#p_motivo').value.trim();
-    if (!m) return aviso('Escribe el motivo antes de cerrarlo', false);
+    if (!m) return aviso('Escribe el motivo', false);
     await moverA('perdido', m);
   });
 
@@ -3470,8 +3467,8 @@ function enlazarFicha(l){
       { p_id: l.id, p_detalle: d, p_proxima: $('#t_fecha').value || null });
     b.disabled = false;
     if (error) return fallo(error);
-    aviso('Contacto apuntado', true);
-    anunciar('Contacto apuntado');
+    aviso('Apuntado', true);
+    anunciar('Apuntado');
     await refrescarEmbudo();
     const nuevo = LEADS.find(x => x.id === l.id);
     if (nuevo) abrirLead(nuevo.id);
@@ -3544,7 +3541,7 @@ const hora = d => new Date(d).toLocaleTimeString('es-ES', { hour:'2-digit', minu
   if (enProduccion || enLocal) return;
   const d = document.createElement('div');
   d.className = 'staging';
-  d.textContent = 'Staging · no es lo que ve el cliente';
+  d.textContent = 'Staging, no es lo que ve el cliente';
   document.body.insertBefore(d, document.body.firstChild);
 })();
 </script>
