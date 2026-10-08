@@ -402,9 +402,17 @@
   .ltip{font-size:13px;font-weight:700;line-height:1.4}
   .tz{display:block;font-size:12px;font-weight:500;color:var(--gris);margin-top:2px}
 
-  .lmapa{width:100%;height:360px;border-radius:14px;overflow:hidden;
+  /* El mapa llena su panel. Antes medía 360 px fijos, y como va en
+     pareja con "Actividad reciente" —que con doce líneas es bastante
+     más alto— la rejilla igualaba las dos alturas y quedaba un hueco
+     blanco debajo del mapa: el panel se veía a medias. Con el panel
+     en columna flexible, el mapa se queda con lo que sobra y los
+     360 px pasan a ser un mínimo, no un tope. */
+  #panelmapa{display:flex;flex-direction:column}
+  .mapacaja{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+  .lmapa{width:100%;flex:1 1 auto;min-height:360px;border-radius:14px;overflow:hidden;
          border:1px solid var(--linea);background:#F7FAFF;z-index:1}
-  @media(max-width:600px){.lmapa{height:300px}}
+  @media(max-width:600px){.lmapa{min-height:300px}}
   .leaflet-container{font-family:'Plus Jakarta Sans',sans-serif;background:#F7FAFF}
   /* aspecto minimalista sobre teselas estándar, sin depender de
      un proveedor de pago ni de una clave de API */
@@ -899,10 +907,24 @@
      mensajes. Ahora cada persona es una fila que se reordena
      sola: identidad a la izquierda, actividad a la derecha. */
   .lista{display:grid;gap:0}
+  /* El resalte de la fila elegida se cortaba en seco justo donde
+     acababa el texto de la derecha: la fila tenía 2 px de margen
+     horizontal y esquinas rectas, así que el azul terminaba pegado
+     a "hace 1 día". Ahora la fila respira 12 px a cada lado —hacia
+     DENTRO del relleno del panel, con margen negativo— y el resalte
+     va redondeado como el resto del panel. */
   .pers{display:grid;grid-template-columns:42px 1fr auto;gap:16px;align-items:center;
-        padding:16px 2px;border-top:1px solid var(--linea);cursor:pointer;
-        transition:background .15s ease}
-  .pers:first-child{border-top:0}
+        padding:16px 12px;margin:0 -12px;border-radius:14px;cursor:pointer;
+        position:relative;transition:background .15s ease}
+  /* El separador en un pseudo-elemento y no en border-top: la línea
+     cruzaba la esquina redondeada del resalte y se veía como un
+     corte. Así se puede esconder en la fila resaltada y en la
+     siguiente, que es justo donde estorba. */
+  .pers::before{content:'';position:absolute;left:12px;right:12px;top:0;height:1px;
+                background:var(--linea)}
+  .pers:first-child::before{display:none}
+  .pers:hover::before,.pers:hover + .pers::before,
+  .pers.on::before,.pers.on + .pers::before{display:none}
   .pers:hover{background:var(--fondo)}
   /* La fila que se está leyendo. Sin esto, con la conversación al
      lado no se sabe de quién es lo que hay en pantalla. */
@@ -935,7 +957,8 @@
   .barrafil{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 16px}
   .barrafil .busca{flex:1 1 220px;min-width:0}
   @media(max-width:600px){
-    .pers{grid-template-columns:36px 1fr;gap:12px;padding:16px 2px}
+    .pers{grid-template-columns:36px 1fr;gap:12px;padding:16px 10px;margin:0 -10px}
+    .pers::before{left:10px;right:10px}
     .ini{width:36px;height:36px;font-size:13px}
     .pact{grid-column:2;text-align:left;display:flex;gap:12px;align-items:baseline;
           margin-top:-2px}
@@ -1243,7 +1266,12 @@ function enlazarNav(){
       document.querySelectorAll('nav button').forEach(x => x.classList.remove('on'));
       b.classList.add('on');
       const v = b.dataset.v; VISTA = v;
-      if (v !== 'latido' && LMAP){ LMAP.remove(); LMAP = null; LCAPA = null; }
+      // Al salir del Latido se tira el mapa, y con él su observador:
+      // seguiría vigilando un contenedor que ya no existe.
+      if (v !== 'latido' && LMAP){
+        OBSMAPA?.disconnect(); OBSMAPA = null;
+        LMAP.remove(); LMAP = null; LCAPA = null;
+      }
       if (v === 'latido') pintarLatido();
       else if (v === 'convs') pintarConvs();
       else if (v === 'embudo') pintarEmbudo();
@@ -1376,7 +1404,11 @@ async function datos(){
     supabase.rpc('mt_conversaciones_lista', { p_limite: 1000 }),
     supabase.rpc('mt_resumen',    { p_horas: RANGO }),
     supabase.rpc('mt_por_hora',   { p_horas: RANGO }),
-    supabase.rpc('mt_latencias',  { p_limite: 200 }),
+    // mt_tiempo_respuesta y no mt_latencias: la cifra sale de quien
+    // de verdad mide, y viene con su procedencia. El indicador
+    // enseñaba 0,0 s porque promediaba el hueco entre dos filas que
+    // n8n escribe en la misma operación.
+    supabase.rpc('mt_tiempo_respuesta', { p_horas: RANGO }),
     supabase.rpc('mt_actividad',  { p_limite: 12 }),
     supabase.rpc('mt_demanda'),
     supabase.rpc('mt_patron_horario'),
@@ -1397,7 +1429,10 @@ async function datos(){
     if (!fa && fb) return 1;
     return (b.seq || 0) - (a.seq || 0);
   });
-  const lats = (lat.data || []).map(r => r.latencia_ms);
+  // Una fila: fuente, muestras, mediana y p95. La MEDIANA y no la
+  // media, porque con latencias una sola respuesta lenta arrastra la
+  // media y deja de describir lo que tarda normalmente.
+  const tr = (Array.isArray(lat.data) ? lat.data[0] : lat.data) || null;
   // mt_resumen devuelve una fila con los recuentos ya hechos. Antes
   // se traían todos los mensajes del periodo para contarlos en el
   // navegador: con volumen, eso es traerse media base para calcular
@@ -1409,10 +1444,7 @@ async function datos(){
     res,
     porHora: porHora.data || [],
     total: res.mensajes || 0,
-    lats,
-    latMedia: lats.length
-      ? lats.reduce((a,b) => a+b, 0) / lats.length / 1000
-      : null,
+    tr,
     reciente: reciente.data || [],
     temas:    lugares.data  || [],
     patron:   patron.data   || [],
@@ -1510,11 +1542,7 @@ async function pintarLatido(silencioso){
       ${kpi(`Conversaciones en ${etc}`, nf.format(cR.length),
             `${nf.format(entr + resp)} ${entr + resp === 1 ? 'mensaje' : 'mensajes'}`)}
       ${kpi('Respuestas de la IA', nf.format(auto), 'Sin intervención humana', true)}
-      ${d.latMedia
-        ? kpi('Tiempo medio de respuesta',
-              `${d.latMedia.toFixed(1).replace('.', ',')}<small> s</small>`,
-              'Incluye 4 s de espera para agrupar mensajes')
-        : kpiPend('Tiempo medio de respuesta', 'Aún sin mediciones registradas')}
+      ${bloqueTiempo(d.tr)}
     </div>
 
     <div class="panel">
@@ -1580,6 +1608,38 @@ const kpi = (l,n,p,az) => `<div class="kpi">
 // de un cero: un cero parece una medición que salió cero.
 const kpiPend = (l, p) => `<div class="kpi pend">
   <div class="lab">${l}</div><div class="num">—</div><div class="pie">${p}</div></div>`;
+
+/* El tiempo de respuesta, con su procedencia escrita debajo.
+
+   Este indicador marcaba 0,0 s. No decía "no lo sé": decía que el
+   asistente contesta al instante. Salía de promediar el hueco entre
+   el mensaje del cliente y la respuesta, y n8n escribe las dos filas
+   en la misma operación, así que ese hueco eran tres milisegundos.
+
+   De ahí las dos reglas de aquí: no se enseña la cifra sin decir
+   quién la ha medido, y un cero no se enseña nunca.
+
+   Y es la MEDIANA, no la media: con latencias, una sola respuesta
+   lenta arrastra la media y deja de describir lo que tarda
+   normalmente. Con el número de muestras al lado, porque una mediana
+   de tres respuestas no es una mediana. */
+function bloqueTiempo(tr){
+  const T = 'Tiempo de respuesta';
+  if (!tr || !Number(tr.muestras) || tr.mediana_s == null)
+    return kpiPend(T, 'Aún sin mediciones fiables');
+
+  const s = Number(tr.mediana_s);
+  // Un cero aquí es imposible, y si llegara sería que algo ha vuelto
+  // a medir mal. Antes que enseñarlo, se calla.
+  if (!(s > 0)) return kpiPend(T, 'Aún sin mediciones fiables');
+
+  const n = Number(tr.muestras);
+  const de = tr.fuente === 'agente'
+    ? 'lo cronometra el asistente'
+    : 'medido entre mensajes';
+  return kpi(T, `${s.toFixed(1).replace('.', ',')}<small> s</small>`,
+    `Mediana de ${nf.format(n)} ${n === 1 ? 'respuesta' : 'respuestas'} · ${de}`);
+}
 
 // Sustituye al antiguo bloque de coste. Tres partidas, cada una con su cuenta
 // escrita: una cifra sin la operación que la produce no se puede
@@ -1967,8 +2027,8 @@ function bloqueMapa(d){
     <h3>Mapa de demanda</h3>
     <p class="ph">Zonas que nombran los clientes. Cada punto marca la zona,
        no la dirección del centro.</p>
-    <div>
-      ${claves.length > 1 ? `<div class="rangos" style="margin-bottom:12px">
+    <div class="mapacaja">
+      ${claves.length > 1 ? `<div class="rangos" style="margin-bottom:12px;flex:none">
         ${claves.map(k => `<button class="rg mp${MAPA===k?' on':''}" data-m="${esc(k)}">
           ${esc(etq(k))}</button>`).join('')}
       </div>` : ''}
@@ -2025,7 +2085,7 @@ function ponerTeselas(){
 // El mapa y su capa de puntos. Se guardan fuera de la funcion
 // porque hay que poder destruirlos al cambiar de pestana: Leaflet
 // deja el contenedor vivo y, sin esto, se acumulan mapas huerfanos.
-let LMAP = null, LCAPA = null;
+let LMAP = null, LCAPA = null, OBSMAPA = null;
 let leafletCargando = null;
 function cargarLeaflet(){
   if (window.L) return Promise.resolve();
@@ -2078,6 +2138,18 @@ async function activarMapa(){
   // evita que se quede atrapado al desplazar la página.
   LMAP.on('click', () => LMAP.scrollWheelZoom.enable());
   LMAP.on('mouseout', () => LMAP.scrollWheelZoom.disable());
+
+  // Leaflet mide el contenedor una vez, al crearse. Ahora la caja
+  // crece con el panel de al lado, así que hay que avisarle cuando
+  // cambia de tamaño: si no, pinta las teselas para la altura que
+  // tenía y deja una banda gris al pie. ResizeObserver, no el
+  // resize de la ventana, porque la caja también cambia cuando
+  // "Actividad reciente" trae más líneas sin que nadie toque nada.
+  if (typeof ResizeObserver === 'function'){
+    OBSMAPA?.disconnect();
+    OBSMAPA = new ResizeObserver(() => LMAP?.invalidateSize({ animate: false }));
+    OBSMAPA.observe(cont);
+  }
 
   pintarPuntos();
 }
