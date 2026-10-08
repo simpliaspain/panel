@@ -300,21 +300,28 @@
   /* Tres columnas: hora, quién y texto. El punto de color y la
      flecha se quitaron del marcado — el punto obligaba a aprenderse
      un código que la palabra "Cliente" ya dice. */
-  .feed li{display:grid;grid-template-columns:52px 62px minmax(0,1fr);gap:12px;
+  .feed li{display:grid;grid-template-columns:52px 96px minmax(0,1fr);gap:12px;
            align-items:baseline;padding:12px 0;
            border-top:1px solid var(--linea);font-size:13px}
   .feed li:first-child{border-top:0}
   .fh{font-size:12px;color:var(--gris)}
-  .fq{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.04em}
+  /* Columna de quién habla. Antes era un rótulo fijo en mayúsculas
+     ("CLIENTE" / "IA") y cabía en 62px. Ahora lleva el nombre de la
+     persona, así que se ensancha y deja de ir en mayúsculas: un
+     nombre propio gritado se lee peor y "María José" no entraba. */
+  .fq{font-size:12px;font-weight:600;color:var(--gris);min-width:0;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      unicode-bidi:plaintext}
+  .fq.ia{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
   .ft{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext;color:var(--tinta);line-height:1.5;min-width:0;overflow-wrap:anywhere}
   .feed li[data-ir]{cursor:pointer;border-radius:10px;margin:0 -12px;padding-left:10px;
                     padding-right:10px;transition:background .15s ease}
   .feed li[data-ir]:hover,.feed li[data-ir]:focus-visible{background:var(--fondo)}
   .feed li[data-ir]:hover .fgo{color:var(--pulso-texto);transform:translateX(2px)}
-  .feed li{grid-template-columns:52px 62px minmax(0,1fr)}
+  .feed li{grid-template-columns:52px 96px minmax(0,1fr)}
   .dacc{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 20px;
         padding-bottom:18px;border-bottom:1px solid var(--linea)}
-  @media(max-width:640px){.feed li{grid-template-columns:44px 52px minmax(0,1fr)}}
+  @media(max-width:640px){.feed li{grid-template-columns:44px 76px minmax(0,1fr)}}
   .barras{display:grid;gap:20px}
   /* Dentro de un panel con cabecera las barras van más juntas:
      el panel ya tiene su propio aire alrededor. */
@@ -592,6 +599,25 @@
      vista para emparejarlos. */
   .ajustes{max-width:860px;margin:0 auto}
 
+  /* Lista de correos de aviso. Una fila por dirección, con su botón
+     de quitar al lado: un solo campo separado por comas obliga a
+     leer una cadena larga para saber a quién se avisa. */
+  .mails{display:flex;flex-direction:column;gap:8px}
+  .fmail{display:flex;gap:8px;align-items:center}
+  .fmail input{flex:1 1 auto;min-width:0;margin:0}
+  .fmail .cbtn{flex:none}
+  .masm{margin-top:10px}
+  .masm:disabled{opacity:.45;cursor:default}
+
+  /* Días de la semana del horario del equipo. Botones de dos letras
+     porque la fila entera tiene que caber en un móvil. */
+  .dias{display:flex;gap:6px;flex-wrap:wrap}
+  .dias button{width:44px;min-height:44px;border-radius:12px;font-size:13px;
+    font-weight:600;background:var(--fondo);color:var(--gris);
+    border:1.5px solid var(--linea);cursor:pointer;font-family:inherit}
+  .dias button[aria-pressed="true"]{background:var(--aire);color:var(--pulso-texto);
+    border-color:var(--azul-borde)}
+
   /* ---------- CONVERSACIONES EN DOS COLUMNAS ----------
      La conversación se lee AL LADO de la lista, no en una ventana
      encima. Con un modal hay que cerrarlo para pasar al siguiente,
@@ -619,6 +645,30 @@
   .dcab h2{font-size:21px;letter-spacing:-.02em;line-height:1.2}
   .dcab .dmeta{font-size:13px;color:var(--gris);margin-top:4px;overflow-wrap:anywhere}
   .dcab .dacc{margin:16px 0 0;padding:0;border:0}
+
+  /* Gestión de un contacto: parar al asistente y dejarlo fuera del
+     recuento. Son dos cosas que cambian lo que ve el cliente, así
+     que el estado va escrito con palabras y no con un icono: "el
+     asistente no le responde" no se puede malinterpretar. */
+  .gest{margin:16px 0 0;display:flex;flex-direction:column;gap:8px}
+  .gav{display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+       background:var(--fondo-hueco);border:1px solid var(--linea);
+       border-radius:14px;padding:12px 16px;font-size:13px;
+       color:var(--tinta-suave);line-height:1.6}
+  .gav b{color:var(--tinta);font-weight:700}
+  .gav .gtx{flex:1 1 220px;min-width:0}
+  .gav.al{background:var(--ambar-tenue);border-color:var(--ambar-borde);color:var(--ambar-texto)}
+  .gav.al b{color:var(--ambar-oscuro)}
+  .gopc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+        background:var(--blanco-tibio);border:1px solid var(--linea);
+        border-radius:14px;padding:12px 16px}
+  .gopc .glab{font-size:12px;font-weight:600;color:var(--gris);flex:1 1 100%}
+  .gopc input[type=text]{flex:1 1 160px;min-width:0;font-size:13px;
+        padding:8px 10px;border:1px solid var(--borde-fuerte);
+        border-radius:10px;font-family:inherit;color:var(--tinta)}
+  .gmsg{font-size:13px;font-weight:600;padding:0 4px}
+  .gmsg.ok{color:var(--verde-texto)}
+  .gmsg.err{color:var(--rojo-texto)}
 
   @media (max-width:1180px){
     .convs2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
@@ -1223,28 +1273,43 @@ async function arrancar(){
   // sepan qué puede hacer quien mira sin volver a preguntarlo.
   CFG.rol = t.rol;
   CFG.ajustes = t.ajustes || {};
-  $('#cliente').textContent = t.name;
+  // `nombre`, no `name`: mt_mi_config devuelve la columna en
+  // castellano como todo el esquema, y aquí se leía en inglés. En la
+  // cabecera del panel ponía literalmente "undefined".
+  $('#cliente').textContent = t.nombre || '';
 
-  // Los textos del panel salen del tenant, no del código: así un
+  // Los textos y el horario salen de la base, no del código: así un
   // cliente de otro sector ve su propia terminología.
-  try {
-    const { data } = await supabase.rpc('mt_mi_config');
-    if (data){
-      CFG.etiquetas = { ...CFG.etiquetas, ...(data.etiquetas || {}) };
-      // El rótulo antiguo pudo quedar guardado en tenants.etiquetas y
-      // ganaría al valor por defecto. Se sustituye solo si coincide
-      // exactamente. Quitar estas dos líneas cuando la fila esté
-      // actualizada en la base de datos (SQL en las notas de entrega).
-      if (CFG.etiquetas.senales_titulo === 'Qué buscan tus clientes')
-        CFG.etiquetas.senales_titulo = 'Por qué se interesan';
-      if (data.horario)   CFG.horario   = data.horario;
-      if (data.objetivos)  CFG.objetivos  = data.objetivos;
-      if (data.documentos) CFG.documentos = data.documentos;
-      if (data.mapas)       CFG.mapas       = data.mapas;
-      if (data.modulos)     CFG.modulos     = data.modulos;
-      if (data.tratamiento) CFG.tratamiento = data.tratamiento;
-    }
-  } catch { /* se usan los valores por defecto */ }
+  //
+  // ESTO ESTABA ROTO Y NO SE VEÍA. Había una segunda llamada a
+  // mt_mi_config que trataba la respuesta como un objeto con
+  // .horario, .documentos, .tratamiento… y mt_mi_config devuelve una
+  // fila con slug, nombre, rol y `ajustes`. Ninguna de esas
+  // propiedades existía, así que CFG se quedaba SIEMPRE en los
+  // valores por defecto del código:
+  //
+  //   · Configuración enseñaba "lunes a viernes, de 9:00 a 19:00"
+  //     fuera cual fuera el horario real, mientras mt_mis_numeros
+  //     contaba lo de "fuera de horario" con ajustes.horario. Dos
+  //     verdades para la misma franja.
+  //   · "Información del servicio" y "Tratamiento de datos" no
+  //     aparecían nunca.
+  //   · CFG.modulos.agenda nunca podía ocultar la Agenda.
+  //
+  // Ahora todo sale del mismo sitio: mt_panel_ajustes.ajustes, que es
+  // lo que leen también las funciones de la base.
+  const A = CFG.ajustes;
+  CFG.etiquetas = { ...CFG.etiquetas, ...(A.etiquetas || {}) };
+  // El rótulo antiguo pudo quedar guardado en los ajustes y ganaría
+  // al valor por defecto. Se sustituye solo si coincide exactamente.
+  if (CFG.etiquetas.senales_titulo === 'Qué buscan tus clientes')
+    CFG.etiquetas.senales_titulo = 'Por qué se interesan';
+  if (A.horario)     CFG.horario     = A.horario;
+  if (A.objetivos)   CFG.objetivos   = A.objetivos;
+  if (A.documentos)  CFG.documentos  = A.documentos;
+  if (A.mapas)       CFG.mapas       = A.mapas;
+  if (A.modulos)     CFG.modulos     = A.modulos;
+  if (A.tratamiento) CFG.tratamiento = A.tratamiento;
   // Fuera de arrancar(): al cambiar de cliente se vuelve a llamar
   // y el oyente se duplicaría, disparando dos cargas por clic.
   if (!$('#refrescar').dataset.listo){
@@ -1379,6 +1444,15 @@ function nom(valor, refPorDefecto){
   if (!t) return `<span class="mono">${esc(refPorDefecto ?? '')}</span>` +
                  `<span class="csin"> sin nombre</span>`;
   return `<bdi>${esc(t)}</bdi>`;
+}
+
+// El nombre de pila, para las columnas estrechas. [...t] parte por
+// caracteres reales por el mismo motivo que en inicial(): cortar un
+// emoji o una letra compuesta por la mitad deja un signo roto.
+function primerNombre(valor){
+  const p = String(valor ?? '').trim().split(/\s+/)[0] || '';
+  const c = [...p];
+  return c.length > 14 ? c.slice(0, 13).join('') + '…' : p;
 }
 
 // La inicial de un nombre que puede empezar por emoji: [...t] parte
@@ -1560,8 +1634,13 @@ function enlazarPlegables(){
 }
 
 // La actividad reciente, en su propia función para poder ponerla
-// junto al mapa. Sin punto de color: la palabra "Cliente" o "IA" ya
-// dice de quién es, y el punto obligaba a aprenderse un código.
+// junto al mapa. Sin punto de color: la segunda columna ya dice de
+// quién es cada línea, y el punto obligaba a aprenderse un código.
+//
+// Esa columna decía "Cliente" para todo el mundo, teniendo el nombre
+// a mano en mt_actividad. Doce líneas que empiezan todas igual no
+// dicen nada; con el nombre se reconoce la conversación de un
+// vistazo.
 function bloqueActividad(d){
   if (!d.reciente || !d.reciente.length) return '';
   return `<div class="panel">
@@ -1571,9 +1650,17 @@ function bloqueActividad(d){
       ${d.reciente.map(m => {
         const ref = m.user_ref || null;
         const t = limpiaMensaje(m.contenido);
+        // "Cliente" se queda solo para cuando de verdad no hay
+        // nombre: el número entero no cabe en la columna, y la fila
+        // se abre con un clic para ver quién es.
+        const ia    = m.papel !== 'human';
+        const quien = ia ? 'IA'
+          : (m.nombre ? `<bdi>${esc(primerNombre(m.nombre))}</bdi>` : 'Cliente');
+        const pista = ia ? 'Respuesta del asistente'
+          : (m.nombre || m.telefono || ref || 'Cliente');
         return `<li${ref ? ` data-ir="${esc(ref)}" tabindex="0" role="button"` : ''}>
           <span class="fh mono">${hora(m.cuando)}</span>
-          <span class="fq">${m.papel === 'human' ? 'Cliente' : 'IA'}</span>
+          <span class="fq${ia ? ' ia' : ''}" title="${esc(pista)}">${quien}</span>
           <span class="ft">${esc(t.slice(0, 90))}${t.length > 90 ? '\u2026' : ''}</span>
         </li>`;
       }).join('')}
@@ -1608,8 +1695,12 @@ function bloqueNumeros(n){
   // la cifra, será por esta partida.
   const partidas = [
     [Number(n.fuera_horario_eur) || 0, fila('Captados fuera de horario', n.fuera_horario_eur,
+      // "de noche o en fin de semana" solo era cierto con la franja
+      // de lunes a viernes. La cuenta usa la franja configurada, así
+      // que el texto tiene que decir eso y no suponerla.
       `<strong>${nf.format(n.fuera_horario)}</strong>
-       ${n.fuera_horario === 1 ? 'contacto' : 'contactos'} de noche o en fin de semana
+       ${n.fuera_horario === 1 ? 'contacto' : 'contactos'} llegados cuando
+       tu equipo no estaba
        × <strong>${nf.format(n.ticket_medio)} €</strong> al mes`,
       falta.has('ticket') ? 'el pago medio de un cliente' : null)],
     [Number(n.tiempo_eur) || 0, fila('Tiempo liberado', n.tiempo_eur,
@@ -2060,7 +2151,10 @@ function bloquePatron(d){
   });
   if (!max) return '';
 
-  // Horario laboral real del cliente (settings.horario).
+  // Franja del equipo del cliente (ajustes.horario), la misma que usa
+  // mt_mis_numeros para "Captados fuera de horario". El asistente
+  // responde a todas horas; esta franja solo dice cuándo había
+  // alguien del equipo.
   // dias viene en formato ISO 1=lunes…7=domingo; getDay() usa 0=domingo.
   const H = CFG.horario || { inicio:9, fin:19, dias:[1,2,3,4,5] };
   const lab = new Set((H.dias || [1,2,3,4,5]).map(n => n === 7 ? 0 : n));
@@ -2070,17 +2164,18 @@ function bloquePatron(d){
     if (!lab.has(dd) || h < H.inicio || h >= H.fin) fuera += v;
   }
   const pct = total ? Math.round(fuera / total * 100) : 0;
-  const dnom = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  const dlab = (H.dias || []).map(n => dnom[n === 7 ? 0 : n]);
-  const rango = dlab.length
-    ? `${dlab[0]} a ${dlab[dlab.length-1]}, de ${H.inicio}:00 a ${H.fin}:00`
+  // Un solo sitio donde se escribe la franja en palabras. Aquí había
+  // una segunda versión que cogía el primer día y el último de la
+  // lista: con [1,3,5] decía "lunes a viernes", que es falso.
+  const rango = (H.dias || []).length
+    ? horarioTexto()
     : `de ${H.inicio}:00 a ${H.fin}:00`;
 
   const orden = [1,2,3,4,5,6,0];
   return `<div class="panel">
     <h3>Cuándo escriben</h3>
-    <p class="ph">Mensajes por día y hora. <strong>${pct}%</strong> llegan fuera
-       de tu horario de atención (${rango}), y se atienden igual.</p>
+    <p class="ph">Mensajes por día y hora. <strong>${pct}%</strong> llegan cuando
+       tu equipo no está (${rango}), y se atienden igual.</p>
     <div class="mapa">
       <div class="mhoras"><span></span>${
         Array.from({length:24}, (_,h) => `<span class="mh">${h%6===0?h:''}</span>`).join('')}</div>
@@ -2242,7 +2337,12 @@ const SENALES = {
   cita:          { etq: 'Con cita',      campo: c => !!c.cita,         pill: 'vd' },
   sin_respuesta: { etq: 'Sin respuesta', campo: c => c.sin_respuesta,  pill: 'am' },
   friccion:      { etq: 'Fricción',      campo: c => c.friccion,       pill: 'rj' },
-  vuelto:        { etq: 'Ha vuelto',     campo: c => Number(c.conversaciones) > 1, pill: 'nt' }
+  vuelto:        { etq: 'Ha vuelto',     campo: c => Number(c.conversaciones) > 1, pill: 'nt' },
+  // Estos dos solo aparecen si hay alguien así: los filtros con cero
+  // resultados se esconden solos. Hacen falta para poder encontrar a
+  // quien se dejó fuera y volver a incluirlo.
+  pausado:       { etq: 'En pausa',      campo: c => !!c.pausado_hasta, pill: 'nt' },
+  fuera:         { etq: 'Fuera del recuento', campo: c => !!c.fuera_del_recuento, pill: 'nt' }
 };
 const aplicaFiltros = (lista, filtros) =>
   lista.filter(c => [...filtros].every(k => SENALES[k].campo(c)));
@@ -2281,6 +2381,10 @@ async function pintarConvs(silencioso){
 function render(busqueda){
   const cont = $('#pconvs'); if (!cont) return;
   const lista = aplicaFiltros(CONTACTOS, FILTRO);
+  // Los que el cliente ha dejado fuera siguen en la lista —si no,
+  // no podría volver a incluirlos— pero el recuento tiene que decir
+  // cuántos son, o la cifra de aquí no cuadraría con la del Latido.
+  const fuera = lista.filter(c => c.fuera_del_recuento).length;
 
   // Cada filtro muestra cuántos resultados daría AÑADIRLO a la
   // selección actual. Si daría cero, se desactiva: así nunca se
@@ -2300,7 +2404,12 @@ function render(busqueda){
     <div class="cabpanel">
       <div>
         <h3>${nf.format(lista.length)} ${lista.length === 1 ? 'persona' : 'personas'}</h3>
-        ${FILTRO.size ? `<p class="ph" style="margin:2px 0 0">de ${nf.format(CONTACTOS.length)}</p>` : ''}
+        ${FILTRO.size || fuera
+          ? `<p class="ph" style="margin:2px 0 0">${
+              FILTRO.size ? `de ${nf.format(CONTACTOS.length)}` : ''}${
+              FILTRO.size && fuera ? ' · ' : ''}${
+              fuera ? `${nf.format(fuera)} fuera del recuento` : ''}</p>`
+          : ''}
       </div>
     </div>
 
@@ -2472,7 +2581,12 @@ function desdeEntonces(d){
 const filaC = c => {
   const ini = inicialDe(c);
   const act = c.historico ? { txt:'histórico', frio:true } : desdeEntonces(c.ultima);
+  // El estado va primero: cambia cómo hay que leer el resto de la
+  // fila. Si alguien está fuera del recuento, saber que tiene
+  // "Interés" importa menos que saber que no cuenta.
   const senales = [
+    c.fuera_del_recuento ? '<span class="pill hist">Fuera del recuento</span>' : '',
+    c.pausado_hasta      ? '<span class="pill nt">En pausa</span>'             : '',
     c.cita          ? '<span class="pill vd">Cita</span>'          : '',
     c.interes       ? '<span class="pill az">Interés</span>'       : '',
     c.contacto      ? '<span class="pill nt">Contacto</span>'      : '',
@@ -2647,6 +2761,20 @@ async function pintarAjustes(silencioso){
 
   const a = r.ajustes || {};
 
+  // Los ajustes que llegan aquí son los de la base, así que el resto
+  // del panel se pone al día con ellos: si alguien cambió el horario
+  // desde otra pestaña, el Latido no puede seguir con el de antes.
+  CFG.ajustes = a;
+  if (a.horario) CFG.horario = a.horario;
+
+  // Misma franja por defecto que mt_mis_numeros. Si aquí pusiera otra,
+  // la pantalla y el cálculo dirían cosas distintas.
+  const H = {
+    inicio: Number(CFG.horario?.inicio ?? 9),
+    fin:    Number(CFG.horario?.fin    ?? 19),
+    dias:   (CFG.horario?.dias ?? [1,2,3,4,5]).map(Number)
+  };
+
   // La base devuelve los canales en bruto ("prueba, whatsapp_evolution").
   // El cliente no sabe qué es Evolution, y "prueba" es nuestro
   // probador: ni es un canal suyo ni debería verlo.
@@ -2680,27 +2808,63 @@ async function pintarAjustes(silencioso){
         <dt>Usuarios con acceso</dt><dd class="mono">${nf.format(r.usuarios)}</dd>
         <dt>Ubicaciones monitorizadas</dt><dd class="mono">${nf.format(r.ubicaciones || 0)}</dd>
         <dt>Servicios monitorizados</dt><dd class="mono">${nf.format(r.servicios || 0)}</dd>
-        <dt>Horario de atención</dt><dd>${horarioTexto()}</dd>
+        <dt>El asistente responde</dt><dd>Siempre, las 24 horas, todos los días</dd>
         ${r.sector ? `<dt>Sector</dt><dd>${esc(r.sector)}</dd>` : ''}
       </dl>
     </div>
 
     <div class="panel">
       <h3>Tus preferencias</h3>
-      <p class="ph">A qué dirección te avisamos de cambios en el servicio.</p>
-      
-      <div class="campos">
-        <div>
-          <label for="ea">Email para avisos del servicio</label>
-          <input id="ea" type="email" placeholder="avisos@empresa.com"
-                 value="${esc(a.email_avisos ?? '')}">
-          <p class="hint">Usaremos esta dirección para comunicaciones sobre el asistente.</p>
-        </div>
-      </div>
+      <p class="ph">A qué direcciones te avisamos de cambios en el servicio.</p>
+
+      <label for="ea0">Correos para avisos del servicio</label>
+      <div class="mails" id="emails"></div>
+      <button class="cbtn sec masm" id="masmail">Añadir otro correo</button>
+      <p class="hint">Hasta cinco direcciones. Las usaremos solo para
+         comunicaciones sobre el asistente.</p>
+
       <div class="acc">
         <button class="btn corto" id="guardar">Guardar cambios</button>
         <span id="msg" class="msg-ok"></span>
       </div>
+    </div>
+
+    <div class="panel">
+      <h3>Horario de tu equipo</h3>
+      <p class="ph">El asistente responde a todas horas. Esta franja es la
+         de tu equipo, y sirve para una sola cosa: saber qué entró cuando
+         no había nadie, que es lo que cuenta «Captados fuera de horario»
+         en el Latido.</p>
+      <p class="hint" style="margin:-8px 0 16px">No es el horario de los centros:
+         cada centro tiene el suyo y el asistente lo consulta en tu hoja.
+         Aquí solo hace falta una franja de referencia.</p>
+      ${r.puede_escribir ? `
+        <label>Días que trabaja tu equipo</label>
+        <div class="dias" id="dias">
+          ${DIAS_CORTOS.map(([n, et, largo]) =>
+            `<button type="button" data-d="${n}" aria-pressed="${H.dias.includes(n)}"
+                     title="${largo}" aria-label="${largo}">${et}</button>`).join('')}
+        </div>
+        <div class="campos" style="margin-top:16px">
+          <div>
+            <label for="hi">Empieza</label>
+            <div class="campo-u"><input id="hi" type="number" min="0" max="23" step="1"
+              inputmode="numeric" value="${Number(H.inicio)}"><span>h</span></div>
+          </div>
+          <div>
+            <label for="hf">Termina</label>
+            <div class="campo-u"><input id="hf" type="number" min="1" max="24" step="1"
+              inputmode="numeric" value="${Number(H.fin)}"><span>h</span></div>
+          </div>
+        </div>
+        <div class="acc">
+          <button class="btn corto" id="guardarhor">Guardar horario</button>
+          <span id="msghor" class="msg-ok" role="status" aria-live="polite"></span>
+        </div>`
+        : `<dl class="ficha">
+          <dt>Franja de referencia</dt><dd>${esc(horarioTexto())}</dd>
+        </dl>
+        <p class="hint">Si no es correcta, pídenoslo y la cambiamos.</p>`}
     </div>
 
     <div class="panel" id="parametros">
@@ -2798,9 +2962,44 @@ async function pintarAjustes(silencioso){
 
   const num = v => (v === '' || v == null) ? null : Number(v);
 
+  /* ---- los correos de aviso, en lista ---- */
+  // Lo guardado puede venir como lista (lo normal) o como el texto
+  // suelto de antes: se admiten los dos y se guarda siempre lista.
+  let correos = Array.isArray(a.email_avisos) ? a.email_avisos.map(String)
+              : (a.email_avisos ? [String(a.email_avisos)] : []);
+  if (!correos.length) correos = [''];
+
+  const pintaCorreos = (foco) => {
+    const caja = $('#emails'); if (!caja) return;
+    caja.innerHTML = filasCorreo(correos);
+
+    // Cada tecleo se guarda en el array: si no, añadir o quitar una
+    // fila repinta y se pierde lo que se estaba escribiendo en las
+    // demás.
+    caja.querySelectorAll('.fmail input').forEach(inp =>
+      inp.addEventListener('input', () => { correos[Number(inp.id.slice(2))] = inp.value; }));
+    caja.querySelectorAll('button[data-q]').forEach(b =>
+      b.addEventListener('click', () => {
+        correos.splice(Number(b.dataset.q), 1);
+        if (!correos.length) correos = [''];
+        pintaCorreos();
+      }));
+
+    const mas = $('#masmail');
+    if (mas) mas.disabled = correos.length >= 5;
+    if (foco != null) $('#ea' + foco)?.focus();
+  };
+  pintaCorreos();
+
+  $('#masmail')?.addEventListener('click', () => {
+    if (correos.length >= 5) return;
+    correos.push('');
+    pintaCorreos(correos.length - 1);
+  });
+
   $('#guardar').addEventListener('click', () =>
     guardar('#guardar', '#msg',
-      () => ({ email_avisos: $('#ea').value.trim() }),
+      () => ({ email_avisos: correos.map(s => s.trim()).filter(Boolean) }),
       'Cambios guardados.'));
 
   $('#guardarpar')?.addEventListener('click', () =>
@@ -2811,14 +3010,198 @@ async function pintarAjustes(silencioso){
         coste_hora_eur:           num($('#ch').value)
       }),
       'Guardado. El Latido ya usa los nuevos valores.'));
+
+  /* ---- el horario del equipo ---- */
+  $('#dias')?.querySelectorAll('button[data-d]').forEach(b =>
+    b.addEventListener('click', () =>
+      b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true')));
+
+  $('#guardarhor')?.addEventListener('click', async () => {
+    const dias = [...$('#dias').querySelectorAll('button[aria-pressed="true"]')]
+      .map(b => Number(b.dataset.d)).sort((x, y) => x - y);
+    if (!dias.length){
+      const m = $('#msghor');
+      m.textContent = 'Marca al menos un día.'; m.className = 'msg-err';
+      return;
+    }
+    await guardar('#guardarhor', '#msghor',
+      () => ({ horario: { inicio: Number($('#hi').value),
+                          fin:    Number($('#hf').value), dias } }),
+      'Horario guardado.');
+    // El Latido pinta la franja sobre el mapa de calor y cuenta lo de
+    // fuera de horario con ella: si no se actualiza aquí, la pantalla
+    // y el cálculo discrepan hasta recargar.
+    if (CFG.ajustes?.horario) CFG.horario = CFG.ajustes.horario;
+  });
 }
 
+// Las filas de correo, aparte y sin tocar el DOM, para poder
+// comprobarlas con la batería de render igual que los bloques del
+// Latido. El botón de quitar no sale con una sola dirección: borrar
+// la única que hay no es quitar una de la lista, es dejar de avisar,
+// y para eso se vacía el campo.
+function filasCorreo(correos){
+  return correos.map((e, i) => `
+      <div class="fmail">
+        <input id="ea${i}" type="email" inputmode="email"
+               autocomplete="email" placeholder="avisos@empresa.com"
+               value="${esc(String(e ?? ''))}" aria-label="Correo ${i + 1}">
+        ${correos.length > 1
+          ? `<button type="button" class="cbtn sec" data-q="${i}"
+                     aria-label="Quitar el correo ${i + 1}">Quitar</button>`
+          : ''}
+      </div>`).join('');
+}
+
+// isodow: 1 = lunes … 7 = domingo. La misma convención que
+// settings.horario.dias, mt_patron_horario y mt_mis_numeros.
+const DIAS_CORTOS = [
+  [1,'L','lunes'], [2,'M','martes'], [3,'X','miércoles'], [4,'J','jueves'],
+  [5,'V','viernes'], [6,'S','sábado'], [7,'D','domingo']
+];
+const DIAS_LARGOS = Object.fromEntries(DIAS_CORTOS.map(d => [d[0], d[2]]));
+
+// "lunes a viernes" solo si los días son seguidos. Con [1,3,5] decir
+// "lunes a viernes" sería mentira, y era lo que hacía antes: cogía el
+// primero y el último de la lista sin mirar si había huecos.
 function horarioTexto(){
   const H = CFG.horario || {};
-  const dn = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  const ds = (H.dias || []).map(n => dn[n === 7 ? 0 : n]);
-  if (!ds.length) return '—';
-  return `${ds[0]} a ${ds[ds.length-1]}, de ${H.inicio}:00 a ${H.fin}:00`;
+  const d = [...new Set((H.dias || []).map(Number))].sort((x,y) => x - y);
+  if (!d.length) return '—';
+  const seguidos = d.every((n, i) => i === 0 || n === d[i-1] + 1);
+  const dias = d.length === 1 ? DIAS_LARGOS[d[0]]
+    : seguidos ? `${DIAS_LARGOS[d[0]]} a ${DIAS_LARGOS[d[d.length-1]]}`
+    : d.map(n => DIAS_LARGOS[n]).join(', ');
+  return `${dias}, de ${H.inicio}:00 a ${H.fin}:00`;
+}
+
+/* ---------- gestión de un contacto ---------- */
+// Dos cosas que el cliente pidió poder hacer solo: callar al
+// asistente con una persona concreta, y dejar a alguien fuera del
+// recuento (su propio móvil, un proveedor, una prueba suya).
+//
+// Lo que PARA al asistente es mt_contactos.pausado_hasta, la columna
+// que el agente consulta antes de responder. El panel apunta además
+// quién lo pidió y hasta cuándo, y con las dos cosas puede comprobar
+// que lo pedido sigue aplicado. Si deja de estarlo, lo dice: creer
+// que el bot está callado mientras contesta es peor que no haber
+// podido callarlo.
+
+const PAUSA_LARGA = 365 * 24 * 3600 * 1000;   // de aquí en adelante, indefinida
+
+function hastaCuando(d){
+  if (!d) return '';
+  const t = new Date(d).getTime();
+  if (t - Date.now() > PAUSA_LARGA) return 'hasta que lo reactives';
+  const mismoDia = new Date().toDateString() === new Date(d).toDateString();
+  return mismoDia ? `hasta las ${hora(d)}` : `hasta el ${fecha(d)}`;
+}
+
+function gestion(c){
+  const puedo  = !!(TENANT && TENANT.puede_escribir);
+  const pedida = c.pausa_pedida_hasta || null;
+  // Pausa que no ha pedido el panel: la que pone el sistema cuando
+  // alguien del equipo contesta a mano. Se enseña, pero no se toca.
+  const auto   = !pedida && c.pausado_hasta && c.pausado_por !== 'panel';
+
+  const botones = [
+    puedo && !pedida && !auto
+      ? '<button class="cbtn" id="gpausar">Parar al asistente</button>' : '',
+    puedo && !c.fuera_del_recuento
+      ? '<button class="cbtn" id="gexcluir">Dejar fuera del recuento</button>' : ''
+  ].join('');
+
+  const avisos = [];
+  if (pedida && c.pausa_aplicada){
+    avisos.push(`<div class="gav"><span class="gtx">
+      <b>El asistente no le responde</b>, ${esc(hastaCuando(pedida))}.</span>
+      ${puedo ? '<button class="cbtn sec" id="greanudar">Reactivar</button>' : ''}</div>`);
+  } else if (pedida){
+    avisos.push(`<div class="gav al"><span class="gtx">
+      <b>La pausa está anotada pero no se está aplicando.</b>
+      El asistente puede seguir respondiéndole. Avísanos y lo revisamos.</span>
+      ${puedo ? '<button class="cbtn sec" id="greanudar">Quitar la pausa</button>' : ''}</div>`);
+  } else if (auto){
+    avisos.push(`<div class="gav"><span class="gtx">
+      <b>En pausa</b> porque alguien del equipo le ha contestado a mano.
+      El asistente vuelve ${esc(hastaCuando(c.pausado_hasta))}.</span></div>`);
+  }
+  if (c.fuera_del_recuento){
+    avisos.push(`<div class="gav"><span class="gtx">
+      <b>Fuera del recuento.</b> Sus conversaciones no entran en el Latido
+      ni en tus números. Puedes seguir leyéndolas.</span>
+      ${puedo ? '<button class="cbtn sec" id="gincluir">Volver a contar</button>' : ''}</div>`);
+  }
+
+  const bloque = `<div class="gest">${avisos.join('')}
+    <div id="gcaja"></div>
+    <div id="gmsg" class="gmsg" role="status" aria-live="polite"></div></div>`;
+
+  return { botones, bloque };
+}
+
+// `recargar(aviso)` vuelve a pedir los contactos y repinta. El aviso
+// se pone DESPUÉS de repintar, porque repintar borra el anterior y el
+// mensaje de "hecho" desaparecía justo al conseguirlo.
+function enlazarGestion(contact, recargar){
+  const caja = $('#gcaja'), msg = $('#gmsg');
+  if (!caja || !msg) return;
+  const limpiar = () => { caja.innerHTML = ''; msg.textContent = ''; msg.className = 'gmsg'; };
+
+  const llamar = async (fn, args, textoOk) => {
+    msg.textContent = 'Un momento…'; msg.className = 'gmsg';
+    try {
+      const { error } = await supabase.rpc(fn, args);
+      if (error) throw error;
+      await recargar(textoOk);
+    } catch (e) {
+      msg.textContent = /permiso|lectura|42501/.test(e.message || '')
+        ? 'Tu cuenta no tiene permiso para hacer esto.'
+        : (e.message || 'No se ha podido completar.');
+      msg.className = 'gmsg err';
+    }
+  };
+
+  $('#gpausar')?.addEventListener('click', () => {
+    caja.innerHTML = `<div class="gopc">
+      <span class="glab">¿Cuánto tiempo quieres que el asistente no le responda?</span>
+      <button class="cbtn" data-h="2">2 horas</button>
+      <button class="cbtn" data-h="24">Un día</button>
+      <button class="cbtn" data-h="">Hasta que lo reactive</button>
+      <button class="cbtn sec" data-no="1">Dejarlo</button>
+    </div>`;
+    caja.querySelectorAll('[data-h]').forEach(b => b.addEventListener('click', () =>
+      llamar('mt_pausar',
+        { p_user_ref: contact,
+          p_horas: b.dataset.h === '' ? null : Number(b.dataset.h) },
+        'Hecho: el asistente no le responderá.')));
+    caja.querySelector('[data-no]')?.addEventListener('click', limpiar);
+  });
+
+  $('#greanudar')?.addEventListener('click', () =>
+    llamar('mt_reanudar', { p_user_ref: contact },
+           'El asistente vuelve a responderle.'));
+
+  $('#gexcluir')?.addEventListener('click', () => {
+    caja.innerHTML = `<div class="gopc">
+      <span class="glab">Sus conversaciones dejarán de contar en el Latido y en tus
+        números. Podrás seguir leyéndolas y deshacerlo cuando quieras.</span>
+      <input type="text" id="gmot" maxlength="120"
+             placeholder="Por qué, para acordarte (opcional)">
+      <button class="cbtn" data-si="1">Dejar fuera</button>
+      <button class="cbtn sec" data-no="1">Dejarlo</button>
+    </div>`;
+    caja.querySelector('[data-si]')?.addEventListener('click', () =>
+      llamar('mt_excluir',
+        { p_user_ref: contact,
+          p_motivo: ($('#gmot')?.value || '').trim() || null },
+        'Hecho: ya no cuenta en las cifras.'));
+    caja.querySelector('[data-no]')?.addEventListener('click', limpiar);
+  });
+
+  $('#gincluir')?.addEventListener('click', () =>
+    llamar('mt_incluir', { p_user_ref: contact },
+           'Vuelve a contar en las cifras.'));
 }
 
 /* ---------- detalle de un contacto ---------- */
@@ -2850,6 +3233,7 @@ async function abrir(contact){
   let dia = null;
 
   const tel = c.telefono || contact;
+  const G = gestion(c);
   $(caja).innerHTML = `
     <div class="dcab">
       <div style="display:flex;justify-content:space-between;gap:16px">
@@ -2862,7 +3246,9 @@ async function abrir(contact){
       <div class="dacc">
         <a class="cbtn pri" href="tel:${esc(tel)}">Llamar</a>
         <button class="cbtn" id="verembudo">Abrir en Embudo</button>
+        ${G.botones}
       </div>
+      ${G.bloque}
     </div>
     ${msgs.length ? msgs.map(m => {
       // Separador por DÍA, no por sesión: el usuario piensa en
@@ -2888,6 +3274,20 @@ async function abrir(contact){
       const l = LEADS.find(x => x.user_ref === contact);
       if (l) abrirLead(l.id);
     }, 700);
+  });
+
+  enlazarGestion(contact, async aviso => {
+    const { data } = await supabase.rpc('mt_mis_contactos');
+    CONTACTOS = data || [];
+    // La lista de la izquierda también cambia: la persona gana o
+    // pierde su marca de "en pausa" o "fuera del recuento".
+    if ($('#pconvs')) render(BUSCA);
+    await abrir(contact);
+    if (aviso){
+      const m = $('#gmsg');
+      if (m){ m.textContent = aviso; m.className = 'gmsg ok'; }
+      anunciar(aviso);
+    }
   });
 
   $('#cx')?.addEventListener('click', cerrar);
