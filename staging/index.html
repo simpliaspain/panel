@@ -251,11 +251,18 @@
   .modal .cab{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
   .cerrar{background:none;font-size:26px;color:var(--gris);line-height:1;padding:0 6px}
   .msg{display:flex;margin-bottom:11px}
-  /* 76% dejaba un cuarto de la columna en blanco a cada lado de un
-     mensaje largo. Con 86% y un tope en caracteres, las líneas
-     salen a la longitud en la que se lee cómodo. */
-  .msg .burb{max-width:86%;max-width:min(86%, 62ch);padding:12px 16px;
-             border-radius:14px;font-size:13px;line-height:1.6}
+  /* ANCHURA DE LECTURA
+     La medida clásica son 45-75 caracteres por línea, con 66 como
+     óptimo. El tope va en `ch`, que mide el ancho del "0": en esta
+     fuente son ~0,6em, mientras que una minúscula media ocupa
+     ~0,5em. Así que 66 caracteres ≈ 33em ≈ 55ch.
+     Antes había 62ch, que son unos 74 caracteres: pasado de largo.
+
+     Y 15 px, no 13: 13 es tamaño de dato y una conversación se lee.
+     line-height 1.6 porque líneas largas necesitan más aire para
+     que el ojo encuentre el principio de la siguiente. */
+  .msg .burb{max-width:86%;max-width:min(86%, 55ch);padding:12px 16px;
+             border-radius:14px;font-size:15px;line-height:1.6}
   .msg.h{justify-content:flex-start}
   .msg.h .burb{background:var(--aire);border-bottom-left-radius:4px}
   .msg.a{justify-content:flex-end}
@@ -583,7 +590,7 @@
      columna, no un tablero. A pantalla completa, una fila con la
      etiqueta a un extremo y el valor al otro obliga a barrer con la
      vista para emparejarlos. */
-  .ajustes{max-width:860px}
+  .ajustes{max-width:860px;margin:0 auto}
 
   /* ---------- CONVERSACIONES EN DOS COLUMNAS ----------
      La conversación se lee AL LADO de la lista, no en una ventana
@@ -613,13 +620,15 @@
   .dcab .dmeta{font-size:13px;color:var(--gris);margin-top:4px;overflow-wrap:anywhere}
   .dcab .dacc{margin:16px 0 0;padding:0;border:0}
 
-  @media (max-width:1080px){
+  @media (max-width:1180px){
     .convs2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
     #pdetalle,#pficha{top:80px}
   }
-  @media (max-width:820px){
-    /* Sin sitio para dos columnas: la conversación vuelve a abrirse
-       encima, que es lo que cabe en un teléfono. */
+  /* Una sola columna por debajo de 1000 px, y no de 820: a 900 px
+     la conversación se quedaba en 400 px y las líneas salían a 40
+     caracteres, por debajo del mínimo legible. Mejor una columna
+     ancha que dos estrechas. */
+  @media (max-width:1000px){
     .convs2{grid-template-columns:minmax(0,1fr)}
     #pdetalle,#pficha{display:none}
   }
@@ -2810,7 +2819,7 @@ function horarioTexto(){
 // Pinta una conversación. En pantalla ancha va en la columna de la
 // derecha; en móvil, donde esa columna no cabe, se abre encima.
 async function abrir(contact){
-  const ancho = window.innerWidth > 820;
+  const ancho = window.innerWidth > 1000;   // el mismo umbral que el CSS
   const caja = ancho && VISTA === 'convs' && $('#pdetalle') ? '#pdetalle' : '#mbox';
 
   if (caja === '#mbox'){
@@ -3172,7 +3181,7 @@ function abrirLead(id){
 
   // En pantalla ancha la ficha va en la columna de la derecha; en
   // móvil, donde no cabe, se abre encima.
-  const ancho = window.innerWidth > 820;
+  const ancho = window.innerWidth > 1000;   // el mismo umbral que el CSS
   const caja = ancho && VISTA === 'embudo' && $('#pficha') ? '#pficha' : '#mbox';
   if (caja === '#mbox') $('#modal').style.display = 'block';
   else $('#pficha').className = 'panel';
