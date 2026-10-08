@@ -1219,6 +1219,10 @@ async function arrancar(){
     return;
   }
   TENANT = t;
+  // El rol y los ajustes se guardan para que los bloques del Latido
+  // sepan qué puede hacer quien mira sin volver a preguntarlo.
+  CFG.rol = t.rol;
+  CFG.ajustes = t.ajustes || {};
   $('#cliente').textContent = t.name;
 
   // Los textos del panel salen del tenant, no del código: así un
@@ -1589,7 +1593,9 @@ function bloqueNumeros(n){
       <div class="tn-cab"><b>${titulo}</b>
         <span class="tn-eur">${falta_de ? '—' : eur(importe)}</span></div>
       <div class="tn-cuenta${falta_de ? ' tn-falta' : ''}">${
-        falta_de ? 'Falta el dato en Configuración' : cuenta}</div>
+        falta_de ? (CFG.rol === 'operador'
+          ? 'Falta el dato en Configuración'
+          : 'Falta un dato de cálculo. Pídenoslo y lo ponemos.') : cuenta}</div>
     </div>`;
 
   // Las tres partidas, ordenadas por importe. "Captados fuera de
