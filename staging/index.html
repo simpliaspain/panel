@@ -1081,6 +1081,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const URL = 'https://gwibsjohvfxasslcrxuq.supabase.co';
 const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 
+// Qué versión de este archivo está cargada. Sale en la franja de
+// staging y en la consola. GitHub Pages guarda los archivos en caché
+// unos minutos: sin esto no hay forma de saber si lo que se está
+// probando es lo último que se subió. Se cambia en cada entrega.
+const VERSION = '2026-10-09 · refresco sin pérdidas';
+console.info('Panel SimpliaSpain · versión', VERSION);
+
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
 const supabase = createClient(URL, KEY, {
   auth: { persistSession:false, autoRefreshToken:true, detectSessionInUrl:false }
@@ -4026,7 +4033,7 @@ function abrirLead(id){
   // La fila que se está leyendo, marcada en la lista.
   document.querySelectorAll('.lfila[data-lead]').forEach(el =>
     el.classList.toggle('on', Number(el.dataset.lead) === id));
-  enlazarFicha(l);
+  enlazarFicha(l, caja);
   pintarHistorial(l.id);
 }
 
@@ -4070,13 +4077,12 @@ function enlazarHistorial(leadId){
         { p_evento: Number(b.dataset.delev) });
       if (error){ b.disabled = false; return; }
       await pintarHistorial(leadId);
+      // Aquí había un resto de la ficha antigua que reescribía la última
+      // línea de #mbox con «N mensajes, M contactos». En pantalla ancha
+      // la ficha no está en #mbox: escribía en la ventana del móvil, que
+      // puede tener abierta una conversación. La ficha de ahora no
+      // enseña ese recuento, así que basta con poner la lista al día.
       await refrescarEmbudo();
-      const l = LEADS.find(x => x.id === leadId);
-      if (l) $('#mbox').querySelector('.dmeta:last-of-type')?.replaceWith(
-        Object.assign(document.createElement('p'), { className:'dmeta',
-          textContent: `${nf.format(l.mensajes || 0)} ${
-            Number(l.mensajes) === 1 ? 'mensaje' : 'mensajes'}, ${l.toques} ${
-            Number(l.toques) === 1 ? 'contacto' : 'contactos'}` }));
     }));
 
   // Corregir sustituye el texto por un campo, en el sitio. Abrir otro
@@ -4108,7 +4114,13 @@ function enlazarHistorial(leadId){
 const fechaHoraCorta = d => new Date(d).toLocaleString('es-ES',
   { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
 
-function enlazarFicha(l){
+// `caja` es donde está la ficha: la columna de la derecha (#pficha)
+// en pantalla ancha, o la ventana (#mbox) en el móvil. Antes todo se
+// enganchaba a #mbox, y en pantalla ancha los Datos no avisaban de
+// cambios: el botón «Guardar» no aparecía nunca y lo escrito se perdía
+// al pasar a otro lead.
+function enlazarFicha(l, caja = '#mbox'){
+  const box = $(caja);
   const leer = () => ({
     personas:         $('#f_personas').value.trim() || null,
     cuando_necesita:  $('#f_cuando').value.trim()   || null,
@@ -4124,7 +4136,9 @@ function enlazarFicha(l){
     const e = $('#faviso');
     e.textContent = txt;
     e.className = 'faviso ' + (ok ? 'ok' : 'mal');
-    $('#mbox').scrollTo({ top: 0, behavior: 'smooth' });
+    // Se sube al aviso en lo que se desplaza: la columna en pantalla
+    // ancha, la ventana entera en el móvil.
+    (caja === '#mbox' ? $('#modal') : box)?.scrollTo?.({ top: 0, behavior: 'smooth' });
     if (ok) setTimeout(() => { e.className = 'faviso'; }, 3500);
   };
 
@@ -4140,8 +4154,28 @@ function enlazarFicha(l){
   const mirar = () => {
     $('#fguardar').classList.toggle('on', JSON.stringify(leer()) !== inicial);
   };
-  $('#mbox').querySelectorAll('.fdatos input, .fdatos select, .fdatos textarea')
+  box.querySelectorAll('.fdatos input, .fdatos select, .fdatos textarea')
     .forEach(i => { i.addEventListener('input', mirar); i.addEventListener('change', mirar); });
+
+  // Lo que hay escrito en la ficha ahora mismo, para no perderlo
+  // cuando hay que volver a pintarla (al cambiar de etapa).
+  const foto = () => {
+    const v = {};
+    box.querySelectorAll('input[id], select[id], textarea[id]').forEach(e => {
+      if (e.id !== 'fetapa' && e.id !== 'p_motivo') v[e.id] = e.value;
+    });
+    return v;
+  };
+  const devolver = v => {
+    let tocado = false;
+    for (const [id, val] of Object.entries(v)){
+      const e = document.getElementById(id);
+      if (e && e.value !== val){ e.value = val; tocado = true; }
+    }
+    // Para que la barra de Guardar sepa que hay cambios pendientes.
+    if (tocado) document.getElementById('f_notas')
+      ?.dispatchEvent(new Event('input', { bubbles: true }));
+  };
 
   $('#fguarda').addEventListener('click', async () => {
     const b = $('#fguarda'); b.disabled = true; b.textContent = 'Guardando…';
@@ -4175,10 +4209,15 @@ function enlazarFicha(l){
     const { error } = await supabase.rpc('mt_mover_lead',
       { p_id: l.id, p_etapa: et, p_nota: nota });
     if (error){ sel.value = l.etapa; return fallo(error); }
+    const pendiente = foto();
     await refrescarEmbudo();
     const nuevo = LEADS.find(x => x.id === l.id);
     if (nuevo){
+      // La ficha se vuelve a pintar con la etapa nueva. Lo que hubiera
+      // escrito y sin guardar en los Datos se devuelve a su sitio: antes
+      // cambiar de etapa lo borraba sin decir nada.
       abrirLead(nuevo.id);
+      devolver(pendiente);
       const t = et === 'perdido' ? 'Marcado como perdido' : 'Etapa: ' + NOMBRE_ETAPA[et];
       aviso(t, true); anunciar(t);
     }
@@ -4204,11 +4243,14 @@ function enlazarFicha(l){
       { p_id: l.id, p_detalle: d, p_proxima: $('#t_fecha').value || null });
     b.disabled = false;
     if (error) return fallo(error);
+    // No se vuelve a pintar la ficha: apuntar un contacto solo cambia
+    // el historial. Repintarla borraba los Datos sin guardar y el
+    // propio aviso de «Apuntado».
+    $('#t_detalle').value = '';
     aviso('Apuntado', true);
     anunciar('Apuntado');
     await refrescarEmbudo();
-    const nuevo = LEADS.find(x => x.id === l.id);
-    if (nuevo) abrirLead(nuevo.id);
+    await pintarHistorial(l.id);
   });
   $('#t_detalle').addEventListener('keydown', e => {
     if (e.key === 'Enter'){ e.preventDefault(); $('#t_ok').click(); }
@@ -4228,7 +4270,7 @@ function enlazarFicha(l){
   // Enter dentro de los datos guarda. Fuera de ahí no, porque el
   // campo de apuntar contacto y el del motivo tienen su propio
   // Enter y harían dos cosas a la vez.
-  $('#mbox').querySelectorAll('.fdatos input').forEach(i =>
+  box.querySelectorAll('.fdatos input').forEach(i =>
     i.addEventListener('keydown', e => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
@@ -4278,7 +4320,7 @@ const hora = d => new Date(d).toLocaleTimeString('es-ES', { hour:'2-digit', minu
   if (enProduccion || enLocal) return;
   const d = document.createElement('div');
   d.className = 'staging';
-  d.textContent = 'Staging, no es lo que ve el cliente';
+  d.textContent = 'Staging, no es lo que ve el cliente · versión ' + VERSION;
   document.body.insertBefore(d, document.body.firstChild);
 })();
 </script>

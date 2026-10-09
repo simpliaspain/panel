@@ -318,6 +318,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const URL = 'https://gwibsjohvfxasslcrxuq.supabase.co';
 const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 
+// Qué versión está cargada: sale en la franja de staging y en la
+// consola, para saber si GitHub Pages ya sirve lo último que se subió.
+const VERSION = '2026-10-09 · refresco sin pérdidas';
+console.info('Panel maestro · versión', VERSION);
+
 const supabase = createClient(URL, KEY, {
   auth: { persistSession:false, autoRefreshToken:true, detectSessionInUrl:false }
 });
@@ -453,13 +458,20 @@ $('#refrescar').addEventListener('click', async () => {
   b.classList.remove('girando');
 });
 
+// Escribiendo en algo: un campo, un desplegable, un texto largo, o
+// dentro de un formulario empotrado (el de Alta). En un iframe el
+// elemento activo de esta página es el propio IFRAME.
+function escribiendo(){
+  const ae = document.activeElement;
+  return !!ae && ['INPUT','SELECT','TEXTAREA','IFRAME'].includes(ae.tagName);
+}
+
 function auto(){
   clearInterval(TIMER);
   TIMER = setInterval(() => {
     if (document.hidden) return;
-    const ae = document.activeElement;
-    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT')) return;
-    cargar();
+    if (escribiendo()) return;
+    cargar(false, true);
   }, 30000);
 }
 
@@ -471,7 +483,9 @@ function auto(){
    cliente, así que tampoco conviene apretarlo más. */
 let ULTIMA_LENTA = 0;
 
-async function cargar(forzarLenta = false){
+// `desdeReloj` = el refresco de cada 30 s, que no debe tocar la
+// pantalla si no ha cambiado nada (ver pintar()).
+async function cargar(forzarLenta = false, desdeReloj = false){
   const lenta = forzarLenta || Date.now() - ULTIMA_LENTA > 300000;
 
   // Las vivas se piden siempre. La insignia y los avisos no pueden
@@ -503,7 +517,7 @@ async function cargar(forzarLenta = false){
   ULTIMA = Date.now(); cuando();
   avisarNuevas();
   insignia();
-  pintar();
+  pintar({ desdeReloj });
 }
 
 function cuando(){
@@ -552,16 +566,50 @@ function tosta(sev, titulo, pie){
 /* ============================================================
    Vistas
    ============================================================ */
-function pintar(){
+/* EL REFRESCO NO REESCRIBE LO QUE NO HA CAMBIADO. Antes, cada 30
+   segundos se reescribía la pestaña abierta entera:
+
+     · en Alta y en Web, los marcos empotrados se recargaban, y lo que
+       se estuviera rellenando en el formulario de alta se perdía;
+     · en Memoria y en Pausas y exclusiones, lo escrito en un campo sin
+       el cursor dentro (la confirmación, el motivo, el contacto
+       suelto) desaparecía.
+
+   Ahora el refresco compara lo que pintaría con lo que hay y, si es lo
+   mismo, no toca nada. Si ha cambiado algo, repinta y devuelve a cada
+   campo lo que tuviera escrito. Lo que pinta una acción (guardar,
+   excluir, cambiar de cliente…) repinta siempre, como antes. */
+let VISTA_HTML = '';
+
+function pintar(op = {}){
   const y = window.scrollY;
-  $('#vista').innerHTML =
+  const html =
       VISTA === 'clientes'     ? vistaClientes()
     : VISTA === 'frenos'       ? vistaFrenos()
     : VISTA === 'memoria'      ? vistaMemoria()
     : VISTA === 'alta'         ? vistaAlta()
     : VISTA === 'web'          ? vistaWeb()
     :                            vistaIncidencias();
+
+  let escrito = null;
+  if (op.desdeReloj){
+    if (html === VISTA_HTML) return;
+    escrito = {};
+    document.querySelectorAll('#vista input[id], #vista textarea[id]')
+      .forEach(e => { if (e.value) escrito[e.id] = e.value; });
+    document.querySelectorAll('#vista .nota[id]')
+      .forEach(e => { if (e.textContent) escrito['#' + e.id] = e.textContent; });
+  }
+
+  $('#vista').innerHTML = html;
+  VISTA_HTML = html;
   enlazar();
+
+  if (escrito) for (const [k, v] of Object.entries(escrito)){
+    const e = document.getElementById(k.replace(/^#/, ''));
+    if (!e) continue;
+    if (k.startsWith('#')) e.textContent = v; else e.value = v;
+  }
   if (VISTA === 'web' || VISTA === 'alta') montarMarcos();
   if ((VISTA === 'frenos' || VISTA === 'memoria')
       && EXSLUG && EXCONT[EXSLUG] === undefined) cargarContactos(EXSLUG);
@@ -1487,7 +1535,7 @@ const fechaHora = d => new Date(d).toLocaleString('es-ES',
   if (enProduccion || enLocal) return;
   const d = document.createElement('div');
   d.className = 'staging';
-  d.textContent = 'Staging · no es lo que ve el cliente';
+  d.textContent = 'Staging · no es lo que ve el cliente · versión ' + VERSION;
   document.body.insertBefore(d, document.body.firstChild);
 })();
 </script>
