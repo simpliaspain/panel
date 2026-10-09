@@ -251,11 +251,18 @@
   .modal .cab{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
   .cerrar{background:none;font-size:26px;color:var(--gris);line-height:1;padding:0 6px}
   .msg{display:flex;margin-bottom:11px}
-  /* 76% dejaba un cuarto de la columna en blanco a cada lado de un
-     mensaje largo. Con 86% y un tope en caracteres, las líneas
-     salen a la longitud en la que se lee cómodo. */
-  .msg .burb{max-width:86%;max-width:min(86%, 62ch);padding:12px 16px;
-             border-radius:14px;font-size:13px;line-height:1.6}
+  /* ANCHURA DE LECTURA
+     La medida clásica son 45-75 caracteres por línea, con 66 como
+     óptimo. El tope va en `ch`, que mide el ancho del "0": en esta
+     fuente son ~0,6em, mientras que una minúscula media ocupa
+     ~0,5em. Así que 66 caracteres ≈ 33em ≈ 55ch.
+     Antes había 62ch, que son unos 74 caracteres: pasado de largo.
+
+     Y 15 px, no 13: 13 es tamaño de dato y una conversación se lee.
+     line-height 1.6 porque líneas largas necesitan más aire para
+     que el ojo encuentre el principio de la siguiente. */
+  .msg .burb{max-width:86%;max-width:min(86%, 55ch);padding:12px 16px;
+             border-radius:14px;font-size:15px;line-height:1.6}
   .msg.h{justify-content:flex-start}
   .msg.h .burb{background:var(--aire);border-bottom-left-radius:4px}
   .msg.a{justify-content:flex-end}
@@ -293,21 +300,28 @@
   /* Tres columnas: hora, quién y texto. El punto de color y la
      flecha se quitaron del marcado — el punto obligaba a aprenderse
      un código que la palabra "Cliente" ya dice. */
-  .feed li{display:grid;grid-template-columns:52px 62px minmax(0,1fr);gap:12px;
+  .feed li{display:grid;grid-template-columns:52px 96px minmax(0,1fr);gap:12px;
            align-items:baseline;padding:12px 0;
            border-top:1px solid var(--linea);font-size:13px}
   .feed li:first-child{border-top:0}
   .fh{font-size:12px;color:var(--gris)}
-  .fq{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.04em}
+  /* Columna de quién habla. Antes era un rótulo fijo en mayúsculas
+     ("CLIENTE" / "IA") y cabía en 62px. Ahora lleva el nombre de la
+     persona, así que se ensancha y deja de ir en mayúsculas: un
+     nombre propio gritado se lee peor y "María José" no entraba. */
+  .fq{font-size:12px;font-weight:600;color:var(--gris);min-width:0;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      unicode-bidi:plaintext}
+  .fq.ia{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
   .ft{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext;color:var(--tinta);line-height:1.5;min-width:0;overflow-wrap:anywhere}
   .feed li[data-ir]{cursor:pointer;border-radius:10px;margin:0 -12px;padding-left:10px;
                     padding-right:10px;transition:background .15s ease}
   .feed li[data-ir]:hover,.feed li[data-ir]:focus-visible{background:var(--fondo)}
   .feed li[data-ir]:hover .fgo{color:var(--pulso-texto);transform:translateX(2px)}
-  .feed li{grid-template-columns:52px 62px minmax(0,1fr)}
+  .feed li{grid-template-columns:52px 96px minmax(0,1fr)}
   .dacc{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 20px;
         padding-bottom:18px;border-bottom:1px solid var(--linea)}
-  @media(max-width:640px){.feed li{grid-template-columns:44px 52px minmax(0,1fr)}}
+  @media(max-width:640px){.feed li{grid-template-columns:44px 76px minmax(0,1fr)}}
   .barras{display:grid;gap:20px}
   /* Dentro de un panel con cabecera las barras van más juntas:
      el panel ya tiene su propio aire alrededor. */
@@ -388,9 +402,17 @@
   .ltip{font-size:13px;font-weight:700;line-height:1.4}
   .tz{display:block;font-size:12px;font-weight:500;color:var(--gris);margin-top:2px}
 
-  .lmapa{width:100%;height:360px;border-radius:14px;overflow:hidden;
+  /* El mapa llena su panel. Antes medía 360 px fijos, y como va en
+     pareja con "Actividad reciente" —que con doce líneas es bastante
+     más alto— la rejilla igualaba las dos alturas y quedaba un hueco
+     blanco debajo del mapa: el panel se veía a medias. Con el panel
+     en columna flexible, el mapa se queda con lo que sobra y los
+     360 px pasan a ser un mínimo, no un tope. */
+  #panelmapa{display:flex;flex-direction:column}
+  .mapacaja{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+  .lmapa{width:100%;flex:1 1 auto;min-height:360px;border-radius:14px;overflow:hidden;
          border:1px solid var(--linea);background:#F7FAFF;z-index:1}
-  @media(max-width:600px){.lmapa{height:300px}}
+  @media(max-width:600px){.lmapa{min-height:300px}}
   .leaflet-container{font-family:'Plus Jakarta Sans',sans-serif;background:#F7FAFF}
   /* aspecto minimalista sobre teselas estándar, sin depender de
      un proveedor de pago ni de una clave de API */
@@ -583,7 +605,26 @@
      columna, no un tablero. A pantalla completa, una fila con la
      etiqueta a un extremo y el valor al otro obliga a barrer con la
      vista para emparejarlos. */
-  .ajustes{max-width:860px}
+  .ajustes{max-width:860px;margin:0 auto}
+
+  /* Lista de correos de aviso. Una fila por dirección, con su botón
+     de quitar al lado: un solo campo separado por comas obliga a
+     leer una cadena larga para saber a quién se avisa. */
+  .mails{display:flex;flex-direction:column;gap:8px}
+  .fmail{display:flex;gap:8px;align-items:center}
+  .fmail input{flex:1 1 auto;min-width:0;margin:0}
+  .fmail .cbtn{flex:none}
+  .masm{margin-top:10px}
+  .masm:disabled{opacity:.45;cursor:default}
+
+  /* Días de la semana del horario del equipo. Botones de dos letras
+     porque la fila entera tiene que caber en un móvil. */
+  .dias{display:flex;gap:6px;flex-wrap:wrap}
+  .dias button{width:44px;min-height:44px;border-radius:12px;font-size:13px;
+    font-weight:600;background:var(--fondo);color:var(--gris);
+    border:1.5px solid var(--linea);cursor:pointer;font-family:inherit}
+  .dias button[aria-pressed="true"]{background:var(--aire);color:var(--pulso-texto);
+    border-color:var(--azul-borde)}
 
   /* ---------- CONVERSACIONES EN DOS COLUMNAS ----------
      La conversación se lee AL LADO de la lista, no en una ventana
@@ -613,13 +654,39 @@
   .dcab .dmeta{font-size:13px;color:var(--gris);margin-top:4px;overflow-wrap:anywhere}
   .dcab .dacc{margin:16px 0 0;padding:0;border:0}
 
-  @media (max-width:1080px){
+  /* Gestión de un contacto: parar al asistente y dejarlo fuera del
+     recuento. Son dos cosas que cambian lo que ve el cliente, así
+     que el estado va escrito con palabras y no con un icono: "el
+     asistente no le responde" no se puede malinterpretar. */
+  .gest{margin:16px 0 0;display:flex;flex-direction:column;gap:8px}
+  .gav{display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+       background:var(--fondo-hueco);border:1px solid var(--linea);
+       border-radius:14px;padding:12px 16px;font-size:13px;
+       color:var(--tinta-suave);line-height:1.6}
+  .gav b{color:var(--tinta);font-weight:700}
+  .gav .gtx{flex:1 1 220px;min-width:0}
+  .gav.al{background:var(--ambar-tenue);border-color:var(--ambar-borde);color:var(--ambar-texto)}
+  .gav.al b{color:var(--ambar-oscuro)}
+  .gopc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+        background:var(--blanco-tibio);border:1px solid var(--linea);
+        border-radius:14px;padding:12px 16px}
+  .gopc .glab{font-size:12px;font-weight:600;color:var(--gris);flex:1 1 100%}
+  .gopc input[type=text]{flex:1 1 160px;min-width:0;font-size:13px;
+        padding:8px 10px;border:1px solid var(--borde-fuerte);
+        border-radius:10px;font-family:inherit;color:var(--tinta)}
+  .gmsg{font-size:13px;font-weight:600;padding:0 4px}
+  .gmsg.ok{color:var(--verde-texto)}
+  .gmsg.err{color:var(--rojo-texto)}
+
+  @media (max-width:1180px){
     .convs2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
     #pdetalle,#pficha{top:80px}
   }
-  @media (max-width:820px){
-    /* Sin sitio para dos columnas: la conversación vuelve a abrirse
-       encima, que es lo que cabe en un teléfono. */
+  /* Una sola columna por debajo de 1000 px, y no de 820: a 900 px
+     la conversación se quedaba en 400 px y las líneas salían a 40
+     caracteres, por debajo del mínimo legible. Mejor una columna
+     ancha que dos estrechas. */
+  @media (max-width:1000px){
     .convs2{grid-template-columns:minmax(0,1fr)}
     #pdetalle,#pficha{display:none}
   }
@@ -840,10 +907,24 @@
      mensajes. Ahora cada persona es una fila que se reordena
      sola: identidad a la izquierda, actividad a la derecha. */
   .lista{display:grid;gap:0}
+  /* El resalte de la fila elegida se cortaba en seco justo donde
+     acababa el texto de la derecha: la fila tenía 2 px de margen
+     horizontal y esquinas rectas, así que el azul terminaba pegado
+     a "hace 1 día". Ahora la fila respira 12 px a cada lado —hacia
+     DENTRO del relleno del panel, con margen negativo— y el resalte
+     va redondeado como el resto del panel. */
   .pers{display:grid;grid-template-columns:42px 1fr auto;gap:16px;align-items:center;
-        padding:16px 2px;border-top:1px solid var(--linea);cursor:pointer;
-        transition:background .15s ease}
-  .pers:first-child{border-top:0}
+        padding:16px 12px;margin:0 -12px;border-radius:14px;cursor:pointer;
+        position:relative;transition:background .15s ease}
+  /* El separador en un pseudo-elemento y no en border-top: la línea
+     cruzaba la esquina redondeada del resalte y se veía como un
+     corte. Así se puede esconder en la fila resaltada y en la
+     siguiente, que es justo donde estorba. */
+  .pers::before{content:'';position:absolute;left:12px;right:12px;top:0;height:1px;
+                background:var(--linea)}
+  .pers:first-child::before{display:none}
+  .pers:hover::before,.pers:hover + .pers::before,
+  .pers.on::before,.pers.on + .pers::before{display:none}
   .pers:hover{background:var(--fondo)}
   /* La fila que se está leyendo. Sin esto, con la conversación al
      lado no se sabe de quién es lo que hay en pantalla. */
@@ -876,7 +957,8 @@
   .barrafil{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 16px}
   .barrafil .busca{flex:1 1 220px;min-width:0}
   @media(max-width:600px){
-    .pers{grid-template-columns:36px 1fr;gap:12px;padding:16px 2px}
+    .pers{grid-template-columns:36px 1fr;gap:12px;padding:16px 10px;margin:0 -10px}
+    .pers::before{left:10px;right:10px}
     .ini{width:36px;height:36px;font-size:13px}
     .pact{grid-column:2;text-align:left;display:flex;gap:12px;align-items:baseline;
           margin-top:-2px}
@@ -998,6 +1080,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const URL = 'https://gwibsjohvfxasslcrxuq.supabase.co';
 const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
+
+// Qué versión de este archivo está cargada. Sale en la franja de
+// staging y en la consola. GitHub Pages guarda los archivos en caché
+// unos minutos: sin esto no hay forma de saber si lo que se está
+// probando es lo último que se subió. Se cambia en cada entrega.
+const VERSION = '2026-10-09 · refresco sin pérdidas';
+console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
 const supabase = createClient(URL, KEY, {
@@ -1153,20 +1242,40 @@ async function entrar(){
 
 /* Auto-refresco cada 30 s. Se detiene si la pestaña no está
    visible, para no consumir peticiones en balde, y no interrumpe
-   si hay un modal abierto o el usuario está escribiendo. */
+   si hay un modal abierto o el usuario está escribiendo.
+
+   EL REFRESCO NO CIERRA LO QUE SE ESTÁ LEYENDO. En Conversaciones y
+   en el Embudo esto llamaba a pintarConvs / pintarEmbudo, que
+   reescriben la pantalla entera: cada 30 segundos la conversación
+   abierta volvía a «Elige a alguien de la lista» —con la fila aún
+   resaltada— y la ficha del lead desaparecía con lo que se estuviera
+   escribiendo. Ahora esas dos pantallas se refrescan en su sitio: la
+   lista se pone al día y lo abierto se queda abierto. Lo comprueba
+   pruebas/refresco.mjs. */
 let TIMER = null, VISTA = 'latido', MAPA = null, ULTIMOS = null, PUNTOS = null;
+
+// Un textarea también es escribir: las notas del lead lo son, y antes
+// solo se miraban INPUT y SELECT.
+function escribiendo(){
+  const ae = document.activeElement;
+  return !!ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT'
+               || ae.tagName === 'TEXTAREA' || ae.isContentEditable === true);
+}
+
+// El tic del temporizador, con nombre para poder probarlo.
+function tic30(){
+  if (document.hidden) return;
+  if ($('#modal').style.display === 'block') return;
+  if (escribiendo()) return;
+  if (VISTA === 'latido') return pintarLatido(true);
+  if (VISTA === 'convs' && !$('#buscar')?.value) return refrescarConvs();
+  if (VISTA === 'embudo' && !$('#lbusca')?.value) return refrescarEmbudoVista();
+  if (VISTA === 'agenda') return pintarAgenda(true);
+}
+
 function autoRefresco(){
   clearInterval(TIMER);
-  TIMER = setInterval(() => {
-    if (document.hidden) return;
-    if ($('#modal').style.display === 'block') return;
-    const ae = document.activeElement;
-    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT')) return;
-    if (VISTA === 'latido') pintarLatido(true);
-    else if (VISTA === 'convs' && !$('#buscar')?.value) pintarConvs(true);
-    else if (VISTA === 'embudo' && !$('#lbusca')?.value) pintarEmbudo(true);
-    else if (VISTA === 'agenda') pintarAgenda(true);
-  }, 30000);
+  TIMER = setInterval(tic30, 30000);
 }
 
 $('#salir').addEventListener('click', async () => {
@@ -1184,7 +1293,12 @@ function enlazarNav(){
       document.querySelectorAll('nav button').forEach(x => x.classList.remove('on'));
       b.classList.add('on');
       const v = b.dataset.v; VISTA = v;
-      if (v !== 'latido' && LMAP){ LMAP.remove(); LMAP = null; LCAPA = null; }
+      // Al salir del Latido se tira el mapa, y con él su observador:
+      // seguiría vigilando un contenedor que ya no existe.
+      if (v !== 'latido' && LMAP){
+        OBSMAPA?.disconnect(); OBSMAPA = null;
+        LMAP.remove(); LMAP = null; LCAPA = null;
+      }
       if (v === 'latido') pintarLatido();
       else if (v === 'convs') pintarConvs();
       else if (v === 'embudo') pintarEmbudo();
@@ -1210,28 +1324,47 @@ async function arrancar(){
     return;
   }
   TENANT = t;
-  $('#cliente').textContent = t.name;
+  // El rol y los ajustes se guardan para que los bloques del Latido
+  // sepan qué puede hacer quien mira sin volver a preguntarlo.
+  CFG.rol = t.rol;
+  CFG.ajustes = t.ajustes || {};
+  // `nombre`, no `name`: mt_mi_config devuelve la columna en
+  // castellano como todo el esquema, y aquí se leía en inglés. En la
+  // cabecera del panel ponía literalmente "undefined".
+  $('#cliente').textContent = t.nombre || '';
 
-  // Los textos del panel salen del tenant, no del código: así un
+  // Los textos y el horario salen de la base, no del código: así un
   // cliente de otro sector ve su propia terminología.
-  try {
-    const { data } = await supabase.rpc('mt_mi_config');
-    if (data){
-      CFG.etiquetas = { ...CFG.etiquetas, ...(data.etiquetas || {}) };
-      // El rótulo antiguo pudo quedar guardado en tenants.etiquetas y
-      // ganaría al valor por defecto. Se sustituye solo si coincide
-      // exactamente. Quitar estas dos líneas cuando la fila esté
-      // actualizada en la base de datos (SQL en las notas de entrega).
-      if (CFG.etiquetas.senales_titulo === 'Qué buscan tus clientes')
-        CFG.etiquetas.senales_titulo = 'Por qué se interesan';
-      if (data.horario)   CFG.horario   = data.horario;
-      if (data.objetivos)  CFG.objetivos  = data.objetivos;
-      if (data.documentos) CFG.documentos = data.documentos;
-      if (data.mapas)       CFG.mapas       = data.mapas;
-      if (data.modulos)     CFG.modulos     = data.modulos;
-      if (data.tratamiento) CFG.tratamiento = data.tratamiento;
-    }
-  } catch { /* se usan los valores por defecto */ }
+  //
+  // ESTO ESTABA ROTO Y NO SE VEÍA. Había una segunda llamada a
+  // mt_mi_config que trataba la respuesta como un objeto con
+  // .horario, .documentos, .tratamiento… y mt_mi_config devuelve una
+  // fila con slug, nombre, rol y `ajustes`. Ninguna de esas
+  // propiedades existía, así que CFG se quedaba SIEMPRE en los
+  // valores por defecto del código:
+  //
+  //   · Configuración enseñaba "lunes a viernes, de 9:00 a 19:00"
+  //     fuera cual fuera el horario real, mientras mt_mis_numeros
+  //     contaba lo de "fuera de horario" con ajustes.horario. Dos
+  //     verdades para la misma franja.
+  //   · "Información del servicio" y "Tratamiento de datos" no
+  //     aparecían nunca.
+  //   · CFG.modulos.agenda nunca podía ocultar la Agenda.
+  //
+  // Ahora todo sale del mismo sitio: mt_panel_ajustes.ajustes, que es
+  // lo que leen también las funciones de la base.
+  const A = CFG.ajustes;
+  CFG.etiquetas = { ...CFG.etiquetas, ...(A.etiquetas || {}) };
+  // El rótulo antiguo pudo quedar guardado en los ajustes y ganaría
+  // al valor por defecto. Se sustituye solo si coincide exactamente.
+  if (CFG.etiquetas.senales_titulo === 'Qué buscan tus clientes')
+    CFG.etiquetas.senales_titulo = 'Por qué se interesan';
+  if (A.horario)     CFG.horario     = A.horario;
+  if (A.objetivos)   CFG.objetivos   = A.objetivos;
+  if (A.documentos)  CFG.documentos  = A.documentos;
+  if (A.mapas)       CFG.mapas       = A.mapas;
+  if (A.modulos)     CFG.modulos     = A.modulos;
+  if (A.tratamiento) CFG.tratamiento = A.tratamiento;
   // Fuera de arrancar(): al cambiar de cliente se vuelve a llamar
   // y el oyente se duplicaría, disparando dos cargas por clic.
   if (!$('#refrescar').dataset.listo){
@@ -1268,8 +1401,8 @@ async function refrescar(){
   const b = $('#refrescar');
   b?.classList.add('girando');
   if (VISTA === 'latido')       await pintarLatido(true);
-  else if (VISTA === 'convs')   await pintarConvs(true);
-  else if (VISTA === 'embudo')  await refrescarEmbudo();
+  else if (VISTA === 'convs')   await refrescarConvs();
+  else if (VISTA === 'embudo')  await refrescarEmbudoVista();
   else if (VISTA === 'agenda')  await pintarAgenda(true);
   else                          await pintarAjustes(true);
   b?.classList.remove('girando');
@@ -1298,7 +1431,11 @@ async function datos(){
     supabase.rpc('mt_conversaciones_lista', { p_limite: 1000 }),
     supabase.rpc('mt_resumen',    { p_horas: RANGO }),
     supabase.rpc('mt_por_hora',   { p_horas: RANGO }),
-    supabase.rpc('mt_latencias',  { p_limite: 200 }),
+    // mt_tiempo_respuesta y no mt_latencias: la cifra sale de quien
+    // de verdad mide, y viene con su procedencia. El indicador
+    // enseñaba 0,0 s porque promediaba el hueco entre dos filas que
+    // n8n escribe en la misma operación.
+    supabase.rpc('mt_tiempo_respuesta', { p_horas: RANGO }),
     supabase.rpc('mt_actividad',  { p_limite: 12 }),
     supabase.rpc('mt_demanda'),
     supabase.rpc('mt_patron_horario'),
@@ -1319,7 +1456,10 @@ async function datos(){
     if (!fa && fb) return 1;
     return (b.seq || 0) - (a.seq || 0);
   });
-  const lats = (lat.data || []).map(r => r.latencia_ms);
+  // Una fila: fuente, muestras, mediana y p95. La MEDIANA y no la
+  // media, porque con latencias una sola respuesta lenta arrastra la
+  // media y deja de describir lo que tarda normalmente.
+  const tr = (Array.isArray(lat.data) ? lat.data[0] : lat.data) || null;
   // mt_resumen devuelve una fila con los recuentos ya hechos. Antes
   // se traían todos los mensajes del periodo para contarlos en el
   // navegador: con volumen, eso es traerse media base para calcular
@@ -1331,10 +1471,7 @@ async function datos(){
     res,
     porHora: porHora.data || [],
     total: res.mensajes || 0,
-    lats,
-    latMedia: lats.length
-      ? lats.reduce((a,b) => a+b, 0) / lats.length / 1000
-      : null,
+    tr,
     reciente: reciente.data || [],
     temas:    lugares.data  || [],
     patron:   patron.data   || [],
@@ -1366,6 +1503,15 @@ function nom(valor, refPorDefecto){
   if (!t) return `<span class="mono">${esc(refPorDefecto ?? '')}</span>` +
                  `<span class="csin"> sin nombre</span>`;
   return `<bdi>${esc(t)}</bdi>`;
+}
+
+// El nombre de pila, para las columnas estrechas. [...t] parte por
+// caracteres reales por el mismo motivo que en inicial(): cortar un
+// emoji o una letra compuesta por la mitad deja un signo roto.
+function primerNombre(valor){
+  const p = String(valor ?? '').trim().split(/\s+/)[0] || '';
+  const c = [...p];
+  return c.length > 14 ? c.slice(0, 13).join('') + '…' : p;
 }
 
 // La inicial de un nombre que puede empezar por emoji: [...t] parte
@@ -1400,6 +1546,18 @@ function pintaEn(html, silencioso){
 async function pintarLatido(silencioso){
   if (!silencioso) $('#vista').innerHTML = esqueleto('latido');
   const d = await datos();
+  // Si mientras llegaban los datos se ha cambiado de pestaña, no se
+  // pinta: el Latido saldría encima de lo que se esté viendo.
+  if (VISTA !== 'latido') return;
+
+  // EL MAPA SE QUEDA COMO ESTABA. Reescribir la pantalla creaba un
+  // contenedor nuevo, sin mapa, y se montaba otro desde cero: cada 30
+  // segundos volvía al encuadre inicial y se perdía el zoom que el
+  // usuario hubiera hecho. Ahora el contenedor vivo se aparta antes de
+  // reescribir y se vuelve a poner en su sitio después, con Leaflet
+  // dentro intacto. Lo comprueba pruebas/refresco.mjs.
+  const mapaVivo = LMAP && document.getElementById('lmapa') === LMAP.getContainer()
+    ? LMAP.getContainer() : null;
 
   const contactos = new Set(d.convs.map(c => c.user_ref)).size;
   const msgs      = d.convs.reduce((s,c) => s + (c.mensajes||0), 0);
@@ -1423,11 +1581,7 @@ async function pintarLatido(silencioso){
       ${kpi(`Conversaciones en ${etc}`, nf.format(cR.length),
             `${nf.format(entr + resp)} ${entr + resp === 1 ? 'mensaje' : 'mensajes'}`)}
       ${kpi('Respuestas de la IA', nf.format(auto), 'Sin intervención humana', true)}
-      ${d.latMedia
-        ? kpi('Tiempo medio de respuesta',
-              `${d.latMedia.toFixed(1).replace('.', ',')}<small> s</small>`,
-              'Incluye 4 s de espera para agrupar mensajes')
-        : kpiPend('Tiempo medio de respuesta', 'Aún sin mediciones registradas')}
+      ${bloqueTiempo(d.tr)}
     </div>
 
     <div class="panel">
@@ -1461,6 +1615,22 @@ async function pintarLatido(silencioso){
       ${bloqueActividad(d)}
     </div>`, silencioso);
 
+  const hueco = document.getElementById('lmapa');
+  if (mapaVivo && hueco){
+    hueco.replaceWith(mapaVivo);
+    LMAP.invalidateSize({ animate: false });
+    // Ya está montado: que el observador de carga diferida no lo
+    // vuelva a montar. Solo se ponen al día los puntos, sin moverlo.
+    const p = document.getElementById('panelmapa');
+    if (p) p.dataset.observado = '1';
+    pintarPuntos(false);
+  } else if (mapaVivo){
+    // Ya no hay zonas que enseñar y el bloque ha desaparecido: el mapa
+    // se tira, que si no Leaflet sigue vivo sobre un elemento suelto.
+    OBSMAPA?.disconnect(); OBSMAPA = null;
+    LMAP.remove(); LMAP = null; LCAPA = null;
+  }
+
   activarGrafico();
   enlazarPlegables();
   ULTIMOS = d;
@@ -1493,6 +1663,38 @@ const kpi = (l,n,p,az) => `<div class="kpi">
 // de un cero: un cero parece una medición que salió cero.
 const kpiPend = (l, p) => `<div class="kpi pend">
   <div class="lab">${l}</div><div class="num">—</div><div class="pie">${p}</div></div>`;
+
+/* El tiempo de respuesta, con su procedencia escrita debajo.
+
+   Este indicador marcaba 0,0 s. No decía "no lo sé": decía que el
+   asistente contesta al instante. Salía de promediar el hueco entre
+   el mensaje del cliente y la respuesta, y n8n escribe las dos filas
+   en la misma operación, así que ese hueco eran tres milisegundos.
+
+   De ahí las dos reglas de aquí: no se enseña la cifra sin decir
+   quién la ha medido, y un cero no se enseña nunca.
+
+   Y es la MEDIANA, no la media: con latencias, una sola respuesta
+   lenta arrastra la media y deja de describir lo que tarda
+   normalmente. Con el número de muestras al lado, porque una mediana
+   de tres respuestas no es una mediana. */
+function bloqueTiempo(tr){
+  const T = 'Tiempo de respuesta';
+  if (!tr || !Number(tr.muestras) || tr.mediana_s == null)
+    return kpiPend(T, 'Aún sin mediciones fiables');
+
+  const s = Number(tr.mediana_s);
+  // Un cero aquí es imposible, y si llegara sería que algo ha vuelto
+  // a medir mal. Antes que enseñarlo, se calla.
+  if (!(s > 0)) return kpiPend(T, 'Aún sin mediciones fiables');
+
+  const n = Number(tr.muestras);
+  const de = tr.fuente === 'agente'
+    ? 'lo cronometra el asistente'
+    : 'medido entre mensajes';
+  return kpi(T, `${s.toFixed(1).replace('.', ',')}<small> s</small>`,
+    `Mediana de ${nf.format(n)} ${n === 1 ? 'respuesta' : 'respuestas'} · ${de}`);
+}
 
 // Sustituye al antiguo bloque de coste. Tres partidas, cada una con su cuenta
 // escrita: una cifra sin la operación que la produce no se puede
@@ -1547,8 +1749,13 @@ function enlazarPlegables(){
 }
 
 // La actividad reciente, en su propia función para poder ponerla
-// junto al mapa. Sin punto de color: la palabra "Cliente" o "IA" ya
-// dice de quién es, y el punto obligaba a aprenderse un código.
+// junto al mapa. Sin punto de color: la segunda columna ya dice de
+// quién es cada línea, y el punto obligaba a aprenderse un código.
+//
+// Esa columna decía "Cliente" para todo el mundo, teniendo el nombre
+// a mano en mt_actividad. Doce líneas que empiezan todas igual no
+// dicen nada; con el nombre se reconoce la conversación de un
+// vistazo.
 function bloqueActividad(d){
   if (!d.reciente || !d.reciente.length) return '';
   return `<div class="panel">
@@ -1558,9 +1765,17 @@ function bloqueActividad(d){
       ${d.reciente.map(m => {
         const ref = m.user_ref || null;
         const t = limpiaMensaje(m.contenido);
+        // "Cliente" se queda solo para cuando de verdad no hay
+        // nombre: el número entero no cabe en la columna, y la fila
+        // se abre con un clic para ver quién es.
+        const ia    = m.papel !== 'human';
+        const quien = ia ? 'IA'
+          : (m.nombre ? `<bdi>${esc(primerNombre(m.nombre))}</bdi>` : 'Cliente');
+        const pista = ia ? 'Respuesta del asistente'
+          : (m.nombre || m.telefono || ref || 'Cliente');
         return `<li${ref ? ` data-ir="${esc(ref)}" tabindex="0" role="button"` : ''}>
           <span class="fh mono">${hora(m.cuando)}</span>
-          <span class="fq">${m.papel === 'human' ? 'Cliente' : 'IA'}</span>
+          <span class="fq${ia ? ' ia' : ''}" title="${esc(pista)}">${quien}</span>
           <span class="ft">${esc(t.slice(0, 90))}${t.length > 90 ? '\u2026' : ''}</span>
         </li>`;
       }).join('')}
@@ -1580,7 +1795,9 @@ function bloqueNumeros(n){
       <div class="tn-cab"><b>${titulo}</b>
         <span class="tn-eur">${falta_de ? '—' : eur(importe)}</span></div>
       <div class="tn-cuenta${falta_de ? ' tn-falta' : ''}">${
-        falta_de ? 'Falta el dato en Configuración' : cuenta}</div>
+        falta_de ? (CFG.rol === 'operador'
+          ? 'Falta el dato en Configuración'
+          : 'Falta un dato de cálculo. Pídenoslo y lo ponemos.') : cuenta}</div>
     </div>`;
 
   // Las tres partidas, ordenadas por importe. "Captados fuera de
@@ -1593,8 +1810,12 @@ function bloqueNumeros(n){
   // la cifra, será por esta partida.
   const partidas = [
     [Number(n.fuera_horario_eur) || 0, fila('Captados fuera de horario', n.fuera_horario_eur,
+      // "de noche o en fin de semana" solo era cierto con la franja
+      // de lunes a viernes. La cuenta usa la franja configurada, así
+      // que el texto tiene que decir eso y no suponerla.
       `<strong>${nf.format(n.fuera_horario)}</strong>
-       ${n.fuera_horario === 1 ? 'contacto' : 'contactos'} de noche o en fin de semana
+       ${n.fuera_horario === 1 ? 'contacto' : 'contactos'} llegados cuando
+       tu equipo no estaba
        × <strong>${nf.format(n.ticket_medio)} €</strong> al mes`,
       falta.has('ticket') ? 'el pago medio de un cliente' : null)],
     [Number(n.tiempo_eur) || 0, fila('Tiempo liberado', n.tiempo_eur,
@@ -1861,8 +2082,8 @@ function bloqueMapa(d){
     <h3>Mapa de demanda</h3>
     <p class="ph">Zonas que nombran los clientes. Cada punto marca la zona,
        no la dirección del centro.</p>
-    <div>
-      ${claves.length > 1 ? `<div class="rangos" style="margin-bottom:12px">
+    <div class="mapacaja">
+      ${claves.length > 1 ? `<div class="rangos" style="margin-bottom:12px;flex:none">
         ${claves.map(k => `<button class="rg mp${MAPA===k?' on':''}" data-m="${esc(k)}">
           ${esc(etq(k))}</button>`).join('')}
       </div>` : ''}
@@ -1919,7 +2140,7 @@ function ponerTeselas(){
 // El mapa y su capa de puntos. Se guardan fuera de la funcion
 // porque hay que poder destruirlos al cambiar de pestana: Leaflet
 // deja el contenedor vivo y, sin esto, se acumulan mapas huerfanos.
-let LMAP = null, LCAPA = null;
+let LMAP = null, LCAPA = null, OBSMAPA = null;
 let leafletCargando = null;
 function cargarLeaflet(){
   if (window.L) return Promise.resolve();
@@ -1949,6 +2170,10 @@ async function activarMapa(){
   const cont = document.getElementById('lmapa');
   if (!cont || !PUNTOS) return;
 
+  // El mapa ya vive en este contenedor (el refresco lo ha devuelto a
+  // su sitio): no se monta otro, que volvería al encuadre inicial.
+  if (LMAP && LMAP.getContainer() === cont){ pintarPuntos(false); return; }
+
   try {
     await cargarLeaflet();
   } catch {
@@ -1959,9 +2184,9 @@ async function activarMapa(){
   // El contenedor puede haber desaparecido mientras se cargaba
   if (!document.getElementById('lmapa')) return;
 
-  // El contenedor se recrea en cada pintado, así que el mapa
-  // anterior queda huérfano: se destruye antes de crear el nuevo.
-  if (LMAP){ LMAP.remove(); LMAP = null; }
+  // Si había un mapa en otro contenedor (se salió del Latido y se ha
+  // vuelto), ese ya no se ve: se destruye antes de crear el nuevo.
+  if (LMAP){ LMAP.remove(); LMAP = null; LCAPA = null; }
 
   LMAP = L.map(cont, {
     zoomControl: true, scrollWheelZoom: false, attributionControl: true
@@ -1973,14 +2198,39 @@ async function activarMapa(){
   LMAP.on('click', () => LMAP.scrollWheelZoom.enable());
   LMAP.on('mouseout', () => LMAP.scrollWheelZoom.disable());
 
+  // Leaflet mide el contenedor una vez, al crearse. Ahora la caja
+  // crece con el panel de al lado, así que hay que avisarle cuando
+  // cambia de tamaño: si no, pinta las teselas para la altura que
+  // tenía y deja una banda gris al pie. ResizeObserver, no el
+  // resize de la ventana, porque la caja también cambia cuando
+  // "Actividad reciente" trae más líneas sin que nadie toque nada.
+  if (typeof ResizeObserver === 'function'){
+    OBSMAPA?.disconnect();
+    OBSMAPA = new ResizeObserver(() => LMAP?.invalidateSize({ animate: false }));
+    OBSMAPA.observe(cont);
+  }
+
   pintarPuntos();
 }
 
-function pintarPuntos(){
+// Lo que se dibujó la última vez. Si el refresco trae las mismas
+// zonas con las mismas cifras, no se redibuja nada: los puntos
+// volverían a aparecer con su animación cada 30 segundos.
+let LFIRMA = '';
+
+// `reencuadrar` = al montar el mapa o al cambiar de ámbito. El
+// refresco pasa false: los puntos se ponen al día y el encuadre se
+// queda donde el usuario lo dejó.
+function pintarPuntos(reencuadrar = true){
   if (!LMAP) return;
-  if (LCAPA){ LCAPA.remove(); LCAPA = null; }
 
   const pts = (PUNTOS[MAPA] || []).filter(p => p.lat != null && p.lng != null);
+  const firma = MAPA + '|' + JSON.stringify(
+    pts.map(p => [p.nombre, p.lat, p.lng, p.conversaciones, p.zona || '']));
+  if (!reencuadrar && LCAPA && firma === LFIRMA) return;
+  LFIRMA = firma;
+
+  if (LCAPA){ LCAPA.remove(); LCAPA = null; }
   if (!pts.length) return;
 
   const max = Math.max(...pts.map(p => p.conversaciones), 1);
@@ -2006,8 +2256,10 @@ function pintarPuntos(){
     c.on('mouseover', () => c.setStyle({ weight: 3, fillOpacity: 0.62 }));
     c.on('mouseout',  () => c.setStyle({ weight: 2, fillOpacity: 0.16 + 0.38 * prop }));
 
-    // aparición escalonada, como el resto de transiciones del panel
-    const el = c.getElement();
+    // aparición escalonada, como el resto de transiciones del panel.
+    // Solo al encuadrar: en un refresco, que todos los puntos
+    // parpadearan para añadir uno sería ruido.
+    const el = reencuadrar ? c.getElement() : null;
     if (el){
       el.style.opacity = '0';
       el.style.transform = 'scale(.4)';
@@ -2020,6 +2272,7 @@ function pintarPuntos(){
     }
   });
 
+  if (!reencuadrar) return;
   const grupo = L.featureGroup(LCAPA.getLayers());
   LMAP.fitBounds(grupo.getBounds(), { padding: [46, 46], maxZoom: 14 });
 }
@@ -2045,7 +2298,10 @@ function bloquePatron(d){
   });
   if (!max) return '';
 
-  // Horario laboral real del cliente (settings.horario).
+  // Franja del equipo del cliente (ajustes.horario), la misma que usa
+  // mt_mis_numeros para "Captados fuera de horario". El asistente
+  // responde a todas horas; esta franja solo dice cuándo había
+  // alguien del equipo.
   // dias viene en formato ISO 1=lunes…7=domingo; getDay() usa 0=domingo.
   const H = CFG.horario || { inicio:9, fin:19, dias:[1,2,3,4,5] };
   const lab = new Set((H.dias || [1,2,3,4,5]).map(n => n === 7 ? 0 : n));
@@ -2055,17 +2311,18 @@ function bloquePatron(d){
     if (!lab.has(dd) || h < H.inicio || h >= H.fin) fuera += v;
   }
   const pct = total ? Math.round(fuera / total * 100) : 0;
-  const dnom = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  const dlab = (H.dias || []).map(n => dnom[n === 7 ? 0 : n]);
-  const rango = dlab.length
-    ? `${dlab[0]} a ${dlab[dlab.length-1]}, de ${H.inicio}:00 a ${H.fin}:00`
+  // Un solo sitio donde se escribe la franja en palabras. Aquí había
+  // una segunda versión que cogía el primer día y el último de la
+  // lista: con [1,3,5] decía "lunes a viernes", que es falso.
+  const rango = (H.dias || []).length
+    ? horarioTexto()
     : `de ${H.inicio}:00 a ${H.fin}:00`;
 
   const orden = [1,2,3,4,5,6,0];
   return `<div class="panel">
     <h3>Cuándo escriben</h3>
-    <p class="ph">Mensajes por día y hora. <strong>${pct}%</strong> llegan fuera
-       de tu horario de atención (${rango}), y se atienden igual.</p>
+    <p class="ph">Mensajes por día y hora. <strong>${pct}%</strong> llegan cuando
+       tu equipo no está (${rango}), y se atienden igual.</p>
     <div class="mapa">
       <div class="mhoras"><span></span>${
         Array.from({length:24}, (_,h) => `<span class="mh">${h%6===0?h:''}</span>`).join('')}</div>
@@ -2227,7 +2484,12 @@ const SENALES = {
   cita:          { etq: 'Con cita',      campo: c => !!c.cita,         pill: 'vd' },
   sin_respuesta: { etq: 'Sin respuesta', campo: c => c.sin_respuesta,  pill: 'am' },
   friccion:      { etq: 'Fricción',      campo: c => c.friccion,       pill: 'rj' },
-  vuelto:        { etq: 'Ha vuelto',     campo: c => Number(c.conversaciones) > 1, pill: 'nt' }
+  vuelto:        { etq: 'Ha vuelto',     campo: c => Number(c.conversaciones) > 1, pill: 'nt' },
+  // Estos dos solo aparecen si hay alguien así: los filtros con cero
+  // resultados se esconden solos. Hacen falta para poder encontrar a
+  // quien se dejó fuera y volver a incluirlo.
+  pausado:       { etq: 'En pausa',      campo: c => !!c.pausado_hasta, pill: 'nt' },
+  fuera:         { etq: 'Fuera del recuento', campo: c => !!c.fuera_del_recuento, pill: 'nt' }
 };
 const aplicaFiltros = (lista, filtros) =>
   lista.filter(c => [...filtros].every(k => SENALES[k].campo(c)));
@@ -2237,6 +2499,9 @@ async function pintarConvs(silencioso){
     esqueleto('lista');
 
   const { data, error } = await supabase.rpc('mt_mis_contactos');
+  // Si mientras llegaba la respuesta se ha cambiado de pestaña, no se
+  // pinta: escribiría Conversaciones encima de lo que se esté viendo.
+  if (VISTA !== 'convs') return;
   ULTIMA = Date.now(); pintarCuando();
 
   if (error){
@@ -2259,6 +2524,37 @@ async function pintarConvs(silencioso){
     </div>`, silencioso);
 
   render();
+
+  // Al volver a la pestaña, la fila de quien se estaba leyendo sale
+  // resaltada (render la marca con ABIERTO). Si la columna se quedara
+  // en «Elige a alguien», la pantalla diría dos cosas a la vez, así
+  // que se vuelve a abrir. Solo en pantalla ancha: en el móvil la
+  // conversación va en una ventana encima, y abrirla sola sería
+  // tapar la lista sin que nadie lo haya pedido.
+  if (ABIERTO && window.innerWidth > 1000){
+    const visible = [...document.querySelectorAll('.pers[data-c]')]
+      .some(el => el.dataset.c === ABIERTO);
+    if (visible) abrir(ABIERTO);
+  }
+}
+
+// El refresco de esta pantalla, sin reescribirla. La lista se pone al
+// día (alguien nuevo, una marca de «en pausa»…) y la conversación
+// abierta se queda abierta, con los mensajes nuevos al final.
+async function refrescarConvs(){
+  if (!$('#pconvs')) return pintarConvs(true);
+
+  const { data, error } = await supabase.rpc('mt_mis_contactos');
+  // Un fallo de red en un refresco no es motivo para vaciar la
+  // pantalla: se queda lo que había y se reintenta en 30 segundos.
+  if (error || VISTA !== 'convs' || !$('#pconvs')) return;
+  ULTIMA = Date.now(); pintarCuando();
+  CONTACTOS = data || [];
+
+  // Si mientras tanto alguien se ha puesto a escribir en el buscador,
+  // repintar la lista le quitaría el foco a mitad de palabra.
+  if (!escribiendo()) render($('#buscar')?.value.trim() || '');
+  await refrescarDetalle();
 }
 
 // Repinta solo el interior del panel: los filtros son instantáneos
@@ -2266,6 +2562,10 @@ async function pintarConvs(silencioso){
 function render(busqueda){
   const cont = $('#pconvs'); if (!cont) return;
   const lista = aplicaFiltros(CONTACTOS, FILTRO);
+  // Los que el cliente ha dejado fuera siguen en la lista —si no,
+  // no podría volver a incluirlos— pero el recuento tiene que decir
+  // cuántos son, o la cifra de aquí no cuadraría con la del Latido.
+  const fuera = lista.filter(c => c.fuera_del_recuento).length;
 
   // Cada filtro muestra cuántos resultados daría AÑADIRLO a la
   // selección actual. Si daría cero, se desactiva: así nunca se
@@ -2285,7 +2585,12 @@ function render(busqueda){
     <div class="cabpanel">
       <div>
         <h3>${nf.format(lista.length)} ${lista.length === 1 ? 'persona' : 'personas'}</h3>
-        ${FILTRO.size ? `<p class="ph" style="margin:2px 0 0">de ${nf.format(CONTACTOS.length)}</p>` : ''}
+        ${FILTRO.size || fuera
+          ? `<p class="ph" style="margin:2px 0 0">${
+              FILTRO.size ? `de ${nf.format(CONTACTOS.length)}` : ''}${
+              FILTRO.size && fuera ? ' · ' : ''}${
+              fuera ? `${nf.format(fuera)} fuera del recuento` : ''}</p>`
+          : ''}
       </div>
     </div>
 
@@ -2457,7 +2762,12 @@ function desdeEntonces(d){
 const filaC = c => {
   const ini = inicialDe(c);
   const act = c.historico ? { txt:'histórico', frio:true } : desdeEntonces(c.ultima);
+  // El estado va primero: cambia cómo hay que leer el resto de la
+  // fila. Si alguien está fuera del recuento, saber que tiene
+  // "Interés" importa menos que saber que no cuenta.
   const senales = [
+    c.fuera_del_recuento ? '<span class="pill hist">Fuera del recuento</span>' : '',
+    c.pausado_hasta      ? '<span class="pill nt">En pausa</span>'             : '',
     c.cita          ? '<span class="pill vd">Cita</span>'          : '',
     c.interes       ? '<span class="pill az">Interés</span>'       : '',
     c.contacto      ? '<span class="pill nt">Contacto</span>'      : '',
@@ -2501,6 +2811,8 @@ async function pintarAgenda(silencioso){
   if (!silencioso) $('#vista').innerHTML = esqueleto('lista');
 
   const { data, error } = await supabase.rpc('mt_mis_citas');
+  // Si mientras tanto se ha cambiado de pestaña, no se pinta encima.
+  if (VISTA !== 'agenda') return;
   ULTIMA = Date.now(); pintarCuando();
 
   if (error){
@@ -2605,10 +2917,14 @@ function descargarICS(c){
     'END:VEVENT','END:VCALENDAR'
   ].join('\r\n');
 
-  const url = URL.createObjectURL(new Blob([ics], {type:'text/calendar;charset=utf-8'}));
+  // globalThis.URL y no URL a secas: arriba del todo hay una constante
+  // URL con la dirección de Supabase que tapa a la del navegador, y
+  // URL.createObjectURL sobre un texto no existe. El botón
+  // «Calendario» de la Agenda lanzaba un error y no descargaba nada.
+  const url = globalThis.URL.createObjectURL(new Blob([ics], {type:'text/calendar;charset=utf-8'}));
   const a = document.createElement('a');
   a.href = url; a.download = 'cita.ics'; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => globalThis.URL.revokeObjectURL(url), 1000);
 }
 
 /* ---------- vista: configuración ---------- */
@@ -2631,6 +2947,20 @@ async function pintarAjustes(silencioso){
   }
 
   const a = r.ajustes || {};
+
+  // Los ajustes que llegan aquí son los de la base, así que el resto
+  // del panel se pone al día con ellos: si alguien cambió el horario
+  // desde otra pestaña, el Latido no puede seguir con el de antes.
+  CFG.ajustes = a;
+  if (a.horario) CFG.horario = a.horario;
+
+  // Misma franja por defecto que mt_mis_numeros. Si aquí pusiera otra,
+  // la pantalla y el cálculo dirían cosas distintas.
+  const H = {
+    inicio: Number(CFG.horario?.inicio ?? 9),
+    fin:    Number(CFG.horario?.fin    ?? 19),
+    dias:   (CFG.horario?.dias ?? [1,2,3,4,5]).map(Number)
+  };
 
   // La base devuelve los canales en bruto ("prueba, whatsapp_evolution").
   // El cliente no sabe qué es Evolution, y "prueba" es nuestro
@@ -2665,27 +2995,63 @@ async function pintarAjustes(silencioso){
         <dt>Usuarios con acceso</dt><dd class="mono">${nf.format(r.usuarios)}</dd>
         <dt>Ubicaciones monitorizadas</dt><dd class="mono">${nf.format(r.ubicaciones || 0)}</dd>
         <dt>Servicios monitorizados</dt><dd class="mono">${nf.format(r.servicios || 0)}</dd>
-        <dt>Horario de atención</dt><dd>${horarioTexto()}</dd>
+        <dt>El asistente responde</dt><dd>Siempre, las 24 horas, todos los días</dd>
         ${r.sector ? `<dt>Sector</dt><dd>${esc(r.sector)}</dd>` : ''}
       </dl>
     </div>
 
     <div class="panel">
       <h3>Tus preferencias</h3>
-      <p class="ph">A qué dirección te avisamos de cambios en el servicio.</p>
-      
-      <div class="campos">
-        <div>
-          <label for="ea">Email para avisos del servicio</label>
-          <input id="ea" type="email" placeholder="avisos@empresa.com"
-                 value="${esc(a.email_avisos ?? '')}">
-          <p class="hint">Usaremos esta dirección para comunicaciones sobre el asistente.</p>
-        </div>
-      </div>
+      <p class="ph">A qué direcciones te avisamos de cambios en el servicio.</p>
+
+      <label for="ea0">Correos para avisos del servicio</label>
+      <div class="mails" id="emails"></div>
+      <button class="cbtn sec masm" id="masmail">Añadir otro correo</button>
+      <p class="hint">Hasta cinco direcciones. Las usaremos solo para
+         comunicaciones sobre el asistente.</p>
+
       <div class="acc">
         <button class="btn corto" id="guardar">Guardar cambios</button>
         <span id="msg" class="msg-ok"></span>
       </div>
+    </div>
+
+    <div class="panel">
+      <h3>Horario de tu equipo</h3>
+      <p class="ph">El asistente responde a todas horas. Esta franja es la
+         de tu equipo, y sirve para una sola cosa: saber qué entró cuando
+         no había nadie, que es lo que cuenta «Captados fuera de horario»
+         en el Latido.</p>
+      <p class="hint" style="margin:-8px 0 16px">No es el horario de los centros:
+         cada centro tiene el suyo y el asistente lo consulta en tu hoja.
+         Aquí solo hace falta una franja de referencia.</p>
+      ${r.puede_escribir ? `
+        <label>Días que trabaja tu equipo</label>
+        <div class="dias" id="dias">
+          ${DIAS_CORTOS.map(([n, et, largo]) =>
+            `<button type="button" data-d="${n}" aria-pressed="${H.dias.includes(n)}"
+                     title="${largo}" aria-label="${largo}">${et}</button>`).join('')}
+        </div>
+        <div class="campos" style="margin-top:16px">
+          <div>
+            <label for="hi">Empieza</label>
+            <div class="campo-u"><input id="hi" type="number" min="0" max="23" step="1"
+              inputmode="numeric" value="${Number(H.inicio)}"><span>h</span></div>
+          </div>
+          <div>
+            <label for="hf">Termina</label>
+            <div class="campo-u"><input id="hf" type="number" min="1" max="24" step="1"
+              inputmode="numeric" value="${Number(H.fin)}"><span>h</span></div>
+          </div>
+        </div>
+        <div class="acc">
+          <button class="btn corto" id="guardarhor">Guardar horario</button>
+          <span id="msghor" class="msg-ok" role="status" aria-live="polite"></span>
+        </div>`
+        : `<dl class="ficha">
+          <dt>Franja de referencia</dt><dd>${esc(horarioTexto())}</dd>
+        </dl>
+        <p class="hint">Si no es correcta, pídenoslo y la cambiamos.</p>`}
     </div>
 
     <div class="panel" id="parametros">
@@ -2783,9 +3149,44 @@ async function pintarAjustes(silencioso){
 
   const num = v => (v === '' || v == null) ? null : Number(v);
 
+  /* ---- los correos de aviso, en lista ---- */
+  // Lo guardado puede venir como lista (lo normal) o como el texto
+  // suelto de antes: se admiten los dos y se guarda siempre lista.
+  let correos = Array.isArray(a.email_avisos) ? a.email_avisos.map(String)
+              : (a.email_avisos ? [String(a.email_avisos)] : []);
+  if (!correos.length) correos = [''];
+
+  const pintaCorreos = (foco) => {
+    const caja = $('#emails'); if (!caja) return;
+    caja.innerHTML = filasCorreo(correos);
+
+    // Cada tecleo se guarda en el array: si no, añadir o quitar una
+    // fila repinta y se pierde lo que se estaba escribiendo en las
+    // demás.
+    caja.querySelectorAll('.fmail input').forEach(inp =>
+      inp.addEventListener('input', () => { correos[Number(inp.id.slice(2))] = inp.value; }));
+    caja.querySelectorAll('button[data-q]').forEach(b =>
+      b.addEventListener('click', () => {
+        correos.splice(Number(b.dataset.q), 1);
+        if (!correos.length) correos = [''];
+        pintaCorreos();
+      }));
+
+    const mas = $('#masmail');
+    if (mas) mas.disabled = correos.length >= 5;
+    if (foco != null) $('#ea' + foco)?.focus();
+  };
+  pintaCorreos();
+
+  $('#masmail')?.addEventListener('click', () => {
+    if (correos.length >= 5) return;
+    correos.push('');
+    pintaCorreos(correos.length - 1);
+  });
+
   $('#guardar').addEventListener('click', () =>
     guardar('#guardar', '#msg',
-      () => ({ email_avisos: $('#ea').value.trim() }),
+      () => ({ email_avisos: correos.map(s => s.trim()).filter(Boolean) }),
       'Cambios guardados.'));
 
   $('#guardarpar')?.addEventListener('click', () =>
@@ -2796,21 +3197,230 @@ async function pintarAjustes(silencioso){
         coste_hora_eur:           num($('#ch').value)
       }),
       'Guardado. El Latido ya usa los nuevos valores.'));
+
+  /* ---- el horario del equipo ---- */
+  $('#dias')?.querySelectorAll('button[data-d]').forEach(b =>
+    b.addEventListener('click', () =>
+      b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true')));
+
+  $('#guardarhor')?.addEventListener('click', async () => {
+    const dias = [...$('#dias').querySelectorAll('button[aria-pressed="true"]')]
+      .map(b => Number(b.dataset.d)).sort((x, y) => x - y);
+    if (!dias.length){
+      const m = $('#msghor');
+      m.textContent = 'Marca al menos un día.'; m.className = 'msg-err';
+      return;
+    }
+    await guardar('#guardarhor', '#msghor',
+      () => ({ horario: { inicio: Number($('#hi').value),
+                          fin:    Number($('#hf').value), dias } }),
+      'Horario guardado.');
+    // El Latido pinta la franja sobre el mapa de calor y cuenta lo de
+    // fuera de horario con ella: si no se actualiza aquí, la pantalla
+    // y el cálculo discrepan hasta recargar.
+    if (CFG.ajustes?.horario) CFG.horario = CFG.ajustes.horario;
+  });
 }
 
+// Las filas de correo, aparte y sin tocar el DOM, para poder
+// comprobarlas con la batería de render igual que los bloques del
+// Latido. El botón de quitar no sale con una sola dirección: borrar
+// la única que hay no es quitar una de la lista, es dejar de avisar,
+// y para eso se vacía el campo.
+function filasCorreo(correos){
+  return correos.map((e, i) => `
+      <div class="fmail">
+        <input id="ea${i}" type="email" inputmode="email"
+               autocomplete="email" placeholder="avisos@empresa.com"
+               value="${esc(String(e ?? ''))}" aria-label="Correo ${i + 1}">
+        ${correos.length > 1
+          ? `<button type="button" class="cbtn sec" data-q="${i}"
+                     aria-label="Quitar el correo ${i + 1}">Quitar</button>`
+          : ''}
+      </div>`).join('');
+}
+
+// isodow: 1 = lunes … 7 = domingo. La misma convención que
+// settings.horario.dias, mt_patron_horario y mt_mis_numeros.
+const DIAS_CORTOS = [
+  [1,'L','lunes'], [2,'M','martes'], [3,'X','miércoles'], [4,'J','jueves'],
+  [5,'V','viernes'], [6,'S','sábado'], [7,'D','domingo']
+];
+const DIAS_LARGOS = Object.fromEntries(DIAS_CORTOS.map(d => [d[0], d[2]]));
+
+// "lunes a viernes" solo si los días son seguidos. Con [1,3,5] decir
+// "lunes a viernes" sería mentira, y era lo que hacía antes: cogía el
+// primero y el último de la lista sin mirar si había huecos.
 function horarioTexto(){
   const H = CFG.horario || {};
-  const dn = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  const ds = (H.dias || []).map(n => dn[n === 7 ? 0 : n]);
-  if (!ds.length) return '—';
-  return `${ds[0]} a ${ds[ds.length-1]}, de ${H.inicio}:00 a ${H.fin}:00`;
+  const d = [...new Set((H.dias || []).map(Number))].sort((x,y) => x - y);
+  if (!d.length) return '—';
+  const seguidos = d.every((n, i) => i === 0 || n === d[i-1] + 1);
+  const dias = d.length === 1 ? DIAS_LARGOS[d[0]]
+    : seguidos ? `${DIAS_LARGOS[d[0]]} a ${DIAS_LARGOS[d[d.length-1]]}`
+    : d.map(n => DIAS_LARGOS[n]).join(', ');
+  return `${dias}, de ${H.inicio}:00 a ${H.fin}:00`;
 }
 
-/* ---------- detalle de un contacto ---------- */
+/* ---------- gestión de un contacto ---------- */
+// Dos cosas que el cliente pidió poder hacer solo: callar al
+// asistente con una persona concreta, y dejar a alguien fuera del
+// recuento (su propio móvil, un proveedor, una prueba suya).
+//
+// Lo que PARA al asistente es mt_contactos.pausado_hasta, la columna
+// que el agente consulta antes de responder. El panel apunta además
+// quién lo pidió y hasta cuándo, y con las dos cosas puede comprobar
+// que lo pedido sigue aplicado. Si deja de estarlo, lo dice: creer
+// que el bot está callado mientras contesta es peor que no haber
+// podido callarlo.
+
+const PAUSA_LARGA = 365 * 24 * 3600 * 1000;   // de aquí en adelante, indefinida
+
+function hastaCuando(d){
+  if (!d) return '';
+  const t = new Date(d).getTime();
+  if (t - Date.now() > PAUSA_LARGA) return 'hasta que lo reactives';
+  const mismoDia = new Date().toDateString() === new Date(d).toDateString();
+  return mismoDia ? `hasta las ${hora(d)}` : `hasta el ${fecha(d)}`;
+}
+
+function gestion(c){
+  const puedo  = !!(TENANT && TENANT.puede_escribir);
+  const pedida = c.pausa_pedida_hasta || null;
+  // Pausa que no ha pedido el panel: la que pone el sistema cuando
+  // alguien del equipo contesta a mano. Se enseña, pero no se toca.
+  const auto   = !pedida && c.pausado_hasta && c.pausado_por !== 'panel';
+
+  const botones = [
+    puedo && !pedida && !auto
+      ? '<button class="cbtn" id="gpausar">Parar al asistente</button>' : '',
+    puedo && !c.fuera_del_recuento
+      ? '<button class="cbtn" id="gexcluir">Dejar fuera del recuento</button>' : ''
+  ].join('');
+
+  const avisos = [];
+  if (pedida && c.pausa_aplicada){
+    avisos.push(`<div class="gav"><span class="gtx">
+      <b>El asistente no le responde</b>, ${esc(hastaCuando(pedida))}.</span>
+      ${puedo ? '<button class="cbtn sec" id="greanudar">Reactivar</button>' : ''}</div>`);
+  } else if (pedida){
+    avisos.push(`<div class="gav al"><span class="gtx">
+      <b>La pausa está anotada pero no se está aplicando.</b>
+      El asistente puede seguir respondiéndole. Avísanos y lo revisamos.</span>
+      ${puedo ? '<button class="cbtn sec" id="greanudar">Quitar la pausa</button>' : ''}</div>`);
+  } else if (auto){
+    avisos.push(`<div class="gav"><span class="gtx">
+      <b>En pausa</b> porque alguien del equipo le ha contestado a mano.
+      El asistente vuelve ${esc(hastaCuando(c.pausado_hasta))}.</span></div>`);
+  }
+  if (c.fuera_del_recuento){
+    avisos.push(`<div class="gav"><span class="gtx">
+      <b>Fuera del recuento.</b> Sus conversaciones no entran en el Latido
+      ni en tus números. Puedes seguir leyéndolas.</span>
+      ${puedo ? '<button class="cbtn sec" id="gincluir">Volver a contar</button>' : ''}</div>`);
+  }
+
+  const bloque = `<div class="gest">${avisos.join('')}
+    <div id="gcaja"></div>
+    <div id="gmsg" class="gmsg" role="status" aria-live="polite"></div></div>`;
+
+  return { botones, bloque };
+}
+
+// `recargar(aviso)` vuelve a pedir los contactos y repinta. El aviso
+// se pone DESPUÉS de repintar, porque repintar borra el anterior y el
+// mensaje de "hecho" desaparecía justo al conseguirlo.
+function enlazarGestion(contact, recargar){
+  const caja = $('#gcaja'), msg = $('#gmsg');
+  if (!caja || !msg) return;
+  const limpiar = () => { caja.innerHTML = ''; msg.textContent = ''; msg.className = 'gmsg'; };
+
+  const llamar = async (fn, args, textoOk) => {
+    msg.textContent = 'Un momento…'; msg.className = 'gmsg';
+    try {
+      const { error } = await supabase.rpc(fn, args);
+      if (error) throw error;
+      await recargar(textoOk);
+    } catch (e) {
+      msg.textContent = /permiso|lectura|42501/.test(e.message || '')
+        ? 'Tu cuenta no tiene permiso para hacer esto.'
+        : (e.message || 'No se ha podido completar.');
+      msg.className = 'gmsg err';
+    }
+  };
+
+  $('#gpausar')?.addEventListener('click', () => {
+    caja.innerHTML = `<div class="gopc">
+      <span class="glab">¿Cuánto tiempo quieres que el asistente no le responda?</span>
+      <button class="cbtn" data-h="2">2 horas</button>
+      <button class="cbtn" data-h="24">Un día</button>
+      <button class="cbtn" data-h="">Hasta que lo reactive</button>
+      <button class="cbtn sec" data-no="1">Dejarlo</button>
+    </div>`;
+    caja.querySelectorAll('[data-h]').forEach(b => b.addEventListener('click', () =>
+      llamar('mt_pausar',
+        { p_user_ref: contact,
+          p_horas: b.dataset.h === '' ? null : Number(b.dataset.h) },
+        'Hecho: el asistente no le responderá.')));
+    caja.querySelector('[data-no]')?.addEventListener('click', limpiar);
+  });
+
+  $('#greanudar')?.addEventListener('click', () =>
+    llamar('mt_reanudar', { p_user_ref: contact },
+           'El asistente vuelve a responderle.'));
+
+  $('#gexcluir')?.addEventListener('click', () => {
+    caja.innerHTML = `<div class="gopc">
+      <span class="glab">Sus conversaciones dejarán de contar en el Latido y en tus
+        números. Podrás seguir leyéndolas y deshacerlo cuando quieras.</span>
+      <input type="text" id="gmot" maxlength="120"
+             placeholder="Por qué, para acordarte (opcional)">
+      <button class="cbtn" data-si="1">Dejar fuera</button>
+      <button class="cbtn sec" data-no="1">Dejarlo</button>
+    </div>`;
+    caja.querySelector('[data-si]')?.addEventListener('click', () =>
+      llamar('mt_excluir',
+        { p_user_ref: contact,
+          p_motivo: ($('#gmot')?.value || '').trim() || null },
+        'Hecho: ya no cuenta en las cifras.'));
+    caja.querySelector('[data-no]')?.addEventListener('click', limpiar);
+  });
+
+  $('#gincluir')?.addEventListener('click', () =>
+    llamar('mt_incluir', { p_user_ref: contact },
+           'Vuelve a contar en las cifras.'));
+}
+
+/* ---------- detalle de un contacto ----------
+   Tres piezas, para que el refresco pueda poner al día una
+   conversación abierta SIN volver a abrirla:
+
+     abrir()            la abre: esqueleto, mensajes, pintado.
+     pintarDetalle()    escribe la conversación en su caja.
+     refrescarDetalle() la pone al día en su sitio, sin esqueleto,
+                        sin moverte de donde estabas leyendo y sin
+                        tocar nada si no ha cambiado.
+
+   Cada apertura lleva un turno. Si se pulsa a Ana y enseguida a
+   Luis, los mensajes de Ana pueden llegar después que los de Luis:
+   sin el turno se pintaban encima y la columna enseñaba a Ana con
+   la fila de Luis resaltada. Manda la última que se pidió. */
+let TURNO_DET = 0;
+// Lo último que se pintó en cada caja. Si el refresco trae lo mismo,
+// no se reescribe: reescribir mueve el foco y borra una selección.
+const PINTADO = new WeakMap();
+
+async function leerMensajes(contact){
+  const { data, error } = await supabase.rpc('mt_mensajes_contacto', { p_user_ref: contact });
+  return error ? null : (data || []);
+}
+
 // Pinta una conversación. En pantalla ancha va en la columna de la
 // derecha; en móvil, donde esa columna no cabe, se abre encima.
 async function abrir(contact){
-  const ancho = window.innerWidth > 820;
+  const turno = ++TURNO_DET;
+  ABIERTO = contact;
+  const ancho = window.innerWidth > 1000;   // el mismo umbral que el CSS
   const caja = ancho && VISTA === 'convs' && $('#pdetalle') ? '#pdetalle' : '#mbox';
 
   if (caja === '#mbox'){
@@ -2820,6 +3430,9 @@ async function abrir(contact){
     $('#pdetalle').className = 'panel';
     $('#pdetalle').innerHTML = esqueleto('lista');
   }
+  // Mientras carga, la caja no es de nadie: un refresco que llegue
+  // ahora no debe pintar encima del esqueleto.
+  delete $(caja).dataset.c;
 
   // Se puede llegar aquí desde el Latido, donde la lista de
   // contactos todavía no se ha pedido: se carga al vuelo.
@@ -2827,19 +3440,22 @@ async function abrir(contact){
     const { data: cs } = await supabase.rpc('mt_mis_contactos');
     CONTACTOS = cs || [];
   }
+
+  const msgs = await leerMensajes(contact);
+  if (turno !== TURNO_DET) return;          // ya se ha pedido a otra persona
+  pintarDetalle(caja, contact, msgs);
+}
+
+function htmlDetalle(contact, msgs, conCerrar){
   const c = CONTACTOS.find(x => x.user_ref === contact) || {};
-  ABIERTO = contact;
-
-  const { data } = await supabase.rpc('mt_mensajes_contacto', { p_user_ref: contact });
-  const msgs = data || [];
-  let dia = null;
-
   const tel = c.telefono || contact;
-  $(caja).innerHTML = `
+  const G = gestion(c);
+  let dia = null;
+  return `
     <div class="dcab">
       <div style="display:flex;justify-content:space-between;gap:16px">
         <h2>${nom(c.nombre, tel)}</h2>
-        ${caja === '#mbox'
+        ${conCerrar
           ? '<button class="cerrar" id="cx" aria-label="Cerrar">×</button>' : ''}
       </div>
       ${c.nombre ? `<p class="dmeta"><a href="tel:${esc(tel)}" class="mono">${esc(tel)}</a></p>` : ''}
@@ -2847,9 +3463,16 @@ async function abrir(contact){
       <div class="dacc">
         <a class="cbtn pri" href="tel:${esc(tel)}">Llamar</a>
         <button class="cbtn" id="verembudo">Abrir en Embudo</button>
+        ${G.botones}
       </div>
+      ${G.bloque}
     </div>
-    ${msgs.length ? msgs.map(m => {
+    ${msgs === null
+      // Antes un fallo de red decía «Sin mensajes guardados», que es
+      // falso: los mensajes están, lo que ha fallado es traerlos.
+      ? `<div class="vacio">No se han podido cargar los mensajes.<br>
+           Vuelve a intentarlo con ⟳, arriba.</div>`
+      : msgs.length ? msgs.map(m => {
       // Separador por DÍA, no por sesión: el usuario piensa en
       // "lo del martes", no en cuántas sesiones hubo.
       let sep = '';
@@ -2861,10 +3484,18 @@ async function abrir(contact){
             m.latencia_ms ? `, ${(m.latencia_ms/1000).toFixed(1).replace('.', ',')} s` : ''}</div>
         </div></div>`;
     }).join('') : '<div class="vacio">Sin mensajes guardados.</div>'}`;
+}
+
+function pintarDetalle(caja, contact, msgs, html){
+  const el = $(caja); if (!el) return;
+  html = html ?? htmlDetalle(contact, msgs, caja === '#mbox');
+  el.innerHTML = html;
+  el.dataset.c = contact;          // de quién es lo que hay dentro
+  PINTADO.set(el, html);
 
   // Marcar en la lista quién se está leyendo
-  document.querySelectorAll('.pers[data-c]').forEach(el =>
-    el.classList.toggle('on', el.dataset.c === contact));
+  document.querySelectorAll('.pers[data-c]').forEach(f =>
+    f.classList.toggle('on', f.dataset.c === contact));
 
   $('#verembudo')?.addEventListener('click', () => {
     if (caja === '#mbox') cerrar();
@@ -2875,9 +3506,84 @@ async function abrir(contact){
     }, 700);
   });
 
+  enlazarGestion(contact, async aviso => {
+    const { data } = await supabase.rpc('mt_mis_contactos');
+    if (data) CONTACTOS = data;
+    // La lista de la izquierda también cambia: la persona gana o
+    // pierde su marca de "en pausa" o "fuera del recuento".
+    if ($('#pconvs')) render(BUSCA);
+    // En su sitio y no con abrir(): abrir pasa por el esqueleto y
+    // la conversación parpadeaba justo al confirmar la acción.
+    await refrescarDetalle(true);
+    if (aviso){
+      const m = $('#gmsg');
+      if (m){ m.textContent = aviso; m.className = 'gmsg ok'; }
+      anunciar(aviso);
+    }
+  });
+
   $('#cx')?.addEventListener('click', cerrar);
 }
-function cerrar(){ $('#modal').style.display = 'none'; }
+
+// Algo a medio hacer dentro de la conversación: elegir cuánto pausar,
+// escribir el motivo de una exclusión, o tener texto seleccionado
+// para copiarlo. Repintar ahora lo borraría. Se espera al siguiente.
+function ocupadoDetalle(el){
+  if (($('#gcaja')?.innerHTML || '').trim()) return true;
+  const sel = window.getSelection?.();
+  if (sel && !sel.isCollapsed && sel.anchorNode && el.contains?.(sel.anchorNode)) return true;
+  return false;
+}
+
+// `forzar` = después de pausar, excluir…: hay que enseñar el cambio
+// aunque el desplegable de opciones estuviera abierto, porque es
+// justo de ahí de donde viene.
+async function refrescarDetalle(forzar){
+  const contact = ABIERTO;
+  if (!contact) return;
+  // La caja que de verdad enseña a esa persona. La ventana del móvil
+  // solo cuenta si está abierta.
+  const caja = ['#pdetalle', '#mbox'].find(s => {
+    const el = $(s);
+    if (!el || el.dataset.c !== contact) return false;
+    return s === '#pdetalle' || $('#modal').style.display === 'block';
+  });
+  if (!caja) return;
+  const el = $(caja);
+  if (!forzar && ocupadoDetalle(el)) return;
+
+  const turno = TURNO_DET;
+  const msgs = await leerMensajes(contact);
+  // Sin red, se queda lo que había. Y si mientras tanto se ha abierto
+  // a otra persona o la caja ya no existe, esta respuesta llega tarde.
+  if (msgs === null || turno !== TURNO_DET || ABIERTO !== contact || $(caja) !== el) return;
+  if (!forzar && ocupadoDetalle(el)) return;
+
+  const html = htmlDetalle(contact, msgs, caja === '#mbox');
+  if (!forzar && PINTADO.get(el) === html) return;   // nada nuevo
+
+  // Se lee donde se estaba. Si se estaba al final, se sigue al final
+  // para ver lo que acaba de llegar, como en cualquier chat.
+  const y = el.scrollTop;
+  const alFinal = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+  const gm = $('#gmsg');
+  const aviso = gm && gm.classList.contains('ok') ? gm.textContent : '';
+
+  pintarDetalle(caja, contact, msgs, html);
+
+  el.scrollTop = alFinal ? el.scrollHeight : y;
+  if (aviso && !forzar){
+    const m = $('#gmsg');
+    if (m){ m.textContent = aviso; m.className = 'gmsg ok'; }
+  }
+}
+
+function cerrar(){
+  $('#modal').style.display = 'none';
+  // La ventana ya no enseña a nadie: un refresco no debe escribir en
+  // ella, y una ficha del Embudo puede ocuparla después.
+  delete $('#mbox').dataset.c;
+}
 $('#modal').addEventListener('click', e => e.target.id === 'modal' && cerrar());
 document.addEventListener('keydown', e => e.key === 'Escape' && cerrar());
 
@@ -2975,6 +3681,8 @@ async function pintarEmbudo(silencioso){
     supabase.rpc('mt_mis_leads'),
     supabase.rpc('mt_embudo_resumen')
   ]);
+  // Si mientras tanto se ha cambiado de pestaña, no se pinta encima.
+  if (VISTA !== 'embudo') return;
   ULTIMA = Date.now(); pintarCuando();
 
   if (a.error){
@@ -3045,8 +3753,31 @@ async function pintarEmbudo(silencioso){
   }
 
   pintarLista($('#lbusca')?.value.trim());
+
+  // Igual que en Conversaciones: si al volver la fila del lead sale
+  // resaltada, su ficha se abre, para que la pantalla no diga dos
+  // cosas a la vez. Solo en pantalla ancha.
+  if (LABIERTO != null && window.innerWidth > 1000){
+    const visible = [...document.querySelectorAll('.lfila[data-lead]')]
+      .some(el => Number(el.dataset.lead) === LABIERTO);
+    if (visible) abrirLead(LABIERTO);
+  }
 }
 
+// El refresco de la pantalla del Embudo, sin reescribirla. Antes el
+// automático llamaba a pintarEmbudo(true), que reescribe la vista
+// entera: la ficha abierta volvía a «Elige a alguien» y se perdía lo
+// que se estuviera escribiendo en ella. La ficha no se toca nunca
+// desde aquí; la lista y las cuentas sí se ponen al día.
+async function refrescarEmbudoVista(){
+  if (!$('#lista-leads')) return pintarEmbudo(true);
+  // Sincronizar primero, como al entrar: es lo que hace aparecer a
+  // quien acaba de escribir por primera vez.
+  await supabase.rpc('mt_sincronizar').catch(() => {});
+  if (VISTA !== 'embudo' || !$('#lista-leads')) return;
+  await refrescarEmbudo();
+  ULTIMA = Date.now(); pintarCuando();
+}
 
 // Refresca los datos SIN repintar la vista entera. Repintar `#vista`
 // con la ficha abierta vacía el fondo un instante, la página se
@@ -3061,6 +3792,14 @@ async function refrescarEmbudo(){
 
   const c = document.querySelector('.fcuentas');
   if (c) c.outerHTML = cuentasEtapa();
+  // Las cuentas de «Abiertos» y «Cerrados» también: si no, decían el
+  // número de cuando se entró en la pestaña.
+  const vivos = LEADS.filter(l => !['ganado','perdido'].includes(l.etapa)).length;
+  document.querySelectorAll('.orden button[data-lf]').forEach(b => {
+    b.textContent = b.dataset.lf === 'activos'
+      ? `Abiertos ${nf.format(vivos)}`
+      : `Cerrados ${nf.format(LEADS.length - vivos)}`;
+  });
   pintarLista($('#lbusca')?.value.trim());
 }
 
@@ -3133,7 +3872,9 @@ function filaLead(l, grupo){
   // importa. En los demás, el título del grupo ya lo dice.
   const motivo = grupo === 'urg' && u?.txt ? u.txt : '';
 
-  return `<div class="lfila" data-lead="${l.id}" tabindex="0" role="button"
+  // La fila de la ficha abierta se marca al pintar, no solo al pulsar:
+  // si no, cada refresco de la lista le quitaba el resalte.
+  return `<div class="lfila${l.id === LABIERTO ? ' on' : ''}" data-lead="${l.id}" tabindex="0" role="button"
     aria-label="${esc(l.nombre || tel)}${motivo ? '. ' + esc(motivo) : ''}">
     <div class="lfila-txt">
       <div class="lfila-nom${l.nombre ? '' : ' mono'}">${
@@ -3172,10 +3913,13 @@ function abrirLead(id){
 
   // En pantalla ancha la ficha va en la columna de la derecha; en
   // móvil, donde no cabe, se abre encima.
-  const ancho = window.innerWidth > 820;
+  const ancho = window.innerWidth > 1000;   // el mismo umbral que el CSS
   const caja = ancho && VISTA === 'embudo' && $('#pficha') ? '#pficha' : '#mbox';
   if (caja === '#mbox') $('#modal').style.display = 'block';
   else $('#pficha').className = 'panel';
+  // La ventana pasa a enseñar una ficha, no una conversación: que el
+  // refresco de Conversaciones no la confunda con una.
+  delete $(caja).dataset.c;
 
   $(caja).innerHTML = `
    <div class="lficha">
@@ -3289,7 +4033,7 @@ function abrirLead(id){
   // La fila que se está leyendo, marcada en la lista.
   document.querySelectorAll('.lfila[data-lead]').forEach(el =>
     el.classList.toggle('on', Number(el.dataset.lead) === id));
-  enlazarFicha(l);
+  enlazarFicha(l, caja);
   pintarHistorial(l.id);
 }
 
@@ -3333,13 +4077,12 @@ function enlazarHistorial(leadId){
         { p_evento: Number(b.dataset.delev) });
       if (error){ b.disabled = false; return; }
       await pintarHistorial(leadId);
+      // Aquí había un resto de la ficha antigua que reescribía la última
+      // línea de #mbox con «N mensajes, M contactos». En pantalla ancha
+      // la ficha no está en #mbox: escribía en la ventana del móvil, que
+      // puede tener abierta una conversación. La ficha de ahora no
+      // enseña ese recuento, así que basta con poner la lista al día.
       await refrescarEmbudo();
-      const l = LEADS.find(x => x.id === leadId);
-      if (l) $('#mbox').querySelector('.dmeta:last-of-type')?.replaceWith(
-        Object.assign(document.createElement('p'), { className:'dmeta',
-          textContent: `${nf.format(l.mensajes || 0)} ${
-            Number(l.mensajes) === 1 ? 'mensaje' : 'mensajes'}, ${l.toques} ${
-            Number(l.toques) === 1 ? 'contacto' : 'contactos'}` }));
     }));
 
   // Corregir sustituye el texto por un campo, en el sitio. Abrir otro
@@ -3371,7 +4114,13 @@ function enlazarHistorial(leadId){
 const fechaHoraCorta = d => new Date(d).toLocaleString('es-ES',
   { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
 
-function enlazarFicha(l){
+// `caja` es donde está la ficha: la columna de la derecha (#pficha)
+// en pantalla ancha, o la ventana (#mbox) en el móvil. Antes todo se
+// enganchaba a #mbox, y en pantalla ancha los Datos no avisaban de
+// cambios: el botón «Guardar» no aparecía nunca y lo escrito se perdía
+// al pasar a otro lead.
+function enlazarFicha(l, caja = '#mbox'){
+  const box = $(caja);
   const leer = () => ({
     personas:         $('#f_personas').value.trim() || null,
     cuando_necesita:  $('#f_cuando').value.trim()   || null,
@@ -3387,7 +4136,9 @@ function enlazarFicha(l){
     const e = $('#faviso');
     e.textContent = txt;
     e.className = 'faviso ' + (ok ? 'ok' : 'mal');
-    $('#mbox').scrollTo({ top: 0, behavior: 'smooth' });
+    // Se sube al aviso en lo que se desplaza: la columna en pantalla
+    // ancha, la ventana entera en el móvil.
+    (caja === '#mbox' ? $('#modal') : box)?.scrollTo?.({ top: 0, behavior: 'smooth' });
     if (ok) setTimeout(() => { e.className = 'faviso'; }, 3500);
   };
 
@@ -3403,8 +4154,28 @@ function enlazarFicha(l){
   const mirar = () => {
     $('#fguardar').classList.toggle('on', JSON.stringify(leer()) !== inicial);
   };
-  $('#mbox').querySelectorAll('.fdatos input, .fdatos select, .fdatos textarea')
+  box.querySelectorAll('.fdatos input, .fdatos select, .fdatos textarea')
     .forEach(i => { i.addEventListener('input', mirar); i.addEventListener('change', mirar); });
+
+  // Lo que hay escrito en la ficha ahora mismo, para no perderlo
+  // cuando hay que volver a pintarla (al cambiar de etapa).
+  const foto = () => {
+    const v = {};
+    box.querySelectorAll('input[id], select[id], textarea[id]').forEach(e => {
+      if (e.id !== 'fetapa' && e.id !== 'p_motivo') v[e.id] = e.value;
+    });
+    return v;
+  };
+  const devolver = v => {
+    let tocado = false;
+    for (const [id, val] of Object.entries(v)){
+      const e = document.getElementById(id);
+      if (e && e.value !== val){ e.value = val; tocado = true; }
+    }
+    // Para que la barra de Guardar sepa que hay cambios pendientes.
+    if (tocado) document.getElementById('f_notas')
+      ?.dispatchEvent(new Event('input', { bubbles: true }));
+  };
 
   $('#fguarda').addEventListener('click', async () => {
     const b = $('#fguarda'); b.disabled = true; b.textContent = 'Guardando…';
@@ -3438,10 +4209,15 @@ function enlazarFicha(l){
     const { error } = await supabase.rpc('mt_mover_lead',
       { p_id: l.id, p_etapa: et, p_nota: nota });
     if (error){ sel.value = l.etapa; return fallo(error); }
+    const pendiente = foto();
     await refrescarEmbudo();
     const nuevo = LEADS.find(x => x.id === l.id);
     if (nuevo){
+      // La ficha se vuelve a pintar con la etapa nueva. Lo que hubiera
+      // escrito y sin guardar en los Datos se devuelve a su sitio: antes
+      // cambiar de etapa lo borraba sin decir nada.
       abrirLead(nuevo.id);
+      devolver(pendiente);
       const t = et === 'perdido' ? 'Marcado como perdido' : 'Etapa: ' + NOMBRE_ETAPA[et];
       aviso(t, true); anunciar(t);
     }
@@ -3467,11 +4243,14 @@ function enlazarFicha(l){
       { p_id: l.id, p_detalle: d, p_proxima: $('#t_fecha').value || null });
     b.disabled = false;
     if (error) return fallo(error);
+    // No se vuelve a pintar la ficha: apuntar un contacto solo cambia
+    // el historial. Repintarla borraba los Datos sin guardar y el
+    // propio aviso de «Apuntado».
+    $('#t_detalle').value = '';
     aviso('Apuntado', true);
     anunciar('Apuntado');
     await refrescarEmbudo();
-    const nuevo = LEADS.find(x => x.id === l.id);
-    if (nuevo) abrirLead(nuevo.id);
+    await pintarHistorial(l.id);
   });
   $('#t_detalle').addEventListener('keydown', e => {
     if (e.key === 'Enter'){ e.preventDefault(); $('#t_ok').click(); }
@@ -3491,7 +4270,7 @@ function enlazarFicha(l){
   // Enter dentro de los datos guarda. Fuera de ahí no, porque el
   // campo de apuntar contacto y el del motivo tienen su propio
   // Enter y harían dos cosas a la vez.
-  $('#mbox').querySelectorAll('.fdatos input').forEach(i =>
+  box.querySelectorAll('.fdatos input').forEach(i =>
     i.addEventListener('keydown', e => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
@@ -3541,7 +4320,7 @@ const hora = d => new Date(d).toLocaleTimeString('es-ES', { hour:'2-digit', minu
   if (enProduccion || enLocal) return;
   const d = document.createElement('div');
   d.className = 'staging';
-  d.textContent = 'Staging, no es lo que ve el cliente';
+  d.textContent = 'Staging, no es lo que ve el cliente · versión ' + VERSION;
   document.body.insertBefore(d, document.body.firstChild);
 })();
 </script>

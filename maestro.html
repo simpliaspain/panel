@@ -30,100 +30,100 @@
     outline:2px solid var(--pulso);outline-offset:2px}
 
   /* ---------- login ---------- */
-  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 26px}
-  .card{background:var(--blanco);border-radius:var(--r);padding:36px 32px;width:100%;max-width:420px;
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+  .card{background:var(--blanco);border-radius:var(--r);padding:40px 32px;width:100%;max-width:420px;
         box-shadow:0 1px 2px rgba(10,31,74,.04),0 12px 40px rgba(10,31,74,.07)}
-  .marca{font-size:16px;font-weight:800;letter-spacing:-.01em}
+  .marca{font-size:17px;font-weight:800;letter-spacing:-.01em}
   .marca span{color:var(--pulso)}
   .card .marca{text-align:center}
-  .card h2{text-align:center;font-size:25px;line-height:1.2;margin:13px 0 4px;letter-spacing:-.02em}
-  .card .ph{text-align:center;color:var(--gris);font-size:12.5px;margin-bottom:26px}
-  label{display:block;font-size:12.5px;font-weight:600;margin:0 0 7px}
-  input{width:100%;padding:13px 15px;border:1.5px solid var(--linea);border-radius:11px;
-        font-size:14.5px;font-family:inherit;margin-bottom:16px;background:var(--blanco);color:var(--tinta)}
+  .card h2{text-align:center;font-size:26px;line-height:1.2;margin:12px 0 4px;letter-spacing:-.02em}
+  .card .ph{text-align:center;color:var(--gris);font-size:13px;margin-bottom:26px}
+  label{display:block;font-size:13px;font-weight:600;margin:0 0 8px}
+  input{width:100%;padding:12px 16px;border:1.5px solid var(--linea);border-radius:10px;
+        font-size:15px;font-family:inherit;margin-bottom:16px;background:var(--blanco);color:var(--tinta)}
   input:focus{border-color:var(--pulso);outline:none}
-  .btn{width:100%;background:var(--profundo);color:#fff;padding:14px;border-radius:11px;
-       font-size:14.5px;font-weight:700;margin-top:4px}
+  .btn{width:100%;background:var(--profundo);color:#fff;padding:16px;border-radius:10px;
+       font-size:15px;font-weight:700;margin-top:4px}
   .btn:hover{filter:brightness(1.15)}
   .btn:disabled{opacity:.55;cursor:not-allowed}
-  .err{background:#FEF3F2;border:1px solid #FDA29B;color:#B42318;padding:11px 14px;
+  .err{background:#FEF3F2;border:1px solid #FDA29B;color:#B42318;padding:12px 16px;
        border-radius:10px;font-size:13px;margin-bottom:16px;display:none}
 
   /* ---------- app ---------- */
   #app{display:none;min-height:100vh}
-  header{background:var(--profundo);color:#fff;padding:0 22px;display:flex;
+  header{background:var(--profundo);color:#fff;padding:0 24px;display:flex;
          align-items:center;gap:20px;position:sticky;top:0;z-index:20;flex-wrap:wrap}
   header .marca{color:#fff}
   header .marca span{color:#7FB2FF}
   nav{display:flex;gap:4px;flex:1 1 auto;min-width:0}
-  nav button{background:none;padding:19px 14px;font-size:14px;font-weight:600;
+  nav button{background:none;padding:20px 16px;font-size:15px;font-weight:600;
              color:#9FB6D9;border-bottom:2.5px solid transparent}
   nav button.on{color:#fff;border-bottom-color:#7FB2FF}
-  nav button .bdg{display:inline-block;min-width:18px;padding:1px 6px;margin-left:7px;
-                  border-radius:99px;background:var(--rojo);color:#fff;font-size:10.5px;
+  nav button .bdg{display:inline-block;min-width:18px;padding:2px 6px;margin-left:7px;
+                  border-radius:999px;background:var(--rojo);color:#fff;font-size:11px;
                   font-weight:800;font-family:'JetBrains Mono',monospace}
   nav button .bdg.am{background:var(--ambar)}
   .hend{display:flex;align-items:center;gap:12px;margin-left:auto;min-width:0}
-  .refr{display:flex;align-items:center;gap:6px;background:none;padding:6px 10px;border-radius:8px;
-        color:#9FB6D9;font-size:11.5px;font-weight:600}
+  .refr{display:flex;align-items:center;gap:6px;background:none;padding:6px 12px;border-radius:10px;
+        color:#9FB6D9;font-size:12px;font-weight:600}
   .refr:hover{background:rgba(255,255,255,.1);color:#fff}
-  .ricon{font-size:14px;line-height:1;display:inline-block}
-  .refr.girando .ricon{animation:gira .8s linear infinite}
+  .ricon{font-size:15px;line-height:1;display:inline-block}
+  .refr.girando .ricon{animation:gira .15s linear infinite}
   @keyframes gira{to{transform:rotate(360deg)}}
-  .salir{background:none;color:#9FB6D9;font-size:13px;padding:8px 12px;border-radius:8px}
+  .salir{background:none;color:#9FB6D9;font-size:13px;padding:8px 12px;border-radius:10px}
   .salir:hover{background:rgba(255,255,255,.1);color:#fff}
-  main{padding:32px 26px 70px;max-width:1440px;margin:0 auto}
-  h2.tit{font-size:30px;letter-spacing:-.03em;margin-bottom:5px}
-  .sub{color:var(--gris);font-size:14px;margin-bottom:26px;max-width:74ch;line-height:1.55}
+  main{padding:32px 24px 64px;max-width:1440px;margin:0 auto}
+  h2.tit{font-size:32px;letter-spacing:-.03em;margin-bottom:5px}
+  .sub{color:var(--gris);font-size:15px;margin-bottom:26px;max-width:74ch;line-height:1.6}
   .panel{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);
-         padding:22px 24px;margin-bottom:20px}
+         padding:24px 24px;margin-bottom:20px}
   .panel h3{font-size:15px;margin-bottom:3px}
-  .panel .ph{color:var(--gris);font-size:12.5px;margin-bottom:18px}
-  .vacio{text-align:center;padding:44px 20px;color:var(--gris);font-size:13.5px;line-height:1.6}
-  .cargando{text-align:center;padding:60px;color:var(--gris);font-size:13.5px}
+  .panel .ph{color:var(--gris);font-size:13px;margin-bottom:18px}
+  .vacio{text-align:center;padding:48px 20px;color:var(--gris);font-size:13px;line-height:1.6}
+  .cargando{text-align:center;padding:64px;color:var(--gris);font-size:13px}
   .cabpanel{display:flex;justify-content:space-between;align-items:flex-start;
             gap:16px;flex-wrap:wrap;margin-bottom:18px}
   .cabpanel .ph{margin-bottom:0}
   .nota{font-size:12px;color:var(--gris);line-height:1.6;margin:16px 0 0;max-width:76ch}
 
   /* ---------- semáforo de clientes ---------- */
-  .clientes{display:grid;gap:14px}
+  .clientes{display:grid;gap:16px}
   .cli{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);
-       padding:20px 22px;border-left:5px solid var(--verde)}
+       padding:20px 24px;border-left:5px solid var(--verde)}
   .cli.am{border-left-color:var(--ambar)}
   .cli.rj{border-left-color:var(--rojo)}
   .cli.gr{border-left-color:#CBD5E1}
   .clicab{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
-  .clinom{font-size:19px;font-weight:800;letter-spacing:-.02em}
-  .clislug{font-size:11.5px;color:var(--gris);font-family:'JetBrains Mono',monospace}
-  .clidiag{font-size:13px;line-height:1.55;margin-bottom:16px}
+  .clinom{font-size:21px;font-weight:800;letter-spacing:-.02em}
+  .clislug{font-size:12px;color:var(--gris);font-family:'JetBrains Mono',monospace}
+  .clidiag{font-size:13px;line-height:1.6;margin-bottom:16px}
   .clidiag.ok{color:var(--gris)}
   .clidiag.mal{color:#B42318;font-weight:600}
   .clidiag.med{color:#93370D;font-weight:600}
-  .met{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:14px;
+  .met{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:16px;
        padding-top:15px;border-top:1px solid var(--linea)}
-  .mt .l{font-size:10.5px;color:var(--gris);font-weight:700;text-transform:uppercase;
+  .mt .l{font-size:11px;color:var(--gris);font-weight:700;text-transform:uppercase;
          letter-spacing:.05em;margin-bottom:4px}
-  .mt .v{font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+  .mt .v{font-size:21px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
   .mt .v.rj{color:var(--rojo)} .mt .v.am{color:#B54708} .mt .v.gr{color:#CBD5E1}
-  .mt .p{font-size:11px;color:var(--gris);margin-top:3px;line-height:1.4}
-  .delta{font-size:11.5px;font-weight:700;margin-left:5px}
+  .mt .p{font-size:11px;color:var(--gris);margin-top:3px;line-height:1.5}
+  .delta{font-size:12px;font-weight:700;margin-left:5px}
   .delta.up{color:var(--verde)} .delta.down{color:var(--coral)}
 
   /* ---------- incidencias ---------- */
-  .inc{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:start;
-       padding:15px 0;border-top:1px solid var(--linea)}
+  .inc{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start;
+       padding:16px 0;border-top:1px solid var(--linea)}
   .inc:first-child{border-top:0}
-  .sev{width:9px;height:9px;border-radius:99px;margin-top:6px;background:var(--gris);flex:none}
+  .sev{width:9px;height:9px;border-radius:999px;margin-top:6px;background:var(--gris);flex:none}
   .sev.critico{background:var(--rojo)} .sev.aviso{background:var(--ambar)}
   .sev.info{background:#94A3B8}
   .inc.resuelta{opacity:.5}
   .incuerpo{min-width:0}
-  .inctit{font-size:14px;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
-  .incmeta{font-size:11.5px;color:var(--gris);margin-top:4px;line-height:1.5;overflow-wrap:anywhere}
-  .incdet{font-size:12.5px;color:#475569;margin-top:6px;line-height:1.55;overflow-wrap:anywhere}
+  .inctit{font-size:15px;font-weight:700;line-height:1.5;overflow-wrap:anywhere}
+  .incmeta{font-size:12px;color:var(--gris);margin-top:4px;line-height:1.5;overflow-wrap:anywhere}
+  .incdet{font-size:13px;color:#475569;margin-top:6px;line-height:1.6;overflow-wrap:anywhere}
   .incacc{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-  .cbtn{font-size:12px;font-weight:600;padding:7px 12px;border-radius:9px;background:var(--aire);
+  .cbtn{font-size:12px;font-weight:600;padding:8px 12px;border-radius:10px;background:var(--aire);
         color:var(--profundo);border:none;cursor:pointer;white-space:nowrap;font-family:inherit}
   .cbtn:hover{background:var(--pulso);color:#fff}
   .cbtn.sec{background:var(--fondo);color:var(--gris)}
@@ -134,10 +134,10 @@
   }
 
   /* ---------- salud ---------- */
-  .chk{display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:baseline;
-       padding:13px 0;border-top:1px solid var(--linea);font-size:13.5px}
+  .chk{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:baseline;
+       padding:12px 0;border-top:1px solid var(--linea);font-size:13px}
   .chk:first-child{border-top:0}
-  .cico{font-size:14px;line-height:1;font-weight:800}
+  .cico{font-size:15px;line-height:1;font-weight:800}
   .cico.ok{color:var(--verde)} .cico.mal{color:var(--rojo)}
   .cico.med{color:var(--ambar)} .cico.na{color:#CBD5E1}
   .chknom{font-weight:600}
@@ -145,27 +145,27 @@
   .chkslug{font-size:11px;color:var(--gris);font-family:'JetBrains Mono',monospace;white-space:nowrap}
 
   /* ---------- vencimientos ---------- */
-  .ven{display:grid;grid-template-columns:78px 1fr auto;gap:14px;align-items:center;
-       padding:13px 0;border-top:1px solid var(--linea)}
+  .ven{display:grid;grid-template-columns:78px 1fr auto;gap:16px;align-items:center;
+       padding:12px 0;border-top:1px solid var(--linea)}
   .ven:first-child{border-top:0}
-  .vfecha{text-align:center;line-height:1.15}
-  .vdia{display:block;font-size:19px;font-weight:800;letter-spacing:-.02em}
-  .vmes{display:block;font-size:10px;color:var(--gris);text-transform:uppercase;font-weight:700}
-  .vsin{font-size:10.5px;color:var(--gris);font-weight:700;text-transform:uppercase}
-  .vque{font-size:13.5px;font-weight:600;line-height:1.4}
+  .vfecha{text-align:center;line-height:1.2}
+  .vdia{display:block;font-size:21px;font-weight:800;letter-spacing:-.02em}
+  .vmes{display:block;font-size:11px;color:var(--gris);text-transform:uppercase;font-weight:700}
+  .vsin{font-size:11px;color:var(--gris);font-weight:700;text-transform:uppercase}
+  .vque{font-size:13px;font-weight:600;line-height:1.5}
   .vdet{font-size:12px;color:var(--gris);margin-top:3px;line-height:1.5}
   .vqueda{font-size:11px;font-weight:700;margin-top:3px}
   .vqueda.rj{color:var(--rojo)} .vqueda.am{color:#B54708} .vqueda.gr{color:var(--gris)}
   @media(max-width:600px){.ven{grid-template-columns:64px 1fr}
     .ven .cbtn{grid-column:2/-1;justify-self:start}}
 
-  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;
         background:var(--aire);color:var(--profundo);white-space:nowrap}
   .pill.gris{background:#F1F5F9;color:var(--gris)}
   .pill.rj{background:#FEE4E2;color:#B42318}
   .pill.am{background:#FEF0C7;color:#93370D}
-  .chips{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 16px}
-  .chip{font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:99px;color:var(--gris);
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+  .chip{font-size:13px;font-weight:600;padding:8px 12px;border-radius:999px;color:var(--gris);
         background:var(--blanco);border:1px solid var(--linea);font-family:inherit}
   .chip.on{background:var(--profundo);color:#fff;border-color:transparent}
 
@@ -174,31 +174,31 @@
      estaban en index.html, que es otro archivo. Sin build ni
      comprobación, un `class="busca"` sin estilo no falla, solo se
      ve mal. Lo encontró la revisión previa al despliegue. */
-  .segm{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .segm{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
   .busca{font-family:inherit;font-size:13px;color:var(--tinta);background:var(--blanco);
-         border:1px solid var(--linea);border-radius:10px;padding:9px 13px;
+         border:1px solid var(--linea);border-radius:10px;padding:8px 12px;
          max-width:100%;min-width:0}
   .busca:focus{border-color:var(--pulso);outline:none}
   .busca::placeholder{color:#94A3B8}
   .et{color:var(--gris);font-weight:600;white-space:nowrap}
-  @media (pointer:coarse){.busca{font-size:16px}}
+  @media (pointer:coarse){.busca{font-size:17px}}
 
   /* ---------- EXCLUIR PERSONAS ---------- */
-  .exbusca{display:grid;grid-template-columns:minmax(0,180px) 1fr;gap:10px;
+  .exbusca{display:grid;grid-template-columns:minmax(0,180px) 1fr;gap:12px;
            align-items:center;margin-bottom:14px}
   .exlista{display:grid;gap:0;max-height:330px;overflow-y:auto;
-           border:1px solid var(--linea);border-radius:12px}
+           border:1px solid var(--linea);border-radius:14px}
   .expers{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;
-          padding:11px 14px;border-top:1px solid var(--linea)}
+          padding:12px 16px;border-top:1px solid var(--linea)}
   .expers:first-child{border-top:0}
   .expers.ya{background:var(--fondo)}
-  .exini{width:36px;height:36px;border-radius:99px;display:flex;align-items:center;
-         justify-content:center;font-weight:800;font-size:13.5px;
+  .exini{width:36px;height:36px;border-radius:999px;display:flex;align-items:center;
+         justify-content:center;font-weight:800;font-size:13px;
          background:var(--aire);color:var(--profundo)}
   .exini.anon{background:#F1F5F9;color:#94A3B8}
-  .exnom{font-size:13.5px;font-weight:700;overflow:hidden;
+  .exnom{font-size:13px;font-weight:700;overflow:hidden;
          text-overflow:ellipsis;white-space:nowrap}
-  .exmeta{font-size:11.5px;color:var(--gris);margin-top:2px;
+  .exmeta{font-size:12px;color:var(--gris);margin-top:2px;
           overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .exmanual{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;
             padding-top:14px;border-top:1px solid var(--linea)}
@@ -210,7 +210,7 @@
   }
 
   /* ---------- APARTADO WEB ---------- */
-  .marco{position:relative;border:1px solid var(--linea);border-radius:12px;
+  .marco{position:relative;border:1px solid var(--linea);border-radius:14px;
          overflow:hidden;background:var(--blanco);min-height:640px}
   .marco iframe{display:block;width:100%;height:78vh;min-height:600px;border:0}
   .marcocab{display:flex;justify-content:space-between;align-items:center;gap:12px;
@@ -218,8 +218,8 @@
   .marcocab h3{font-size:15px;margin:0}
   .marcocab .ph{margin:2px 0 0}
   .bloqueado{position:absolute;inset:0;display:none;align-items:center;
-             justify-content:center;padding:34px;text-align:center;
-             background:var(--fondo);font-size:13.5px;color:var(--gris);line-height:1.65}
+             justify-content:center;padding:32px;text-align:center;
+             background:var(--fondo);font-size:13px;color:var(--gris);line-height:1.6}
   .bloqueado.on{display:flex}
   .bloqueado strong{display:block;color:var(--tinta);font-size:15px;margin-bottom:8px}
   .enlaces{display:flex;gap:8px;flex-wrap:wrap}
@@ -228,36 +228,36 @@
     .marco{min-height:500px}
   }
 
-  #tostadas{position:fixed;right:18px;bottom:18px;z-index:80;display:grid;gap:10px;
+  #tostadas{position:fixed;right:18px;bottom:18px;z-index:80;display:grid;gap:12px;
             max-width:min(380px,calc(100vw - 36px))}
-  .tosta{background:var(--tinta);color:#fff;border-radius:12px;padding:14px 16px;
+  .tosta{background:var(--tinta);color:#fff;border-radius:14px;padding:16px 16px;
          box-shadow:0 10px 30px rgba(10,31,74,.3);font-size:13px;line-height:1.5}
-  .tosta strong{display:block;font-size:13.5px;margin-bottom:3px}
+  .tosta strong{display:block;font-size:13px;margin-bottom:3px}
   .tosta.critico{border-left:4px solid var(--rojo)}
   .tosta.aviso{border-left:4px solid var(--ambar)}
 
   @media(max-width:820px){
     header{padding:0;gap:0}
-    .marca{order:1;padding:13px 16px;flex:1 1 auto}
-    .hend{order:2;padding:13px 16px;margin-left:0;flex:0 0 auto}
+    .marca{order:1;padding:12px 16px;flex:1 1 auto}
+    .hend{order:2;padding:12px 16px;margin-left:0;flex:0 0 auto}
     nav{order:3;flex:0 0 100%;width:100%;padding:0 8px;border-top:1px solid rgba(255,255,255,.14);
         overflow-x:auto;scrollbar-width:none}
     nav::-webkit-scrollbar{display:none}
-    nav button{padding:13px 12px;font-size:13.5px;white-space:nowrap;flex:0 0 auto}
-    main{padding:22px 16px 60px}
-    h2.tit{font-size:24px}
-    .panel{padding:18px 16px}
-    .cli{padding:18px 17px}
+    nav button{padding:12px 12px;font-size:13px;white-space:nowrap;flex:0 0 auto}
+    main{padding:24px 16px 64px}
+    h2.tit{font-size:26px}
+    .panel{padding:20px 16px}
+    .cli{padding:20px 16px}
   }
   /* Safari amplía la página al enfocar un campo de menos de 16 px
      y no la devuelve al salir. Con 16 px no amplía. */
-  @media (pointer:coarse){input,select,textarea{font-size:16px}}
+  @media (pointer:coarse){input,select,textarea{font-size:17px}}
   /* ---------- DISTINTIVO DE STAGING ----------
      El mismo archivo sirve en los dos sitios y se da cuenta solo de
      dónde está. Mantener dos versiones del fichero garantizaría que
      algún día se despliegue la equivocada. */
   .staging{background:#B54708;color:#fff;text-align:center;
-           padding:5px 14px;font-size:11.5px;font-weight:800;
+           padding:6px 16px;font-size:12px;font-weight:800;
            letter-spacing:.06em;text-transform:uppercase;
            position:sticky;top:0;z-index:60}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -283,12 +283,12 @@
   <header>
     <div class="marca">Simplia<span>Spain</span> · maestro</div>
     <nav>
-      <button class="on" data-v="clientes">Clientes</button>
-      <button data-v="incidencias">Incidencias<span class="bdg" id="bdg" hidden></span></button>
-      <button data-v="salud">Salud</button>
-      <button data-v="vencimientos">Vencimientos</button>
-      <button data-v="web">Web</button>
-      <button data-v="excluidos">Excluidos</button>
+      <button class="on" data-n="clientes">Clientes</button>
+      <button data-n="frenos">Pausas y exclusiones</button>
+      <button data-n="memoria">Memoria</button>
+      <button data-n="alta">Alta</button>
+      <button data-n="incidencias">Incidencias<span class="bdg" id="bdg" hidden></span></button>
+      <button data-n="web">Web</button>
     </nav>
     <div class="hend">
       <button class="refr" id="refrescar" title="Actualizar">
@@ -305,8 +305,23 @@
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const URL = 'https://bmbfmcgqfruhnhlxxdmy.supabase.co';
-const KEY = 'sb_publishable_YE2Oe3kvM70VGL-304-SXw_yU8KPzS2';
+/* PROYECTO DE PRODUCCIÓN. Este archivo apuntaba al proyecto viejo
+   mientras el panel del cliente ya estaba en el nuevo: enseñaba
+   números de verdad, de una base que ya nadie usa. Un panel que
+   miente con datos reales es peor que uno que no carga, porque
+   nadie sospecha.
+
+   Todas las funciones llevan ahora el prefijo mt_, que es como se
+   llaman aquí. Las del proyecto viejo (panorama, salud, …) no
+   existen en este, así que una llamada olvidada no devuelve datos
+   antiguos: falla, y se ve. */
+const URL = 'https://gwibsjohvfxasslcrxuq.supabase.co';
+const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
+
+// Qué versión está cargada: sale en la franja de staging y en la
+// consola, para saber si GitHub Pages ya sirve lo último que se subió.
+const VERSION = '2026-10-09 · refresco sin pérdidas';
+console.info('Panel maestro · versión', VERSION);
 
 const supabase = createClient(URL, KEY, {
   auth: { persistSession:false, autoRefreshToken:true, detectSessionInUrl:false }
@@ -318,14 +333,19 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g,
   m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
 let VISTA = 'clientes', TIMER = null, ULTIMA = null;
-let PANORAMA = [], INCID = [], CHECKS = [], VENC = [], CFGOP = [], EXCL = [];
-// Contactos por cliente, para poder excluir por nombre en vez de
-// por número. Se piden al elegir cliente y se guardan en memoria.
-let EXCONT = {}, EXSLUG = '', EXQ = '';
+let PANORAMA = [], INCID = [], CFGOP = [];
+// Contactos y frenos por cliente, para poder trabajar por nombre en
+// vez de por número. Se piden al elegir cliente y se guardan.
+let EXCONT = {}, FRENOS = {}, EXSLUG = '', EXQ = '';
 let VIVAS = [];   // siempre las no resueltas, independiente del filtro de pantalla
 let FILTRO_INC = 'vivas';
 let VISTAS_CRIT = new Set();     // huellas críticas ya avisadas
 let ARRANCANDO = true;           // no avisar de lo que ya existía al entrar
+// Memoria del agente: a quién se está mirando y qué se ha encontrado.
+let MEMREF = '', MEMQ = '', MEM = null, MEMCOPIAS = [];
+// Si ahora mismo se puede escribir sobre el cliente elegido. null =
+// todavía no se ha preguntado.
+let PUEDO = null;
 
 /* ============================================================
    Captura de errores del propio panel maestro.
@@ -337,7 +357,7 @@ async function reportar(codigo, titulo, detalle, severidad = 'aviso'){
   if (YA_REPORTADO.has(codigo)) return;   // una vez por sesión, no un bucle
   YA_REPORTADO.add(codigo);
   try {
-    await supabase.rpc('registrar_incidencia', {
+    await supabase.rpc('mt_registrar_incidencia', {
       p_codigo: codigo,
       p_titulo: String(titulo).slice(0, 300),
       p_severidad: severidad,
@@ -389,7 +409,7 @@ async function entrar(){
 
   // El acceso lo decide la base de datos, no esta comprobación.
   // Aunque alguien la saltara, las funciones devuelven vacío.
-  const { data: op } = await supabase.rpc('soy_operador');
+  const { data: op } = await supabase.rpc('mt_soy_operador');
   if (!op){
     await supabase.auth.signOut();
     e.textContent = 'Esta cuenta no tiene permiso de operador. ' +
@@ -412,17 +432,23 @@ $('#salir').addEventListener('click', async () => {
   location.reload();
 });
 
+// data-n y no data-v: los botones de la navegación compartían
+// atributo con los de "Hecho" de Vencimientos, y un clic en la
+// pestaña podía enganchar dos oyentes distintos.
 document.querySelectorAll('nav button').forEach(b =>
   b.addEventListener('click', () => {
     document.querySelectorAll('nav button').forEach(x => x.classList.remove('on'));
     b.classList.add('on');
-    VISTA = b.dataset.v;
+    VISTA = b.dataset.n;
     pintar();
-    // Al abrir Salud o Vencimientos se pide dato fresco, aunque
-    // no haya tocado el ciclo lento.
-    if (VISTA === 'salud' || VISTA === 'vencimientos' || VISTA === 'excluidos') cargar(true);
-    if (VISTA === 'web') montarWeb();
-    if (VISTA === 'clientes' && EXSLUG) cargarContactos(EXSLUG);
+    // Al abrir una pestaña que trabaja sobre un cliente concreto se
+    // pide dato fresco, aunque no haya tocado el ciclo lento.
+    if (VISTA === 'frenos' || VISTA === 'memoria') cargar(true);
+    if (VISTA === 'web' || VISTA === 'alta') montarMarcos();
+    if ((VISTA === 'frenos' || VISTA === 'memoria') && EXSLUG){
+      cargarContactos(EXSLUG);
+      if (PUEDO === null) mirarModo();
+    }
   }));
 
 $('#refrescar').addEventListener('click', async () => {
@@ -432,53 +458,66 @@ $('#refrescar').addEventListener('click', async () => {
   b.classList.remove('girando');
 });
 
+// Escribiendo en algo: un campo, un desplegable, un texto largo, o
+// dentro de un formulario empotrado (el de Alta). En un iframe el
+// elemento activo de esta página es el propio IFRAME.
+function escribiendo(){
+  const ae = document.activeElement;
+  return !!ae && ['INPUT','SELECT','TEXTAREA','IFRAME'].includes(ae.tagName);
+}
+
 function auto(){
   clearInterval(TIMER);
   TIMER = setInterval(() => {
     if (document.hidden) return;
-    const ae = document.activeElement;
-    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT')) return;
-    cargar();
+    if (escribiendo()) return;
+    cargar(false, true);
   }, 30000);
 }
 
 /* ---------- carga ----------
-   Dos ritmos. Panorama e incidencias son consultas baratas y van
-   cada 30 s. salud() recorre percentiles sobre siete días de
-   mensajes por cada cliente: a 30 s sería un escaneo continuo
-   contra un plan Free. Va cada 5 minutos, o cuando se pide. */
+   Dos ritmos. El panorama y las incidencias van cada 30 s. Los
+   ajustes y los frenos del cliente que se está mirando cambian
+   cuando alguien los cambia, no solos: van cada 5 minutos o cuando
+   se piden. El panorama recorre percentiles de siete días por cada
+   cliente, así que tampoco conviene apretarlo más. */
 let ULTIMA_LENTA = 0;
 
-async function cargar(forzarLenta = false){
+// `desdeReloj` = el refresco de cada 30 s, que no debe tocar la
+// pantalla si no ha cambiado nada (ver pintar()).
+async function cargar(forzarLenta = false, desdeReloj = false){
   const lenta = forzarLenta || Date.now() - ULTIMA_LENTA > 300000;
 
   // Las vivas se piden siempre. La insignia y los avisos no pueden
   // depender del filtro que el operador tenga puesto en pantalla:
   // con el filtro en "Resueltas" dejarían de avisar de lo nuevo.
   const [p, v] = await Promise.all([
-    rpc('panorama').catch(() => []),
-    rpc('mis_incidencias', { p_estado: 'vivas', p_limite: 200 }).catch(() => [])
+    rpc('mt_operador_panorama').catch(() => []),
+    rpc('mt_mis_incidencias', { p_estado: 'vivas' }).catch(() => [])
   ]);
   PANORAMA = p || []; VIVAS = v || [];
   INCID = FILTRO_INC === 'vivas' ? VIVAS
-    : (await rpc('mis_incidencias', { p_estado: FILTRO_INC, p_limite: 200 })
+    : (await rpc('mt_mis_incidencias', { p_estado: FILTRO_INC })
         .catch(() => [])) || [];
 
+  if (!EXSLUG && PANORAMA.length) EXSLUG = PANORAMA[0].slug;
+
   if (lenta){
-    const [s, v, cf, ex] = await Promise.all([
-      rpc('salud').catch(() => []),
-      rpc('mis_vencimientos').catch(() => []),
-      rpc('mi_config_operador').catch(() => []),
-      rpc('mis_excluidos').catch(() => [])
+    const [cf, fr, cp] = await Promise.all([
+      rpc('mt_mi_config_operador').catch(() => []),
+      EXSLUG ? rpc('mt_operador_frenos', { p_slug: EXSLUG }).catch(() => []) : [],
+      rpc('mt_memorias_borradas', { p_limite: 30 }).catch(() => [])
     ]);
-    CHECKS = s || []; VENC = v || []; CFGOP = cf || []; EXCL = ex || [];
+    CFGOP = cf || [];
+    if (EXSLUG) FRENOS[EXSLUG] = fr || [];
+    MEMCOPIAS = cp || [];
     ULTIMA_LENTA = Date.now();
   }
 
   ULTIMA = Date.now(); cuando();
   avisarNuevas();
   insignia();
-  pintar();
+  pintar({ desdeReloj });
 }
 
 function cuando(){
@@ -527,18 +566,53 @@ function tosta(sev, titulo, pie){
 /* ============================================================
    Vistas
    ============================================================ */
-function pintar(){
+/* EL REFRESCO NO REESCRIBE LO QUE NO HA CAMBIADO. Antes, cada 30
+   segundos se reescribía la pestaña abierta entera:
+
+     · en Alta y en Web, los marcos empotrados se recargaban, y lo que
+       se estuviera rellenando en el formulario de alta se perdía;
+     · en Memoria y en Pausas y exclusiones, lo escrito en un campo sin
+       el cursor dentro (la confirmación, el motivo, el contacto
+       suelto) desaparecía.
+
+   Ahora el refresco compara lo que pintaría con lo que hay y, si es lo
+   mismo, no toca nada. Si ha cambiado algo, repinta y devuelve a cada
+   campo lo que tuviera escrito. Lo que pinta una acción (guardar,
+   excluir, cambiar de cliente…) repinta siempre, como antes. */
+let VISTA_HTML = '';
+
+function pintar(op = {}){
   const y = window.scrollY;
-  $('#vista').innerHTML =
+  const html =
       VISTA === 'clientes'     ? vistaClientes()
-    : VISTA === 'incidencias'  ? vistaIncidencias()
-    : VISTA === 'salud'        ? vistaSalud()
+    : VISTA === 'frenos'       ? vistaFrenos()
+    : VISTA === 'memoria'      ? vistaMemoria()
+    : VISTA === 'alta'         ? vistaAlta()
     : VISTA === 'web'          ? vistaWeb()
-    : VISTA === 'excluidos'    ? vistaExcluidos()
-    :                            vistaVencimientos();
+    :                            vistaIncidencias();
+
+  let escrito = null;
+  if (op.desdeReloj){
+    if (html === VISTA_HTML) return;
+    escrito = {};
+    document.querySelectorAll('#vista input[id], #vista textarea[id]')
+      .forEach(e => { if (e.value) escrito[e.id] = e.value; });
+    document.querySelectorAll('#vista .nota[id]')
+      .forEach(e => { if (e.textContent) escrito['#' + e.id] = e.textContent; });
+  }
+
+  $('#vista').innerHTML = html;
+  VISTA_HTML = html;
   enlazar();
-  if (VISTA === 'web') montarWeb();
-  if (VISTA === 'clientes' && EXSLUG && EXCONT[EXSLUG] === undefined) cargarContactos(EXSLUG);
+
+  if (escrito) for (const [k, v] of Object.entries(escrito)){
+    const e = document.getElementById(k.replace(/^#/, ''));
+    if (!e) continue;
+    if (k.startsWith('#')) e.textContent = v; else e.value = v;
+  }
+  if (VISTA === 'web' || VISTA === 'alta') montarMarcos();
+  if ((VISTA === 'frenos' || VISTA === 'memoria')
+      && EXSLUG && EXCONT[EXSLUG] === undefined) cargarContactos(EXSLUG);
   window.scrollTo({ top: y, behavior: 'instant' });
 }
 
@@ -548,18 +622,28 @@ function pintar(){
 function diagnostico(c){
   const rojo = [], ambar = [];
   if (Number(c.sin_respuesta_24h) > 0)
-    rojo.push(`${c.sin_respuesta_24h} persona(s) escribieron y el asistente no respondió`);
+    rojo.push(`${c.sin_respuesta_24h} ${Number(c.sin_respuesta_24h) === 1
+      ? 'persona escribió' : 'personas escribieron'} y el asistente no respondió`);
   if (Number(c.incid_criticas) > 0)
-    rojo.push(`${c.incid_criticas} incidencia(s) crítica(s) abierta(s)`);
+    rojo.push(`${c.incid_criticas} ${Number(c.incid_criticas) === 1
+      ? 'incidencia crítica abierta' : 'incidencias críticas abiertas'}`);
+  // Una pausa pedida que el asistente no respeta es grave: el cliente
+  // cree que el bot está callado con alguien y le está contestando.
+  if (Number(c.pausas_sin_aplicar) > 0)
+    rojo.push(`${c.pausas_sin_aplicar} ${Number(c.pausas_sin_aplicar) === 1
+      ? 'pausa pedida' : 'pausas pedidas'} que el asistente no está aplicando`);
 
   const h = Number(c.horas_sin_mensaje);
-  if (h > 48) ambar.push(`sin mensajes desde hace ${h} h`);
+  if (c.horas_sin_mensaje != null && h > 48)
+    ambar.push(`sin mensajes desde hace ${Math.round(h)} h`);
   if (Number(c.lat_p95_s) > 25) ambar.push(`p95 de respuesta en ${c.lat_p95_s} s`);
   if (Number(c.incid_abiertas) > Number(c.incid_criticas))
-    ambar.push(`${c.incid_abiertas - c.incid_criticas} incidencia(s) abierta(s)`);
-  if (Number(c.convs_7d) > 0 && Number(c.no_supo_7d) / Number(c.convs_7d) > 0.25)
-    ambar.push(`el asistente no supo responder en el ${
-      Math.round(c.no_supo_7d / c.convs_7d * 100)} % de las conversaciones`);
+    ambar.push(`${c.incid_abiertas - c.incid_criticas} ${
+      c.incid_abiertas - c.incid_criticas === 1
+        ? 'incidencia abierta' : 'incidencias abiertas'}`);
+  if (Number(c.convs_7d) > 0 && Number(c.friccion_7d) / Number(c.convs_7d) > 0.25)
+    ambar.push(`fricción en el ${
+      Math.round(c.friccion_7d / c.convs_7d * 100)} % de las conversaciones`);
 
   if (rojo.length) return { cl:'rj', tono:'mal', txt: rojo.join(' · ') };
   if (ambar.length) return { cl:'am', tono:'med', txt: ambar.join(' · ') };
@@ -576,7 +660,8 @@ function vistaClientes(){
   if (!PANORAMA.length) return `<h2 class="tit">Clientes</h2>
     <div class="panel"><div class="vacio">
       <strong>No se ha podido leer el panorama.</strong><br>
-      Comprueba que 020_maestro.sql está aplicado y que tu cuenta está en <code>staff</code>.
+      Comprueba que <code>117_maestro.sql</code> está aplicado y que tu cuenta
+      está en <code>mt_operadores</code>.
     </div></div>`;
 
   const mal = PANORAMA.filter(c => diagnostico(c).cl === 'rj').length;
@@ -589,7 +674,10 @@ function vistaClientes(){
       med ? ` · ${med} con avisos` : ''}${
       !mal && !med ? ' · todo en orden' : ''}.</p>
     <div class="clientes">${PANORAMA.map(fichaCliente).join('')}</div>
-    ${bloqueExcluidos()}`;
+    <p class="nota">Las pruebas automáticas del sistema y los contactos que el
+       cliente haya sacado del recuento no entran en ninguna de estas cifras,
+       igual que en su panel. Las dos pantallas cuentan lo mismo, que es lo que
+       permite hablar de un número con el cliente delante.</p>`;
 }
 
 function fichaCliente(c){
@@ -602,11 +690,13 @@ function fichaCliente(c){
     <div class="clicab">
       <span class="clinom">${esc(c.nombre)}</span>
       <span class="clislug">${esc(c.slug)}</span>
-      ${c.sector ? `<span class="pill gris">${esc(c.sector)}</span>` : ''}
+      ${c.activo ? '' : '<span class="pill gris">inactivo</span>'}
     </div>
     <div class="clidiag ${d.tono}">${esc(d.txt)}</div>
     <div class="enlaces" style="margin-bottom:14px">
       <button class="cbtn" data-panel="${esc(c.slug)}">Ver su panel &nearr;</button>
+      <button class="cbtn sec" data-ir="frenos|${esc(c.slug)}">Pausas y exclusiones</button>
+      <button class="cbtn sec" data-ir="memoria|${esc(c.slug)}">Memoria</button>
     </div>
     <div class="met">
       ${mt('Personas', nf.format(c.personas), `${nf.format(c.conversaciones)} conversaciones`)}
@@ -627,14 +717,21 @@ function fichaCliente(c){
            c.lat_p95_s == null ? 'gr' : Number(c.lat_p95_s) > 25 ? 'am' : '')}
       ${mt('Sin responder', nf.format(c.sin_respuesta_24h), 'en 24 h',
            Number(c.sin_respuesta_24h) > 0 ? 'rj' : '')}
-      ${mt('No supo', nf.format(c.no_supo_7d), 'en 7 días',
-           v7 && c.no_supo_7d / v7 > 0.25 ? 'am' : '')}
+      ${mt('Fricción', nf.format(c.friccion_7d), 'piden una persona · 7 días',
+           v7 && c.friccion_7d / v7 > 0.25 ? 'am' : '')}
       ${mt('Interés', nf.format(c.interes_7d),
            `${nf.format(c.contacto_7d)} dejaron contacto · 7 días`)}
+      ${Number(c.pausas) ? mt('En pausa', nf.format(c.pausas),
+           Number(c.pausas_sin_aplicar)
+             ? `${c.pausas_sin_aplicar} sin aplicarse`
+             : 'el asistente no les responde',
+           Number(c.pausas_sin_aplicar) ? 'rj' : 'gr') : ''}
       ${Number(c.excluidos) ? mt('Excluidos', nf.format(c.excluidos),
-           'fuera de las métricas', 'gr') : ''}
+           'fuera del recuento', 'gr') : ''}
       ${mt('Incidencias', nf.format(c.incid_abiertas),
-           Number(c.incid_criticas) ? `${c.incid_criticas} crítica(s)` : 'abiertas',
+           Number(c.incid_criticas)
+             ? `${c.incid_criticas} ${Number(c.incid_criticas) === 1 ? 'crítica' : 'críticas'}`
+             : 'abiertas',
            Number(c.incid_criticas) ? 'rj' : Number(c.incid_abiertas) ? 'am' : '')}
     </div>
   </div>`;
@@ -656,7 +753,7 @@ function vistaIncidencias(){
     <div class="panel">
       ${INCID.length ? INCID.map(filaInc).join('')
         : `<div class="vacio">Nada que mostrar con este filtro.<br>
-           Si es la primera vez, ejecuta una comprobación desde Salud.</div>`}
+           Que no haya ninguna abierta es la situación normal.</div>`}
     </div>
     <p class="nota">Resolver una incidencia no la borra: la cierra. Si el mismo problema
        vuelve a aparecer se abre una nueva, y así se ve que es reincidente.</p>`;
@@ -692,79 +789,12 @@ function filaInc(i){
   </div>`;
 }
 
-/* ---------- salud ---------- */
-function vistaSalud(){
-  const fallan = CHECKS.filter(c => c.evaluable && !c.ok);
-  const nd     = CHECKS.filter(c => !c.evaluable);
-  return `<h2 class="tit">Salud</h2>
-    <p class="sub">Comprobaciones que se ejecutan contra la base de datos ahora mismo.
-       Las que no se pueden evaluar se marcan como tales en vez de darse por buenas.</p>
-    <div class="panel">
-      <div class="cabpanel">
-        <div>
-          <h3>${fallan.length ? `${fallan.length} comprobación${
-            fallan.length===1?'':'es'} sin pasar` : 'Todo pasa'}</h3>
-          <p class="ph">${nf.format(CHECKS.length)} comprobaciones${
-            nd.length ? ` · ${nd.length} no evaluable(s)` : ''}</p>
-        </div>
-        <button class="cbtn" id="evaluar">Evaluar y abrir incidencias</button>
-      </div>
-      ${CHECKS.length ? CHECKS.map(c => {
-        const ico = !c.evaluable ? ['na','?']
-          : c.ok ? ['ok','✓'] : (c.severidad === 'critico' ? ['mal','✕'] : ['med','!']);
-        return `<div class="chk">
-          <span class="cico ${ico[0]}">${ico[1]}</span>
-          <div>
-            <div class="chknom">${esc(c.titulo)}</div>
-            <div class="chkdet">${esc(c.detalle)}${
-              c.evaluable ? '' : ' · no se ha podido evaluar'}</div>
-          </div>
-          <span class="chkslug">${esc(c.slug || 'global')}</span>
-        </div>`;
-      }).join('') : '<div class="vacio">Sin comprobaciones. Revisa que salud() existe.</div>'}
-    </div>
-    <p class="nota">Este botón hace lo mismo que hará el workflow de vigilancia de n8n cada
-       diez minutos: lo que falla abre incidencia, lo que se arregla la cierra sola.</p>`;
-}
-
-/* ---------- vencimientos ---------- */
-function vistaVencimientos(){
-  return `<h2 class="tit">Vencimientos</h2>
-    <p class="sub">Lo que caduca y lo que está pendiente. Con fecha, cuenta atrás;
-       sin fecha, deuda que sigue ahí hasta que alguien la quite.</p>
-    <div class="panel">
-      ${VENC.length ? VENC.map(filaVen).join('')
-        : '<div class="vacio">Nada registrado. La carga inicial está al final de 020_maestro.sql.</div>'}
-    </div>`;
-}
-
-function filaVen(v){
-  let bloqueFecha, queda = '';
-  if (v.fecha){
-    const f = new Date(v.fecha + 'T00:00:00');
-    const dias = Math.round((f - new Date().setHours(0,0,0,0)) / 864e5);
-    bloqueFecha = `<span class="vdia">${f.getDate()}</span>
-      <span class="vmes">${f.toLocaleDateString('es-ES',{month:'short'})} ${
-        String(f.getFullYear()).slice(2)}</span>`;
-    const cl = dias < 0 ? 'rj' : dias <= Number(v.aviso_dias) ? 'am' : 'gr';
-    queda = `<div class="vqueda ${cl}">${
-      dias < 0 ? `vencido hace ${-dias} días`
-      : dias === 0 ? 'vence hoy' : `faltan ${dias} días`}</div>`;
-  } else {
-    bloqueFecha = `<span class="vsin">sin<br>fecha</span>`;
-  }
-  return `<div class="ven">
-    <div class="vfecha">${bloqueFecha}</div>
-    <div>
-      <div class="vque">${esc(v.que)}
-        ${v.tenant_slug ? `<span class="pill gris">${esc(v.tenant_slug)}</span>` : ''}
-        ${v.gravedad === 'critico' ? '<span class="pill rj">crítico</span>' : ''}</div>
-      ${v.detalle ? `<div class="vdet">${esc(v.detalle)}</div>` : ''}
-      ${queda}
-    </div>
-    <button class="cbtn sec" data-v="${v.id}">Hecho</button>
-  </div>`;
-}
+/* ---------- SALUD Y VENCIMIENTOS ----------
+   No están en este panel. Vivían sobre el 024 y el 034 del proyecto
+   viejo y esas migraciones no se han portado al nuevo. Antes de
+   volver a enseñarlas hay que portarlas: una pestaña que parece
+   funcionar y sale vacía es peor que una pestaña que no está, porque
+   se lee como "todo bien".                                        */
 
 /* ---------- interacción ---------- */
 function enlazar(){
@@ -774,73 +804,208 @@ function enlazar(){
       await cargar();
     }));
 
-  document.querySelectorAll('.cbtn[data-incl]').forEach(b =>
-    b.addEventListener('click', async () => {
-      const [sl, ct] = b.dataset.incl.split('|');
-      b.disabled = true;
-      try { await rpc('incluir_contacto', { p_slug: sl, p_contact: ct }); await cargar(true); }
-      catch { b.disabled = false; }
-    }));
-
-  // cambiar de cliente: se piden sus contactos y se limpia la búsqueda
-  $('#exsl')?.addEventListener('change', () => {
-    EXSLUG = $('#exsl').value; EXQ = '';
-    pintar();
-    cargarContactos(EXSLUG);
-  });
-
-  // Se repinta al escribir, con un respiro para no repintar por tecla.
-  const bq = $('#exq');
-  if (bq){
-    let t = null;
-    bq.addEventListener('input', () => {
-      clearTimeout(t);
-      t = setTimeout(() => {
-        EXQ = bq.value.trim();
-        const foco = document.activeElement === bq;
-        pintar();
-        if (foco){
-          const n = $('#exq');
-          n?.focus();
-          n?.setSelectionRange(n.value.length, n.value.length);
-        }
-      }, 220);
-    });
-  }
-
-  // excluir desde la lista, con el nombre ya puesto como motivo
-  document.querySelectorAll('.cbtn[data-excl]').forEach(b =>
-    b.addEventListener('click', async () => {
-      b.disabled = true; b.textContent = 'Excluyendo…';
-      try {
-        await rpc('excluir_contacto', { p_slug: EXSLUG, p_contact: b.dataset.excl,
-          p_motivo: $('#exmot')?.value.trim() || null });
-        tosta('aviso', 'Fuera de las métricas', b.dataset.nom);
-        await cargar(true);
-      } catch { b.disabled = false; b.textContent = 'Excluir'; }
-    }));
-
-  $('#exadd')?.addEventListener('click', async () => {
-    const num = $('#exnum').value.trim().replace(/[^0-9]/g, '');
-    if (!num){ tosta('aviso', 'Falta el número', 'Solo dígitos, sin espacios'); return; }
-    const b = $('#exadd'); b.disabled = true;
-    try {
-      await rpc('excluir_contacto', { p_slug: EXSLUG || $('#exsl').value,
-        p_contact: num, p_motivo: $('#exmot').value.trim() || null });
-      await cargar(true);
-    } catch { b.disabled = false; tosta('critico', 'No se ha podido excluir', num); }
-  });
-
   $('#permiso')?.addEventListener('click', async () => {
     try { await Notification.requestPermission(); } catch {}
     pintar();
   });
 
+  // Ir de la ficha de un cliente a su pestaña, con él ya elegido.
+  document.querySelectorAll('[data-ir]').forEach(b =>
+    b.addEventListener('click', () => {
+      const [v, sl] = b.dataset.ir.split('|');
+      if (sl !== EXSLUG){
+        EXSLUG = sl; EXQ = ''; MEMQ = ''; MEMREF = ''; MEM = null; PUEDO = null;
+      }
+      VISTA = v;
+      document.querySelectorAll('nav button').forEach(x =>
+        x.classList.toggle('on', x.dataset.n === v));
+      pintar();
+      cargarContactos(EXSLUG);
+      cargarFrenos(EXSLUG);
+      mirarModo();
+    }));
+
+  // Cambiar de cliente: se piden sus contactos y sus frenos, y se
+  // limpia lo que estuviera elegido del cliente anterior. Sin esa
+  // limpieza se podía quedar seleccionada una persona de otro
+  // cliente, que es exactamente a quien no se quiere tocar.
+  const cambiar = (sel) => $(sel)?.addEventListener('change', () => {
+    EXSLUG = $(sel).value;
+    EXQ = ''; MEMQ = ''; MEMREF = ''; MEM = null; PUEDO = null;
+    pintar();
+    cargarContactos(EXSLUG);
+    cargarFrenos(EXSLUG);
+    mirarModo();
+  });
+  cambiar('#exsl');
+  cambiar('#memsl');
+
+  $('#modo')?.addEventListener('click', async () => {
+    const b = $('#modo'), a = b.dataset.a;
+    b.disabled = true;
+    try {
+      await rpc('mt_ver_como', { p_slug: EXSLUG, p_modo: a });
+      await mirarModo();
+      pintar();
+      tosta('aviso', a === 'escritura' ? 'Modo escritura' : 'Solo lectura',
+            PANORAMA.find(c => c.slug === EXSLUG)?.nombre || EXSLUG);
+    } catch (e) {
+      b.disabled = false;
+      tosta('critico', 'No se ha podido cambiar de modo', e.message || '');
+    }
+  });
+
+  // Se repinta al escribir, con un respiro para no repintar por tecla
+  // y devolviendo el foco al campo con el cursor donde estaba.
+  const alEscribir = (sel, poner) => {
+    const inp = $(sel); if (!inp) return;
+    let t = null;
+    inp.addEventListener('input', () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        poner(inp.value.trim());
+        const foco = document.activeElement === inp;
+        pintar();
+        if (foco){
+          const n = $(sel);
+          n?.focus();
+          n?.setSelectionRange(n.value.length, n.value.length);
+        }
+      }, 220);
+    });
+  };
+  alEscribir('#exq',  v => { EXQ = v; });
+  alEscribir('#memq', v => { MEMQ = v; });
+
+  /* ---- pausas y exclusiones ---- */
+  document.querySelectorAll('[data-quitar]').forEach(b =>
+    b.addEventListener('click', async () => {
+      const [tipo, ref] = b.dataset.quitar.split('|');
+      b.disabled = true;
+      try {
+        await rpc(tipo === 'pausa' ? 'mt_reanudar' : 'mt_incluir',
+                  { p_user_ref: ref, p_slug: EXSLUG });
+        await cargarFrenos(EXSLUG);
+        await cargar(true);
+      } catch (e) {
+        b.disabled = false;
+        tosta('critico', 'No se ha podido deshacer', mensajePermiso(e));
+      }
+    }));
+
+  document.querySelectorAll('.cbtn[data-excl]').forEach(b =>
+    b.addEventListener('click', async () => {
+      b.disabled = true; b.textContent = 'Excluyendo…';
+      try {
+        await rpc('mt_excluir', { p_user_ref: b.dataset.excl, p_slug: EXSLUG,
+                                  p_motivo: $('#exmot')?.value.trim() || null });
+        tosta('aviso', 'Fuera del recuento', b.dataset.nom);
+        EXCONT[EXSLUG] = undefined;
+        await cargarContactos(EXSLUG);
+        await cargarFrenos(EXSLUG);
+        await cargar(true);
+      } catch (e) {
+        b.disabled = false; b.textContent = 'Excluir';
+        tosta('critico', 'No se ha podido excluir', mensajePermiso(e));
+      }
+    }));
+
+  $('#exadd')?.addEventListener('click', async () => {
+    const ref = $('#exnum').value.trim();
+    const msg = $('#exmsg');
+    if (!ref){ msg.textContent = 'Escribe el contacto tal y como sale en Conversaciones.'; return; }
+    const b = $('#exadd'); b.disabled = true;
+    try {
+      await rpc('mt_excluir', { p_user_ref: ref, p_slug: EXSLUG,
+                                p_motivo: $('#exmot').value.trim() || null });
+      EXCONT[EXSLUG] = undefined;
+      await cargarContactos(EXSLUG);
+      await cargarFrenos(EXSLUG);
+      await cargar(true);
+    } catch (e) {
+      b.disabled = false;
+      msg.textContent = mensajePermiso(e);
+    }
+  });
+
+  /* ---- memoria del agente ---- */
+  document.querySelectorAll('[data-mem]').forEach(b =>
+    b.addEventListener('click', () => {
+      MEMREF = b.dataset.mem;
+      mirarMemoria();
+    }));
+
+  $('#memborrar')?.addEventListener('click', async () => {
+    const msg = $('#memmsg'), b = $('#memborrar');
+    const conf = $('#memconf').value.trim();
+    // La comprobación también está en la base, que es la que manda.
+    // Aquí se repite para poder decir qué falta sin ir al servidor.
+    if (conf !== MEMREF){
+      msg.textContent = 'Escribe el contacto exacto para confirmar. '
+        + 'Está justo encima, en gris.';
+      return;
+    }
+    b.disabled = true; b.textContent = 'Borrando…';
+    try {
+      const r = await rpc('mt_borrar_memoria',
+        { p_slug: EXSLUG, p_user_ref: MEMREF, p_confirmo: conf });
+      const x = Array.isArray(r) ? r[0] : r;
+      tosta('aviso', 'Memoria borrada',
+            `${x?.borradas ?? 0} entradas · queda copia`);
+      msg.textContent = 'Borrada. Escribe al bot desde ese número para comprobarlo.';
+      MEMQ = MEMQ;   // se mantiene la búsqueda
+      await mirarMemoria();
+      await cargar(true);
+    } catch (e) {
+      b.disabled = false; b.textContent = 'Borrar la memoria';
+      msg.textContent = mensajePermiso(e);
+    }
+  });
+
+  document.querySelectorAll('[data-rest]').forEach(b =>
+    b.addEventListener('click', async () => {
+      b.disabled = true; b.textContent = 'Devolviendo…';
+      try {
+        const n = await rpc('mt_restaurar_memoria', { p_id: b.dataset.rest });
+        tosta('aviso', 'Memoria devuelta', `${n} entradas`);
+        if (MEMREF) await mirarMemoria();
+        await cargar(true);
+      } catch (e) {
+        b.disabled = false; b.textContent = 'Devolverla';
+        tosta('critico', 'No se ha podido devolver', mensajePermiso(e));
+      }
+    }));
+
+  /* ---- la dirección del formulario de alta ---- */
+  $('#altaguardar')?.addEventListener('click', async () => {
+    const url = $('#altaurl').value.trim();
+    const msg = $('#altamsg'), b = $('#altaguardar');
+    if (!/^https:\/\/.+/.test(url)){
+      msg.textContent = 'Tiene que ser una dirección https completa.';
+      return;
+    }
+    b.disabled = true;
+    try {
+      await rpc('mt_guardar_config_operador', {
+        p_clave: 'alta',
+        p_valor: { url, nombre: 'Alta de cliente',
+                   nota: 'La clave de acceso la pide la propia página' },
+        p_nota: 'Formulario de alta que sirve n8n'
+      });
+      msg.textContent = 'Guardada.';
+      await cargar(true);
+    } catch (e) {
+      b.disabled = false;
+      msg.textContent = mensajePermiso(e);
+    }
+  });
+
+  /* ---- incidencias ---- */
   document.querySelectorAll('.cbtn[data-i]').forEach(b =>
     b.addEventListener('click', async () => {
       b.disabled = true;
       try {
-        await rpc('atender_incidencia',
+        await rpc('mt_atender_incidencia',
           { p_id: Number(b.dataset.i), p_estado: b.dataset.a });
         await cargar();
       } catch { b.disabled = false; }
@@ -853,7 +1018,7 @@ function enlazar(){
     b.addEventListener('click', async () => {
       const w = window.open('', '_blank');
       try {
-        await rpc('ver_como', { p_slug: b.dataset.panel, p_modo: 'lectura' });
+        await rpc('mt_ver_como', { p_slug: b.dataset.panel, p_modo: 'lectura' });
         if (w) w.location = './';
         else tosta('aviso', 'Cliente activo cambiado',
                    'Abre panel.simpliaspain.com para verlo');
@@ -862,113 +1027,104 @@ function enlazar(){
         tosta('critico', 'No se ha podido cambiar de cliente', b.dataset.panel);
       }
     }));
-
-  document.querySelectorAll('.cbtn[data-v]').forEach(b =>
-    b.addEventListener('click', async () => {
-      b.disabled = true;
-      try {
-        await rpc('resolver_vencimiento', { p_id: Number(b.dataset.v), p_resuelto: true });
-        await cargar();
-      } catch { b.disabled = false; }
-    }));
-
-  $('#exadd')?.addEventListener('click', async () => {
-    const num = $('#exnum').value.trim();
-    const msg = $('#exmsg');
-    if (!num){ msg.textContent = 'Escribe el teléfono del contacto.'; return; }
-    $('#exadd').disabled = true;
-    try {
-      const n = await rpc('excluir_contacto', {
-        p_contact: num,
-        p_motivo:  $('#exmot').value.trim() || null,
-        p_cliente: $('#excli').value
-      });
-      tosta('aviso', 'Contacto excluido',
-            `${num} · ${n} conversaciones fuera de la muestra`);
-      await cargar(true);
-    } catch (e) {
-      msg.textContent = e.message || 'No se ha podido excluir.';
-      $('#exadd').disabled = false;
-    }
-  });
-
-  document.querySelectorAll('.cbtn[data-inc]').forEach(b =>
-    b.addEventListener('click', async () => {
-      b.disabled = true;
-      try {
-        await rpc('incluir_contacto',
-          { p_contact: b.dataset.inc, p_cliente: b.dataset.slug });
-        await cargar(true);
-      } catch { b.disabled = false; }
-    }));
-
-  $('#evaluar')?.addEventListener('click', async () => {
-    const b = $('#evaluar');
-    b.disabled = true; b.textContent = 'Evaluando…';
-    try {
-      const r = await rpc('evaluar_salud');
-      const x = Array.isArray(r) ? r[0] : r;
-      tosta('aviso', 'Comprobación terminada',
-            `${x?.abiertas ?? 0} abiertas · ${x?.cerradas ?? 0} cerradas`);
-      await cargar();
-    } catch {
-      b.disabled = false; b.textContent = 'Evaluar y abrir incidencias';
-    }
-  });
 }
 
+// Un 42501 desde aquí casi siempre es lo mismo: el operador está en
+// modo lectura sobre ese cliente. Decir "sin permiso" manda a buscar
+// un permiso que ya se tiene; decir qué hacer, no.
+function mensajePermiso(e){
+  const m = e?.message || '';
+  if (/lectura|permiso|42501/.test(m))
+    return 'Estás en modo lectura sobre este cliente. Arriba, en «Cliente», '
+         + 'hay un botón para pasar a modo escritura.';
+  return m || 'No se ha podido completar.';
+}
 
-/* ---------- web ----------
-   La URL no está escrita aquí: sale de config_operador. El repo
-   `panel` es público, y un enlace compartido de Umami da acceso a
-   las analíticas a quien lo tenga. Cambiarla no requiere
-   desplegar: se hace con guardar_config_operador().
+/* ---------- marcos empotrados: Alta y Web ----------
+   Ninguna de las dos direcciones está escrita aquí: salen de
+   mt_config_operador. Este archivo lo sirve GitHub Pages desde un
+   repositorio público, y tanto la página de alta del n8n como un
+   enlace compartido de analítica dan acceso a quien los tenga.
+   Cambiarlas no requiere desplegar nada.
 
-   El iframe puede quedar bloqueado si Umami envía cabeceras que
-   impiden empotrarlo. No se puede detectar desde fuera con
-   certeza, así que el enlace directo está SIEMPRE visible y no
-   escondido detrás de un fallo. */
-function panelesWeb(){
-  const fila = CFGOP.find(c => c.clave === 'analitica_web');
+   Un iframe puede quedar bloqueado si el servidor manda cabeceras
+   que impiden empotrarlo, y desde fuera no se puede saber con
+   certeza: el navegador avisa igual de "cargado" cuando lo que ha
+   cargado es la pantalla de bloqueo. Así que el enlace directo está
+   SIEMPRE visible, no escondido detrás de un fallo. */
+
+function ajuste(clave){
+  const fila = CFGOP.find(c => c.clave === clave);
   const v = fila?.valor;
-  const lista = (typeof v === 'string' ? JSON.parse(v) : v)?.paneles;
+  try { return typeof v === 'string' ? JSON.parse(v) : (v || null); }
+  catch { return null; }
+}
+
+function panelesWeb(){
+  const lista = ajuste('analitica_web')?.paneles;
   return Array.isArray(lista) ? lista.filter(p => p && p.url) : [];
 }
 
+/* ---------- alta de cliente ---------- */
+function vistaAlta(){
+  const a = ajuste('alta');
+  const url = a?.url || '';
+
+  return `<h2 class="tit">Alta de cliente</h2>
+    <p class="sub">El formulario que sirve n8n, aquí dentro para no tener que
+       buscar la dirección cada vez. La clave de acceso la pide la propia
+       página: esto solo la muestra.</p>
+
+    ${url ? marcoEmpotrado({
+        nombre: a.nombre || 'Alta de cliente',
+        proveedor: 'n8n',
+        nota: a.nota || '',
+        url
+      }, 'alta') : `<div class="panel">
+      <h3>Todavía no hay dirección guardada</h3>
+      <p class="ph">Pégala una vez y se queda. No se escribe en el código de
+         esta página, que es pública: se guarda en la base de datos.</p>
+      <div class="segm" style="justify-content:flex-start">
+        <input class="busca" id="altaurl" type="url" style="flex:1 1 320px"
+               placeholder="https://…/webhook/mt/alta" aria-label="Dirección del formulario">
+        <button class="cbtn" id="altaguardar">Guardar</button>
+      </div>
+      <p class="nota" id="altamsg"></p>
+    </div>`}
+
+    ${url ? `<div class="panel">
+      <h3>Cambiar la dirección</h3>
+      <p class="ph">Si el formulario se mueve de sitio.</p>
+      <div class="segm" style="justify-content:flex-start">
+        <input class="busca" id="altaurl" type="url" style="flex:1 1 320px"
+               value="${esc(url)}" aria-label="Dirección del formulario">
+        <button class="cbtn sec" id="altaguardar">Guardar</button>
+      </div>
+      <p class="nota" id="altamsg"></p>
+    </div>` : ''}`;
+}
+
+/* ---------- web ---------- */
 function vistaWeb(){
   const paneles = panelesWeb();
-  const token = VENC.find(x => /token/i.test(x.que || ''));
 
   if (!paneles.length) return `<h2 class="tit">Web</h2>
     <div class="panel"><div class="vacio">
       <strong>No hay ningún tablero configurado.</strong><br>
-      Se añaden con <code>guardar_config_operador('analitica_web', …)</code>.<br>
-      Si acabas de aplicar 024, pulsa Actualizar arriba.
+      Se añaden con <code>mt_guardar_config_operador('analitica_web', …)</code>.<br>
+      El ejemplo está en las notas de <code>117_maestro.sql</code>.
     </div></div>`;
 
   return `<h2 class="tit">Web</h2>
     <p class="sub">Analítica de las webs de SimpliaSpain. Los datos son de ${
       esc(paneles.map(p => p.proveedor || 'externo').join(', '))
     } y se muestran tal cual los sirve el proveedor.</p>
-    ${token ? avisoToken(token) : ''}
-    ${paneles.map(marcoWeb).join('')}
+    ${paneles.map((p, i) => marcoEmpotrado(p, 'w' + i)).join('')}
     <p class="nota">Estos tableros son de la web de marketing, no del asistente.
        Las conversaciones y la actividad del bot están en Clientes.</p>`;
 }
 
-function avisoToken(t){
-  const dias = Math.round((new Date(t.fecha + 'T00:00:00') - new Date().setHours(0,0,0,0)) / 864e5);
-  if (!t.fecha || dias > Number(t.aviso_dias || 30)) return '';
-  return `<div class="panel" style="border-color:#FEC84B;background:#FFFCF5">
-    <h3>${esc(t.que)}</h3>
-    <p class="ph" style="margin-bottom:0">${
-      dias < 0 ? `Venció hace ${-dias} días.` :
-      dias === 0 ? 'Vence hoy.' : `Faltan ${dias} días.`
-    } ${esc(t.detalle || '')}</p>
-  </div>`;
-}
-
-function marcoWeb(p, i){
+function marcoEmpotrado(p, id){
   return `<div class="panel">
     <div class="marcocab">
       <div>
@@ -980,176 +1136,207 @@ function marcoWeb(p, i){
         ${p.sitio ? `<a class="cbtn sec" href="${esc(p.sitio)}"
            target="_blank" rel="noopener">Visitar la web</a>` : ''}
         <a class="cbtn" href="${esc(p.url)}" target="_blank" rel="noopener"
-           >Abrir en ${esc(p.proveedor || 'el proveedor')} &nearr;</a>
+           >Abrir en una pestaña &nearr;</a>
       </div>
     </div>
     <div class="marco">
-      <iframe id="wf${i}" src="${esc(p.url)}" loading="lazy"
+      <iframe id="mf${esc(id)}" src="${esc(p.url)}" loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
-              title="Analítica de ${esc(p.nombre || 'la web')}"></iframe>
-      <div class="bloqueado" id="wb${i}">
-        <div><strong>El tablero no se deja empotrar aquí</strong>
-        ${esc(p.proveedor || 'El proveedor')} no permite mostrarlo dentro de otra
+              title="${esc(p.nombre || 'Contenido empotrado')}"></iframe>
+      <div class="bloqueado" id="mb${esc(id)}">
+        <div><strong>Esto no se deja empotrar aquí</strong>
+        ${esc(p.proveedor || 'El servidor')} no permite mostrarlo dentro de otra
         página. Ábrelo con el botón de arriba; el enlace es el mismo.</div>
       </div>
     </div>
   </div>`;
 }
 
-// Si el marco no ha cargado en unos segundos, lo más probable es
-// que esté bloqueado. No se puede saber con certeza desde otro
-// dominio, así que se avisa sin afirmarlo como un error.
-function montarWeb(){
-  panelesWeb().forEach((_, i) => {
-    const f = document.getElementById('wf' + i);
+// Si el marco no ha cargado en unos segundos, lo más probable es que
+// esté bloqueado. No se puede saber con certeza desde otro dominio,
+// así que se avisa sin afirmarlo como un error.
+function montarMarcos(){
+  const ids = VISTA === 'alta'
+    ? (ajuste('alta')?.url ? ['alta'] : [])
+    : panelesWeb().map((_, i) => 'w' + i);
+  ids.forEach(id => {
+    const f = document.getElementById('mf' + id);
     if (!f) return;
     let cargado = false;
     f.addEventListener('load', () => { cargado = true; });
     setTimeout(() => {
-      if (!cargado) document.getElementById('wb' + i)?.classList.add('on');
+      if (!cargado) document.getElementById('mb' + id)?.classList.add('on');
     }, 7000);
   });
 }
 
 
-/* ---------- excluidos ----------
-   Los números con los que probáis inflan todos los indicadores, y
-   lo hacen de forma invisible: el cliente ve una cifra creíble y
-   equivocada. Aquí se sacan de la muestra sin borrar nada. */
-function vistaExcluidos(){
-  const porCliente = PANORAMA.map(c => ({
-    slug: c.slug, nombre: c.nombre,
-    n: EXCL.filter(x => x.slug === c.slug).length
-  }));
+/* ---------- pausas y exclusiones ----------
+   Dos cosas que el cliente ya puede hacer solo desde su panel. Aquí
+   están para poder echar una mano: ver qué ha hecho, deshacerlo, y
+   sobre todo darse cuenta de que una pausa pedida no se está
+   aplicando, que es lo único de esta pantalla que es una avería.
 
-  return `<h2 class="tit">Excluidos</h2>
-    <p class="sub">Contactos que no cuentan en las estadísticas. Las conversaciones
-       siguen guardadas y se pueden consultar; simplemente dejan de sumar en
-       personas atendidas, señales, tiempos y coste evitado.</p>
+   Las pruebas internas se excluyen, no se borran: la conversación
+   sigue ahí y se puede volver a incluir. Y el panel dice cuántos
+   hay fuera, porque esconder datos sin decirlo sería peor que no
+   esconderlos. */
+// Un operador entra en modo LECTURA a propósito: mirar el panel de un
+// cliente no debe poder cambiárselo sin querer. Pero pausar o excluir
+// sí escribe, así que hace falta un sitio donde decirlo.
+//
+// Antes esto no estaba y el aviso de "sin permiso" mandaba a abrir el
+// panel del cliente, que fija modo LECTURA: seguir la instrucción no
+// arreglaba nada. Es el mismo enredo que tuvieron los parámetros de
+// cálculo, donde el único que veía los campos era el único que no
+// podía guardarlos.
+function bloqueModo(){
+  const n = PANORAMA.find(c => c.slug === EXSLUG)?.nombre || EXSLUG;
+  if (PUEDO === null) return '';
+  if (PUEDO) return `<p class="nota" style="margin-top:12px">
+    Estás en <strong>modo escritura</strong> sobre ${esc(n)}: lo que toques aquí
+    le cambia a él. <button class="cbtn sec" id="modo" data-a="lectura"
+      style="margin-left:6px">Volver a solo lectura</button></p>`;
+  return `<p class="nota" style="margin-top:12px">
+    Estás en <strong>modo lectura</strong>: puedes ver sus pausas y exclusiones,
+    pero no cambiarlas. <button class="cbtn" id="modo" data-a="escritura"
+      style="margin-left:6px">Pasar a modo escritura</button></p>`;
+}
+
+async function mirarModo(){
+  if (!EXSLUG){ PUEDO = null; return; }
+  try {
+    const d = await rpc('mt_puede_escribir', { p_slug: EXSLUG });
+    PUEDO = d === true;
+  } catch { PUEDO = false; }
+  if (VISTA === 'frenos') pintar();
+}
+
+function selectorCliente(id){
+  return `<select class="sel busca" id="${id}" aria-label="Cliente">
+    ${PANORAMA.map(c => `<option value="${esc(c.slug)}"${
+      c.slug === EXSLUG ? ' selected' : ''}>${esc(c.nombre)} · ${esc(c.slug)}</option>`).join('')}
+  </select>`;
+}
+
+function vistaFrenos(){
+  const lista = FRENOS[EXSLUG];
+  const pausas = (lista || []).filter(x => x.tipo === 'pausa');
+  const fuera  = (lista || []).filter(x => x.tipo === 'excluido');
+  const malas  = pausas.filter(x => x.aplicada === false);
+  const yaFuera = new Set(fuera.map(x => x.user_ref));
+
+  return `<h2 class="tit">Pausas y exclusiones</h2>
+    <p class="sub">Con quién no habla el asistente, y quién no cuenta en las
+       cifras. Son dos cosas distintas: una calla al bot, la otra solo saca a
+       alguien del recuento sin tocar su conversación.</p>
 
     <div class="panel">
       <div class="cabpanel">
-        <div>
-          <h3>Excluir un contacto</h3>
-          <p class="ph">El teléfono tal y como aparece en Conversaciones.</p>
-        </div>
+        <div><h3>Cliente</h3>
+          <p class="ph">Todo lo de esta pantalla es de un cliente a la vez.</p></div>
       </div>
-      <div class="segm" style="justify-content:flex-start">
-        <select class="sel" id="excli" aria-label="Cliente">
-          ${porCliente.map(c => `<option value="${esc(c.slug)}">${esc(c.nombre)}</option>`).join('')}
-        </select>
-        <input class="busca" id="exnum" type="tel" inputmode="tel"
-               placeholder="34600000000" autocomplete="off" style="flex:1 1 170px">
-        <input class="busca" id="exmot" type="text"
-               placeholder="Motivo (p. ej. pruebas internas)" style="flex:1 1 220px">
+      <div class="segm" style="justify-content:flex-start">${selectorCliente('exsl')}</div>
+      ${bloqueModo()}
+    </div>
+
+    ${malas.length ? `<div class="panel" style="border-color:#FDA29B;background:#FFFBFA">
+      <h3>${malas.length} pausa${malas.length === 1 ? '' : 's'} que el asistente
+          no está aplicando</h3>
+      <p class="ph" style="margin-bottom:0">El cliente la pidió y sigue anotada,
+         pero <code>mt_contactos.pausado_hasta</code> no la tiene puesta. El
+         asistente puede estar respondiendo a esa persona. Si no se arregla,
+         quita la pausa para no dejar al cliente creyendo algo que no es.</p>
+    </div>` : ''}
+
+    <div class="panel">
+      <div class="cabpanel">
+        <div><h3>${pausas.length ? `${pausas.length} en pausa` : 'Nadie en pausa'}</h3>
+          <p class="ph">El asistente no les responde hasta la hora indicada.</p></div>
+      </div>
+      ${lista === undefined ? '<div class="vacio">Cargando…</div>'
+        : pausas.length ? pausas.map(filaFreno).join('')
+        : '<div class="vacio" style="padding:26px">El asistente responde a todo el mundo.</div>'}
+    </div>
+
+    <div class="panel">
+      <div class="cabpanel">
+        <div><h3>${fuera.length ? `${fuera.length} fuera del recuento` : 'Nadie fuera del recuento'}</h3>
+          <p class="ph">Sus conversaciones siguen guardadas y se pueden leer;
+             simplemente no suman en personas, señales, tiempos ni euros.</p></div>
+      </div>
+      ${lista === undefined ? '<div class="vacio">Cargando…</div>'
+        : fuera.length ? fuera.map(filaFreno).join('')
+        : '<div class="vacio" style="padding:26px">Todo lo que hay cuenta.</div>'}
+    </div>
+
+    <div class="panel">
+      <h3>Sacar a alguien del recuento</h3>
+      <p class="ph">Busca por nombre, teléfono o email entre quienes han escrito.</p>
+      <div class="exbusca">
+        <input class="sel busca" id="exq" type="search" value="${esc(EXQ)}"
+               placeholder="Nombre, teléfono o email…" aria-label="Buscar persona">
+        <input class="sel busca" id="exmot" placeholder="Motivo (ej. pruebas internas)"
+               aria-label="Motivo">
+      </div>
+      ${listaPersonas(yaFuera)}
+      <div class="exmanual">
+        <span class="et" style="font-size:12px;color:var(--gris);font-weight:600"
+          >o un contacto suelto:</span>
+        <input class="sel busca" id="exnum" style="font-family:'JetBrains Mono',monospace"
+               placeholder="34600000000@s.whatsapp.net" aria-label="Contacto a excluir">
         <button class="cbtn" id="exadd">Excluir</button>
       </div>
-      <p class="nota" id="exmsg" style="margin-top:12px"></p>
+      <p class="nota" id="exmsg"></p>
     </div>
 
-    <div class="panel">
-      <div class="cabpanel">
-        <div>
-          <h3>${EXCL.length ? `${nf.format(EXCL.length)} excluido${
-            EXCL.length === 1 ? '' : 's'}` : 'Nadie excluido'}</h3>
-          <p class="ph">Con lo que dejan de aportar a las cifras.</p>
-        </div>
-      </div>
-      ${EXCL.length ? EXCL.map(filaExcl).join('')
-        : `<div class="vacio">Ningún contacto excluido.<br>
-           Todas las conversaciones cuentan en las estadísticas.</div>`}
-    </div>
-
-    <p class="nota">Una conversación nueva de un número ya excluido nace
-       excluida: no hay que acordarse de nada después de cada prueba.</p>`;
+    <p class="nota">Pausar y excluir cambian datos del cliente, así que hacen
+       falta permisos de escritura. El botón para pedirlos está arriba, junto al
+       selector de cliente, y queda anotado en el registro de accesos.</p>`;
 }
 
-function filaExcl(x){
+function filaFreno(x){
+  const pausa = x.tipo === 'pausa';
+  const lejano = x.hasta && new Date(x.hasta).getTime() - Date.now() > 365 * 864e5;
   return `<div class="inc">
-    <span class="sev info"></span>
+    <span class="sev ${pausa ? (x.aplicada === false ? 'critico' : 'aviso') : 'info'}"></span>
     <div class="incuerpo">
       <div class="inctit">${x.nombre ? esc(x.nombre) + ' · ' : ''}<span
-        class="mono">${esc(x.contact_ref)}</span></div>
+        class="mono">${esc(x.user_ref)}</span></div>
       <div class="incmeta">
-        <span class="pill gris">${esc(x.slug)}</span>
-        ${esc(x.motivo || 'sin motivo indicado')}
-        · desde ${fechaCorta(x.creado_en)}
+        <span class="pill ${pausa ? 'am' : 'gris'}">${pausa ? 'en pausa' : 'fuera del recuento'}</span>
+        ${esc(x.motivo || 'sin motivo anotado')}
+        ${x.cuando ? ' · desde ' + fechaHora(x.cuando) : ''}
       </div>
-      <div class="incdet">Fuera de la muestra:
-        ${nf.format(x.conversaciones)} ${Number(x.conversaciones) === 1
-          ? 'conversación' : 'conversaciones'} y
-        ${nf.format(x.mensajes)} mensajes.</div>
+      ${pausa ? `<div class="incdet">${
+        lejano ? 'Hasta que alguien la reactive.'
+               : 'El asistente vuelve el ' + fechaHora(x.hasta) + '.'}${
+        x.aplicada === false
+          ? ' <strong>No se está aplicando: el asistente puede estar respondiendo.</strong>'
+          : ''}</div>` : ''}
     </div>
     <div class="incacc">
-      <button class="cbtn sec" data-inc="${esc(x.contact_ref)}"
-              data-slug="${esc(x.slug)}">Volver a incluir</button>
-    </div>
-  </div>`;
-}
-
-
-/* ---------- contactos excluidos ----------
-   Nuestros números de prueba entran en los mismos KPIs que los
-   clientes reales. Con pocas conversaciones, tres pruebas nuestras
-   mueven el tiempo medio de respuesta y las señales. Se excluyen,
-   no se borran: el mensaje sigue ahí y se puede volver a incluir.
-   Y el panel dice cuántos hay fuera, porque esconder datos sin
-   decirlo sería peor que no esconderlos. */
-function bloqueExcluidos(){
-  const clientes = PANORAMA.map(c => c.slug);
-  if (!EXSLUG && clientes.length) EXSLUG = clientes[0];
-  const yaFuera = new Set(EXCL.filter(x => x.slug === EXSLUG).map(x => x.contact_ref));
-
-  return `<div class="panel">
-    <div class="cabpanel">
-      <div>
-        <h3>Fuera de las métricas</h3>
-        <p class="ph">Contactos que no cuentan en ningún indicador, ni aquí ni
-           en el panel del cliente. Sus conversaciones siguen guardadas.</p>
-      </div>
-    </div>
-
-    ${EXCL.length ? `<div class="exlista" style="margin-bottom:20px">
-      ${EXCL.map(x => `<div class="expers ya">
-        <div class="exini anon">·</div>
-        <div style="min-width:0">
-          <div class="exnom">${esc(x.nombre || x.contact_ref)}</div>
-          <div class="exmeta"><span class="pill gris">${esc(x.slug)}</span>
-            ${esc(x.motivo || 'sin motivo anotado')} ·
-            ${nf.format(x.conversaciones)} ${Number(x.conversaciones) === 1
-              ? 'conversación oculta' : 'conversaciones ocultas'}</div>
-        </div>
-        <button class="cbtn sec" data-incl="${esc(x.slug)}|${esc(x.contact_ref)}"
-          >Volver a incluir</button>
-      </div>`).join('')}
-    </div>` : `<div class="vacio" style="padding:26px">
-      Ningún contacto excluido. Todo lo que hay cuenta.</div>`}
-
-    <h3 style="font-size:14px;margin-bottom:3px">Excluir a alguien</h3>
-    <p class="ph">Busca por nombre, teléfono o email entre quienes han escrito.</p>
-    <div class="exbusca">
-      <select class="sel" id="exsl" aria-label="Cliente">
-        ${clientes.map(sl => `<option value="${esc(sl)}"${
-          sl === EXSLUG ? ' selected' : ''}>${esc(sl)}</option>`).join('')}
-      </select>
-      <input class="sel" id="exq" type="search" value="${esc(EXQ)}"
-             placeholder="Nombre, teléfono o email…" aria-label="Buscar persona">
-    </div>
-    ${listaPersonas(yaFuera)}
-
-    <div class="exmanual">
-      <span class="et" style="font-size:12px;color:var(--gris);font-weight:600"
-        >o un número suelto:</span>
-      <input class="sel" id="exnum" style="font-family:'JetBrains Mono',monospace"
-             placeholder="34600000000" aria-label="Número a excluir">
-      <input class="sel" id="exmot" placeholder="Motivo (ej. pruebas)" aria-label="Motivo">
-      <button class="cbtn" id="exadd">Excluir</button>
+      <button class="cbtn sec" data-quitar="${pausa ? 'pausa' : 'excluido'}|${esc(x.user_ref)}"
+        >${pausa ? 'Reactivar al asistente' : 'Volver a contar'}</button>
     </div>
   </div>`;
 }
 
 // La lista solo aparece al escribir: con muchos contactos, volcarlos
 // todos no ayuda a encontrar a nadie.
+function normaliza(t){
+  return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+function buscaContactos(q){
+  const lista = EXCONT[EXSLUG] || [];
+  const n = normaliza(q), num = q.replace(/[^0-9]/g, '');
+  return lista.filter(c =>
+    normaliza(c.nombre).includes(n) || normaliza(c.email).includes(n) ||
+    (num.length >= 3 && String(c.telefono || c.user_ref).includes(num))
+  ).slice(0, 12);
+}
+
 function listaPersonas(yaFuera){
   const lista = EXCONT[EXSLUG];
   if (lista === undefined)
@@ -1159,48 +1346,175 @@ function listaPersonas(yaFuera){
       nf.format(lista.length)} ${lista.length === 1 ? 'persona' : 'personas'} en este cliente.
       Escribe para buscar.</div>`;
 
-  const norm = t => String(t || '').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const q = norm(EXQ), num = EXQ.replace(/[^0-9]/g, '');
-  const r = lista.filter(c =>
-    norm(c.nombre).includes(q) || norm(c.email).includes(q) ||
-    (num.length >= 3 && String(c.telefono || c.contact_ref).includes(num)))
-    .slice(0, 12);
-
+  const r = buscaContactos(EXQ);
   if (!r.length) return `<div class="vacio" style="padding:20px">
     Nadie coincide con «${esc(EXQ)}».</div>`;
 
   return `<div class="exlista">${r.map(c => {
     const ini = (c.nombre || '').trim()[0];
-    const fuera = yaFuera.has(c.contact_ref);
+    const fuera = yaFuera.has(c.user_ref) || c.fuera_del_recuento;
     return `<div class="expers${fuera ? ' ya' : ''}">
       <div class="exini${ini ? '' : ' anon'}">${ini ? esc(ini.toUpperCase()) : '·'}</div>
       <div style="min-width:0">
         <div class="exnom">${c.nombre ? esc(c.nombre)
-          : `<span class="mono">${esc(c.telefono || c.contact_ref)}</span>`}</div>
+          : `<span class="mono">${esc(c.telefono || c.user_ref)}</span>`}</div>
         <div class="exmeta">${c.nombre
-          ? `<span class="mono">${esc(c.telefono || c.contact_ref)}</span>` : ''}${
+          ? `<span class="mono">${esc(c.telefono || c.user_ref)}</span>` : ''}${
           c.email ? (c.nombre ? ' · ' : '') + esc(c.email) : ''} ·
           ${nf.format(c.mensajes)} mensajes</div>
       </div>
       ${fuera
-        ? `<button class="cbtn sec" data-incl="${esc(EXSLUG)}|${esc(c.contact_ref)}"
-             >Volver a incluir</button>`
-        : `<button class="cbtn" data-excl="${esc(c.contact_ref)}"
-             data-nom="${esc(c.nombre || c.telefono || c.contact_ref)}">Excluir</button>`}
+        ? `<button class="cbtn sec" data-quitar="excluido|${esc(c.user_ref)}"
+             >Volver a contar</button>`
+        : `<button class="cbtn" data-excl="${esc(c.user_ref)}"
+             data-nom="${esc(c.nombre || c.telefono || c.user_ref)}">Excluir</button>`}
     </div>`;
   }).join('')}</div>`;
 }
 
-// Los contactos se piden una vez por cliente. mis_contactos acepta
-// el slug, así que el operador puede pedir los de cualquiera.
-async function cargarContactos(slug){
-  if (EXCONT[slug]) return;
+
+/* ---------- memoria del agente ----------
+   Para poder probar desde cero. Es la operación más destructiva del
+   sistema, así que la pantalla trabaja igual que la función:
+   obliga a elegir a una persona concreta, dice cuánta memoria tiene
+   antes de tocar nada, y pide confirmar.
+
+   Lo que se borra es la memoria del agente (mt_chat_histories), no el
+   historial que ve el cliente (mt_mensajes). La conversación sigue
+   estando en su panel. Y se guarda una copia por si acaso. */
+function vistaMemoria(){
+  const r = buscaContactos(MEMQ);
+  const elegido = MEMREF
+    ? (EXCONT[EXSLUG] || []).find(c => c.user_ref === MEMREF) || { user_ref: MEMREF }
+    : null;
+
+  return `<h2 class="tit">Memoria del agente</h2>
+    <p class="sub">Borra lo que el asistente recuerda de una persona, para
+       poder probar desde cero. No borra su conversación: eso sigue en el panel
+       del cliente, y se guarda una copia de la memoria por si hace falta
+       devolverla.</p>
+
+    <div class="panel">
+      <div class="cabpanel">
+        <div><h3>A quién</h3>
+          <p class="ph">Primero el cliente, luego la persona.</p></div>
+      </div>
+      <div class="exbusca">
+        ${selectorCliente('memsl')}
+        <input class="sel busca" id="memq" type="search" value="${esc(MEMQ)}"
+               placeholder="Nombre, teléfono o email…" aria-label="Buscar persona">
+      </div>
+      ${EXCONT[EXSLUG] === undefined
+        ? '<div class="vacio" style="padding:20px">Cargando contactos…</div>'
+        : !MEMQ
+        ? `<div class="vacio" style="padding:20px">Escribe para buscar entre las ${
+            nf.format((EXCONT[EXSLUG] || []).length)} personas de este cliente.</div>`
+        : !r.length
+        ? `<div class="vacio" style="padding:20px">Nadie coincide con «${esc(MEMQ)}».</div>`
+        : `<div class="exlista">${r.map(c => {
+            const ini = (c.nombre || '').trim()[0];
+            return `<div class="expers${c.user_ref === MEMREF ? ' ya' : ''}">
+              <div class="exini${ini ? '' : ' anon'}">${ini ? esc(ini.toUpperCase()) : '·'}</div>
+              <div style="min-width:0">
+                <div class="exnom">${c.nombre ? esc(c.nombre)
+                  : `<span class="mono">${esc(c.telefono || c.user_ref)}</span>`}</div>
+                <div class="exmeta"><span class="mono">${esc(c.user_ref)}</span></div>
+              </div>
+              <button class="cbtn${c.user_ref === MEMREF ? ' sec' : ''}"
+                      data-mem="${esc(c.user_ref)}">${
+                c.user_ref === MEMREF ? 'Elegida' : 'Elegir'}</button>
+            </div>`;
+          }).join('')}</div>`}
+    </div>
+
+    ${elegido ? `<div class="panel">
+      <div class="cabpanel">
+        <div><h3>${esc(elegido.nombre || elegido.user_ref)}</h3>
+          <p class="ph mono">${esc(elegido.user_ref)}</p></div>
+      </div>
+      ${MEM === null
+        ? '<div class="vacio" style="padding:20px">Mirando cuánta memoria hay…</div>'
+        : !MEM.length
+        ? `<div class="vacio" style="padding:26px">El asistente no recuerda nada de
+             esta persona. No hay nada que borrar.</div>`
+        : `<div class="met" style="border-top:0;padding-top:0;margin-bottom:18px">
+            ${mt('Entradas de memoria', nf.format(MEM.reduce((a,x) => a + Number(x.filas), 0)),
+                 MEM.length === 1 ? 'en un canal' : `en ${MEM.length} canales`)}
+            ${mt('La primera', MEM[0].primera ? fechaCorta(
+                 MEM.map(x => x.primera).sort()[0]) : '—', 'que recuerda')}
+            ${mt('La última', MEM[0].ultima ? fechaCorta(
+                 MEM.map(x => x.ultima).sort().reverse()[0]) : '—', 'que recuerda')}
+          </div>
+          <p class="ph">Para borrarla hay que escribir el contacto entero. Es a
+             propósito: así no se puede borrar la memoria de nadie de un clic
+             de más.</p>
+          <div class="segm" style="justify-content:flex-start">
+            <input class="busca" id="memconf" style="flex:1 1 300px;font-family:'JetBrains Mono',monospace"
+                   placeholder="${esc(elegido.user_ref)}" autocomplete="off"
+                   aria-label="Confirmar el contacto">
+            <button class="cbtn" id="memborrar">Borrar la memoria</button>
+          </div>
+          <p class="nota" id="memmsg"></p>
+          <p class="nota">Después, escribe al bot desde ese número. Si te saluda
+             como si fuera la primera vez, está limpio. Si se acuerda de algo, es
+             que el sistema guarda además un resumen o una caché en Redis que
+             esto no alcanza, y hay que pedírselo al técnico.</p>`}
+    </div>` : ''}
+
+    <div class="panel">
+      <div class="cabpanel">
+        <div><h3>${MEMCOPIAS.length
+          ? `${nf.format(MEMCOPIAS.length)} ${MEMCOPIAS.length === 1
+              ? 'memoria borrada' : 'memorias borradas'}`
+          : 'Nada borrado todavía'}</h3>
+          <p class="ph">Cada borrado deja una copia que se puede devolver.</p></div>
+      </div>
+      ${MEMCOPIAS.length ? MEMCOPIAS.map(c => `<div class="inc">
+        <span class="sev ${c.restaurada_en ? 'info' : 'aviso'}"></span>
+        <div class="incuerpo">
+          <div class="inctit">${c.user_ref ? `<span class="mono">${esc(c.user_ref)}</span>` : ''}</div>
+          <div class="incmeta">
+            <span class="pill gris">${esc(c.slug)}</span>
+            ${nf.format(c.filas)} ${Number(c.filas) === 1 ? 'entrada' : 'entradas'}
+            · ${esc(c.quien || 'SimpliaSpain')} · ${fechaHora(c.cuando)}
+            ${c.restaurada_en ? ` · <span class="pill gris">devuelta el ${
+              fechaCorta(c.restaurada_en)}</span>` : ''}
+          </div>
+        </div>
+        <div class="incacc">
+          ${c.restaurada_en ? ''
+            : `<button class="cbtn sec" data-rest="${esc(c.id)}">Devolverla</button>`}
+        </div>
+      </div>`).join('') : `<div class="vacio" style="padding:26px">
+        No se ha borrado la memoria de nadie.</div>`}
+    </div>`;
+}
+
+async function mirarMemoria(){
+  MEM = null; pintar();
   try {
-    const d = await rpc('mis_contactos', { p_cliente: slug });
+    MEM = (await rpc('mt_memoria_de', { p_slug: EXSLUG, p_user_ref: MEMREF })) || [];
+  } catch { MEM = []; }
+  pintar();
+}
+
+/* ---------- contactos de un cliente ----------
+   Se piden una vez por cliente. mt_mis_contactos acepta el slug, así
+   que un operador puede pedir los de cualquiera. */
+async function cargarContactos(slug){
+  if (EXCONT[slug] !== undefined) return;
+  try {
+    const d = await rpc('mt_mis_contactos', { p_slug: slug });
     EXCONT[slug] = d || [];
   } catch { EXCONT[slug] = []; }
-  if (VISTA === 'clientes') pintar();
+  if (VISTA === 'frenos' || VISTA === 'memoria') pintar();
+}
+
+async function cargarFrenos(slug){
+  try {
+    FRENOS[slug] = (await rpc('mt_operador_frenos', { p_slug: slug })) || [];
+  } catch { FRENOS[slug] = []; }
+  if (VISTA === 'frenos') pintar();
 }
 
 /* ---------- utilidades ---------- *//* ---------- utilidades ---------- */
@@ -1221,7 +1535,7 @@ const fechaHora = d => new Date(d).toLocaleString('es-ES',
   if (enProduccion || enLocal) return;
   const d = document.createElement('div');
   d.className = 'staging';
-  d.textContent = 'Staging · no es lo que ve el cliente';
+  d.textContent = 'Staging · no es lo que ve el cliente · versión ' + VERSION;
   document.body.insertBefore(d, document.body.firstChild);
 })();
 </script>
