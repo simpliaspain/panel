@@ -7,6 +7,8 @@
 
    Uso:  node pruebas/pintar.mjs [ruta/al/index.html]            */
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { execFileSync } from 'child_process';
 
 const archivo = process.argv[2] || 'index.html';
@@ -15,7 +17,8 @@ let js = fs.readFileSync(archivo, 'utf8')
   .replace(/^\s*import[^\n]*\n/gm, '')
   .replace(/const supabase\s*=\s*createClient[^;]*;/, '');
 
-const tmp = '/tmp/_pintar.mjs';
+// La carpeta temporal del sistema y no /tmp, que en Windows no existe.
+const tmp = path.join(os.tmpdir(), '_pintar.mjs');
 fs.writeFileSync(tmp,
   fs.readFileSync(new URL('./navegador-simulado.js', import.meta.url), 'utf8') +
   js + '\n' +

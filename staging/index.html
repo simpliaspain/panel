@@ -1235,20 +1235,40 @@ async function entrar(){
 
 /* Auto-refresco cada 30 s. Se detiene si la pestaña no está
    visible, para no consumir peticiones en balde, y no interrumpe
-   si hay un modal abierto o el usuario está escribiendo. */
+   si hay un modal abierto o el usuario está escribiendo.
+
+   EL REFRESCO NO CIERRA LO QUE SE ESTÁ LEYENDO. En Conversaciones y
+   en el Embudo esto llamaba a pintarConvs / pintarEmbudo, que
+   reescriben la pantalla entera: cada 30 segundos la conversación
+   abierta volvía a «Elige a alguien de la lista» —con la fila aún
+   resaltada— y la ficha del lead desaparecía con lo que se estuviera
+   escribiendo. Ahora esas dos pantallas se refrescan en su sitio: la
+   lista se pone al día y lo abierto se queda abierto. Lo comprueba
+   pruebas/refresco.mjs. */
 let TIMER = null, VISTA = 'latido', MAPA = null, ULTIMOS = null, PUNTOS = null;
+
+// Un textarea también es escribir: las notas del lead lo son, y antes
+// solo se miraban INPUT y SELECT.
+function escribiendo(){
+  const ae = document.activeElement;
+  return !!ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT'
+               || ae.tagName === 'TEXTAREA' || ae.isContentEditable === true);
+}
+
+// El tic del temporizador, con nombre para poder probarlo.
+function tic30(){
+  if (document.hidden) return;
+  if ($('#modal').style.display === 'block') return;
+  if (escribiendo()) return;
+  if (VISTA === 'latido') return pintarLatido(true);
+  if (VISTA === 'convs' && !$('#buscar')?.value) return refrescarConvs();
+  if (VISTA === 'embudo' && !$('#lbusca')?.value) return refrescarEmbudoVista();
+  if (VISTA === 'agenda') return pintarAgenda(true);
+}
+
 function autoRefresco(){
   clearInterval(TIMER);
-  TIMER = setInterval(() => {
-    if (document.hidden) return;
-    if ($('#modal').style.display === 'block') return;
-    const ae = document.activeElement;
-    if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT')) return;
-    if (VISTA === 'latido') pintarLatido(true);
-    else if (VISTA === 'convs' && !$('#buscar')?.value) pintarConvs(true);
-    else if (VISTA === 'embudo' && !$('#lbusca')?.value) pintarEmbudo(true);
-    else if (VISTA === 'agenda') pintarAgenda(true);
-  }, 30000);
+  TIMER = setInterval(tic30, 30000);
 }
 
 $('#salir').addEventListener('click', async () => {
@@ -1374,8 +1394,8 @@ async function refrescar(){
   const b = $('#refrescar');
   b?.classList.add('girando');
   if (VISTA === 'latido')       await pintarLatido(true);
-  else if (VISTA === 'convs')   await pintarConvs(true);
-  else if (VISTA === 'embudo')  await refrescarEmbudo();
+  else if (VISTA === 'convs')   await refrescarConvs();
+  else if (VISTA === 'embudo')  await refrescarEmbudoVista();
   else if (VISTA === 'agenda')  await pintarAgenda(true);
   else                          await pintarAjustes(true);
   b?.classList.remove('girando');
@@ -1519,6 +1539,18 @@ function pintaEn(html, silencioso){
 async function pintarLatido(silencioso){
   if (!silencioso) $('#vista').innerHTML = esqueleto('latido');
   const d = await datos();
+  // Si mientras llegaban los datos se ha cambiado de pestaña, no se
+  // pinta: el Latido saldría encima de lo que se esté viendo.
+  if (VISTA !== 'latido') return;
+
+  // EL MAPA SE QUEDA COMO ESTABA. Reescribir la pantalla creaba un
+  // contenedor nuevo, sin mapa, y se montaba otro desde cero: cada 30
+  // segundos volvía al encuadre inicial y se perdía el zoom que el
+  // usuario hubiera hecho. Ahora el contenedor vivo se aparta antes de
+  // reescribir y se vuelve a poner en su sitio después, con Leaflet
+  // dentro intacto. Lo comprueba pruebas/refresco.mjs.
+  const mapaVivo = LMAP && document.getElementById('lmapa') === LMAP.getContainer()
+    ? LMAP.getContainer() : null;
 
   const contactos = new Set(d.convs.map(c => c.user_ref)).size;
   const msgs      = d.convs.reduce((s,c) => s + (c.mensajes||0), 0);
@@ -1575,6 +1607,22 @@ async function pintarLatido(silencioso){
       ${bloqueMapa(d)}
       ${bloqueActividad(d)}
     </div>`, silencioso);
+
+  const hueco = document.getElementById('lmapa');
+  if (mapaVivo && hueco){
+    hueco.replaceWith(mapaVivo);
+    LMAP.invalidateSize({ animate: false });
+    // Ya está montado: que el observador de carga diferida no lo
+    // vuelva a montar. Solo se ponen al día los puntos, sin moverlo.
+    const p = document.getElementById('panelmapa');
+    if (p) p.dataset.observado = '1';
+    pintarPuntos(false);
+  } else if (mapaVivo){
+    // Ya no hay zonas que enseñar y el bloque ha desaparecido: el mapa
+    // se tira, que si no Leaflet sigue vivo sobre un elemento suelto.
+    OBSMAPA?.disconnect(); OBSMAPA = null;
+    LMAP.remove(); LMAP = null; LCAPA = null;
+  }
 
   activarGrafico();
   enlazarPlegables();
@@ -2115,6 +2163,10 @@ async function activarMapa(){
   const cont = document.getElementById('lmapa');
   if (!cont || !PUNTOS) return;
 
+  // El mapa ya vive en este contenedor (el refresco lo ha devuelto a
+  // su sitio): no se monta otro, que volvería al encuadre inicial.
+  if (LMAP && LMAP.getContainer() === cont){ pintarPuntos(false); return; }
+
   try {
     await cargarLeaflet();
   } catch {
@@ -2125,9 +2177,9 @@ async function activarMapa(){
   // El contenedor puede haber desaparecido mientras se cargaba
   if (!document.getElementById('lmapa')) return;
 
-  // El contenedor se recrea en cada pintado, así que el mapa
-  // anterior queda huérfano: se destruye antes de crear el nuevo.
-  if (LMAP){ LMAP.remove(); LMAP = null; }
+  // Si había un mapa en otro contenedor (se salió del Latido y se ha
+  // vuelto), ese ya no se ve: se destruye antes de crear el nuevo.
+  if (LMAP){ LMAP.remove(); LMAP = null; LCAPA = null; }
 
   LMAP = L.map(cont, {
     zoomControl: true, scrollWheelZoom: false, attributionControl: true
@@ -2154,11 +2206,24 @@ async function activarMapa(){
   pintarPuntos();
 }
 
-function pintarPuntos(){
+// Lo que se dibujó la última vez. Si el refresco trae las mismas
+// zonas con las mismas cifras, no se redibuja nada: los puntos
+// volverían a aparecer con su animación cada 30 segundos.
+let LFIRMA = '';
+
+// `reencuadrar` = al montar el mapa o al cambiar de ámbito. El
+// refresco pasa false: los puntos se ponen al día y el encuadre se
+// queda donde el usuario lo dejó.
+function pintarPuntos(reencuadrar = true){
   if (!LMAP) return;
-  if (LCAPA){ LCAPA.remove(); LCAPA = null; }
 
   const pts = (PUNTOS[MAPA] || []).filter(p => p.lat != null && p.lng != null);
+  const firma = MAPA + '|' + JSON.stringify(
+    pts.map(p => [p.nombre, p.lat, p.lng, p.conversaciones, p.zona || '']));
+  if (!reencuadrar && LCAPA && firma === LFIRMA) return;
+  LFIRMA = firma;
+
+  if (LCAPA){ LCAPA.remove(); LCAPA = null; }
   if (!pts.length) return;
 
   const max = Math.max(...pts.map(p => p.conversaciones), 1);
@@ -2184,8 +2249,10 @@ function pintarPuntos(){
     c.on('mouseover', () => c.setStyle({ weight: 3, fillOpacity: 0.62 }));
     c.on('mouseout',  () => c.setStyle({ weight: 2, fillOpacity: 0.16 + 0.38 * prop }));
 
-    // aparición escalonada, como el resto de transiciones del panel
-    const el = c.getElement();
+    // aparición escalonada, como el resto de transiciones del panel.
+    // Solo al encuadrar: en un refresco, que todos los puntos
+    // parpadearan para añadir uno sería ruido.
+    const el = reencuadrar ? c.getElement() : null;
     if (el){
       el.style.opacity = '0';
       el.style.transform = 'scale(.4)';
@@ -2198,6 +2265,7 @@ function pintarPuntos(){
     }
   });
 
+  if (!reencuadrar) return;
   const grupo = L.featureGroup(LCAPA.getLayers());
   LMAP.fitBounds(grupo.getBounds(), { padding: [46, 46], maxZoom: 14 });
 }
@@ -2424,6 +2492,9 @@ async function pintarConvs(silencioso){
     esqueleto('lista');
 
   const { data, error } = await supabase.rpc('mt_mis_contactos');
+  // Si mientras llegaba la respuesta se ha cambiado de pestaña, no se
+  // pinta: escribiría Conversaciones encima de lo que se esté viendo.
+  if (VISTA !== 'convs') return;
   ULTIMA = Date.now(); pintarCuando();
 
   if (error){
@@ -2446,6 +2517,37 @@ async function pintarConvs(silencioso){
     </div>`, silencioso);
 
   render();
+
+  // Al volver a la pestaña, la fila de quien se estaba leyendo sale
+  // resaltada (render la marca con ABIERTO). Si la columna se quedara
+  // en «Elige a alguien», la pantalla diría dos cosas a la vez, así
+  // que se vuelve a abrir. Solo en pantalla ancha: en el móvil la
+  // conversación va en una ventana encima, y abrirla sola sería
+  // tapar la lista sin que nadie lo haya pedido.
+  if (ABIERTO && window.innerWidth > 1000){
+    const visible = [...document.querySelectorAll('.pers[data-c]')]
+      .some(el => el.dataset.c === ABIERTO);
+    if (visible) abrir(ABIERTO);
+  }
+}
+
+// El refresco de esta pantalla, sin reescribirla. La lista se pone al
+// día (alguien nuevo, una marca de «en pausa»…) y la conversación
+// abierta se queda abierta, con los mensajes nuevos al final.
+async function refrescarConvs(){
+  if (!$('#pconvs')) return pintarConvs(true);
+
+  const { data, error } = await supabase.rpc('mt_mis_contactos');
+  // Un fallo de red en un refresco no es motivo para vaciar la
+  // pantalla: se queda lo que había y se reintenta en 30 segundos.
+  if (error || VISTA !== 'convs' || !$('#pconvs')) return;
+  ULTIMA = Date.now(); pintarCuando();
+  CONTACTOS = data || [];
+
+  // Si mientras tanto alguien se ha puesto a escribir en el buscador,
+  // repintar la lista le quitaría el foco a mitad de palabra.
+  if (!escribiendo()) render($('#buscar')?.value.trim() || '');
+  await refrescarDetalle();
 }
 
 // Repinta solo el interior del panel: los filtros son instantáneos
@@ -2702,6 +2804,8 @@ async function pintarAgenda(silencioso){
   if (!silencioso) $('#vista').innerHTML = esqueleto('lista');
 
   const { data, error } = await supabase.rpc('mt_mis_citas');
+  // Si mientras tanto se ha cambiado de pestaña, no se pinta encima.
+  if (VISTA !== 'agenda') return;
   ULTIMA = Date.now(); pintarCuando();
 
   if (error){
@@ -2806,10 +2910,14 @@ function descargarICS(c){
     'END:VEVENT','END:VCALENDAR'
   ].join('\r\n');
 
-  const url = URL.createObjectURL(new Blob([ics], {type:'text/calendar;charset=utf-8'}));
+  // globalThis.URL y no URL a secas: arriba del todo hay una constante
+  // URL con la dirección de Supabase que tapa a la del navegador, y
+  // URL.createObjectURL sobre un texto no existe. El botón
+  // «Calendario» de la Agenda lanzaba un error y no descargaba nada.
+  const url = globalThis.URL.createObjectURL(new Blob([ics], {type:'text/calendar;charset=utf-8'}));
   const a = document.createElement('a');
   a.href = url; a.download = 'cita.ics'; a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => globalThis.URL.revokeObjectURL(url), 1000);
 }
 
 /* ---------- vista: configuración ---------- */
@@ -3276,10 +3384,35 @@ function enlazarGestion(contact, recargar){
            'Vuelve a contar en las cifras.'));
 }
 
-/* ---------- detalle de un contacto ---------- */
+/* ---------- detalle de un contacto ----------
+   Tres piezas, para que el refresco pueda poner al día una
+   conversación abierta SIN volver a abrirla:
+
+     abrir()            la abre: esqueleto, mensajes, pintado.
+     pintarDetalle()    escribe la conversación en su caja.
+     refrescarDetalle() la pone al día en su sitio, sin esqueleto,
+                        sin moverte de donde estabas leyendo y sin
+                        tocar nada si no ha cambiado.
+
+   Cada apertura lleva un turno. Si se pulsa a Ana y enseguida a
+   Luis, los mensajes de Ana pueden llegar después que los de Luis:
+   sin el turno se pintaban encima y la columna enseñaba a Ana con
+   la fila de Luis resaltada. Manda la última que se pidió. */
+let TURNO_DET = 0;
+// Lo último que se pintó en cada caja. Si el refresco trae lo mismo,
+// no se reescribe: reescribir mueve el foco y borra una selección.
+const PINTADO = new WeakMap();
+
+async function leerMensajes(contact){
+  const { data, error } = await supabase.rpc('mt_mensajes_contacto', { p_user_ref: contact });
+  return error ? null : (data || []);
+}
+
 // Pinta una conversación. En pantalla ancha va en la columna de la
 // derecha; en móvil, donde esa columna no cabe, se abre encima.
 async function abrir(contact){
+  const turno = ++TURNO_DET;
+  ABIERTO = contact;
   const ancho = window.innerWidth > 1000;   // el mismo umbral que el CSS
   const caja = ancho && VISTA === 'convs' && $('#pdetalle') ? '#pdetalle' : '#mbox';
 
@@ -3290,6 +3423,9 @@ async function abrir(contact){
     $('#pdetalle').className = 'panel';
     $('#pdetalle').innerHTML = esqueleto('lista');
   }
+  // Mientras carga, la caja no es de nadie: un refresco que llegue
+  // ahora no debe pintar encima del esqueleto.
+  delete $(caja).dataset.c;
 
   // Se puede llegar aquí desde el Latido, donde la lista de
   // contactos todavía no se ha pedido: se carga al vuelo.
@@ -3297,20 +3433,22 @@ async function abrir(contact){
     const { data: cs } = await supabase.rpc('mt_mis_contactos');
     CONTACTOS = cs || [];
   }
+
+  const msgs = await leerMensajes(contact);
+  if (turno !== TURNO_DET) return;          // ya se ha pedido a otra persona
+  pintarDetalle(caja, contact, msgs);
+}
+
+function htmlDetalle(contact, msgs, conCerrar){
   const c = CONTACTOS.find(x => x.user_ref === contact) || {};
-  ABIERTO = contact;
-
-  const { data } = await supabase.rpc('mt_mensajes_contacto', { p_user_ref: contact });
-  const msgs = data || [];
-  let dia = null;
-
   const tel = c.telefono || contact;
   const G = gestion(c);
-  $(caja).innerHTML = `
+  let dia = null;
+  return `
     <div class="dcab">
       <div style="display:flex;justify-content:space-between;gap:16px">
         <h2>${nom(c.nombre, tel)}</h2>
-        ${caja === '#mbox'
+        ${conCerrar
           ? '<button class="cerrar" id="cx" aria-label="Cerrar">×</button>' : ''}
       </div>
       ${c.nombre ? `<p class="dmeta"><a href="tel:${esc(tel)}" class="mono">${esc(tel)}</a></p>` : ''}
@@ -3322,7 +3460,12 @@ async function abrir(contact){
       </div>
       ${G.bloque}
     </div>
-    ${msgs.length ? msgs.map(m => {
+    ${msgs === null
+      // Antes un fallo de red decía «Sin mensajes guardados», que es
+      // falso: los mensajes están, lo que ha fallado es traerlos.
+      ? `<div class="vacio">No se han podido cargar los mensajes.<br>
+           Vuelve a intentarlo con ⟳, arriba.</div>`
+      : msgs.length ? msgs.map(m => {
       // Separador por DÍA, no por sesión: el usuario piensa en
       // "lo del martes", no en cuántas sesiones hubo.
       let sep = '';
@@ -3334,10 +3477,18 @@ async function abrir(contact){
             m.latencia_ms ? `, ${(m.latencia_ms/1000).toFixed(1).replace('.', ',')} s` : ''}</div>
         </div></div>`;
     }).join('') : '<div class="vacio">Sin mensajes guardados.</div>'}`;
+}
+
+function pintarDetalle(caja, contact, msgs, html){
+  const el = $(caja); if (!el) return;
+  html = html ?? htmlDetalle(contact, msgs, caja === '#mbox');
+  el.innerHTML = html;
+  el.dataset.c = contact;          // de quién es lo que hay dentro
+  PINTADO.set(el, html);
 
   // Marcar en la lista quién se está leyendo
-  document.querySelectorAll('.pers[data-c]').forEach(el =>
-    el.classList.toggle('on', el.dataset.c === contact));
+  document.querySelectorAll('.pers[data-c]').forEach(f =>
+    f.classList.toggle('on', f.dataset.c === contact));
 
   $('#verembudo')?.addEventListener('click', () => {
     if (caja === '#mbox') cerrar();
@@ -3350,11 +3501,13 @@ async function abrir(contact){
 
   enlazarGestion(contact, async aviso => {
     const { data } = await supabase.rpc('mt_mis_contactos');
-    CONTACTOS = data || [];
+    if (data) CONTACTOS = data;
     // La lista de la izquierda también cambia: la persona gana o
     // pierde su marca de "en pausa" o "fuera del recuento".
     if ($('#pconvs')) render(BUSCA);
-    await abrir(contact);
+    // En su sitio y no con abrir(): abrir pasa por el esqueleto y
+    // la conversación parpadeaba justo al confirmar la acción.
+    await refrescarDetalle(true);
     if (aviso){
       const m = $('#gmsg');
       if (m){ m.textContent = aviso; m.className = 'gmsg ok'; }
@@ -3364,7 +3517,66 @@ async function abrir(contact){
 
   $('#cx')?.addEventListener('click', cerrar);
 }
-function cerrar(){ $('#modal').style.display = 'none'; }
+
+// Algo a medio hacer dentro de la conversación: elegir cuánto pausar,
+// escribir el motivo de una exclusión, o tener texto seleccionado
+// para copiarlo. Repintar ahora lo borraría. Se espera al siguiente.
+function ocupadoDetalle(el){
+  if (($('#gcaja')?.innerHTML || '').trim()) return true;
+  const sel = window.getSelection?.();
+  if (sel && !sel.isCollapsed && sel.anchorNode && el.contains?.(sel.anchorNode)) return true;
+  return false;
+}
+
+// `forzar` = después de pausar, excluir…: hay que enseñar el cambio
+// aunque el desplegable de opciones estuviera abierto, porque es
+// justo de ahí de donde viene.
+async function refrescarDetalle(forzar){
+  const contact = ABIERTO;
+  if (!contact) return;
+  // La caja que de verdad enseña a esa persona. La ventana del móvil
+  // solo cuenta si está abierta.
+  const caja = ['#pdetalle', '#mbox'].find(s => {
+    const el = $(s);
+    if (!el || el.dataset.c !== contact) return false;
+    return s === '#pdetalle' || $('#modal').style.display === 'block';
+  });
+  if (!caja) return;
+  const el = $(caja);
+  if (!forzar && ocupadoDetalle(el)) return;
+
+  const turno = TURNO_DET;
+  const msgs = await leerMensajes(contact);
+  // Sin red, se queda lo que había. Y si mientras tanto se ha abierto
+  // a otra persona o la caja ya no existe, esta respuesta llega tarde.
+  if (msgs === null || turno !== TURNO_DET || ABIERTO !== contact || $(caja) !== el) return;
+  if (!forzar && ocupadoDetalle(el)) return;
+
+  const html = htmlDetalle(contact, msgs, caja === '#mbox');
+  if (!forzar && PINTADO.get(el) === html) return;   // nada nuevo
+
+  // Se lee donde se estaba. Si se estaba al final, se sigue al final
+  // para ver lo que acaba de llegar, como en cualquier chat.
+  const y = el.scrollTop;
+  const alFinal = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+  const gm = $('#gmsg');
+  const aviso = gm && gm.classList.contains('ok') ? gm.textContent : '';
+
+  pintarDetalle(caja, contact, msgs, html);
+
+  el.scrollTop = alFinal ? el.scrollHeight : y;
+  if (aviso && !forzar){
+    const m = $('#gmsg');
+    if (m){ m.textContent = aviso; m.className = 'gmsg ok'; }
+  }
+}
+
+function cerrar(){
+  $('#modal').style.display = 'none';
+  // La ventana ya no enseña a nadie: un refresco no debe escribir en
+  // ella, y una ficha del Embudo puede ocuparla después.
+  delete $('#mbox').dataset.c;
+}
 $('#modal').addEventListener('click', e => e.target.id === 'modal' && cerrar());
 document.addEventListener('keydown', e => e.key === 'Escape' && cerrar());
 
@@ -3462,6 +3674,8 @@ async function pintarEmbudo(silencioso){
     supabase.rpc('mt_mis_leads'),
     supabase.rpc('mt_embudo_resumen')
   ]);
+  // Si mientras tanto se ha cambiado de pestaña, no se pinta encima.
+  if (VISTA !== 'embudo') return;
   ULTIMA = Date.now(); pintarCuando();
 
   if (a.error){
@@ -3532,8 +3746,31 @@ async function pintarEmbudo(silencioso){
   }
 
   pintarLista($('#lbusca')?.value.trim());
+
+  // Igual que en Conversaciones: si al volver la fila del lead sale
+  // resaltada, su ficha se abre, para que la pantalla no diga dos
+  // cosas a la vez. Solo en pantalla ancha.
+  if (LABIERTO != null && window.innerWidth > 1000){
+    const visible = [...document.querySelectorAll('.lfila[data-lead]')]
+      .some(el => Number(el.dataset.lead) === LABIERTO);
+    if (visible) abrirLead(LABIERTO);
+  }
 }
 
+// El refresco de la pantalla del Embudo, sin reescribirla. Antes el
+// automático llamaba a pintarEmbudo(true), que reescribe la vista
+// entera: la ficha abierta volvía a «Elige a alguien» y se perdía lo
+// que se estuviera escribiendo en ella. La ficha no se toca nunca
+// desde aquí; la lista y las cuentas sí se ponen al día.
+async function refrescarEmbudoVista(){
+  if (!$('#lista-leads')) return pintarEmbudo(true);
+  // Sincronizar primero, como al entrar: es lo que hace aparecer a
+  // quien acaba de escribir por primera vez.
+  await supabase.rpc('mt_sincronizar').catch(() => {});
+  if (VISTA !== 'embudo' || !$('#lista-leads')) return;
+  await refrescarEmbudo();
+  ULTIMA = Date.now(); pintarCuando();
+}
 
 // Refresca los datos SIN repintar la vista entera. Repintar `#vista`
 // con la ficha abierta vacía el fondo un instante, la página se
@@ -3548,6 +3785,14 @@ async function refrescarEmbudo(){
 
   const c = document.querySelector('.fcuentas');
   if (c) c.outerHTML = cuentasEtapa();
+  // Las cuentas de «Abiertos» y «Cerrados» también: si no, decían el
+  // número de cuando se entró en la pestaña.
+  const vivos = LEADS.filter(l => !['ganado','perdido'].includes(l.etapa)).length;
+  document.querySelectorAll('.orden button[data-lf]').forEach(b => {
+    b.textContent = b.dataset.lf === 'activos'
+      ? `Abiertos ${nf.format(vivos)}`
+      : `Cerrados ${nf.format(LEADS.length - vivos)}`;
+  });
   pintarLista($('#lbusca')?.value.trim());
 }
 
@@ -3620,7 +3865,9 @@ function filaLead(l, grupo){
   // importa. En los demás, el título del grupo ya lo dice.
   const motivo = grupo === 'urg' && u?.txt ? u.txt : '';
 
-  return `<div class="lfila" data-lead="${l.id}" tabindex="0" role="button"
+  // La fila de la ficha abierta se marca al pintar, no solo al pulsar:
+  // si no, cada refresco de la lista le quitaba el resalte.
+  return `<div class="lfila${l.id === LABIERTO ? ' on' : ''}" data-lead="${l.id}" tabindex="0" role="button"
     aria-label="${esc(l.nombre || tel)}${motivo ? '. ' + esc(motivo) : ''}">
     <div class="lfila-txt">
       <div class="lfila-nom${l.nombre ? '' : ' mono'}">${
@@ -3663,6 +3910,9 @@ function abrirLead(id){
   const caja = ancho && VISTA === 'embudo' && $('#pficha') ? '#pficha' : '#mbox';
   if (caja === '#mbox') $('#modal').style.display = 'block';
   else $('#pficha').className = 'panel';
+  // La ventana pasa a enseñar una ficha, no una conversación: que el
+  // refresco de Conversaciones no la confunda con una.
+  delete $(caja).dataset.c;
 
   $(caja).innerHTML = `
    <div class="lficha">
