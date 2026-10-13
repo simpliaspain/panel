@@ -47,11 +47,31 @@ const espera = ms => new Promise(r => setTimeout(r, ms));
 // Cada pantalla se prueba aparte: si una se rompe del todo (la ficha
 // desaparece y lo siguiente ya no existe), cuenta como fallo y se
 // sigue con las demás en vez de cortar la batería a medias.
+//
+// Y con tiempo máximo: una pantalla que se queda esperando para siempre
+// (lo que hacía el Latido con una lectura colgada) es un fallo, no un
+// motivo para que la batería no termine nunca.
 async function seccion(nombre, fn){
   console.log(`\n=== ${nombre} ===`);
-  try { await fn(); }
+  let reloj;
+  try {
+    await Promise.race([fn(), new Promise((_, mal) => { reloj = setTimeout(() =>
+      mal(new Error('no ha terminado de cargar en 45 s: se queda esperando')), 45000); })]);
+  }
   catch (e){ MAL++; console.log(`  FALLO la pantalla se ha roto: ${e.message}`); }
+  finally { clearTimeout(reloj); }
 }
+// Un error que el panel deja escapar en segundo plano (un refresco que
+// revienta) es un fallo del panel. Sin esto, Node cerraba el proceso
+// entero a mitad de batería y no se veía el resumen.
+let ESCAPADOS = 0;
+const escapado = e => {
+  ESCAPADOS++; MAL++;
+  console.log(`  FALLO error sin capturar en segundo plano: ${String(e?.message || e).split('\n')[0]}`);
+};
+process.on('unhandledRejection', escapado);
+process.on('uncaughtException', escapado);
+
 const ahora = () => new Date().toISOString();
 const TIC = 300;                           // un refresco, acelerado
 
@@ -69,11 +89,22 @@ function montar(archivo, ancho, rpc){
   w.scrollTo = () => {};
   w.Element.prototype.scrollTo = function(){};
   const si = w.setInterval.bind(w);
-  w.setInterval = (f, ms, ...a) => si(f, Math.max(1, ms / 100), ...a);
+  // Cien veces más rápido, y con un interruptor para pararlo: lo que se
+  // compruebe después de parar lo ha hecho el botón, no el reloj.
+  w.setInterval = (f, ms, ...a) => si((...x) => { if (!w.__relojParado) f(...x); },
+                                      Math.max(1, ms / 100), ...a);
   w.supabase = {
     auth:{ signInWithPassword: async () => ({ error:null }), signOut: async () => ({}) },
     rpc: async (fn, args = {}) => {
       const r = await rpc(fn, args);
+      // Una lectura puede fallar de dos maneras: la base contesta con
+      // un error, o la red ni siquiera deja llegar (la llamada lanza).
+      if (r && r.__fallo === 'lanza') throw new TypeError('Failed to fetch');
+      // Sin red, la librería real NO lanza: devuelve status 0 y el
+      // mensaje del navegador. «Load failed» es el de Safari en iPhone.
+      if (r && r.__fallo === 'red') return { data:null, status:0,
+        error:{ message:'TypeError: Load failed', details:'', hint:'', code:'' } };
+      if (r && r.__fallo) return { data:null, error:{ message:'permission denied for function ' + fn, code:'42501' } };
       return r === undefined ? { data:[], error:null } : { data:r, error:null };
     }
   };
@@ -135,8 +166,8 @@ function leaflet(w){
   return MAPAS;
 }
 
-async function entrarCliente(ancho){
-  const p = montar(INDEX, ancho, rpcCliente);
+async function entrarCliente(ancho, rpc = rpcCliente){
+  const p = montar(INDEX, ancho, rpc);
   const MAPAS = leaflet(p.w);
   p.$('#login').style.display = 'none';
   p.$('#app').style.display = 'block';
@@ -223,6 +254,263 @@ await seccion('Cliente · Latido, el mapa', async () => {
   comprobar('tras varios refrescos es el MISMO mapa', p.MAPAS.length === n && !m.eliminado, true);
   comprobar('y no ha vuelto al encuadre inicial', m.encuadres, encuadres);
   comprobar('su contenedor sigue en la página', m.cont.isConnected, true);
+  p.w.close();
+});
+
+/* ============================================================
+   EL LATIDO NO SE QUEDA NUNCA EN EL ESQUELETO
+
+   El 11 de octubre el Latido dejó de cargar en todos los dispositivos:
+   un mensaje recibido en domingo llega como día 7 (isodow) y la
+   rejilla de «Cuándo escriben» va de 0 a 6. Aquel error, y cualquier
+   otro de cualquier bloque o de la red, cortaba la pantalla entera y
+   la dejaba en gris sin decir nada. Aquí se prueba el domingo, y que
+   ningún fallo —de un bloque, de una lectura, de la red entera, o una
+   lectura que no contesta— deje la pantalla así.
+   ============================================================ */
+const FALLO = { tipo:null, fns:new Set() };
+const LATIDO_LECTURAS = ['mt_conversaciones_lista','mt_resumen','mt_por_hora',
+  'mt_tiempo_respuesta','mt_actividad','mt_demanda','mt_patron_horario','mt_mis_numeros'];
+let PATRON = [{ dia:1, hora:10, mensajes:3 }, { dia:7, hora:12, mensajes:2 }];
+let BLOQUE_ROTO = false;
+const INCID_PANEL = [];
+const CONVS_LATIDO = PERSONAS.map((p, i) => ({ user_ref:p.user_ref, mensajes:4,
+  del_cliente:2, del_asistente:2, primera_en:ahora(), ultima_en:ahora(),
+  interes:i === 0, contacto:false, friccion:false, sin_respuesta:false, historico:false, seq:i }));
+
+// Retraso por lectura, para provocar respuestas que llegan tarde.
+let RETRASO = () => 0;
+// El recuento de mensajes sale del rango pedido (24 h → 48 mensajes,
+// 7 días → 336) y de EXTRA: así se ve qué rango se ha pintado y si un
+// dato nuevo ha llegado a la pantalla.
+let EXTRA = 0;
+async function rpcLatido(fn, a){
+  const ms = RETRASO(fn, a); if (ms) await espera(ms);
+  if (FALLO.fns.has(fn)){
+    if (FALLO.tipo === 'cuelga') return new Promise(() => {});
+    return { __fallo: FALLO.tipo };
+  }
+  switch (fn){
+    case 'mt_conversaciones_lista': return CONVS_LATIDO.map(c => ({ ...c }));
+    case 'mt_resumen': return [{ mensajes: 2 * a.p_horas + EXTRA,
+                                 del_cliente: a.p_horas + EXTRA, del_asistente: a.p_horas }];
+    case 'mt_por_hora': return [{ tramo:ahora(), mensajes:3 }];
+    case 'mt_tiempo_respuesta': return [{ fuente:'agente', muestras:30, mediana_s:3.2 }];
+    case 'mt_actividad': return [{ user_ref:PERSONAS[0].user_ref, papel:'human',
+                                   contenido:'Busco despacho', cuando:ahora() }];
+    case 'mt_patron_horario': return PATRON.map(x => ({ ...x }));
+    case 'mt_registrar_incidencia': INCID_PANEL.push(a); return 1;
+    case 'mt_demanda': {
+      const d = rpcCliente(fn, a);
+      // Un valor que ninguna cuenta puede usar: el bloque de servicios
+      // revienta al pintarlo. Así se prueba que no arrastra a los demás.
+      return BLOQUE_ROTO
+        ? [{ categoria:'servicio', nombre:'Roto', conversaciones:Symbol('x'), generico:false }, ...d]
+        : d;
+    }
+  }
+  return rpcCliente(fn, a);
+}
+const sinFallos = () => { FALLO.tipo = null; FALLO.fns.clear(); RETRASO = () => 0; EXTRA = 0; };
+// Para el refresco automático: lo que se compruebe después lo ha hecho
+// el botón o la acción que se prueba, no el reloj.
+const pararReloj = p => { p.w.__relojParado = true; };
+const pieConvs = p => textoDe(p, '.kpis .kpi:nth-child(2) .pie');
+const latidoPintado = p => !!p.$('#vista .kpis');
+const textoDe = (p, sel) => (p.$(sel)?.textContent || '').replace(/\s+/g, ' ').trim();
+
+for (const ancho of [390, 1400]){
+  await seccion(`Latido · un mensaje en domingo (${ancho === 390 ? 'móvil' : 'ordenador'})`, async () => {
+    sinFallos();
+    const p = await entrarCliente(ancho, rpcLatido);
+    comprobar('el Latido se pinta, no se queda en el esqueleto', latidoPintado(p), true);
+    const filas = [...p.w.document.querySelectorAll('.mfila')];
+    const dom = filas.find(f => f.querySelector('.md')?.textContent === 'Dom');
+    comprobar('«Cuándo escriben» tiene la fila del domingo, la última',
+      filas[filas.length - 1] === dom && !!dom, true);
+    comprobar('y en ella el mensaje de las 12:00',
+      !!dom && [...dom.querySelectorAll('.mc')].some(c => c.title === 'Dom, 12:00, 2 mensajes'), true);
+    comprobar('el lunes sigue en su sitio',
+      [...p.w.document.querySelectorAll('.mc')].some(c => c.title === 'Lun, 10:00, 3 mensajes'), true);
+    p.w.close();
+  });
+}
+
+await seccion('Latido · una lectura falla y luego vuelve', async () => {
+  sinFallos(); FALLO.tipo = 'error'; FALLO.fns.add('mt_por_hora');
+  const p = await entrarCliente(390, rpcLatido);
+  comprobar('el Latido se pinta igual', latidoPintado(p), true);
+  comprobar('arriba dice qué falta', /Falta un dato: el cardiograma/.test(textoDe(p, '.lfalta')), true);
+  comprobar('el cardiograma no dice «Sin mensajes» (sería falso)',
+    /Sin mensajes en este periodo/.test(textoDe(p, '#vista')), false);
+  comprobar('los indicadores que sí han llegado tienen su cifra',
+    textoDe(p, '.kpi .num'), '3');
+  sinFallos();
+  await espera(TIC * 3);
+  comprobar('cuando vuelve, el aviso desaparece solo', !!p.$('.lfalta'), false);
+  comprobar('y el cardiograma aparece', !!p.$('#graf'), true);
+  p.w.close();
+});
+
+await seccion('Latido · un dato que no llega no es un cero', async () => {
+  sinFallos(); FALLO.tipo = 'error'; FALLO.fns.add('mt_conversaciones_lista');
+  const p = await entrarCliente(390, rpcLatido);
+  const pend = [...p.w.document.querySelectorAll('.kpi.pend .lab')].map(e => e.textContent);
+  comprobar('«Personas atendidas» enseña «—», no 0', pend.includes('Personas atendidas'), true);
+  comprobar('«Respuestas de la IA» también', pend.includes('Respuestas de la IA'), true);
+  comprobar('el bloque de señales dice que no ha llegado',
+    /No ha llegado este dato/.test(textoDe(p, '#vista')), true);
+  p.w.close();
+});
+
+await seccion('Latido · un refresco sin red no estropea lo que hay', async () => {
+  sinFallos(); INCID_PANEL.length = 0;
+  const p = await entrarCliente(390, rpcLatido);
+  const antes = textoDe(p, '.kpis');
+  FALLO.tipo = 'red'; LATIDO_LECTURAS.forEach(f => FALLO.fns.add(f));
+  await espera(TIC * 3);
+  comprobar('el Latido sigue con los últimos datos', latidoPintado(p) && textoDe(p, '.kpis') === antes, true);
+  comprobar('y avisa de que no están actualizados', /Sin actualizar/.test(textoDe(p, '.lfalta')), true);
+  comprobar('un corte de red no se registra como incidencia',
+    INCID_PANEL.some(i => /^rpc_/.test(i.p_codigo)), false);
+  sinFallos();
+  await espera(TIC * 3);
+  comprobar('cuando vuelve la red, el aviso se va solo', !!p.$('.lfalta'), false);
+  p.w.close();
+});
+
+await seccion('Latido · una lectura falla SIEMPRE y las demás cambian', async () => {
+  sinFallos();
+  const p = await entrarCliente(390, rpcLatido);
+  comprobar('empieza con 48 mensajes', /^48 mensajes/.test(pieConvs(p)), true);
+  FALLO.tipo = 'error'; FALLO.fns.add('mt_patron_horario');
+  EXTRA = 10;
+  await espera(TIC * 4);
+  comprobar('lo que cambia llega a la pantalla (no se congela)', /^58 mensajes/.test(pieConvs(p)), true);
+  comprobar('«Cuándo escriben» sigue con lo último que llegó', !!p.$('.mfila'), true);
+  comprobar('y el aviso dice que no está actualizado',
+    /Sin actualizar: cuándo escriben/.test(textoDe(p, '.lfalta')), true);
+  sinFallos();
+  p.w.close();
+});
+
+await seccion('Latido · cambiar el rango con una lectura caída', async () => {
+  sinFallos();
+  const p = await entrarCliente(390, rpcLatido);
+  pararReloj(p);
+  FALLO.tipo = 'error'; FALLO.fns.add('mt_resumen');
+  p.$('.rg[data-h="168"]').click();
+  await espera(80);
+  comprobar('el botón de 7 días queda marcado', p.$('.rg[data-h="168"]')?.classList.contains('on'), true);
+  comprobar('el recuento de 24 h NO se hace pasar por el de 7 días',
+    pieConvs(p), 'Sin el recuento de mensajes');
+  comprobar('y arriba dice qué falta', /Falta un dato: el recuento de mensajes/.test(textoDe(p, '.lfalta')), true);
+  sinFallos();
+  p.$('#lreint').click();
+  await espera(80);
+  comprobar('«Reintentar ahora» del aviso lo trae', /^336 mensajes/.test(pieConvs(p)) && !p.$('.lfalta'), true);
+  p.w.close();
+});
+
+await seccion('Latido · una respuesta que llega tarde no pisa a la nueva', async () => {
+  sinFallos();
+  const p = await entrarCliente(390, rpcLatido);
+  pararReloj(p);
+  // El refresco de 24 h tarda; mientras, se pide 7 días.
+  RETRASO = (fn, a) => fn === 'mt_resumen' && a.p_horas === 24 ? 250 : 0;
+  p.ev('pintarLatido(true)');
+  await espera(20);
+  p.$('.rg[data-h="168"]').click();
+  await espera(450);
+  comprobar('se queda lo de 7 días, lo último que se pidió',
+    /^336 mensajes/.test(pieConvs(p)) && p.$('.rg[data-h="168"]')?.classList.contains('on'), true);
+  sinFallos();
+  p.w.close();
+});
+
+await seccion('Latido · cambiar de pestaña a mitad de carga', async () => {
+  sinFallos();
+  const p = await entrarCliente(390, rpcLatido);
+  pararReloj(p);
+  RETRASO = fn => fn === 'mt_conversaciones_lista' ? 200 : 0;
+  p.$('nav button[data-v="latido"]').click();
+  await espera(20);
+  RETRASO = () => 0;
+  p.$('nav button[data-v="convs"]').click();
+  await espera(400);
+  comprobar('se ve Conversaciones, no el Latido encima',
+    !!p.$('#pconvs') && !latidoPintado(p), true);
+  p.w.close();
+});
+
+await seccion('Escrituras · no se cortan a los 20 s', async () => {
+  // Sobre el texto: esperar 20 s por cada escritura alargaría la batería
+  // sin probar nada más.
+  const m = fs.readFileSync(INDEX, 'utf8').match(/const ESCRITURAS = new Set\(\[([^\]]*)\]\)/);
+  const esc = new Set((m ? m[1] : '').match(/mt_[a-z_]+/g) || []);
+  for (const f of ['mt_apuntar_toque','mt_guardar_lead','mt_mover_lead','mt_guardar_ajustes',
+                   'mt_pausar','mt_reanudar','mt_excluir','mt_incluir','mt_deshacer_evento','mt_editar_evento'])
+    comprobar(`${f} va sin tiempo máximo`, esc.has(f), true);
+  comprobar('las lecturas sí lo tienen', esc.has('mt_resumen') || esc.has('mt_patron_horario'), false);
+});
+
+await seccion('Latido · sin red al entrar, y la red vuelve', async () => {
+  sinFallos(); FALLO.tipo = 'lanza'; LATIDO_LECTURAS.forEach(f => FALLO.fns.add(f));
+  const p = await entrarCliente(390, rpcLatido);
+  comprobar('no se queda en el esqueleto: dice qué pasa',
+    /No se ha podido cargar el Latido/.test(textoDe(p, '#vista')), true);
+  comprobar('y ofrece reintentar', !!p.$('#lreint'), true);
+  sinFallos();
+  pararReloj(p);
+  p.$('#lreint').click();
+  await espera(80);
+  comprobar('«Reintentar ahora» trae el Latido', latidoPintado(p), true);
+  p.w.close();
+});
+
+await seccion('Latido · la red vuelve sola, sin tocar nada', async () => {
+  sinFallos(); FALLO.tipo = 'error'; LATIDO_LECTURAS.forEach(f => FALLO.fns.add(f));
+  const p = await entrarCliente(390, rpcLatido);
+  comprobar('empieza con el aviso', /No se ha podido cargar el Latido/.test(textoDe(p, '#vista')), true);
+  sinFallos();
+  await espera(TIC * 3);
+  comprobar('el refresco automático lo trae', latidoPintado(p), true);
+  p.w.close();
+});
+
+await seccion('Latido · un bloque que falla no se lleva los demás', async () => {
+  sinFallos(); BLOQUE_ROTO = true; INCID_PANEL.length = 0;
+  const p = await entrarCliente(390, rpcLatido);
+  BLOQUE_ROTO = false;
+  comprobar('el Latido se pinta', latidoPintado(p), true);
+  comprobar('el bloque roto lo dice en su sitio',
+    /No se ha podido mostrar este bloque/.test(textoDe(p, '#vista')), true);
+  comprobar('los demás bloques están', !!p.$('#graf') && !!p.$('.mfila') && !!p.$('.feed'), true);
+  comprobar('y el fallo llega al maestro como incidencia crítica',
+    INCID_PANEL.some(i => /^latido_/.test(i.p_codigo) && i.p_severidad === 'critico'), true);
+  p.w.close();
+});
+
+await seccion('Latido · una lectura que no contesta nunca (tarda 20 s)', async () => {
+  sinFallos(); FALLO.tipo = 'cuelga'; FALLO.fns.add('mt_resumen');
+  const p = await entrarCliente(390, rpcLatido);
+  comprobar('a los 20 s se pinta igual', latidoPintado(p), true);
+  comprobar('y dice qué no ha llegado',
+    /Falta un dato: el recuento de mensajes/.test(textoDe(p, '.lfalta')), true);
+  sinFallos();
+  p.w.close();
+});
+
+await seccion('Entrada · sin conexión no es «sin cliente»', async () => {
+  sinFallos(); FALLO.tipo = 'lanza'; FALLO.fns.add('mt_mi_config');
+  const p = await entrarCliente(390, rpcLatido);
+  const t = textoDe(p, '#vista');
+  comprobar('dice que no ha podido conectar', /No se ha podido conectar con el servicio/.test(t), true);
+  comprobar('y no que la cuenta no tiene cliente', /no tiene ningún cliente/.test(t), false);
+  sinFallos();
+  p.$('#arreint').click();
+  await espera(80);
+  comprobar('«Reintentar» entra al Latido', latidoPintado(p), true);
   p.w.close();
 });
 

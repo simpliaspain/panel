@@ -840,6 +840,15 @@
   .faviso.mal{display:block;background:var(--rojo-fondo);color:var(--rojo-texto);
               border:1px solid var(--rojo-borde)}
 
+  /* Aviso del Latido cuando no han llegado todos los datos. Ámbar y no
+     rojo: el panel funciona, solo falta una parte y se vuelve a pedir. */
+  .lfalta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;
+          padding:12px 15px;border-radius:10px;font-size:13px;line-height:1.5;
+          background:var(--ambar-tenue);color:var(--ambar-oscuro);
+          border:1px solid var(--ambar);margin:0 0 20px}
+  .lfalta button{font:inherit;font-weight:600;color:inherit;background:none;border:0;
+          padding:0;text-decoration:underline;cursor:pointer;min-height:32px}
+
   .fcaja{display:none;background:var(--fondo);border:1px solid var(--linea);
          border-radius:14px;padding:16px;margin-top:16px}
   .fcaja.on{display:block}
@@ -1076,7 +1085,12 @@
 <div class="sr" id="anuncio" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script type="module">
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// Versión EXACTA de la librería. Con @2 a secas, cada visita cargaba
+// la última 2.x publicada: el panel podía cambiar de comportamiento
+// sin que nadie lo tocara. 2.117.3 es la que se estaba sirviendo, así
+// que fijarla no cambia nada hoy. Para subirla, se cambia aquí, en los
+// dos paneles, y se pasan las pruebas.
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';
 
 const URL = 'https://gwibsjohvfxasslcrxuq.supabase.co';
 const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
@@ -1085,7 +1099,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-10-09 · refresco sin pérdidas';
+const VERSION = '2026-10-13 · latido a prueba de fallos';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -1111,13 +1125,19 @@ const supabase = createClient(URL, KEY, {
    recoge la reincidencia entre sesiones.
    ============================================================ */
 
-const YA_REPORTADO = new Set();
+// codigo → 'enviado', o el instante del último intento fallido. Antes
+// el código se daba por usado ANTES de enviar: si el envío fallaba
+// (sin red, justo cuando más falla todo), ese código ya no se volvía a
+// reportar en toda la sesión y un error de verdad posterior se perdía.
+// Ahora un envío fallido se puede reintentar pasado un minuto.
+const YA_REPORTADO = new Map();
 
 async function reportar(codigo, titulo, detalle = {}, severidad = 'aviso'){
-  if (YA_REPORTADO.has(codigo)) return;
-  YA_REPORTADO.add(codigo);
+  const prev = YA_REPORTADO.get(codigo);
+  if (prev === 'enviado' || (typeof prev === 'number' && Date.now() - prev < 60000)) return;
+  YA_REPORTADO.set(codigo, Date.now());
   try {
-    await supabase.rpc('mt_registrar_incidencia', {
+    const r = await supabase.rpc('mt_registrar_incidencia', {
       p_codigo:    codigo,
       p_titulo:    String(titulo).slice(0, 300),
       p_severidad: severidad,
@@ -1126,6 +1146,7 @@ async function reportar(codigo, titulo, detalle = {}, severidad = 'aviso'){
                      agente: navigator.userAgent.slice(0, 180) },
       p_origen:    'panel'
     });
+    if (!r?.error) YA_REPORTADO.set(codigo, 'enviado');
   } catch { /* si ni siquiera se puede reportar, no hay nada más que hacer */ }
 }
 
@@ -1146,14 +1167,70 @@ window.addEventListener('unhandledrejection', e => {
    consulta a Supabase devuelve error: es el fallo más probable y
    el más silencioso, porque el panel solo muestra "no se han
    podido cargar" y el cliente cierra la pestaña. */
+/* UNA LLAMADA NO PUEDE DEJAR UNA PANTALLA ESPERANDO PARA SIEMPRE.
+   Antes, si la red fallaba de una forma que la librería no convertía
+   en error (o la llamada no contestaba nunca, cosa normal en un móvil
+   con poca cobertura o al volver de segundo plano), la pantalla se
+   quedaba en el esqueleto gris sin decir nada. Ahora:
+
+     · nunca lanza: un fallo de red vuelve como { error } con código
+       'red', igual que cualquier otro error, y cada pantalla ya sabe
+       qué decir con eso;
+     · las LECTURAS tienen tiempo máximo: si en ESPERA_MAX no hay
+       respuesta, vuelven como { error } con código 'tiempo'.
+     · las ESCRITURAS no. Cortar una escritura no la para: sigue en el
+       servidor y puede llegar. Darla por fallida invitaba a repetirla,
+       y «Apuntar contacto» repetido son dos contactos apuntados. Las
+       que no se pueden repetir sin efecto van en ESCRITURAS.
+       mt_sincronizar no: repetirla no cambia nada, y el Embudo la
+       espera antes de pintar. */
+//
+// ESPERA_MAX tiene que quedar por debajo de los 30 s del refresco
+// automático: las lecturas del Latido van todas a la vez, así que una
+// carga dura como mucho ESPERA_MAX y termina antes del siguiente.
+// mt_registrar_incidencia no va en ESCRITURAS: repetirla solo suma
+// `veces`, y sin tiempo máximo se acumularían envíos colgados.
+const ESPERA_MAX = 20000;
+const ESCRITURAS = new Set(['mt_apuntar_toque','mt_deshacer_evento','mt_editar_evento',
+  'mt_guardar_lead','mt_mover_lead','mt_guardar_ajustes','mt_pausar','mt_reanudar',
+  'mt_excluir','mt_incluir']);
+// La librería no lanza cuando falla la red: devuelve status 0 y un
+// mensaje del navegador («Load failed» en el iPhone, «Failed to fetch»
+// en Chrome, «NetworkError» en Firefox).
+const esDeRed = r => !!r?.error && (r.error.code === 'red' || r.status === 0
+  || /Failed to fetch|Load failed|NetworkError|network/i.test(String(r.error.message || '')));
 const _rpc = supabase.rpc.bind(supabase);
 supabase.rpc = async (nombre, args, opciones) => {
-  const r = await _rpc(nombre, args, opciones);
-  if (r?.error && nombre !== 'registrar_incidencia'){
-    reportar('rpc_' + nombre,
-             `Fallo en ${nombre}(): ${r.error.message}`,
+  let reloj = null, r;
+  try {
+    const llamada = _rpc(nombre, args, opciones);
+    r = ESCRITURAS.has(nombre) ? await llamada : await Promise.race([
+      llamada,
+      new Promise(listo => { reloj = setTimeout(() => listo({ data: null, error: {
+        code: 'tiempo',
+        message: `El servidor no ha contestado en ${ESPERA_MAX / 1000} segundos.` } }),
+        ESPERA_MAX); })
+    ]);
+  } catch (e){
+    r = { data: null, status: 0, error: { code: 'red',
+          message: 'No se ha podido contactar con el servidor (' + (e?.message || e) + ').' } };
+  } finally {
+    clearTimeout(reloj);
+  }
+  if (!r || typeof r !== 'object') r = { data: null, status: 0, error: { code: 'red', message: 'Respuesta vacía del servidor.' } };
+  // Al maestro va lo que puede servir para arreglar algo. Un fallo de
+  // red no: no se puede enviar mientras dura, y no es del panel.
+  // Lo lento va con su propio código, para que un aviso de lentitud no
+  // tape después un error de verdad de la misma función.
+  // (Aquí ponía 'registrar_incidencia', sin el mt_: la condición no se
+  // cumplía nunca.)
+  if (r.error && nombre !== 'mt_registrar_incidencia' && !esDeRed(r)){
+    const lento = r.error.code === 'tiempo';
+    reportar((lento ? 'rpc_tiempo_' : 'rpc_') + nombre,
+             lento ? `${nombre}() no ha contestado en ${ESPERA_MAX / 1000} s`
+                   : `Fallo en ${nombre}(): ${r.error.message}`,
              { codigo: r.error.code, pista: r.error.hint },
-             'critico');
+             lento ? 'aviso' : 'critico');
   }
   return r;
 };
@@ -1267,7 +1344,10 @@ function tic30(){
   if (document.hidden) return;
   if ($('#modal').style.display === 'block') return;
   if (escribiendo()) return;
-  if (VISTA === 'latido') return pintarLatido(true);
+  // Si la carga anterior del Latido aún no ha vuelto, no se empieza
+  // otra: la nueva le quitaría el turno y, si cada carga tardara más que
+  // el intervalo, la pantalla no se pondría al día nunca.
+  if (VISTA === 'latido') return LATIDO_EN_VUELO ? undefined : pintarLatido(true);
   if (VISTA === 'convs' && !$('#buscar')?.value) return refrescarConvs();
   if (VISTA === 'embudo' && !$('#lbusca')?.value) return refrescarEmbudoVista();
   if (VISTA === 'agenda') return pintarAgenda(true);
@@ -1314,7 +1394,28 @@ async function arrancar(){
   // mt_mi_config devuelve una fila solo si quien entra tiene acceso
   // a algún cliente. Sin fila, la cuenta existe pero no está dada de
   // alta en ninguno.
-  const { data: cfg } = await supabase.rpc('mt_mi_config');
+  // Lo guardado del Latido es de quien estuviera antes: fuera.
+  LATIDO_CACHE = new Map();
+  const rc = await supabase.rpc('mt_mi_config');
+  const { data: cfg, error: errCfg } = rc;
+  // Sin respuesta no es lo mismo que sin cliente. Antes, si fallaba la
+  // conexión, salía «Tu cuenta no tiene ningún cliente asignado», que
+  // es falso y asusta.
+  if (errCfg){
+    $('#vista').innerHTML = `<div class="panel"><div class="vacio">
+      <strong>No se ha podido conectar con el servicio.</strong><br>
+      ${esc(esDeRed(rc) ? 'Revisa la conexión a internet e inténtalo de nuevo.'
+          : errCfg.code === 'tiempo' ? 'El servidor no ha contestado a tiempo.'
+          : errCfg.message || 'Revisa la conexión.')}
+      <div style="margin-top:16px">
+        <button class="btn corto" id="arreint" type="button">Reintentar</button>
+      </div></div></div>`;
+    $('#arreint')?.addEventListener('click', () => {
+      $('#vista').innerHTML = esqueleto('latido');
+      arrancar();
+    });
+    return;
+  }
   const t = Array.isArray(cfg) ? cfg[0] : cfg;
   if (!t){
     $('#vista').innerHTML = `<div class="panel"><div class="vacio">
@@ -1400,7 +1501,7 @@ setInterval(pintarCuando, 10000);
 async function refrescar(){
   const b = $('#refrescar');
   b?.classList.add('girando');
-  if (VISTA === 'latido')       await pintarLatido(true);
+  if (VISTA === 'latido')       await pintarLatido(true, true);
   else if (VISTA === 'convs')   await refrescarConvs();
   else if (VISTA === 'embudo')  await refrescarEmbudoVista();
   else if (VISTA === 'agenda')  await pintarAgenda(true);
@@ -1408,47 +1509,85 @@ async function refrescar(){
   b?.classList.remove('girando');
 }
 
-async function datos(){
-  const desde = new Date(Date.now() - RANGO*36e5).toISOString();
+/* Lo último que llegó bien de cada lectura del Latido. Si una lectura
+   falla, se enseña lo último que llegó, marcado como «sin actualizar»,
+   y las demás se siguen poniendo al día.
 
-  // Los nombres hacen falta para segmentar las señales por persona.
-  // Se piden una sola vez y se reutiliza la misma caché que usan
-  // Conversaciones y el detalle de contacto.
-  if (!CONTACTOS.length){
-    try {
-      const { data: cs } = await supabase.rpc('mt_mis_contactos');
-      CONTACTOS = cs || [];
-    } catch { /* se seguirá mostrando la referencia del contacto */ }
-  }
+   Antes, si en un refresco fallaba algo, se dejaba la pantalla entera
+   como estaba para no cambiar un Latido completo por uno con huecos.
+   Con una lectura que fallara SIEMPRE (la de «Cuándo escriben» cuenta
+   todo el histórico y es la candidata a pasarse de tiempo), el Latido
+   no volvía a cambiar nunca, sin avisar: otra pantalla congelada.
 
+   La clave lleva el rango en las tres lecturas que dependen de él: el
+   recuento de 24 horas no vale para «7 días». Se vacía al entrar. */
+let LATIDO_CACHE = new Map();
+const DEPENDE_RANGO = new Set(['resumen', 'porHora', 'lat']);
+
+async function datos(rango = RANGO){
   // Ninguna lectura directa de tablas: en el proyecto nuevo todas
   // están cerradas y se entra solo por función. Eso cierra de raíz
   // la familia de fallos que nos costó más caro — una vista que
   // devolvía datos de todos los clientes, una columna que no
   // existía y daba ceros en silencio — porque el filtro de
   // exclusiones vive dentro de la función y no se puede olvidar.
-  const [convs, resumen, porHora, lat, reciente, lugares, patron, numeros] = await Promise.all([
+  //
+  // Los contactos van en la misma tanda y no antes: en serie, una
+  // lectura colgada en cada uno eran 40 segundos de esqueleto.
+  // Hacen falta para segmentar las señales por persona; se piden una
+  // sola vez y se reutiliza la caché que usan Conversaciones y el
+  // detalle de contacto.
+  const [cts, convs, resumen, porHora, lat, reciente, lugares, patron, numeros] = await Promise.all([
+    CONTACTOS.length ? null : supabase.rpc('mt_mis_contactos'),
     supabase.rpc('mt_conversaciones_lista', { p_limite: 1000 }),
-    supabase.rpc('mt_resumen',    { p_horas: RANGO }),
-    supabase.rpc('mt_por_hora',   { p_horas: RANGO }),
+    supabase.rpc('mt_resumen',    { p_horas: rango }),
+    supabase.rpc('mt_por_hora',   { p_horas: rango }),
     // mt_tiempo_respuesta y no mt_latencias: la cifra sale de quien
     // de verdad mide, y viene con su procedencia. El indicador
     // enseñaba 0,0 s porque promediaba el hueco entre dos filas que
     // n8n escribe en la misma operación.
-    supabase.rpc('mt_tiempo_respuesta', { p_horas: RANGO }),
+    supabase.rpc('mt_tiempo_respuesta', { p_horas: rango }),
     supabase.rpc('mt_actividad',  { p_limite: 12 }),
     supabase.rpc('mt_demanda'),
     supabase.rpc('mt_patron_horario'),
     supabase.rpc('mt_mis_numeros')
   ]);
+  if (cts && !cts.error && Array.isArray(cts.data)) CONTACTOS = cts.data;
+
+  // QUÉ HA FALLADO, Y NO UNA LISTA VACÍA. Una lectura que falla daba
+  // `data: null`, se convertía en [] y el Latido enseñaba ceros: «0
+  // personas atendidas» cuando lo que pasaba era que no había llegado
+  // el dato. Ahora cada lectura acaba en uno de tres estados:
+  //   · al día: ha llegado ahora;
+  //   · viejos: no ha llegado, y se usa lo último que llegó;
+  //   · fallos: no ha llegado nunca, y su bloque lo dice.
+  const R = { convs, resumen, porHora, lat, reciente, lugares, patron, numeros };
+  const clave = k => DEPENDE_RANGO.has(k) ? k + '|' + rango : k;
+  const D = {}, fallos = new Set(), viejos = new Set();
+  for (const k of Object.keys(R)){
+    if (R[k] && !R[k].error){ D[k] = R[k].data; LATIDO_CACHE.set(clave(k), R[k].data); }
+    else if (LATIDO_CACHE.has(clave(k))){ D[k] = LATIDO_CACHE.get(clave(k)); viejos.add(k); }
+    else fallos.add(k);
+  }
+  // La forma, normalizada: una lista es una lista aunque la base
+  // devuelva una sola fila suelta, y una fila es una fila aunque llegue
+  // dentro de una lista.
+  const lista = k => fallos.has(k) ? []
+    : Array.isArray(D[k]) ? D[k] : D[k] ? [D[k]] : [];
+  const fila = k => fallos.has(k) ? null
+    : (Array.isArray(D[k]) ? D[k][0] : D[k]) ?? null;
+
+  // «Actualizado hace…» solo avanza cuando ha llegado todo al día: si
+  // no, diría «ahora mismo» encima de datos que no se han podido traer.
+  if (!fallos.size && !viejos.size){ ULTIMA = Date.now(); pintarCuando(); }
 
   // Orden: primero lo registrado con fecha real (más reciente arriba);
   // después el histórico, ordenado por seq — que conserva el orden
   // original de n8n aunque no tengamos la fecha.
   // Ahora hay fecha real para casi todo (primera_en viene de
   // users.created_at en el histórico), así que se ordena por ella.
-  ULTIMA = Date.now(); pintarCuando();
-  CONVS = (convs.data || []).sort((a, b) => {
+  // Sobre una copia: la lista guardada no se toca.
+  const cs = [...lista('convs')].sort((a, b) => {
     const fa = a.primera_en ? new Date(a.primera_en).getTime() : null;
     const fb = b.primera_en ? new Date(b.primera_en).getTime() : null;
     if (fa && fb && fa !== fb) return fb - fa;
@@ -1456,29 +1595,40 @@ async function datos(){
     if (!fa && fb) return 1;
     return (b.seq || 0) - (a.seq || 0);
   });
+  // CONVS se usa también fuera del Latido: solo cambia con datos al día.
+  if (!fallos.has('convs') && !viejos.has('convs')) CONVS = cs;
   // Una fila: fuente, muestras, mediana y p95. La MEDIANA y no la
   // media, porque con latencias una sola respuesta lenta arrastra la
   // media y deja de describir lo que tarda normalmente.
-  const tr = (Array.isArray(lat.data) ? lat.data[0] : lat.data) || null;
+  const tr = fila('lat');
   // mt_resumen devuelve una fila con los recuentos ya hechos. Antes
   // se traían todos los mensajes del periodo para contarlos en el
   // navegador: con volumen, eso es traerse media base para calcular
   // dos números.
-  const res = (Array.isArray(resumen.data) ? resumen.data[0] : resumen.data) || {};
+  const res = fila('resumen') || {};
   return {
-    convs: CONVS,
-    num: (Array.isArray(numeros.data) ? numeros.data[0] : numeros.data) || null,
+    convs: cs,
+    num: fila('numeros'),
     res,
-    porHora: porHora.data || [],
+    porHora: lista('porHora'),
     total: res.mensajes || 0,
     tr,
-    reciente: reciente.data || [],
-    temas:    lugares.data  || [],
-    patron:   patron.data   || [],
-    vivas: CONVS.filter(c => !c.historico),
-    hist:  CONVS.filter(c =>  c.historico)
+    reciente: lista('reciente'),
+    temas:    lista('lugares'),
+    patron:   lista('patron'),
+    vivas: cs.filter(c => !c.historico),
+    hist:  cs.filter(c =>  c.historico),
+    fallos, viejos
   };
 }
+
+// Las lecturas del Latido, en palabras, para decir cuáles no han llegado.
+const LECTURAS_LATIDO = {
+  convs:'las conversaciones', resumen:'el recuento de mensajes',
+  porHora:'el cardiograma', lat:'el tiempo de respuesta',
+  reciente:'la actividad reciente', lugares:'servicios y zonas',
+  patron:'cuándo escriben', numeros:'tus números'
+};
 
 /* ---------- vista: latido ---------- */
 // `silencioso` = refresco automático o manual sobre contenido ya
@@ -1543,13 +1693,121 @@ function pintaEn(html, silencioso){
   if (silencioso) window.scrollTo({ top: y, behavior: 'instant' });
 }
 
-async function pintarLatido(silencioso){
-  if (!silencioso) $('#vista').innerHTML = esqueleto('latido');
-  const d = await datos();
-  // Si mientras llegaban los datos se ha cambiado de pestaña, no se
-  // pinta: el Latido saldría encima de lo que se esté viendo.
-  if (VISTA !== 'latido') return;
+/* ---------- el Latido no se queda nunca en el esqueleto ----------
 
+   El 11 de octubre el Latido dejó de cargar y se quedó en el
+   esqueleto gris, en el móvil y en el ordenador, sin decir nada. La
+   causa fue un mensaje recibido en domingo (ver bloquePatron), pero el
+   problema de fondo era otro: UN error en CUALQUIER bloque, o una sola
+   lectura que fallara por la red, cortaba la pantalla entera a mitad
+   de pintar. Tres reglas desde entonces:
+
+   1. Cada bloque se pinta aislado (seguro). Si uno falla, en su sitio
+      sale «No se ha podido mostrar este bloque», el resto se pinta, y
+      el fallo llega al maestro como incidencia crítica.
+   2. Si una lectura no llega, su bloque lo dice, no enseña un cero
+      (un cero parece un dato), y arriba sale qué falta y un botón para
+      reintentar. El refresco de cada 30 s lo vuelve a pedir solo.
+   3. Si no llega nada, en vez del esqueleto sale qué ha pasado y
+      «Reintentar ahora».
+
+   Lo comprueba pruebas/navegador.mjs, con el panel entero en un
+   navegador real: con un domingo, con cada lectura fallando, con la
+   red caída y con una lectura que no contesta nunca. */
+
+function seguro(nombre, fn, enCaso){
+  try { return fn(); }
+  catch (e){
+    console.error(`Latido · «${nombre}» no se ha podido pintar:`, e);
+    reportar(codigoDe('latido', nombre),
+      `Latido: el bloque «${nombre}» no se ha podido pintar: ${e?.message || e}`,
+      { pila: String(e?.stack || '').slice(0, 800) }, 'critico');
+    return enCaso ?? `<div class="panel"><h3>${esc(nombre)}</h3>
+      <div class="vacio">No se ha podido mostrar este bloque.<br>
+        El resto del Latido funciona con normalidad.</div></div>`;
+  }
+}
+// Lo mismo para lo que se engancha después de pintar (el mapa, los
+// botones, el tooltip): si falla, se pierde eso, no la pantalla.
+function tramo(nombre, fn){
+  try { fn(); }
+  catch (e){
+    console.error(`Latido · «${nombre}» no se ha podido activar:`, e);
+    reportar(codigoDe('latido_act', nombre),
+      `Latido: «${nombre}» no se ha podido activar: ${e?.message || e}`,
+      { pila: String(e?.stack || '').slice(0, 800) }, 'aviso');
+  }
+}
+
+// Si hay un Latido pintado (aunque le falte algo). false = esqueleto o
+// el aviso de que no se ha podido cargar.
+let LATIDO_PINTADO = false;
+// Cada carga lleva un turno. Si se pide otra mientras tanto (el
+// refresco de cada 30 s y un cambio de rango, o dos toques a
+// «Reintentar»), la respuesta que llegue tarde no se pinta: antes podía
+// pintar los datos de 24 horas con el botón de 7 días marcado.
+let TURNO_LAT = 0;
+// Cargas del Latido sin terminar. El refresco automático espera a que
+// vuelvan (ver tic30).
+let LATIDO_EN_VUELO = 0;
+
+function pintarSinLatido(motivo){
+  LATIDO_PINTADO = false;
+  $('#vista').innerHTML = `
+    <h2 class="tit">El <em>latido</em></h2>
+    <div class="panel"><div class="vacio">
+      <strong>No se ha podido cargar el Latido.</strong><br>
+      ${esc(motivo)}<br>Se vuelve a intentar solo cada 30 segundos.
+      <div style="margin-top:16px">
+        <button class="btn corto" id="lreint" type="button">Reintentar ahora</button>
+      </div>
+    </div></div>`;
+  $('#lreint')?.addEventListener('click', () => pintarLatido());
+}
+
+// `forzar` = lo ha pedido la persona (rango, ⟳, «Reintentar»): si no
+// llega nada, se dice aunque hubiera un Latido en pantalla. El refresco
+// automático, si no llega NADA, deja el que hay. Si llega algo, se
+// pinta siempre: lo que no ha llegado sale con lo último que llegó y
+// marcado como «sin actualizar», así que nada se queda congelado.
+async function pintarLatido(silencioso, forzar){
+  const turno = ++TURNO_LAT;
+  if (!silencioso){
+    $('#vista').innerHTML = esqueleto('latido');
+    LATIDO_PINTADO = false;
+  }
+  let d = null;
+  LATIDO_EN_VUELO++;
+  try { d = await datos(RANGO); }
+  catch (e){ console.error('Latido · no se han podido leer los datos:', e); }
+  finally { LATIDO_EN_VUELO--; }
+  // Ya se ha pedido otra carga, o se ha cambiado de pestaña: esta
+  // respuesta no se pinta (saldría encima de lo que se esté viendo).
+  if (turno !== TURNO_LAT || VISTA !== 'latido') return;
+
+  const total = Object.keys(LECTURAS_LATIDO).length;
+  if (!d || d.fallos.size >= total){
+    if (LATIDO_PINTADO && !forzar) return;   // se queda el que hay
+    pintarSinLatido(navigator.onLine === false
+      ? 'El dispositivo no tiene conexión a internet.'
+      : 'No hay respuesta del servicio en este momento.');
+    return;
+  }
+
+  try {
+    pintarLatidoCon(d, silencioso);
+    LATIDO_PINTADO = true;
+  } catch (e){
+    // No debería llegar aquí: cada bloque va aislado. Si llega, se dice.
+    console.error('Latido · no se ha podido pintar:', e);
+    reportar(codigoDe('latido', e?.message), 'El Latido no se ha podido pintar: ' + (e?.message || e),
+      { pila: String(e?.stack || '').slice(0, 800) }, 'critico');
+    if (silencioso && LATIDO_PINTADO) return;
+    pintarSinLatido('Ha ocurrido un error al mostrarlo. Ya está registrado para revisarlo.');
+  }
+}
+
+function pintarLatidoCon(d, silencioso){
   // EL MAPA SE QUEDA COMO ESTABA. Reescribir la pantalla creaba un
   // contenedor nuevo, sin mapa, y se montaba otro desde cero: cada 30
   // segundos volvía al encuadre inicial y se perdía el zoom que el
@@ -1559,29 +1817,68 @@ async function pintarLatido(silencioso){
   const mapaVivo = LMAP && document.getElementById('lmapa') === LMAP.getContainer()
     ? LMAP.getContainer() : null;
 
-  const contactos = new Set(d.convs.map(c => c.user_ref)).size;
-  const msgs      = d.convs.reduce((s,c) => s + (c.mensajes||0), 0);
-  const media     = d.convs.length ? Math.round(msgs / d.convs.length) : 0;
-  const auto      = d.convs.reduce((s,c) => s + (c.del_asistente||0), 0);
+  const F = d.fallos;
+  const NO_LLEGA = 'No ha llegado el dato';
+  // El bloque cuya lectura no ha llegado lo dice con su título, en vez
+  // de desaparecer o enseñar ceros.
+  const sinDato = titulo => `<div class="panel"><h3>${esc(titulo)}</h3>
+    <div class="vacio">No ha llegado este dato. Se vuelve a pedir solo.</div></div>`;
 
-  const cR   = d.vivas.filter(c => new Date(c.ultima_en) > Date.now() - RANGO*36e5);
-  const entr = d.res.del_cliente   || 0;
-  const resp = d.res.del_asistente || 0;
-  const et   = RANGO === 24 ? '24 horas' : RANGO === 168 ? '7 días' : '30 días';
-  const etc  = RANGO === 24 ? '24h'       : RANGO === 168 ? '7 días' : '30 días';
+  const etc = RANGO === 24 ? '24h' : RANGO === 168 ? '7 días' : '30 días';
+
+  const kpis = seguro('Indicadores', () => {
+    if (F.has('convs')) return [
+      kpiPend('Personas atendidas', NO_LLEGA),
+      kpiPend(`Conversaciones en ${etc}`, NO_LLEGA),
+      kpiPend('Respuestas de la IA', NO_LLEGA)].join('');
+    const contactos = new Set(d.convs.map(c => c.user_ref)).size;
+    const auto = d.convs.reduce((s,c) => s + (Number(c.del_asistente) || 0), 0);
+    const cR   = d.vivas.filter(c => new Date(c.ultima_en) > Date.now() - RANGO*36e5);
+    const entr = Number(d.res.del_cliente)   || 0;
+    const resp = Number(d.res.del_asistente) || 0;
+    return kpi('Personas atendidas', nf.format(contactos),
+            `En ${nf.format(d.convs.length)} ${
+              d.convs.length === 1 ? 'conversación' : 'conversaciones'}`)
+      + kpi(`Conversaciones en ${etc}`, nf.format(cR.length),
+            F.has('resumen') ? 'Sin el recuento de mensajes'
+              : `${nf.format(entr + resp)} ${entr + resp === 1 ? 'mensaje' : 'mensajes'}`)
+      + kpi('Respuestas de la IA', nf.format(auto), 'Sin intervención humana', true);
+  }, [kpiPend('Personas atendidas', 'No se ha podido calcular'),
+      kpiPend(`Conversaciones en ${etc}`, 'No se ha podido calcular'),
+      kpiPend('Respuestas de la IA', 'No se ha podido calcular')].join(''));
+
+  const tiempo = F.has('lat') ? kpiPend('Tiempo de respuesta', NO_LLEGA)
+    : seguro('Tiempo de respuesta', () => bloqueTiempo(d.tr),
+             kpiPend('Tiempo de respuesta', 'No se ha podido calcular'));
+
+  // «Sin mensajes en este periodo» sería falso si lo que pasa es que
+  // no ha llegado el dato.
+  const cardiograma = F.has('porHora')
+    ? `<div class="vacio">No ha llegado el cardiograma. Se vuelve a pedir solo.</div>`
+    : seguro('Cardiograma', () => grafica(d.porHora),
+             `<div class="vacio">No se ha podido dibujar el cardiograma.</div>`);
+
+  const enLista = xs => xs.length === 1 ? xs[0]
+    : xs.slice(0, -1).join(', ') + ' y ' + xs[xs.length - 1];
+  const faltan = [...F].map(k => LECTURAS_LATIDO[k]);
+  const viejos = [...(d.viejos || [])].map(k => LECTURAS_LATIDO[k]);
+  const partes = [
+    faltan.length ? `${faltan.length === 1 ? 'Falta un dato' : 'Faltan datos'}: ${enLista(faltan)}.` : '',
+    viejos.length ? `Sin actualizar: ${enLista(viejos)} (se ve lo último que llegó).` : ''
+  ].filter(Boolean);
+  const aviso = partes.length ? `<div class="lfalta" role="status">
+      <span>${esc(partes.join(' '))} Se vuelve a pedir solo cada 30 segundos.</span>
+      <button type="button" id="lreint">Reintentar ahora</button>
+    </div>` : '';
 
   pintaEn(`
     <h2 class="tit">El <em>latido</em></h2>
     <p class="sub">Cada conversación que atiende la IA con tus clientes, registrada según entra.</p>
+    ${aviso}
 
     <div class="kpis">
-      ${kpi('Personas atendidas', nf.format(contactos),
-            `En ${nf.format(d.convs.length)} ${
-              d.convs.length === 1 ? 'conversación' : 'conversaciones'}`)}
-      ${kpi(`Conversaciones en ${etc}`, nf.format(cR.length),
-            `${nf.format(entr + resp)} ${entr + resp === 1 ? 'mensaje' : 'mensajes'}`)}
-      ${kpi('Respuestas de la IA', nf.format(auto), 'Sin intervención humana', true)}
-      ${bloqueTiempo(d.tr)}
+      ${kpis}
+      ${tiempo}
     </div>
 
     <div class="panel">
@@ -1595,61 +1892,67 @@ async function pintarLatido(silencioso){
             `<button class="rg${RANGO===h?' on':''}" data-h="${h}">${l}</button>`).join('')}
         </div>
       </div>
-      ${grafica(d.porHora)}
+      ${cardiograma}
     </div>
 
     <div class="rejilla2">
-      ${bloqueSenales(d)}
-      ${bloqueTemas(d, 'servicio')}
+      ${F.has('convs') ? sinDato(E('senales_titulo')) : seguro(E('senales_titulo'), () => bloqueSenales(d))}
+      ${F.has('lugares') ? sinDato(E('servicio_titulo')) : seguro(E('servicio_titulo'), () => bloqueTemas(d, 'servicio'))}
     </div>
 
     <div class="rejilla2">
-      ${bloqueTemas(d, 'ubicacion')}
-      ${bloqueNumeros(d.num)}
+      ${F.has('lugares') ? sinDato(E('ubicacion_titulo')) : seguro(E('ubicacion_titulo'), () => bloqueTemas(d, 'ubicacion'))}
+      ${F.has('numeros') ? sinDato('Tus números') : seguro('Tus números', () => bloqueNumeros(d.num))}
     </div>
 
-    ${bloquePatron(d)}
+    ${F.has('patron') ? sinDato('Cuándo escriben') : seguro('Cuándo escriben', () => bloquePatron(d))}
 
     <div class="rejilla2">
-      ${bloqueMapa(d)}
-      ${bloqueActividad(d)}
+      ${F.has('lugares') ? sinDato('Mapa de demanda') : seguro('Mapa de demanda', () => bloqueMapa(d))}
+      ${F.has('reciente') ? sinDato('Actividad reciente') : seguro('Actividad reciente', () => bloqueActividad(d))}
     </div>`, silencioso);
 
-  const hueco = document.getElementById('lmapa');
-  if (mapaVivo && hueco){
-    hueco.replaceWith(mapaVivo);
-    LMAP.invalidateSize({ animate: false });
-    // Ya está montado: que el observador de carga diferida no lo
-    // vuelva a montar. Solo se ponen al día los puntos, sin moverlo.
-    const p = document.getElementById('panelmapa');
-    if (p) p.dataset.observado = '1';
-    pintarPuntos(false);
-  } else if (mapaVivo){
-    // Ya no hay zonas que enseñar y el bloque ha desaparecido: el mapa
-    // se tira, que si no Leaflet sigue vivo sobre un elemento suelto.
-    OBSMAPA?.disconnect(); OBSMAPA = null;
-    LMAP.remove(); LMAP = null; LCAPA = null;
-  }
+  tramo('Mapa', () => {
+    const hueco = document.getElementById('lmapa');
+    if (mapaVivo && hueco){
+      hueco.replaceWith(mapaVivo);
+      LMAP.invalidateSize({ animate: false });
+      // Ya está montado: que el observador de carga diferida no lo
+      // vuelva a montar. Solo se ponen al día los puntos, sin moverlo.
+      const p = document.getElementById('panelmapa');
+      if (p) p.dataset.observado = '1';
+      pintarPuntos(false);
+    } else if (mapaVivo){
+      // Ya no hay zonas que enseñar y el bloque ha desaparecido: el mapa
+      // se tira, que si no Leaflet sigue vivo sobre un elemento suelto.
+      OBSMAPA?.disconnect(); OBSMAPA = null;
+      LMAP.remove(); LMAP = null; LCAPA = null;
+    }
+  });
 
-  activarGrafico();
-  enlazarPlegables();
+  $('#lreint')?.addEventListener('click', () => pintarLatido(true, true));
+  tramo('Cardiograma', activarGrafico);
+  tramo('Carga del mapa', enlazarPlegables);
   ULTIMOS = d;
   // El mapa lo monta su observador cuando entra en pantalla, no
   // aquí: así Leaflet solo se descarga si alguien baja hasta él.
-  activarSenales();
+  tramo('Señales', activarSenales);
 
-  // desde la actividad reciente se abre la conversación completa
-  document.querySelectorAll('.feed li[data-ir]').forEach(li => {
-    li.addEventListener('click', () => abrir(li.dataset.ir));
-    li.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); abrir(li.dataset.ir); }
+  tramo('Actividad reciente', () => {
+    // desde la actividad reciente se abre la conversación completa
+    document.querySelectorAll('.feed li[data-ir]').forEach(li => {
+      li.addEventListener('click', () => abrir(li.dataset.ir));
+      li.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); abrir(li.dataset.ir); }
+      });
     });
   });
 
   // El rango sí necesita volver a consultar (otra ventana temporal),
-  // pero se pinta en modo silencioso para conservar el scroll.
+  // pero se pinta en modo silencioso para conservar el scroll. Lo pide
+  // la persona: se pinta aunque falte algo (forzar).
   document.querySelectorAll('.rg[data-h]').forEach(b =>
-    b.addEventListener('click', () => { RANGO = +b.dataset.h; pintarLatido(true); }));
+    b.addEventListener('click', () => { RANGO = +b.dataset.h; pintarLatido(true, true); }));
 
   // El mapa no necesita datos nuevos: solo se reencuadra.
   document.querySelectorAll('.rg[data-m]').forEach(b =>
@@ -1785,7 +2088,12 @@ function bloqueActividad(d){
 
 function bloqueNumeros(n){
   if (!n) return '';
-  const falta = new Set(n.faltan || []);
+  const falta = new Set(Array.isArray(n.faltan) ? n.faltan : []);
+  // Un parámetro que llega vacío también falta, lo diga o no la lista
+  // `faltan`: si no, la cuenta escribía «× null min».
+  if (n.ticket_medio == null)     falta.add('ticket');
+  if (n.minutos_por_conv == null) falta.add('minutos');
+  if (n.coste_hora == null)       falta.add('coste_hora');
   const eur = v => nf.format(Math.round(Number(v) || 0)) + ' €';
 
   // Una partida sin su parámetro no enseña un cero, que parecería un
@@ -2292,9 +2600,22 @@ function bloquePatron(d){
   const grid = Array.from({length:7}, () => Array(24).fill(0));
   let max = 0;
   d.patron.forEach(p => {
+    // EL DOMINGO ES EL 7. mt_patron_horario da los días en isodow
+    // (1 = lunes … 7 = domingo), como todo el proyecto, y esta rejilla
+    // va de 0 = domingo a 6 = sábado. Se usaba el número tal cual: de
+    // lunes a sábado coincide, pero el domingo pedía la fila 7, que no
+    // existe, y el error tumbaba el Latido entero. Bastaba UN mensaje
+    // recibido en domingo para dejar la pantalla en el esqueleto para
+    // siempre, porque esta lectura no tiene ventana de tiempo.
+    // % 7 deja 1…6 como están y pasa el 7 a 0.
+    if (p.dia == null || p.hora == null) return;   // Number(null) sería 0: domingo
+    const dd = Number(p.dia) % 7, h = Number(p.hora);
+    // Una fila que no cabe en la semana no se pinta: mejor perder ese
+    // dato que la pantalla.
+    if (!Number.isInteger(dd) || dd < 0 || !Number.isInteger(h) || h < 0 || h > 23) return;
     const v = Number(p.mensajes) || 0;
-    grid[p.dia][p.hora] += v;
-    if (grid[p.dia][p.hora] > max) max = grid[p.dia][p.hora];
+    grid[dd][h] += v;
+    if (grid[dd][h] > max) max = grid[dd][h];
   });
   if (!max) return '';
 
@@ -2304,7 +2625,9 @@ function bloquePatron(d){
   // alguien del equipo.
   // dias viene en formato ISO 1=lunes…7=domingo; getDay() usa 0=domingo.
   const H = CFG.horario || { inicio:9, fin:19, dias:[1,2,3,4,5] };
-  const lab = new Set((H.dias || [1,2,3,4,5]).map(n => n === 7 ? 0 : n));
+  // Number(): si los días llegaran como texto, «7» === 7 fallaba y todo
+  // contaba como fuera de horario.
+  const lab = new Set((H.dias || [1,2,3,4,5]).map(n => Number(n) % 7));
   let fuera = 0, total = 0;
   for (let dd=0; dd<7; dd++) for (let h=0; h<24; h++){
     const v = grid[dd][h]; total += v;
@@ -2682,7 +3005,14 @@ async function filtrar(q){
   cont.innerHTML = '<div class="vacio">Buscando en los mensajes…</div>';
   // La búsqueda ignora acentos porque mt_buscar compara contra el
   // texto normalizado: "coruna" encuentra "A Coruña".
-  const { data } = await supabase.rpc('mt_buscar', { p_texto: q, p_limite: 500 });
+  const { data, error } = await supabase.rpc('mt_buscar', { p_texto: q, p_limite: 500 });
+  // Si la búsqueda falla, se dice. Antes salía «Ninguna conversación
+  // contiene…», que es falso: no se había podido mirar.
+  if (error){
+    cont.innerHTML = `<div class="vacio">No se ha podido buscar «${esc(q)}» en los mensajes.<br>
+      Inténtalo de nuevo en un momento.</div>`;
+    return;
+  }
   const refs = new Set((data || []).map(r => r.user_ref));
   const r = base.filter(c => refs.has(c.user_ref ?? c.user_ref));
   // Al buscar dentro de los mensajes, resaltar el nombre no
@@ -4301,7 +4631,9 @@ function limpiaMensaje(t){
   return t ?? '';
 }
 
-const esc = s => s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+// String(s ?? ''): un campo vacío en la base llega como null, y
+// null.replace tumbaba el bloque que lo estuviera pintando.
+const esc = s => String(s ?? '').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const fechaCorta = d => new Date(d).toLocaleDateString('es-ES',
   { day:'2-digit', month:'short', year:'2-digit' });
 const fecha = d => new Date(d).toLocaleString('es-ES',
