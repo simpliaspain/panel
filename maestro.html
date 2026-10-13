@@ -303,7 +303,12 @@
 <div id="tostadas"></div>
 
 <script type="module">
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// Versión EXACTA de la librería. Con @2 a secas, cada visita cargaba
+// la última 2.x publicada: el panel podía cambiar de comportamiento
+// sin que nadie lo tocara. 2.117.3 es la que se estaba sirviendo, así
+// que fijarla no cambia nada hoy. Para subirla, se cambia aquí, en los
+// dos paneles, y se pasan las pruebas.
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.117.3';
 
 /* PROYECTO DE PRODUCCIÓN. Este archivo apuntaba al proyecto viejo
    mientras el panel del cliente ya estaba en el nuevo: enseñaba
@@ -320,7 +325,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 
 // Qué versión está cargada: sale en la franja de staging y en la
 // consola, para saber si GitHub Pages ya sirve lo último que se subió.
-const VERSION = '2026-10-09 · refresco sin pérdidas';
+const VERSION = '2026-10-13 · latido a prueba de fallos';
 console.info('Panel maestro · versión', VERSION);
 
 const supabase = createClient(URL, KEY, {
