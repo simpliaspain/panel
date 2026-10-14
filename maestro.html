@@ -18,7 +18,8 @@
     --r:16px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{min-height:100%;width:100%;max-width:100%;overflow-x:hidden;
+  /* clip y no hidden: con hidden en los dos, sticky deja de funcionar. */
+  html,body{min-height:100%;width:100%;max-width:100%;overflow-x:hidden;overflow-x:clip;
             -webkit-text-size-adjust:100%;text-size-adjust:100%}
   img,svg{max-width:100%}
   header,main,.panel,.kpi,.card{min-width:0}
@@ -259,7 +260,10 @@
   .staging{background:#B54708;color:#fff;text-align:center;
            padding:6px 16px;font-size:12px;font-weight:800;
            letter-spacing:.06em;text-transform:uppercase;
-           position:sticky;top:0;z-index:60}
+           position:relative;z-index:60}
+  /* Móvil: «hace 14 s» no cabe junto a la marca y Salir, y la cabecera
+     saltaba a dos filas a los diez segundos de entrar. */
+  @media(max-width:820px){#rcuando{display:none}}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -325,7 +329,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 
 // Qué versión está cargada: sale en la franja de staging y en la
 // consola, para saber si GitHub Pages ya sirve lo último que se subió.
-const VERSION = '2026-10-13 · latido a prueba de fallos';
+const VERSION = '2026-10-14 · revisión para la demo';
 console.info('Panel maestro · versión', VERSION);
 
 const supabase = createClient(URL, KEY, {
@@ -334,6 +338,10 @@ const supabase = createClient(URL, KEY, {
 
 const $  = s => document.querySelector(s);
 const nf = new Intl.NumberFormat('es-ES');
+// Segundos con una cifra decimal y coma: «3,4», no «3.4000000000000004».
+const seg = v => new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 }).format(Number(v) || 0);
+// Más de dos días se dice en días: «100 días», no «2400 h».
+const horasTxt = h => h >= 48 ? `${nf.format(Math.round(h / 24))} días` : `${Math.round(h)} h`;
 const esc = s => String(s ?? '').replace(/[&<>"]/g,
   m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
@@ -346,6 +354,8 @@ let VIVAS = [];   // siempre las no resueltas, independiente del filtro de panta
 let FILTRO_INC = 'vivas';
 let VISTAS_CRIT = new Set();     // huellas críticas ya avisadas
 let ARRANCANDO = true;           // no avisar de lo que ya existía al entrar
+let PANORAMA_LEIDO = false;      // si el panorama ha llegado alguna vez
+let INCID_DE = 'vivas';          // de qué filtro es la lista INCID
 // Memoria del agente: a quién se está mirando y qué se ha encontrado.
 let MEMREF = '', MEMQ = '', MEM = null, MEMCOPIAS = [];
 // Si ahora mismo se puede escribir sobre el cliente elegido. null =
@@ -380,16 +390,47 @@ window.addEventListener('unhandledrejection', e => reportar(
   'Promesa sin capturar: ' + String(e.reason?.message || e.reason).slice(0,200),
   {}, 'aviso'));
 
-// Envoltorio de RPC: cualquier fallo de consulta queda registrado.
+/* Envoltorio de RPC. Como en el panel del cliente:
+   · las LECTURAS tienen tiempo máximo (20 s): una consulta colgada
+     dejaba «Cargando…» para siempre y sin refresco automático;
+   · las ESCRITURAS no: cortarla no la para, y repetirla a ciegas es
+     peor que esperar;
+   · un fallo de red no se registra como incidencia (no es del panel,
+     y no se puede enviar mientras dura), y una lectura que falla es
+     un aviso, no un crítico: en una demostración, un corte de wifi
+     encendía la alarma roja del propio panel. */
+const ESPERA_MAX = 20000;
+const ESCRITURAS = new Set(['mt_atender_incidencia','mt_borrar_memoria','mt_restaurar_memoria',
+  'mt_guardar_config_operador','mt_pausar','mt_reanudar','mt_excluir','mt_incluir','mt_ver_como']);
+const esDeRed = e => !!e && (e.code === 'red'
+  || /Failed to fetch|Load failed|NetworkError|network/i.test(String(e.message || '')));
 async function rpc(nombre, args){
-  const { data, error } = await supabase.rpc(nombre, args);
+  let reloj = null, r;
+  try {
+    const llamada = supabase.rpc(nombre, args);
+    r = ESCRITURAS.has(nombre) ? await llamada : await Promise.race([llamada,
+      new Promise(listo => { reloj = setTimeout(() => listo({ data: null, error: {
+        code: 'tiempo', message: `El servidor no ha contestado en ${ESPERA_MAX / 1000} segundos.` } }),
+        ESPERA_MAX); })]);
+  } catch (e){
+    r = { data: null, error: { code: 'red', message: 'No se ha podido contactar con el servidor.' } };
+  } finally { clearTimeout(reloj); }
+  const { data, error } = r || { error: { code: 'red', message: 'Respuesta vacía del servidor.' } };
   if (error){
-    reportar('rpc_' + nombre, `Fallo en ${nombre}(): ${error.message}`,
-             { codigo: error.code, pista: error.hint }, 'critico');
+    if (!esDeRed(error) && nombre !== 'mt_registrar_incidencia')
+      reportar((error.code === 'tiempo' ? 'rpc_tiempo_' : 'rpc_') + nombre,
+               `Fallo en ${nombre}(): ${error.message}`,
+               { codigo: error.code, pista: error.hint },
+               ESCRITURAS.has(nombre) && error.code !== 'tiempo' ? 'critico' : 'aviso');
     throw error;
   }
   return data;
 }
+// Un error en castellano: «TypeError: Load failed» no le dice nada a nadie.
+const mensajeError = e => esDeRed(e) ? 'No hay conexión con el servidor. Inténtalo de nuevo.'
+  : e?.code === 'tiempo' ? 'El servidor no ha contestado a tiempo. Inténtalo de nuevo.'
+  : /permission denied/i.test(String(e?.message || '')) ? 'Esta cuenta no tiene permiso para esto.'
+  : (e?.message || 'Ha ocurrido un error.');
 
 /* ---------- login ---------- */
 $('#entrar').addEventListener('click', entrar);
@@ -401,20 +442,30 @@ async function entrar(){
   e.style.display = 'none';
   b.disabled = true; b.textContent = 'Comprobando…';
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email: $('#em').value.trim(), password: $('#pw').value
-  });
-  if (error){
-    e.textContent = error.message.includes('Invalid')
-      ? 'Email o contraseña incorrectos.' : error.message;
-    e.style.display = 'block';
+  const falla = txt => {
+    e.textContent = txt; e.style.display = 'block';
     b.disabled = false; b.textContent = 'Entrar';
-    return;
+  };
+  let error;
+  try {
+    ({ error } = await Promise.race([
+      supabase.auth.signInWithPassword({ email: $('#em').value.trim(), password: $('#pw').value }),
+      new Promise(ok => setTimeout(() => ok({ error: { code: 'tiempo', message: 'tiempo' } }), ESPERA_MAX))
+    ]));
+  } catch (x){ error = { code: 'red', message: String(x?.message || x) }; }
+  if (error){
+    return falla(/Invalid/i.test(error.message || '') ? 'Email o contraseña incorrectos.'
+      : /missing email|email.*(required|invalid)/i.test(error.message || '') ? 'Escribe el email y la contraseña.'
+      : mensajeError(error));
   }
 
   // El acceso lo decide la base de datos, no esta comprobación.
   // Aunque alguien la saltara, las funciones devuelven vacío.
-  const { data: op } = await supabase.rpc('mt_soy_operador');
+  // Si la comprobación no llega (red), se dice eso: antes decía «esta
+  // cuenta no tiene permiso de operador» y cerraba la sesión.
+  let op;
+  try { op = await rpc('mt_soy_operador'); }
+  catch (x){ await supabase.auth.signOut().catch(() => {}); return falla(mensajeError(x)); }
   if (!op){
     await supabase.auth.signOut();
     e.textContent = 'Esta cuenta no tiene permiso de operador. ' +
@@ -426,14 +477,17 @@ async function entrar(){
 
   $('#login').style.display = 'none';
   $('#app').style.display = 'block';
-  await cargar();
-  ARRANCANDO = false;
+  // El reloj se pone en marcha antes de la primera carga: si esa carga
+  // se colgaba, no había refresco automático en toda la sesión.
   auto();
+  await cargar();
 }
 
-$('#salir').addEventListener('click', async () => {
+$('#salir').addEventListener('click', () => {
   clearInterval(TIMER);
-  await supabase.auth.signOut();
+  // Sin esperar: la sesión vive en memoria y se va con la recarga. Si el
+  // cierre se colgaba, «Salir» no hacía nada.
+  supabase.auth.signOut().catch(() => {});
   location.reload();
 });
 
@@ -459,8 +513,8 @@ document.querySelectorAll('nav button').forEach(b =>
 $('#refrescar').addEventListener('click', async () => {
   const b = $('#refrescar');
   b.classList.add('girando');
-  await cargar(true);
-  b.classList.remove('girando');
+  try { await cargar(true); }
+  finally { b.classList.remove('girando'); }
 });
 
 // Escribiendo en algo: un campo, un desplegable, un texto largo, o
@@ -496,31 +550,49 @@ async function cargar(forzarLenta = false, desdeReloj = false){
   // Las vivas se piden siempre. La insignia y los avisos no pueden
   // depender del filtro que el operador tenga puesto en pantalla:
   // con el filtro en "Resueltas" dejarían de avisar de lo nuevo.
+  // Una lectura que falla deja lo último que llegó, no una lista vacía:
+  // un solo fallo de red en el refresco cambiaba la lista de clientes
+  // por «No se ha podido leer el panorama… 117_maestro.sql» y escondía
+  // la insignia de incidencias.
   const [p, v] = await Promise.all([
-    rpc('mt_operador_panorama').catch(() => []),
-    rpc('mt_mis_incidencias', { p_estado: 'vivas' }).catch(() => [])
+    rpc('mt_operador_panorama').catch(() => null),
+    rpc('mt_mis_incidencias', { p_estado: 'vivas' }).catch(() => null)
   ]);
-  PANORAMA = p || []; VIVAS = v || [];
-  INCID = FILTRO_INC === 'vivas' ? VIVAS
-    : (await rpc('mt_mis_incidencias', { p_estado: FILTRO_INC })
-        .catch(() => [])) || [];
+  if (p){ PANORAMA = p; PANORAMA_LEIDO = true; }
+  if (v){
+    VIVAS = v;
+    avisarNuevas();
+    // Lo que ya existía al entrar no se anuncia: se deja de considerar
+    // «arranque» con la primera lectura de incidencias que llega bien.
+    // Antes, si esa primera fallaba, al volver salían todas de golpe.
+    ARRANCANDO = false;
+  }
+  if (FILTRO_INC === 'vivas'){ INCID = VIVAS; INCID_DE = 'vivas'; }
+  else {
+    const i = await rpc('mt_mis_incidencias', { p_estado: FILTRO_INC }).catch(() => null);
+    // Si falla, se queda lo último SOLO si era de este mismo filtro: si
+    // no, saldría la lista de otro filtro bajo el nombre de este.
+    if (i){ INCID = i; INCID_DE = FILTRO_INC; }
+    else if (INCID_DE !== FILTRO_INC){ INCID = []; INCID_DE = FILTRO_INC; }
+  }
 
   if (!EXSLUG && PANORAMA.length) EXSLUG = PANORAMA[0].slug;
 
   if (lenta){
     const [cf, fr, cp] = await Promise.all([
-      rpc('mt_mi_config_operador').catch(() => []),
-      EXSLUG ? rpc('mt_operador_frenos', { p_slug: EXSLUG }).catch(() => []) : [],
-      rpc('mt_memorias_borradas', { p_limite: 30 }).catch(() => [])
+      rpc('mt_mi_config_operador').catch(() => null),
+      EXSLUG ? rpc('mt_operador_frenos', { p_slug: EXSLUG }).catch(() => null) : [],
+      rpc('mt_memorias_borradas', { p_limite: 30 }).catch(() => null)
     ]);
-    CFGOP = cf || [];
-    if (EXSLUG) FRENOS[EXSLUG] = fr || [];
-    MEMCOPIAS = cp || [];
-    ULTIMA_LENTA = Date.now();
+    if (cf) CFGOP = cf;
+    if (EXSLUG && fr) FRENOS[EXSLUG] = fr;
+    if (cp) MEMCOPIAS = cp;
+    // Solo cuenta como hecha si ha llegado: si no, se reintenta en el
+    // siguiente refresco y no dentro de cinco minutos.
+    if (cf && fr && cp) ULTIMA_LENTA = Date.now();
   }
 
-  ULTIMA = Date.now(); cuando();
-  avisarNuevas();
+  if (p && v){ ULTIMA = Date.now(); cuando(); }
   insignia();
   pintar({ desdeReloj });
 }
@@ -596,6 +668,13 @@ function pintar(op = {}){
     : VISTA === 'web'          ? vistaWeb()
     :                            vistaIncidencias();
 
+  // Alta y Web llevan marcos empotrados: reescribirlos los recarga y se
+  // pierde lo que se estuviera rellenando en el formulario de alta. Si
+  // no ha cambiado nada, no se tocan, venga de donde venga (⟳, volver a
+  // pulsar la pestaña, una carga lenta que llega tarde).
+  if ((VISTA === 'alta' || VISTA === 'web') && html === VISTA_HTML
+      && document.querySelector('#vista iframe')) return;
+
   let escrito = null;
   if (op.desdeReloj){
     if (html === VISTA_HTML) return;
@@ -640,8 +719,8 @@ function diagnostico(c){
 
   const h = Number(c.horas_sin_mensaje);
   if (c.horas_sin_mensaje != null && h > 48)
-    ambar.push(`sin mensajes desde hace ${Math.round(h)} h`);
-  if (Number(c.lat_p95_s) > 25) ambar.push(`p95 de respuesta en ${c.lat_p95_s} s`);
+    ambar.push(`sin mensajes desde hace ${horasTxt(h)}`);
+  if (Number(c.lat_p95_s) > 25) ambar.push(`p95 de respuesta en ${seg(c.lat_p95_s)} s`);
   if (Number(c.incid_abiertas) > Number(c.incid_criticas))
     ambar.push(`${c.incid_abiertas - c.incid_criticas} ${
       c.incid_abiertas - c.incid_criticas === 1
@@ -663,10 +742,12 @@ const mt = (l, v, p, cl) => `<div class="mt">
 
 function vistaClientes(){
   if (!PANORAMA.length) return `<h2 class="tit">Clientes</h2>
-    <div class="panel"><div class="vacio">
-      <strong>No se ha podido leer el panorama.</strong><br>
-      Comprueba que <code>117_maestro.sql</code> está aplicado y que tu cuenta
-      está en <code>mt_operadores</code>.
+    <div class="panel"><div class="vacio">${PANORAMA_LEIDO
+      ? '<strong>Todavía no hay ningún cliente.</strong>'
+      : `<strong>No se ha podido leer el panorama todavía.</strong><br>
+         Se vuelve a intentar solo cada 30 segundos. Si no llega nunca,
+         comprueba que <code>117_maestro.sql</code> está aplicado y que tu
+         cuenta está en <code>mt_operadores</code>.`}
     </div></div>`;
 
   const mal = PANORAMA.filter(c => diagnostico(c).cl === 'rj').length;
@@ -712,12 +793,12 @@ function fichaCliente(c){
               delta >= 0 ? '+' : ''}${delta} %</span>`),
            p7 ? `frente a ${nf.format(p7)} la semana anterior` : 'sin comparativa')}
       ${mt('Último mensaje',
-           h === null ? '—' : (h < 1 ? '<1 h' : `${Math.round(h)} h`),
+           h === null ? '—' : (h < 1 ? '<1 h' : horasTxt(h)),
            h === null ? 'nunca' : 'de un cliente',
            h === null ? 'gr' : h > 48 ? 'am' : '')}
       ${mt('Respuesta p95',
-           c.lat_p95_s == null ? '—' : `${c.lat_p95_s}<small style="font-size:.55em">s</small>`,
-           c.lat_muestras ? `mediana ${c.lat_p50_s} s · ${nf.format(c.lat_muestras)} muestras`
+           c.lat_p95_s == null ? '—' : `${seg(c.lat_p95_s)}<small style="font-size:.55em">s</small>`,
+           c.lat_muestras ? `mediana ${seg(c.lat_p50_s)} s · ${nf.format(c.lat_muestras)} muestras`
                           : 'sin mediciones',
            c.lat_p95_s == null ? 'gr' : Number(c.lat_p95_s) > 25 ? 'am' : '')}
       ${mt('Sin responder', nf.format(c.sin_respuesta_24h), 'en 24 h',
@@ -767,7 +848,7 @@ function vistaIncidencias(){
 function filaInc(i){
   const det = i.detalle && typeof i.detalle === 'object'
     ? Object.entries(i.detalle).filter(([,v]) => v != null && v !== '')
-        .map(([k,v]) => `${k}: ${String(v)}`).join(' · ') : '';
+        .map(([k,v]) => `${k}: ${v && typeof v === 'object' ? JSON.stringify(v) : String(v)}`).join(' · ') : '';
   return `<div class="inc ${i.estado === 'resuelta' ? 'resuelta' : ''}">
     <span class="sev ${esc(i.severidad)}"></span>
     <div class="incuerpo">
@@ -999,6 +1080,9 @@ function enlazar(){
       });
       msg.textContent = 'Guardada.';
       await cargar(true);
+      // Si la pantalla no ha cambiado (la misma dirección), no se repinta
+      // y el botón se quedaba desactivado.
+      b.disabled = false;
     } catch (e) {
       b.disabled = false;
       msg.textContent = mensajePermiso(e);
@@ -1166,11 +1250,17 @@ function montarMarcos(){
     : panelesWeb().map((_, i) => 'w' + i);
   ids.forEach(id => {
     const f = document.getElementById('mf' + id);
-    if (!f) return;
+    // Cada marco se vigila una vez: la pestaña y pintar() llaman las dos.
+    if (!f || f.dataset.vigilado) return;
+    f.dataset.vigilado = '1';
+    // El aviso de ESTE marco, cogido ahora: buscarlo por id a los 7 s
+    // encontraba el de un marco nuevo que sí había cargado y lo tapaba.
+    const aviso = document.getElementById('mb' + id);
     let cargado = false;
-    f.addEventListener('load', () => { cargado = true; });
+    // Y si carga después de los 7 s (wifi de un evento), el aviso se quita.
+    f.addEventListener('load', () => { cargado = true; aviso?.classList.remove('on'); });
     setTimeout(() => {
-      if (!cargado) document.getElementById('mb' + id)?.classList.add('on');
+      if (!cargado && f.isConnected) aviso?.classList.add('on');
     }, 7000);
   });
 }
@@ -1366,7 +1456,7 @@ function listaPersonas(yaFuera){
         <div class="exmeta">${c.nombre
           ? `<span class="mono">${esc(c.telefono || c.user_ref)}</span>` : ''}${
           c.email ? (c.nombre ? ' · ' : '') + esc(c.email) : ''} ·
-          ${nf.format(c.mensajes)} mensajes</div>
+          ${nf.format(c.mensajes)} ${Number(c.mensajes) === 1 ? 'mensaje' : 'mensajes'}</div>
       </div>
       ${fuera
         ? `<button class="cbtn sec" data-quitar="excluido|${esc(c.user_ref)}"
@@ -1412,8 +1502,9 @@ function vistaMemoria(){
       ${EXCONT[EXSLUG] === undefined
         ? '<div class="vacio" style="padding:20px">Cargando contactos…</div>'
         : !MEMQ
-        ? `<div class="vacio" style="padding:20px">Escribe para buscar entre las ${
-            nf.format((EXCONT[EXSLUG] || []).length)} personas de este cliente.</div>`
+        ? `<div class="vacio" style="padding:20px">${(EXCONT[EXSLUG] || []).length === 1
+            ? 'Escribe para buscar a la única persona de este cliente.'
+            : `Escribe para buscar entre las ${nf.format((EXCONT[EXSLUG] || []).length)} personas de este cliente.`}</div>`
         : !r.length
         ? `<div class="vacio" style="padding:20px">Nadie coincide con «${esc(MEMQ)}».</div>`
         : `<div class="exlista">${r.map(c => {
@@ -1496,10 +1587,16 @@ function vistaMemoria(){
 }
 
 async function mirarMemoria(){
+  // La persona que se pidió: si mientras llega se elige otra, esta
+  // respuesta no se pinta. Salía la memoria de una persona bajo el
+  // nombre de otra, en la pantalla que BORRA.
+  const ref = MEMREF;
   MEM = null; pintar();
-  try {
-    MEM = (await rpc('mt_memoria_de', { p_slug: EXSLUG, p_user_ref: MEMREF })) || [];
-  } catch { MEM = []; }
+  let m;
+  try { m = (await rpc('mt_memoria_de', { p_slug: EXSLUG, p_user_ref: ref })) || []; }
+  catch { m = []; }
+  if (ref !== MEMREF) return;
+  MEM = m;
   pintar();
 }
 
