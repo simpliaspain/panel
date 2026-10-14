@@ -54,6 +54,7 @@ function crearNodo(id){
     // Poner un elemento en el sitio de otro: el sitio (el id) pasa a
     // ser suyo, como en el navegador.
     replaceWith(otro){ NODOS.set(id, otro); },
+    closest:() => null, remove(){},
     addEventListener(){}, focus(){}, click(){}, scrollTo(){}, blur(){},
     setAttribute(){}, getAttribute:() => null,
     querySelector:() => null, querySelectorAll:() => [],
@@ -140,6 +141,8 @@ globalThis.supabase.rpc = async (fn, args = {}) => {
 const tic = () => typeof tic30 === 'function' ? tic30()
   : VISTA === 'convs' ? pintarConvs(true) : pintarEmbudo(true);
 
+// Como tras entrar con una cuenta que puede escribir.
+TENANT = { slug:'oficinasya', nombre:'Oficinas YA!', rol:'admin', puede_escribir:true };
 const detalle = () => $$('pdetalle')?.innerHTML || '';
 
 console.log('\n=== Conversaciones: el refresco automático ===');

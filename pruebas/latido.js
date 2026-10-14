@@ -26,11 +26,12 @@ for (const [n,h] of Object.entries(bloques)){
   console.log(`  ${n.padEnd(13)} ${plegado?'PLEGADO':'abierto '} · ${
     /undefined|NaN/.test(h)?'CON undefined/NaN':'limpio'}`);
 }
+let MALAS = 0; const ok = v => { if (v !== true) MALAS++; return v; };
 console.log('\n  Tus números total:', (bloques['Tus números'].match(/tn-total">([^<]+)/)||[])[1]);
-console.log('  Actividad sin punto:', !bloques['Actividad'].includes('fdot'));
-console.log('  Señales sin párrafo largo:', !bloques['Señales'].includes('pueden quedarse cortas'));
-console.log('  El mapa SE PINTA         :', bloques['Mapa'].includes('id="lmapa"'));
-console.log('  con sus ámbitos          :', bloques['Mapa'].includes('data-m='));
+console.log('  Actividad sin punto:', ok(!bloques['Actividad'].includes('fdot')));
+console.log('  Señales sin párrafo largo:', ok(!bloques['Señales'].includes('pueden quedarse cortas')));
+console.log('  El mapa SE PINTA         :', ok(bloques['Mapa'].includes('id="lmapa"')));
+console.log('  con sus ámbitos          :', ok(bloques['Mapa'].includes('data-m=')));
 
 // ---- Configuración ----
 globalThis.supabase.rpc = async (fn) => {
@@ -50,13 +51,18 @@ globalThis.document.querySelector = (sel) => sel === '#vista'
   ? { set innerHTML(v){ CFGHTML = v; }, addEventListener(){}, querySelectorAll:()=>[],
       classList:{add(){},remove(){},toggle(){}}, style:{} }
   : antes(sel);
+// En su pestaña: el panel no pinta Configuración encima de otra.
+VISTA = 'ajustes';
 await pintarAjustes(true);
+if (!CFGHTML) { console.log('\n  Configuración NO se ha pintado. NO despliegues.'); process.exit(1); }
 console.log('\n=== Configuración ===');
 console.log('  Canal                :', (CFGHTML.match(/<dt>Canal<\/dt><dd>([^<]+)/)||[])[1]);
-console.log('  sin fila "Mensajes"  :', !CFGHTML.includes('<dt>Mensajes</dt>'));
+console.log('  sin fila "Mensajes"  :', ok(!CFGHTML.includes('<dt>Mensajes</dt>')));
 console.log('  orden de paneles     :',
   ['Servicio','Tus preferencias','Parámetros de cálculo','Información del servicio','Tratamiento de datos']
     .map(t=>CFGHTML.indexOf(t)).filter(v=>v>=0)
-    .every((v,i,a)=>i===0||v>a[i-1]) ? 'correcto' : 'MAL');
-console.log('  ancho limitado       :', CFGHTML.includes('class="ajustes"'));
-console.log('  sin undefined/NaN    :', !/undefined|NaN/.test(CFGHTML));
+    .every((v,i,a)=>i===0||v>a[i-1]) && ok(true) ? 'correcto' : (MALAS++, 'MAL'));
+console.log('  ancho limitado       :', ok(CFGHTML.includes('class="ajustes"')));
+console.log('  sin undefined/NaN    :', ok(!/undefined|NaN/.test(CFGHTML)));
+
+if (MALAS){ console.log(`\n  ${MALAS} comprobaciones del pintado han fallado. NO despliegues.`); process.exit(1); }

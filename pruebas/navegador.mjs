@@ -515,6 +515,227 @@ await seccion('Entrada · sin conexión no es «sin cliente»', async () => {
 });
 
 /* ============================================================
+   REVISIÓN DEL 14/10: LO QUE SE VERÍA EN UNA DEMOSTRACIÓN
+   ============================================================ */
+// Un rpc del cliente con piezas que se pueden cambiar por prueba.
+let NUEVO = false, SOLO_LECTURA = false, CITAS = [], PAUSA_AUTO = false, MSG_LINEAS = false;
+// Parámetros de cálculo: lo que se mandó a guardar, y si la base ya
+// tiene la 119 (sin ella se salta los tres datos sin dar error).
+let GUARDADO = null, SERVIDOR_119 = true, NUMEROS_SIN_PARAMS = false;
+let AJUSTES = { email_avisos:['comercial@oficinasya.es'] };
+const NUEVA = { user_ref:'34699999999@s.whatsapp.net', nombre:'Carmen Nueva', telefono:'34699999999' };
+async function rpcDemo(fn, a){
+  if (fn === 'mt_mi_config') return [{ slug:'oficinasya', nombre:'Oficinas YA!', rol: SOLO_LECTURA ? 'viewer' : 'admin',
+                                       puede_escribir: !SOLO_LECTURA, ajustes:{} }];
+  if (fn === 'mt_mis_citas') return CITAS.map(c => ({ ...c }));
+  if (fn === 'mt_resumen_servicio') return [{ cliente:'Oficinas YA!', slug:'oficinasya', canal:'whatsapp_evolution',
+    alta:'2026-06-02T00:00:00Z', conversaciones:3, mensajes:12, contactos:3, usuarios:2, ubicaciones:2, servicios:1,
+    zona_horaria:'Europe/Madrid', rol: SOLO_LECTURA ? 'viewer' : 'admin', puede_escribir: !SOLO_LECTURA,
+    ajustes:{ ...AJUSTES } }];
+  if (fn === 'mt_guardar_ajustes'){
+    GUARDADO = a.p_ajustes;
+    const nuevos = { ...a.p_ajustes };
+    if (!SERVIDOR_119 && !SOLO_LECTURA)
+      for (const k of ['ticket_medio_eur','minutos_por_conversacion','coste_hora_eur']) delete nuevos[k];
+    AJUSTES = { ...AJUSTES, ...nuevos };
+    return { ...AJUSTES };
+  }
+  if (fn === 'mt_mis_numeros' && NUMEROS_SIN_PARAMS)
+    return [{ conversaciones:12, tiempo_eur:0, ganados:0, ventas_eur:0, fuera_horario:3,
+              fuera_horario_eur:0, coste_hora:null, minutos_por_conv:null, ticket_medio:null,
+              faltan:['ticket','minutos','coste_hora'] }];
+  const r = await rpcLatido(fn, a);
+  if (r && r.__fallo) return r;
+  if (fn === 'mt_mis_contactos'){
+    const l = (r || []).map(c => ({ ...c }));
+    if (PAUSA_AUTO) l[0] = { ...l[0], pausado_hasta: new Date(Date.now() + 2*36e5).toISOString(), pausado_por:'humano' };
+    return NUEVO ? [...l, { ...NUEVA, mensajes:1, ultima:ahora() }] : l;
+  }
+  if (fn === 'mt_actividad' && NUEVO)
+    return [{ user_ref:NUEVA.user_ref, nombre:NUEVA.nombre, papel:'human', contenido:'Hola, busco oficina', cuando:ahora() }];
+  if (fn === 'mt_mensajes_contacto' && a.p_user_ref === NUEVA.user_ref)
+    return [{ papel:'human', contenido:'Hola, busco oficina', cuando:ahora() }];
+  if (fn === 'mt_mensajes_contacto' && MSG_LINEAS && a.p_user_ref === PERSONAS[0].user_ref)
+    return [{ papel:'ai', contenido:'Tenemos:\nSala A\nSala B', cuando:ahora() }];
+  return r;
+}
+// Cerrar una prueba sin dejar nada a medias: con la red lenta simulada,
+// lo que aún esté esperando seguiría ejecutándose sobre una ventana ya
+// cerrada (eso no pasa en un navegador, la página no desaparece a mitad).
+const cerrarLimpio = async p => { pararReloj(p); limpiarDemo(); await espera(1100); p.w.close(); };
+const limpiarDemo = () => { sinFallos(); NUEVO = false; SOLO_LECTURA = false; CITAS = []; PAUSA_AUTO = false; MSG_LINEAS = false;
+  GUARDADO = null; SERVIDOR_119 = true; NUMEROS_SIN_PARAMS = false; AJUSTES = { email_avisos:['comercial@oficinasya.es'] }; };
+
+await seccion('Demo · alguien escribe por primera vez con el panel abierto', async () => {
+  limpiarDemo();
+  const p = await entrarCliente(390, rpcDemo);
+  NUEVO = true;
+  await espera(TIC * 3);
+  const fila = p.$(`.feed li[data-ir="${NUEVA.user_ref}"]`);
+  comprobar('sale en la actividad reciente', !!fila, true);
+  fila?.click();
+  await espera(80);
+  comprobar('su conversación se abre con su nombre, no con el número de WhatsApp',
+    textoDe(p, '#mbox .dcab h2').includes('Carmen'), true);
+  comprobar('y «Llamar» marca con el prefijo internacional',
+    [...p.w.document.querySelectorAll('#mbox a[href^="tel:"]')].every(a => a.getAttribute('href') === 'tel:+34699999999'), true);
+  await cerrarLimpio(p);
+});
+
+await seccion('Demo · «Ver conversación» desde el Embudo abre a ESA persona', async () => {
+  limpiarDemo();
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'convs');
+  p.$(`.pers[data-c="${PERSONAS[0].user_ref}"]`).click();      // se estaba leyendo a otra persona
+  await espera(60);
+  await ir(p, 'embudo');
+  p.$('.lfila[data-lead="8"]').click();
+  await espera(60);
+  RETRASO = fn => fn === 'mt_mis_contactos' ? 900 : 0;          // y la red va lenta
+  p.$('#fver').click();
+  await espera(1300);
+  comprobar('se ve Conversaciones', !!p.$('#pconvs'), true);
+  comprobar('con la conversación de Persona 8, no la de antes',
+    textoDe(p, '#pdetalle .dcab h2').includes('Persona 8'), true);
+  await cerrarLimpio(p);
+});
+
+await seccion('Demo · «Abrir en Embudo» abre la ficha aunque la red vaya lenta', async () => {
+  limpiarDemo();
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'convs');
+  p.$(`.pers[data-c="${PERSONAS[1].user_ref}"]`).click();
+  await espera(60);
+  RETRASO = fn => fn === 'mt_sincronizar' ? 900 : 0;
+  p.$('#verembudo').click();
+  await espera(1300);
+  comprobar('se abre la ficha de Persona 8 en la columna', textoDe(p, '#pficha .fcab h2').includes('Persona 8'), true);
+  comprobar('y no en la ventana del móvil encima del ordenador', p.$('#modal').style.display === 'block', false);
+  await cerrarLimpio(p);
+});
+
+await seccion('Demo · una búsqueda lenta no pisa a la siguiente', async () => {
+  limpiarDemo();
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'convs');
+  // Sin reloj: el refresco automático volvería a pintar la lista y
+  // taparía el fallo, que en la vida real se ve 30 segundos.
+  pararReloj(p);
+  RETRASO = fn => fn === 'mt_buscar' ? 500 : 0;
+  const b = p.$('#buscar');
+  b.value = 'despacho'; b.dispatchEvent(new p.w.Event('input', { bubbles:true }));
+  await espera(330);                        // la búsqueda en el servidor ya ha salido
+  b.value = ''; b.dispatchEvent(new p.w.Event('input', { bubbles:true }));
+  await espera(900);                        // y su respuesta llega tarde
+  comprobar('con la caja vacía se ve la lista entera, no «Ninguna conversación contiene»',
+    /Ninguna conversación contiene/.test(textoDe(p, '#plista')), false);
+  await cerrarLimpio(p);
+});
+
+await seccion('Demo · Agenda con un apóstrofo en el nombre', async () => {
+  limpiarDemo();
+  const maniana = new Date(Date.now() + 864e5).toISOString();
+  CITAS = [
+    { nombre:"Luis D'Angelo", telefono:'34600000002', descripcion:'Visita, sala; 4 personas', cuando: maniana, estado:'confirmada' },
+    { nombre:"x' autofocus tabindex=0 onfocus='window.__x=1", telefono:'34600000003', cuando: maniana, estado:'confirmada' }
+  ];
+  const p = await entrarCliente(1400, rpcDemo);
+  let ics = null;
+  p.w.Blob = class { constructor(partes){ ics = partes.join(''); } };
+  p.w.URL.createObjectURL = () => 'blob:prueba';
+  p.w.URL.revokeObjectURL = () => {};
+  p.w.HTMLAnchorElement.prototype.click = function(){};
+  await ir(p, 'agenda');
+  const botones = [...p.w.document.querySelectorAll('button.ics')];
+  comprobar('salen los dos botones «Calendario»', botones.length, 2);
+  comprobar('ningún nombre mete atributos en el HTML',
+    botones.some(b => b.hasAttribute('onfocus') || b.hasAttribute('autofocus')), false);
+  botones[0]?.click();
+  comprobar('«Calendario» descarga la cita de D\'Angelo', /D'Angelo/.test(ics || ''), true);
+  comprobar('«Llamar» marca con +34',
+    [...p.w.document.querySelectorAll('#vista a[href^="tel:"]')].map(a => a.getAttribute('href')).includes('tel:+34600000002'), true);
+  await cerrarLimpio(p);
+});
+
+await seccion('Demo · cuenta de solo lectura: nada que falle al pulsarlo', async () => {
+  limpiarDemo(); SOLO_LECTURA = true;
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'embudo');
+  p.$('.lfila[data-lead="7"]').click();
+  await espera(60);
+  comprobar('la ficha se ve', !!p.$('#pficha .fcab'), true);
+  comprobar('sin «Apuntar», sin barra de Guardar', !p.$('#t_ok') && !p.$('#fguardar'), true);
+  comprobar('con los datos sin poder editarse', p.$('#f_notas')?.disabled, true);
+  comprobar('y dice que es de solo lectura', /Solo lectura/.test(textoDe(p, '#faviso')), true);
+  await ir(p, 'ajustes');
+  comprobar('Configuración no ofrece «Guardar cambios» a quien no puede', !p.$('#guardar'), true);
+  comprobar('pero enseña los correos', /comercial@oficinasya\.es/.test(textoDe(p, '#vista')), true);
+  await cerrarLimpio(p);
+});
+
+await seccion('Configuración · el cliente pone sus parámetros de cálculo', async () => {
+  limpiarDemo(); NUMEROS_SIN_PARAMS = true;
+  const p = await entrarCliente(1400, rpcDemo);
+  comprobar('sin parámetros, «Tus números» no enseña un 0 €: enseña «—»',
+    textoDe(p, '#p-numeros .tn-total'), '—');
+  comprobar('y le dice al cliente dónde ponerlos',
+    /ponlo en Configuración, en «Parámetros de cálculo»/.test(textoDe(p, '#p-numeros')), true);
+  await ir(p, 'ajustes');
+  comprobar('el administrador del cliente ve los tres campos para rellenar',
+    !!p.$('#tk') && !!p.$('#mn') && !!p.$('#ch') && !!p.$('#guardarpar'), true);
+  const pon = (id, v) => { p.$(id).value = v; };
+  pon('#tk', '1.450'); pon('#mn', '7'); pon('#ch', '22,5');
+  p.$('#guardarpar').click();
+  await espera(80);
+  comprobar('se mandan como números, leídos a la española («1.450», «22,5»)',
+    JSON.stringify(GUARDADO), JSON.stringify({ ticket_medio_eur:1450, minutos_por_conversacion:7, coste_hora_eur:22.5 }));
+  comprobar('y dice que se ha guardado', /Guardado/.test(textoDe(p, '#msgpar')), true);
+  GUARDADO = null;
+  pon('#tk', 'mucho'); p.$('#guardarpar').click(); await espera(40);
+  comprobar('lo que no es un número se dice y no se manda',
+    JSON.stringify([GUARDADO, /tiene que ser un número/.test(textoDe(p, '#msgpar'))]), JSON.stringify([null, true]));
+  pon('#tk', '350'); pon('#mn', '900'); p.$('#guardarpar').click(); await espera(40);
+  comprobar('un valor imposible tampoco', JSON.stringify([GUARDADO, /entre 0 y 480/.test(textoDe(p, '#msgpar'))]), JSON.stringify([null, true]));
+  await cerrarLimpio(p);
+});
+
+await seccion('Configuración · si la base aún no tiene la 119, no dice «Guardado»', async () => {
+  limpiarDemo(); SERVIDOR_119 = false;
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'ajustes');
+  p.$('#tk').value = '350'; p.$('#mn').value = '7'; p.$('#ch').value = '22';
+  p.$('#guardarpar').click();
+  await espera(80);
+  comprobar('avisa de que no se ha guardado', /No se ha guardado/.test(textoDe(p, '#msgpar')), true);
+  comprobar('y no dice «Guardado»', /^Guardado/.test(textoDe(p, '#msgpar')), false);
+  await cerrarLimpio(p);
+});
+
+await seccion('Configuración · un lector ve los parámetros pero no los cambia', async () => {
+  limpiarDemo(); SOLO_LECTURA = true; AJUSTES = { ticket_medio_eur:350, minutos_por_conversacion:7.5, coste_hora_eur:22 };
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'ajustes');
+  comprobar('sin campos ni botón', !p.$('#tk') && !p.$('#guardarpar'), true);
+  comprobar('con los valores escritos a la española', /7,5 min/.test(textoDe(p, '#parametros')), true);
+  await cerrarLimpio(p);
+});
+
+await seccion('Demo · textos de la conversación', async () => {
+  limpiarDemo(); PAUSA_AUTO = true; MSG_LINEAS = true;
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'convs');
+  p.$(`.pers[data-c="${PERSONAS[0].user_ref}"]`).click();
+  await espera(80);
+  comprobar('la pausa automática dice cuándo vuelve, sin «vuelve hasta»',
+    /vuelve a responderle a las/.test(textoDe(p, '#pdetalle')) && !/vuelve hasta/.test(textoDe(p, '#pdetalle')), true);
+  comprobar('los saltos de línea del mensaje se conservan',
+    p.$('#pdetalle .btxt')?.textContent, 'Tenemos:\nSala A\nSala B');
+  comprobar('«Llamar» marca con +34',
+    p.$('#pdetalle .dacc a[href^="tel:"]')?.getAttribute('href'), 'tel:+34600000007');
+  await cerrarLimpio(p);
+});
+
+/* ============================================================
    PANEL MAESTRO
    ============================================================ */
 let PANORAMA_NOMBRE = 'Oficinas YA!';
@@ -597,6 +818,48 @@ await seccion('Maestro · Pausas y exclusiones: el motivo', async () => {
   comprobar('y el contacto suelto también', p.$('#exnum')?.value, '34600000000@s.whatsapp.net');
   PANORAMA_NOMBRE = 'Oficinas YA!';
   p.w.close();
+});
+
+// El maestro con fallos que se pueden encender por prueba.
+const FALLO_M = new Set();
+const rpcMaestroF = fn => FALLO_M.has(fn) ? { __fallo:'red' } : rpcMaestro(fn);
+
+await seccion('Maestro · un fallo de red en el refresco no borra la lista de clientes', async () => {
+  FALLO_M.clear();
+  const p = montar(MAESTRO, 1400, rpcMaestroF);
+  p.$('#em').value = 'simpliaspain@gmail.com'; p.$('#pw').value = 'x';
+  await p.ev('entrar()'); await espera(60);
+  comprobar('empieza con el cliente en pantalla', /Oficinas YA!/.test(textoDe(p, '#vista')), true);
+  FALLO_M.add('mt_operador_panorama'); FALLO_M.add('mt_mis_incidencias');
+  await espera(TIC * 3);
+  comprobar('tras refrescos sin red, el cliente sigue ahí', /Oficinas YA!/.test(textoDe(p, '#vista')), true);
+  comprobar('sin el aviso de «No se ha podido leer el panorama»', /No se ha podido leer/.test(textoDe(p, '#vista')), false);
+  FALLO_M.clear(); p.w.close();
+});
+
+await seccion('Maestro · ⟳ no recarga el formulario de Alta', async () => {
+  FALLO_M.clear();
+  const p = await entrarMaestro();
+  await irM(p, 'alta');
+  const marco = p.$('#mfalta');
+  p.$('#refrescar').click();
+  await espera(120);
+  comprobar('el mismo formulario, sin recargar', p.$('#mfalta') === marco && !!marco, true);
+  p.$('nav button[data-n="alta"]').click();
+  await espera(80);
+  comprobar('ni al volver a pulsar la pestaña', p.$('#mfalta') === marco, true);
+  p.w.close();
+});
+
+await seccion('Maestro · sin red al entrar no es «no eres operador»', async () => {
+  FALLO_M.clear(); FALLO_M.add('mt_soy_operador');
+  const p = montar(MAESTRO, 1400, rpcMaestroF);
+  p.$('#em').value = 'simpliaspain@gmail.com'; p.$('#pw').value = 'x';
+  await p.ev('entrar()'); await espera(40);
+  comprobar('dice que no hay conexión', /conexión/.test(textoDe(p, '#err')), true);
+  comprobar('y no que la cuenta no tiene permiso', /permiso de operador/.test(textoDe(p, '#err')), false);
+  comprobar('el botón vuelve a estar disponible', p.$('#entrar').disabled, false);
+  FALLO_M.clear(); p.w.close();
 });
 
 console.log(`\n  ${OK} comprobaciones pasadas, ${MAL} fallos\n`);
