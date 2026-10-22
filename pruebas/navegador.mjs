@@ -104,6 +104,9 @@ function montar(archivo, ancho, rpc){
       // mensaje del navegador. «Load failed» es el de Safari en iPhone.
       if (r && r.__fallo === 'red') return { data:null, status:0,
         error:{ message:'TypeError: Load failed', details:'', hint:'', code:'' } };
+      // Una función que el servidor aún no tiene (migración sin aplicar).
+      if (r && r.__fallo === 'sinfuncion') return { data:null, status:404, error:{ code:'PGRST202',
+        message:`Could not find the function public.${fn}(p_valores) in the schema cache` } };
       if (r && r.__fallo) return { data:null, error:{ message:'permission denied for function ' + fn, code:'42501' } };
       return r === undefined ? { data:[], error:null } : { data:r, error:null };
     }
@@ -139,7 +142,7 @@ function rpcCliente(fn, a){
     case 'mt_mi_config': return [{ slug:'oficinasya', nombre:'Oficinas YA!', rol:'admin',
                                    puede_escribir:true, ajustes:{} }];
     case 'mt_mis_contactos': return PERSONAS.map(p => ({ user_ref:p.user_ref, nombre:p.nombre,
-                                   telefono:p.telefono, mensajes:2, ultima:ahora() }));
+                                   telefono:p.telefono, email:p.email, mensajes:2, ultima:ahora() }));
     case 'mt_mensajes_contacto': return (MENSAJES[a.p_user_ref] || []).map(m => ({ ...m }));
     case 'mt_mis_leads': return PERSONAS.map(p => ({ ...p, ultima:ahora() }));
     case 'mt_embudo_resumen': return [{ etapa:'entrada', leads:3 }];
@@ -379,14 +382,23 @@ await seccion('Latido · un refresco sin red no estropea lo que hay', async () =
   p.w.close();
 });
 
+await seccion('Latido · abre en 7 días', async () => {
+  sinFallos();
+  const p = await entrarCliente(390, rpcLatido);
+  comprobar('el botón de 7 días sale marcado', p.$('.rg[data-h="168"]')?.classList.contains('on'), true);
+  comprobar('y el de 24 h no', p.$('.rg[data-h="24"]')?.classList.contains('on'), false);
+  comprobar('las cifras son las de 7 días (336 mensajes)', /^336 mensajes/.test(pieConvs(p)), true);
+  p.w.close();
+});
+
 await seccion('Latido · una lectura falla SIEMPRE y las demás cambian', async () => {
   sinFallos();
   const p = await entrarCliente(390, rpcLatido);
-  comprobar('empieza con 48 mensajes', /^48 mensajes/.test(pieConvs(p)), true);
+  comprobar('empieza con 336 mensajes', /^336 mensajes/.test(pieConvs(p)), true);
   FALLO.tipo = 'error'; FALLO.fns.add('mt_patron_horario');
   EXTRA = 10;
   await espera(TIC * 4);
-  comprobar('lo que cambia llega a la pantalla (no se congela)', /^58 mensajes/.test(pieConvs(p)), true);
+  comprobar('lo que cambia llega a la pantalla (no se congela)', /^346 mensajes/.test(pieConvs(p)), true);
   comprobar('«Cuándo escriben» sigue con lo último que llegó', !!p.$('.mfila'), true);
   comprobar('y el aviso dice que no está actualizado',
     /Sin actualizar: cuándo escriben/.test(textoDe(p, '.lfalta')), true);
@@ -399,16 +411,16 @@ await seccion('Latido · cambiar el rango con una lectura caída', async () => {
   const p = await entrarCliente(390, rpcLatido);
   pararReloj(p);
   FALLO.tipo = 'error'; FALLO.fns.add('mt_resumen');
-  p.$('.rg[data-h="168"]').click();
+  p.$('.rg[data-h="24"]').click();
   await espera(80);
-  comprobar('el botón de 7 días queda marcado', p.$('.rg[data-h="168"]')?.classList.contains('on'), true);
-  comprobar('el recuento de 24 h NO se hace pasar por el de 7 días',
+  comprobar('el botón de 24 h queda marcado', p.$('.rg[data-h="24"]')?.classList.contains('on'), true);
+  comprobar('el recuento de 7 días NO se hace pasar por el de 24 h',
     pieConvs(p), 'Sin el recuento de mensajes');
   comprobar('y arriba dice qué falta', /Falta un dato: el recuento de mensajes/.test(textoDe(p, '.lfalta')), true);
   sinFallos();
   p.$('#lreint').click();
   await espera(80);
-  comprobar('«Reintentar ahora» del aviso lo trae', /^336 mensajes/.test(pieConvs(p)) && !p.$('.lfalta'), true);
+  comprobar('«Reintentar ahora» del aviso lo trae', /^48 mensajes/.test(pieConvs(p)) && !p.$('.lfalta'), true);
   p.w.close();
 });
 
@@ -416,14 +428,14 @@ await seccion('Latido · una respuesta que llega tarde no pisa a la nueva', asyn
   sinFallos();
   const p = await entrarCliente(390, rpcLatido);
   pararReloj(p);
-  // El refresco de 24 h tarda; mientras, se pide 7 días.
-  RETRASO = (fn, a) => fn === 'mt_resumen' && a.p_horas === 24 ? 250 : 0;
+  // El refresco de 7 días tarda; mientras, se pide 24 h.
+  RETRASO = (fn, a) => fn === 'mt_resumen' && a.p_horas === 168 ? 250 : 0;
   p.ev('pintarLatido(true)');
   await espera(20);
-  p.$('.rg[data-h="168"]').click();
+  p.$('.rg[data-h="24"]').click();
   await espera(450);
-  comprobar('se queda lo de 7 días, lo último que se pidió',
-    /^336 mensajes/.test(pieConvs(p)) && p.$('.rg[data-h="168"]')?.classList.contains('on'), true);
+  comprobar('se queda lo de 24 h, lo último que se pidió',
+    /^48 mensajes/.test(pieConvs(p)) && p.$('.rg[data-h="24"]')?.classList.contains('on'), true);
   sinFallos();
   p.w.close();
 });
@@ -448,7 +460,7 @@ await seccion('Escrituras · no se cortan a los 20 s', async () => {
   // sin probar nada más.
   const m = fs.readFileSync(INDEX, 'utf8').match(/const ESCRITURAS = new Set\(\[([^\]]*)\]\)/);
   const esc = new Set((m ? m[1] : '').match(/mt_[a-z_]+/g) || []);
-  for (const f of ['mt_apuntar_toque','mt_guardar_lead','mt_mover_lead','mt_guardar_ajustes',
+  for (const f of ['mt_apuntar_toque','mt_guardar_lead','mt_mover_lead','mt_guardar_ajustes','mt_guardar_parametros',
                    'mt_pausar','mt_reanudar','mt_excluir','mt_incluir','mt_deshacer_evento','mt_editar_evento'])
     comprobar(`${f} va sin tiempo máximo`, esc.has(f), true);
   comprobar('las lecturas sí lo tienen', esc.has('mt_resumen') || esc.has('mt_patron_horario'), false);
@@ -522,6 +534,8 @@ let NUEVO = false, SOLO_LECTURA = false, CITAS = [], PAUSA_AUTO = false, MSG_LIN
 // Parámetros de cálculo: lo que se mandó a guardar, y si la base ya
 // tiene la 119 (sin ella se salta los tres datos sin dar error).
 let GUARDADO = null, SERVIDOR_119 = true, NUMEROS_SIN_PARAMS = false;
+// La 120: los parámetros con su propia función. GUARDO_CON dice cuál se usó.
+let SERVIDOR_120 = true, GUARDO_CON = null;
 let AJUSTES = { email_avisos:['comercial@oficinasya.es'] };
 const NUEVA = { user_ref:'34699999999@s.whatsapp.net', nombre:'Carmen Nueva', telefono:'34699999999' };
 async function rpcDemo(fn, a){
@@ -532,8 +546,14 @@ async function rpcDemo(fn, a){
     alta:'2026-06-02T00:00:00Z', conversaciones:3, mensajes:12, contactos:3, usuarios:2, ubicaciones:2, servicios:1,
     zona_horaria:'Europe/Madrid', rol: SOLO_LECTURA ? 'viewer' : 'admin', puede_escribir: !SOLO_LECTURA,
     ajustes:{ ...AJUSTES } }];
+  if (fn === 'mt_guardar_parametros'){
+    if (!SERVIDOR_120) return { __fallo:'sinfuncion' };
+    GUARDADO = a.p_valores; GUARDO_CON = fn;
+    AJUSTES = { ...AJUSTES, ...a.p_valores };
+    return { ...AJUSTES };
+  }
   if (fn === 'mt_guardar_ajustes'){
-    GUARDADO = a.p_ajustes;
+    GUARDADO = a.p_ajustes; GUARDO_CON = fn;
     const nuevos = { ...a.p_ajustes };
     if (!SERVIDOR_119 && !SOLO_LECTURA)
       for (const k of ['ticket_medio_eur','minutos_por_conversacion','coste_hora_eur']) delete nuevos[k];
@@ -564,7 +584,8 @@ async function rpcDemo(fn, a){
 // cerrada (eso no pasa en un navegador, la página no desaparece a mitad).
 const cerrarLimpio = async p => { pararReloj(p); limpiarDemo(); await espera(1100); p.w.close(); };
 const limpiarDemo = () => { sinFallos(); NUEVO = false; SOLO_LECTURA = false; CITAS = []; PAUSA_AUTO = false; MSG_LINEAS = false;
-  GUARDADO = null; SERVIDOR_119 = true; NUMEROS_SIN_PARAMS = false; AJUSTES = { email_avisos:['comercial@oficinasya.es'] }; };
+  GUARDADO = null; SERVIDOR_119 = true; NUMEROS_SIN_PARAMS = false; AJUSTES = { email_avisos:['comercial@oficinasya.es'] };
+  SERVIDOR_120 = true; GUARDO_CON = null; };
 
 await seccion('Demo · alguien escribe por primera vez con el panel abierto', async () => {
   limpiarDemo();
@@ -690,6 +711,7 @@ await seccion('Configuración · el cliente pone sus parámetros de cálculo', a
   comprobar('se mandan como números, leídos a la española («1.450», «22,5»)',
     JSON.stringify(GUARDADO), JSON.stringify({ ticket_medio_eur:1450, minutos_por_conversacion:7, coste_hora_eur:22.5 }));
   comprobar('y dice que se ha guardado', /Guardado/.test(textoDe(p, '#msgpar')), true);
+  comprobar('con su propia función (la 120), no con mt_guardar_ajustes', GUARDO_CON, 'mt_guardar_parametros');
   GUARDADO = null;
   pon('#tk', 'mucho'); p.$('#guardarpar').click(); await espera(40);
   comprobar('lo que no es un número se dice y no se manda',
@@ -699,8 +721,22 @@ await seccion('Configuración · el cliente pone sus parámetros de cálculo', a
   await cerrarLimpio(p);
 });
 
-await seccion('Configuración · si la base aún no tiene la 119, no dice «Guardado»', async () => {
-  limpiarDemo(); SERVIDOR_119 = false;
+await seccion('Configuración · sin la 120 pero con la 119, guarda por el camino de antes', async () => {
+  limpiarDemo(); SERVIDOR_120 = false; INCID_PANEL.length = 0;
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'ajustes');
+  p.$('#tk').value = '350'; p.$('#mn').value = '7'; p.$('#ch').value = '22';
+  p.$('#guardarpar').click();
+  await espera(80);
+  comprobar('dice «Guardado»', /^Guardado/.test(textoDe(p, '#msgpar')), true);
+  comprobar('lo ha guardado mt_guardar_ajustes', JSON.stringify([GUARDO_CON, AJUSTES.ticket_medio_eur]), JSON.stringify(['mt_guardar_ajustes', 350]));
+  comprobar('y que falte la 120 no se apunta como incidencia',
+    INCID_PANEL.some(i => /mt_guardar_parametros/.test(i.p_codigo || '')), false);
+  await cerrarLimpio(p);
+});
+
+await seccion('Configuración · si la base no tiene ni la 120 ni la 119, no dice «Guardado»', async () => {
+  limpiarDemo(); SERVIDOR_119 = false; SERVIDOR_120 = false;
   const p = await entrarCliente(1400, rpcDemo);
   await ir(p, 'ajustes');
   p.$('#tk').value = '350'; p.$('#mn').value = '7'; p.$('#ch').value = '22';
@@ -732,6 +768,53 @@ await seccion('Demo · textos de la conversación', async () => {
     p.$('#pdetalle .btxt')?.textContent, 'Tenemos:\nSala A\nSala B');
   comprobar('«Llamar» marca con +34',
     p.$('#pdetalle .dacc a[href^="tel:"]')?.getAttribute('href'), 'tel:+34600000007');
+  await cerrarLimpio(p);
+});
+
+await seccion('Conversación · escribirle por WhatsApp o por correo', async () => {
+  limpiarDemo();
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'convs');
+  p.$(`.pers[data-c="${PERSONAS[0].user_ref}"]`).click();
+  await espera(80);
+  const wa = p.$('#pdetalle #dwa');
+  comprobar('sale «WhatsApp» junto a «Abrir en Embudo»',
+    !!wa && wa.parentElement === p.$('#pdetalle #verembudo')?.parentElement, true);
+  comprobar('abre el chat con su número, con prefijo', wa?.getAttribute('href'), 'https://wa.me/34600000007');
+  comprobar('en otra pestaña', wa?.getAttribute('target'), '_blank');
+  comprobar('sin correo, no sale «Correo»', !p.$('#pdetalle #dmail'), true);
+  p.$(`.pers[data-c="${PERSONAS[1].user_ref}"]`).click();
+  await espera(80);
+  comprobar('con correo, «Correo» abre el correo con su dirección',
+    p.$('#pdetalle #dmail')?.getAttribute('href'), 'mailto:p8@empresa.es');
+  // Alguien del chat de la web: sin teléfono ni correo.
+  const h = p.ev(`htmlDetalle('h8imro4xgx68', [], false)`);
+  comprobar('sin teléfono ni correo, no sale ninguno de los dos', /id="dwa"|id="dmail"/.test(h), false);
+  comprobar('pero sí «Abrir en Embudo»', /id="verembudo"/.test(h), true);
+  // Un identificador de WhatsApp que no es un teléfono (@lid) no da enlace.
+  const h2 = p.ev(`htmlDetalle('123456789012345@lid', [], false)`);
+  comprobar('un @lid de WhatsApp no da un enlace roto', /wa\.me/.test(h2), false);
+  comprobar('un correo normal vale para «Correo»', p.ev(`correoValido('ana.lopez+info@empresa.es')`), true);
+  comprobar('uno con «?cc=» no (abriría el borrador con otros destinatarios)',
+    p.ev(`correoValido('a@b.com?cc=x%40otro.com')`), false);
+  comprobar('ni uno incompleto', p.ev(`correoValido('ana@empresa')`), false);
+  await cerrarLimpio(p);
+});
+
+await seccion('Entrada · sin la línea de versión', async () => {
+  // Sobre el texto del archivo: la entrada es HTML fijo.
+  const h = fs.readFileSync(INDEX, 'utf8');
+  const login = h.slice(h.indexOf('<section id="login">'), h.indexOf('</section>', h.indexOf('<section id="login">')));
+  comprobar('bajo «Entrar al panel» ya no sale la versión',
+    !/id="lver"/.test(h) && !/'Versión ' \+ VERSION/.test(h) && login.length > 0, true);
+});
+
+await seccion('Configuración · el título va en la misma columna que los bloques', async () => {
+  limpiarDemo();
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'ajustes');
+  comprobar('«Configuración» está dentro de la columna centrada', !!p.$('.ajustes > h2.tit'), true);
+  comprobar('y su subtítulo también', !!p.$('.ajustes > p.sub'), true);
   await cerrarLimpio(p);
 });
 
