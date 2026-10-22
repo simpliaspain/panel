@@ -1039,6 +1039,16 @@
 
   /* ---------- AJUSTES DE LA REVISIÓN DEL 14/10 ---------- */
   .ficha dd{overflow-wrap:anywhere}
+  /* Configuración (22/10): cada etiqueta a la altura de su dato. La
+     etiqueta tenía otro interlineado que el dato y quedaba unos píxeles
+     más arriba; y el hueco entre columnas cortaba en dos cada línea
+     separadora. Ahora el hueco va dentro de la etiqueta y la línea es
+     continua. */
+  .ficha{column-gap:0}
+  .ficha dt{line-height:1.6;padding-right:24px}
+  /* Las cifras, con la misma letra que el resto de la fila: en la
+     monoespaciada se veían más altas que su etiqueta. */
+  .ficha dd.num{font-variant-numeric:tabular-nums}
   /* Parámetros: las tres columnas alineadas por arriba. Con sus
      explicaciones de distinto largo, la primera etiqueta quedaba más baja. */
   #parametros .campos{align-items:start}
@@ -1049,9 +1059,6 @@
      es neutro, no el verde de «guardado». */
   .lficha input:disabled,.lficha select:disabled,.lficha textarea:disabled{
     background:var(--fondo);color:var(--tinta-suave);cursor:default}
-  /* La versión, discreta, bajo «Entrar»: para comprobar en el móvil que
-     no se está viendo una copia vieja guardada en caché. */
-  .lver{margin:14px 0 0;font-size:11px;color:var(--gris-claro);text-align:center}
   .faviso.info{display:block;background:var(--fondo);color:var(--tinta-suave);
     border:1px solid var(--linea);font-weight:600}
   /* Al escribir en un dato cerca del final de la ficha, el campo queda
@@ -1118,7 +1125,6 @@
         <label for="pw">Contraseña</label>
         <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••">
         <button class="btn" id="entrar">Entrar al panel</button>
-        <p class="lver" id="lver"></p>
       </div>
     </div>
   </div>
@@ -1172,9 +1178,8 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-10-14 · parámetros del cliente';
+const VERSION = '2026-10-22 · contacto directo';
 console.info('Panel SimpliaSpain · versión', VERSION);
-{ const v = document.getElementById('lver'); if (v) v.textContent = 'Versión ' + VERSION; }
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
 const supabase = createClient(URL, KEY, {
@@ -1267,7 +1272,7 @@ window.addEventListener('unhandledrejection', e => {
 const ESPERA_MAX = 20000;
 const ESCRITURAS = new Set(['mt_apuntar_toque','mt_deshacer_evento','mt_editar_evento',
   'mt_guardar_lead','mt_mover_lead','mt_guardar_ajustes','mt_pausar','mt_reanudar',
-  'mt_excluir','mt_incluir']);
+  'mt_excluir','mt_incluir','mt_guardar_parametros']);
 // La librería no lanza cuando falla la red: devuelve status 0 y un
 // mensaje del navegador («Load failed» en el iPhone, «Failed to fetch»
 // en Chrome, «NetworkError» en Firefox).
@@ -1311,7 +1316,10 @@ supabase.rpc = async (nombre, args, opciones) => {
   // tape después un error de verdad de la misma función.
   // (Aquí ponía 'registrar_incidencia', sin el mt_: la condición no se
   // cumplía nunca.)
-  if (r.error && nombre !== 'mt_registrar_incidencia' && !esDeRed(r)){
+  // mt_guardar_parametros sin la 120 aplicada no es un fallo: el panel
+  // guarda entonces por el camino de antes.
+  if (r.error && nombre !== 'mt_registrar_incidencia' && !esDeRed(r)
+      && !(nombre === 'mt_guardar_parametros' && sinFuncion(r.error))){
     const lento = r.error.code === 'tiempo';
     reportar((lento ? 'rpc_tiempo_' : 'rpc_') + nombre,
              lento ? `${nombre}() no ha contestado en ${ESPERA_MAX / 1000} s`
@@ -1596,7 +1604,7 @@ async function arrancar(){
   autoRefresco();
 }
 
-let RANGO = 24;   // horas
+let RANGO = 168;  // horas. El Latido abre en 7 días (lo pidió el cliente).
 
 function pintarCuando(){
   const el = $('#rcuando'); if (!el) return;
@@ -3427,14 +3435,18 @@ async function pintarAjustes(silencioso){
   if (VISTA !== 'ajustes') return;
 
   if (!r){
-    $('#vista').innerHTML = `<h2 class="tit">Configuración</h2>
+    $('#vista').innerHTML = `<div class="ajustes"><h2 class="tit">Configuración</h2>
       <div class="panel"><div class="vacio">
         No se ha podido cargar la configuración del servicio.<br>
-        ${esc(err ? mensajeError(err) : '')}</div></div>`;
+        ${esc(err ? mensajeError(err) : '')}</div></div></div>`;
     return;
   }
 
   const a = r.ajustes || {};
+  // Si el servidor no dice si se puede escribir, vale lo que dijo al
+  // entrar (mt_mi_config): así nadie se queda sin campos por un dato
+  // que no llegó.
+  const puedeEsc = !!(r.puede_escribir ?? TENANT?.puede_escribir);
 
   // Los ajustes que llegan aquí son los de la base, así que el resto
   // del panel se pone al día con ellos: si alguien cambió el horario
@@ -3466,9 +3478,9 @@ async function pintarAjustes(silencioso){
     { day:'2-digit', month:'long', year:'numeric' }) : '—';
 
   $('#vista').innerHTML = `
+    <div class="ajustes">
     <h2 class="tit">Configuración</h2>
     <p class="sub">Datos de tu servicio y preferencias.</p>
-    <div class="ajustes">
 
     <div class="panel">
       <h3>Servicio</h3>
@@ -3478,11 +3490,11 @@ async function pintarAjustes(silencioso){
         <dt>Canal</dt><dd>${esc(canal)}</dd>
         <dt>Alta del servicio</dt><dd>${alta}</dd>
         <dt>Registro con fecha desde</dt><dd>${desde}</dd>
-        <dt>Conversaciones</dt><dd class="mono">${nf.format(r.conversaciones)}</dd>
-        <dt>Personas atendidas</dt><dd class="mono">${nf.format(r.contactos)}</dd>
-        <dt>Usuarios con acceso</dt><dd class="mono">${nf.format(r.usuarios)}</dd>
-        <dt>Ubicaciones monitorizadas</dt><dd class="mono">${nf.format(r.ubicaciones || 0)}</dd>
-        <dt>Servicios monitorizados</dt><dd class="mono">${nf.format(r.servicios || 0)}</dd>
+        <dt>Conversaciones</dt><dd class="num">${nf.format(r.conversaciones)}</dd>
+        <dt>Personas atendidas</dt><dd class="num">${nf.format(r.contactos)}</dd>
+        <dt>Usuarios con acceso</dt><dd class="num">${nf.format(r.usuarios)}</dd>
+        <dt>Ubicaciones monitorizadas</dt><dd class="num">${nf.format(r.ubicaciones || 0)}</dd>
+        <dt>Servicios monitorizados</dt><dd class="num">${nf.format(r.servicios || 0)}</dd>
         <dt>El asistente responde</dt><dd>Siempre, las 24 horas, todos los días</dd>
         ${r.sector ? `<dt>Sector</dt><dd>${esc(r.sector)}</dd>` : ''}
       </dl>
@@ -3492,7 +3504,7 @@ async function pintarAjustes(silencioso){
       <h3>Tus preferencias</h3>
       <p class="ph">A qué direcciones te avisamos de cambios en el servicio.</p>
 
-      ${r.puede_escribir ? `
+      ${puedeEsc ? `
       <label for="ea0">Correos para avisos del servicio</label>
       <div class="mails" id="emails"></div>
       <button class="cbtn sec masm" id="masmail">Añadir otro correo</button>
@@ -3523,7 +3535,7 @@ async function pintarAjustes(silencioso){
       <p class="hint" style="margin:-8px 0 16px">No es el horario de los centros:
          cada centro tiene el suyo y el asistente lo consulta en tu hoja.
          Aquí solo hace falta una franja de referencia.</p>
-      ${r.puede_escribir ? `
+      ${puedeEsc ? `
         <label>Días que trabaja tu equipo</label>
         <div class="dias" id="dias">
           ${DIAS_CORTOS.map(([n, et, largo]) =>
@@ -3556,7 +3568,7 @@ async function pintarAjustes(silencioso){
       <h3>Parámetros de cálculo</h3>
       <p class="ph">Con ellos se calcula «Tus números» en el Latido. Son datos de
          tu negocio: cuanto más se acerquen a la realidad, más fiable es la cifra.</p>
-      ${r.rol === 'operador' || r.puede_escribir ? `
+      ${r.rol === 'operador' || puedeEsc ? `
         <div class="campos">
           <div>
             <label for="tk">Pago medio de un cliente</label>
@@ -3633,14 +3645,16 @@ async function pintarAjustes(silencioso){
   // su email sin tocar unas cifras que no son suyas.
   // `comprobar(data, enviado)`: si devuelve un texto, no se ha guardado
   // lo que se quería, aunque la base no haya dado error.
-  const guardar = async (boton, mensaje, campos, textoOk, comprobar) => {
+  // `llamar(enviado)`: otra función para guardar (los parámetros usan
+  // la suya); sin ella, mt_guardar_ajustes.
+  const guardar = async (boton, mensaje, campos, textoOk, comprobar, llamar) => {
     const b = $(boton), m = $(mensaje);
     const antes = b.textContent;
     b.disabled = true; b.textContent = 'Guardando…'; m.textContent = '';
     try {
       const enviado = campos();
-      const { data, error } = await supabase.rpc('mt_guardar_ajustes',
-        { p_ajustes: enviado });
+      const { data, error } = llamar ? await llamar(enviado)
+        : await supabase.rpc('mt_guardar_ajustes', { p_ajustes: enviado });
       if (error) throw error;
       const noGuardado = comprobar ? comprobar(data, enviado) : null;
       if (noGuardado) throw new Error(noGuardado);
@@ -3729,7 +3743,8 @@ async function pintarAjustes(silencioso){
       (data, enviado) => Object.entries(enviado).every(([k, v]) =>
           v === null ? data?.[k] == null : Math.abs(Number(data?.[k]) - v) < 0.06)
         ? null
-        : 'No se ha guardado: al servidor le falta una actualización. Avísanos y lo arreglamos.');
+        : 'No se ha guardado: al servidor le falta una actualización. Avísanos y lo arreglamos.',
+      guardarParametros);
   });
 
   /* ---- el horario del equipo ---- */
@@ -3754,6 +3769,31 @@ async function pintarAjustes(silencioso){
     // y el cálculo discrepan hasta recargar.
     if (CFG.ajustes?.horario) CFG.horario = CFG.ajustes.horario;
   });
+}
+
+// Los tres parámetros de cálculo se guardan con su propia función
+// (migración 120), que no depende de cómo esté mt_guardar_ajustes. Si el
+// servidor aún no la tiene, se intenta como antes, con mt_guardar_ajustes
+// (vale si está la 119); y si tampoco los guarda, la comprobación de
+// después lo dice en vez de enseñar «Guardado».
+// Solo «el servidor no tiene mt_guardar_parametros»: otro error de una
+// función que falte DENTRO de ella es un fallo de verdad y se cuenta.
+function sinFuncion(e){
+  const m = String(e?.message || '');
+  return e?.code === 'PGRST202'
+    || (/could not find the function|does not exist/i.test(m) && /mt_guardar_parametros/.test(m));
+}
+// Un correo al que se puede escribir con un mailto: sin más. Fuera ?, &,
+// %, comas…: el correo lo da la persona por el chat, y «a@b.es?cc=…»
+// abría el borrador con otros destinatarios o con texto suyo.
+function correoValido(x){
+  return /^[A-Za-z0-9._+'-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/.test(String(x ?? '').trim());
+}
+async function guardarParametros(valores){
+  const r = await supabase.rpc('mt_guardar_parametros', { p_valores: valores });
+  if (r?.error && sinFuncion(r.error))
+    return supabase.rpc('mt_guardar_ajustes', { p_ajustes: valores });
+  return r;
 }
 
 // Las filas de correo, aparte y sin tocar el DOM, para poder
@@ -3959,6 +3999,59 @@ async function leerMensajes(contact){
   return error ? null : (data || []);
 }
 
+/* ---------- la columna de la derecha sigue a quien lee ----------
+   En pantalla ancha, la conversación (y la ficha del Embudo) va fija
+   con position:sticky mientras se baja por la lista. Si el navegador
+   no la respeta (Safari anterior a la 16, o cualquier ancestro que la
+   rompa), la columna se quedaba arriba del todo: al abrir a alguien de
+   la mitad de la lista había que subir para leerle y bajar para elegir
+   al siguiente. Este respaldo mide dónde ha quedado la columna y, solo
+   si está por encima de donde debería, la baja hasta la vista, sin
+   salirse de su rejilla. Con sticky funcionando no hace nada. */
+function seguirColumnas(){
+  // Es solo colocación: si algo falla aquí, no puede impedir que se
+  // abra la conversación.
+  try { seguirColumnasYa(); } catch (e) { /* sin consecuencias */ }
+}
+function seguirColumnasYa(){
+  if (typeof getComputedStyle !== 'function') return;
+  const cab = document.querySelector('header')?.getBoundingClientRect?.().bottom || 0;
+  for (const id of ['pdetalle', 'pficha']){
+    const el = document.getElementById(id);
+    if (!el) continue;
+    const previo = Number(el.dataset.desv) || 0;
+    const cs = getComputedStyle(el);
+    if (window.innerWidth <= 1000 || cs.display === 'none' || !el.parentElement
+        || !el.getBoundingClientRect){
+      if (previo){ el.style.transform = ''; el.dataset.desv = '0'; }
+      continue;
+    }
+    // Donde querría estar: debajo de la cabecera (o arriba del todo si
+    // la cabecera también se ha ido con el scroll).
+    const tope = Math.min(parseFloat(cs.top) || 88, Math.max(cab, 0) + 16);
+    const r = el.getBoundingClientRect();
+    const rej = el.parentElement.getBoundingClientRect();
+    const natural = r.top - previo;              // sin el respaldo
+    let d = Math.max(0, tope - natural);
+    d = Math.min(d, Math.max(0, rej.bottom - (r.bottom - previo)));
+    d = Math.round(d);
+    if (Math.abs(d - previo) >= 1){
+      el.style.transform = d ? `translateY(${d}px)` : '';
+      el.dataset.desv = String(d);
+    }
+  }
+}
+{
+  let pendiente = false;
+  const pedir = () => {
+    if (pendiente) return;
+    pendiente = true;
+    (window.requestAnimationFrame || (f => setTimeout(f, 16)))(() => { pendiente = false; seguirColumnas(); });
+  };
+  window.addEventListener('scroll', pedir, { passive: true });
+  window.addEventListener('resize', pedir, { passive: true });
+}
+
 // Pinta una conversación. En pantalla ancha va en la columna de la
 // derecha; en móvil, donde esa columna no cabe, se abre encima.
 async function abrir(contact){
@@ -3973,6 +4066,7 @@ async function abrir(contact){
   } else {
     $('#pdetalle').className = 'panel';
     $('#pdetalle').innerHTML = esqueleto('lista');
+    seguirColumnas();
   }
   // Mientras carga, la caja no es de nadie: un refresco que llegue
   // ahora no debe pintar encima del esqueleto.
@@ -3994,12 +4088,19 @@ async function abrir(contact){
   // más antiguo, que podía ser de hace días.
   const sc = caja === '#mbox' ? $('#modal') : $('#pdetalle');
   if (sc) sc.scrollTop = sc.scrollHeight;
+  seguirColumnas();
 }
 
 function htmlDetalle(contact, msgs, conCerrar){
   const c = CONTACTOS.find(x => x.user_ref === contact) || {};
   const tel = c.telefono || contact;
   const marcar = telefonoE164(c.telefono || contact);
+  // El correo puede estar solo en el lead (lo apuntó el equipo en el
+  // Embudo): se usa el del contacto y, si no tiene, el del lead.
+  const lead = Array.isArray(LEADS) ? LEADS.find(x => x.user_ref === contact) : null;
+  const crudo = String(c.email || lead?.email || '').trim();
+  const correo = [c.email, lead?.email].map(x => String(x || '').trim()).find(correoValido) || '';
+  const mailOk = !!correo;
   const G = gestion(c);
   let dia = null;
   return `
@@ -4012,9 +4113,15 @@ function htmlDetalle(contact, msgs, conCerrar){
       ${c.nombre ? `<p class="dmeta">${marcar
           ? `<a href="tel:${esc(marcar)}" class="mono">${esc(marcar)}</a>`
           : `<span class="mono">${esc(tel)}</span>`}</p>` : ''}
-      ${c.email ? `<p class="dmeta"><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></p>` : ''}
+      ${mailOk ? `<p class="dmeta"><a href="mailto:${esc(correo)}">${esc(correo)}</a></p>`
+        : crudo ? `<p class="dmeta">${esc(crudo)}</p>` : ''}
       <div class="dacc">
         ${marcar ? `<a class="cbtn pri" href="tel:${esc(marcar)}">Llamar</a>` : ''}
+        ${marcar ? `<a class="cbtn" id="dwa" href="https://wa.me/${esc(marcar.slice(1))}"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Escribirle por WhatsApp">WhatsApp</a>` : ''}
+        ${mailOk ? `<a class="cbtn" id="dmail" href="mailto:${esc(correo)}"
+             aria-label="Escribirle un correo a ${esc(correo)}">Correo</a>` : ''}
         <button class="cbtn" id="verembudo">Abrir en Embudo</button>
         ${G.botones}
       </div>
@@ -4491,6 +4598,7 @@ function abrirLead(id){
 
   const tel = (l.telefono || l.user_ref || '').replace(/[^0-9+]/g, '');
   const marcar = telefonoE164(l.telefono || l.user_ref);
+  const lmailOk = correoValido(l.email);
 
   // En pantalla ancha la ficha va en la columna de la derecha; en
   // móvil, donde no cabe, se abre encima.
@@ -4527,10 +4635,11 @@ function abrirLead(id){
         <blockquote>${esc(l.ultimo_texto)}</blockquote>
       </figure>` : ''}
 
-      ${marcar ? `<div class="fllamar">
-        <a class="pri" href="tel:${esc(marcar)}">Llamar</a>
+      ${marcar || lmailOk ? `<div class="fllamar">
+        ${marcar ? `<a class="pri" href="tel:${esc(marcar)}">Llamar</a>
         <a class="secu" href="https://wa.me/${esc(marcar.slice(1))}"
-           target="_blank" rel="noopener noreferrer">WhatsApp</a>
+           target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ''}
+        ${lmailOk ? `<a class="${marcar ? 'secu' : 'pri'}" href="mailto:${esc(String(l.email).trim())}">Correo</a>` : ''}
       </div>` : ''}
     </div>
 
@@ -4637,6 +4746,7 @@ function abrirLead(id){
              av.className = 'faviso info'; }
   }
   pintarHistorial(l.id);
+  seguirColumnas();
 }
 
 
