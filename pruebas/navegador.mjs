@@ -536,6 +536,20 @@ let NUEVO = false, SOLO_LECTURA = false, CITAS = [], PAUSA_AUTO = false, MSG_LIN
 let GUARDADO = null, SERVIDOR_119 = true, NUMEROS_SIN_PARAMS = false;
 // La 120: los parámetros con su propia función. GUARDO_CON dice cuál se usó.
 let SERVIDOR_120 = true, GUARDO_CON = null;
+// La lista de espera (121): lo que devuelve, y si el servidor ya la tiene.
+const hace = d => new Date(Date.now() - d * 864e5).toISOString();
+const ESPERA_BASE = () => [
+  { id:'e-1', user_ref:'34611100001@s.whatsapp.net', nombre:'Marta Ruiz', email:'marta@empresa.es',
+    telefono:'34611100001', centros:['Velázquez','Serrano'], personas:4, tipo:'despacho', presupuesto:1500,
+    resumen:'Despacho para 4 en Velázquez, desde noviembre', estado:'activa', creado_en:hace(9),
+    avisado_en:null, caduca_en:hace(-81), avisos:0, lead_id:null },
+  { id:'e-2', user_ref:PERSONAS[1].user_ref, nombre:'Persona 8', email:'p8@empresa.es', telefono:PERSONAS[1].telefono,
+    centros:['Las Tablas'], personas:2, tipo:null, presupuesto:null, resumen:null, estado:'activa',
+    creado_en:hace(3), avisado_en:null, caduca_en:hace(-87), avisos:0, lead_id:PERSONAS[1].id },
+  { id:'e-3', user_ref:'34611100003@s.whatsapp.net', nombre:null, email:'x@y.es', telefono:'34611100003',
+    centros:['Serrano'], personas:1, tipo:'puesto', presupuesto:null, resumen:null, estado:'avisada',
+    creado_en:hace(30), avisado_en:hace(2), caduca_en:hace(-60), avisos:1, lead_id:null }];
+let ESPERA_DEMO = ESPERA_BASE(), SIN_ESPERA = false;
 let AJUSTES = { email_avisos:['comercial@oficinasya.es'] };
 const NUEVA = { user_ref:'34699999999@s.whatsapp.net', nombre:'Carmen Nueva', telefono:'34699999999' };
 async function rpcDemo(fn, a){
@@ -546,6 +560,8 @@ async function rpcDemo(fn, a){
     alta:'2026-06-02T00:00:00Z', conversaciones:3, mensajes:12, contactos:3, usuarios:2, ubicaciones:2, servicios:1,
     zona_horaria:'Europe/Madrid', rol: SOLO_LECTURA ? 'viewer' : 'admin', puede_escribir: !SOLO_LECTURA,
     ajustes:{ ...AJUSTES } }];
+  if (fn === 'mt_mi_lista_espera')
+    return SIN_ESPERA ? { __fallo:'sinfuncion' } : ESPERA_DEMO.map(e => ({ ...e }));
   if (fn === 'mt_guardar_parametros'){
     if (!SERVIDOR_120) return { __fallo:'sinfuncion' };
     GUARDADO = a.p_valores; GUARDO_CON = fn;
@@ -585,7 +601,7 @@ async function rpcDemo(fn, a){
 const cerrarLimpio = async p => { pararReloj(p); limpiarDemo(); await espera(1100); p.w.close(); };
 const limpiarDemo = () => { sinFallos(); NUEVO = false; SOLO_LECTURA = false; CITAS = []; PAUSA_AUTO = false; MSG_LINEAS = false;
   GUARDADO = null; SERVIDOR_119 = true; NUMEROS_SIN_PARAMS = false; AJUSTES = { email_avisos:['comercial@oficinasya.es'] };
-  SERVIDOR_120 = true; GUARDO_CON = null; };
+  SERVIDOR_120 = true; GUARDO_CON = null; ESPERA_DEMO = ESPERA_BASE(); SIN_ESPERA = false; };
 
 await seccion('Demo · alguien escribe por primera vez con el panel abierto', async () => {
   limpiarDemo();
@@ -815,6 +831,106 @@ await seccion('Configuración · el título va en la misma columna que los bloqu
   await ir(p, 'ajustes');
   comprobar('«Configuración» está dentro de la columna centrada', !!p.$('.ajustes > h2.tit'), true);
   comprobar('y su subtítulo también', !!p.$('.ajustes > p.sub'), true);
+  await cerrarLimpio(p);
+});
+
+const enEspera = async p => {
+  await ir(p, 'embudo'); await espera(80);
+  p.$('#lfiltro button[data-lf="espera"]')?.click(); await espera(20);
+};
+
+await seccion('Embudo · la lista de espera (pantalla ancha)', async () => {
+  limpiarDemo();
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'embudo'); await espera(80);
+  const bot = p.$('#lfiltro button[data-lf="espera"]');
+  comprobar('sale «En espera» junto a Abiertos y Cerrados, con quien espera ahora', bot?.textContent.trim(), 'En espera 2');
+  bot.click(); await espera(20);
+  const grupos = [...p.w.document.querySelectorAll('#lista-leads .lgcab')].map(g => g.textContent.replace(/\s+/g, ' ').trim());
+  comprobar('dos grupos: quien espera y los ya avisados', JSON.stringify(grupos), JSON.stringify(['Esperando hueco 2', 'Ya avisados 1']));
+  const f1 = p.$('.lfila[data-espera="e-1"]');
+  comprobar('cada fila dice qué busca', textoDe(p, '.lfila[data-espera="e-1"] .lfila-pide'), 'Velázquez, Serrano · 4 personas · despacho');
+  comprobar('y desde cuándo espera', /^Esperando desde el /.test(textoDe(p, '.lfila[data-espera="e-1"] .lfila-esp')), true);
+  comprobar('el avisado, cuándo se le avisó', /^Avisado el /.test(textoDe(p, '.lfila[data-espera="e-3"] .lfila-esp')), true);
+  comprobar('sin nombre, sale su número', textoDe(p, '.lfila[data-espera="e-3"] .lfila-nom'), '34611100003');
+  f1.click(); await espera(20);
+  const fi = textoDe(p, '#pficha');
+  comprobar('su ficha se abre en la columna', /Marta Ruiz/.test(fi) && /En lista de espera/.test(fi), true);
+  comprobar('con sedes, personas, tipo y presupuesto', /Velázquez, Serrano/.test(fi) && /4 personas/.test(fi) && /despacho/.test(fi) && /1\.?500 €/.test(fi), true);
+  comprobar('lo que pidió', /Despacho para 4 en Velázquez, desde noviembre/.test(fi), true);
+  comprobar('y cómo se le avisará', /le avisará en cuanto quede libre/.test(fi), true);
+  comprobar('Llamar, WhatsApp y Correo', JSON.stringify([...p.w.document.querySelectorAll('#pficha .fllamar a')].map(a => a.getAttribute('href'))),
+    JSON.stringify(['tel:+34611100001', 'https://wa.me/34611100001', 'mailto:marta@empresa.es']));
+  comprobar('sin ficha en el Embudo, no ofrece «Abrir su ficha»', !p.$('#eficha'), true);
+  comprobar('su fila queda marcada', p.$('.lfila[data-espera="e-1"]')?.classList.contains('on'), true);
+  await espera(TIC * 3);
+  comprobar('tras varios refrescos la ficha sigue abierta', /Marta Ruiz/.test(textoDe(p, '#pficha')), true);
+  comprobar('y la lista sigue en «En espera»', !!p.$('.lfila[data-espera="e-1"].on'), true);
+  p.$('.lfila[data-espera="e-3"]').click(); await espera(20);
+  comprobar('el avisado dice de cuántos despachos', /Avisado el .*, de 1 despacho libre/.test(textoDe(p, '#pficha')), true);
+  p.$('#lbusca').value = 'tablas';
+  p.$('#lbusca').dispatchEvent(new p.w.Event('input')); await espera(300);
+  comprobar('el buscador busca también por sede', JSON.stringify([...p.w.document.querySelectorAll('.lfila[data-espera]')].map(x => x.dataset.espera)), JSON.stringify(['e-2']));
+  p.$('.lfila[data-espera="e-2"]').click(); await espera(20);
+  p.$('#eficha')?.click(); await espera(40);
+  comprobar('«Abrir su ficha» abre su ficha del Embudo', /Apuntar contacto/.test(textoDe(p, '#pficha')) && /Persona 8/.test(textoDe(p, '#pficha')), true);
+  comprobar('y vuelve a «Abiertos»', p.$('#lfiltro button[data-lf="activos"]')?.classList.contains('on'), true);
+  await cerrarLimpio(p);
+});
+
+await seccion('Embudo · abrir un lead estando en «En espera»', async () => {
+  limpiarDemo();
+  const p = await entrarCliente(1400, rpcDemo);
+  await enEspera(p);
+  p.ev(`abrirLead(${PERSONAS[0].id})`); await espera(20);
+  comprobar('la lista pasa a «Abiertos»', p.$('#lfiltro button[data-lf="activos"]')?.classList.contains('on'), true);
+  comprobar('con su fila marcada', !!p.$(`.lfila[data-lead="${PERSONAS[0].id}"].on`), true);
+  await cerrarLimpio(p);
+});
+
+await seccion('Embudo · lista de espera: «Ver conversación»', async () => {
+  limpiarDemo();
+  const p = await entrarCliente(1400, rpcDemo);
+  await enEspera(p);
+  p.$('.lfila[data-espera="e-2"]').click(); await espera(20);
+  p.$('#ever').click(); await espera(150);
+  comprobar('se ve Conversaciones', !!p.$('#pconvs'), true);
+  comprobar('con la conversación de esa persona', /Persona 8/.test(textoDe(p, '#pdetalle h2')), true);
+  await cerrarLimpio(p);
+});
+
+await seccion('Embudo · lista de espera en el móvil', async () => {
+  limpiarDemo();
+  const p = await entrarCliente(390, rpcDemo);
+  await enEspera(p);
+  p.$('.lfila[data-espera="e-1"]').click(); await espera(20);
+  comprobar('la ficha se abre en la ventana', p.$('#modal').style.display === 'block' && /Marta Ruiz/.test(textoDe(p, '#mbox')), true);
+  p.$('#fx')?.click(); await espera(10);
+  comprobar('y se cierra con la ×', p.$('#modal').style.display, 'none');
+  await cerrarLimpio(p);
+});
+
+await seccion('Embudo · nadie en espera', async () => {
+  limpiarDemo(); ESPERA_DEMO = [];
+  const p = await entrarCliente(1400, rpcDemo);
+  await enEspera(p);
+  comprobar('«En espera 0»', textoDe(p, '#lfiltro button[data-lf="espera"]'), 'En espera 0');
+  comprobar('y lo explica', /Nadie está esperando hueco ahora/.test(textoDe(p, '#lista-leads')), true);
+  await cerrarLimpio(p);
+});
+
+await seccion('Embudo · sin la 121 en el servidor, todo como antes', async () => {
+  limpiarDemo(); SIN_ESPERA = true; INCID_PANEL.length = 0;
+  const p = await entrarCliente(1400, rpcDemo);
+  await ir(p, 'embudo'); await espera(80);
+  comprobar('no sale «En espera»', !p.$('#lfiltro button[data-lf="espera"]'), true);
+  comprobar('Abiertos y Cerrados siguen', p.w.document.querySelectorAll('#lfiltro button[data-lf]').length, 2);
+  comprobar('la lista de leads se pinta', !!p.$('.lfila[data-lead]'), true);
+  await espera(TIC * 2);
+  comprobar('y que falte no se apunta como incidencia', INCID_PANEL.some(i => /mt_mi_lista_espera/.test(i.p_codigo || '')), false);
+  SIN_ESPERA = false;
+  await espera(TIC * 3);
+  comprobar('al aplicar la 121, el botón aparece solo con el refresco', !!p.$('#lfiltro button[data-lf="espera"]'), true);
   await cerrarLimpio(p);
 });
 

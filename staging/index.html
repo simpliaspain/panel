@@ -1049,6 +1049,19 @@
   /* Las cifras, con la misma letra que el resto de la fila: en la
      monoespaciada se veían más altas que su etiqueta. */
   .ficha dd.num{font-variant-numeric:tabular-nums}
+  /* ---------- EMBUDO · LISTA DE ESPERA (23/10) ---------- */
+  .lfila-esp{font-size:12px;font-weight:700;color:var(--ambar-texto);margin-top:4px}
+  .lfila-esp.avisada{color:var(--verde-texto)}
+  .festado{display:inline-flex;align-self:flex-start;margin-top:12px;padding:4px 10px;
+           border-radius:999px;font-size:12px;font-weight:700;line-height:1.4;
+           background:var(--ambar-fondo);color:var(--ambar-texto);border:1px solid var(--ambar-borde)}
+  .festado.avisada{background:var(--verde-fondo);color:var(--verde-texto);border-color:var(--verde-borde)}
+  .lficha .fsec > h3.h{font-size:15px;font-weight:800;letter-spacing:-.01em;margin:0 0 8px}
+  .fbusca{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px 12px;font-size:13px;line-height:1.5}
+  .fbusca dt{color:var(--gris);font-weight:600}
+  .fbusca dd{color:var(--tinta);overflow-wrap:anywhere}
+  .lficha .ftxt{font-size:13px;line-height:1.6;color:var(--tinta-suave)}
+  .lficha .facc{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
   /* Parámetros: las tres columnas alineadas por arriba. Con sus
      explicaciones de distinto largo, la primera etiqueta quedaba más baja. */
   #parametros .campos{align-items:start}
@@ -1178,7 +1191,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-10-22 · contacto directo';
+const VERSION = '2026-10-23 · lista de espera';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -1316,10 +1329,10 @@ supabase.rpc = async (nombre, args, opciones) => {
   // tape después un error de verdad de la misma función.
   // (Aquí ponía 'registrar_incidencia', sin el mt_: la condición no se
   // cumplía nunca.)
-  // mt_guardar_parametros sin la 120 aplicada no es un fallo: el panel
-  // guarda entonces por el camino de antes.
+  // Una función que llega con una migración (la 120, la 121…) y que el
+  // servidor aún no tiene no es un fallo: el panel sigue sin ella.
   if (r.error && nombre !== 'mt_registrar_incidencia' && !esDeRed(r)
-      && !(nombre === 'mt_guardar_parametros' && sinFuncion(r.error))){
+      && !(esOpcional(nombre) && sinFuncion(r.error, nombre))){
     const lento = r.error.code === 'tiempo';
     reportar((lento ? 'rpc_tiempo_' : 'rpc_') + nombre,
              lento ? `${nombre}() no ha contestado en ${ESPERA_MAX / 1000} s`
@@ -3776,12 +3789,15 @@ async function pintarAjustes(silencioso){
 // servidor aún no la tiene, se intenta como antes, con mt_guardar_ajustes
 // (vale si está la 119); y si tampoco los guarda, la comprobación de
 // después lo dice en vez de enseñar «Guardado».
-// Solo «el servidor no tiene mt_guardar_parametros»: otro error de una
-// función que falte DENTRO de ella es un fallo de verdad y se cuenta.
-function sinFuncion(e){
+// Solo «el servidor no tiene ESTA función»: otro error de una función
+// que falte DENTRO de ella es un fallo de verdad y se cuenta.
+// (Declaraciones de función, no const: el envoltorio de rpc, que está más
+// arriba, las usa.)
+function esOpcional(n){ return n === 'mt_guardar_parametros' || n === 'mt_mi_lista_espera'; }
+function sinFuncion(e, nombre = 'mt_guardar_parametros'){
   const m = String(e?.message || '');
-  return e?.code === 'PGRST202'
-    || (/could not find the function|does not exist/i.test(m) && /mt_guardar_parametros/.test(m));
+  return (e?.code === 'PGRST202' && (!m || m.includes(nombre)))
+    || (/could not find the function|does not exist/i.test(m) && m.includes(nombre));
 }
 // Un correo al que se puede escribir con un mailto: sin más. Fuera ?, &,
 // %, comas…: el correo lo da la persona por el chat, y «a@b.es?cc=…»
@@ -4279,6 +4295,10 @@ document.addEventListener('keydown', e => e.key === 'Escape' && cerrar());
    ============================================================ */
 
 let LEADS = [], EMBUDO = [], LFILTRO = 'activos', LABIERTO = null;
+// La lista de espera (migración 121): quien pidió una sede sin hueco y
+// espera aviso. null = el servidor aún no la da, y el botón no sale.
+// EABIERTO: la persona en espera cuya ficha está abierta.
+let ESPERA = null, EABIERTO = null;
 
 const ETAPAS = [
   ['entrada',        'Entrada',   'fe1'],
@@ -4356,10 +4376,13 @@ async function pintarEmbudo(silencioso){
     // muestra lo que ya hay: una lista algo vieja es mejor que una
     // pantalla en blanco.
     await supabase.rpc('mt_sincronizar').catch(() => {});
-    [a, b] = await Promise.all([
+    let e;
+    [a, b, e] = await Promise.all([
       supabase.rpc('mt_mis_leads'),
-      supabase.rpc('mt_embudo_resumen')
+      supabase.rpc('mt_embudo_resumen'),
+      supabase.rpc('mt_mi_lista_espera')
     ]);
+    if (turno === TURNO_EMB) aplicaEspera(e);
   } finally { EMBUDO_EN_VUELO--; }
   // Si mientras tanto se ha pedido otra carga o se ha cambiado de
   // pestaña, no se pinta encima.
@@ -4372,8 +4395,9 @@ async function pintarEmbudo(silencioso){
     return;
   }
   LEADS = a.data || []; EMBUDO = b.data || [];
+  if (LFILTRO === 'espera' && ESPERA === null) LFILTRO = 'activos';
 
-  if (!LEADS.length){
+  if (!LEADS.length && !(ESPERA || []).length){
     pintaEn(`<h2 class="tit">Embudo</h2>
       <p class="sub corta">Quien ha escrito a tu asistente, ordenado por lo que hay que hacer primero.</p>
       <div class="panel"><div class="vacio">
@@ -4396,10 +4420,8 @@ async function pintarEmbudo(silencioso){
       <div class="lfiltros">
         <input id="lbusca" class="busca" type="search" aria-label="Buscar leads"
                placeholder="Buscar por nombre o teléfono" autocomplete="off">
-        <div class="orden" role="group" aria-label="Qué mostrar">
-          ${[['activos','Abiertos', vivos.length],
-             ['cerrados','Cerrados', LEADS.length - vivos.length]]
-            .map(([k,t,n]) => `<button class="${LFILTRO===k?'on':''}" data-lf="${k}"
+        <div class="orden" id="lfiltro" role="group" aria-label="Qué mostrar">
+          ${filtrosEmbudo().map(([k,t,n]) => `<button class="${LFILTRO===k?'on':''}" data-lf="${k}"
                    aria-pressed="${LFILTRO===k}">${t} ${nf.format(n)}</button>`).join('')}
         </div>
       </div>
@@ -4413,16 +4435,7 @@ async function pintarEmbudo(silencioso){
 
   // Los filtros y el buscador se enlazan aquí, no en la vista de
   // Conversaciones: cada vista enlaza lo suyo.
-  document.querySelectorAll('.orden button[data-lf]').forEach(b =>
-    b.addEventListener('click', () => {
-      LFILTRO = b.dataset.lf;
-      LEXP = {};   // lo desplegado era de la lista anterior
-      document.querySelectorAll('.orden button[data-lf]').forEach(x => {
-        x.classList.toggle('on', x === b);
-        x.setAttribute('aria-pressed', String(x === b));
-      });
-      pintarLista($('#lbusca')?.value.trim());
-    }));
+  enlazarFiltrosEmbudo();
 
   const lb = $('#lbusca');
   if (lb){
@@ -4442,7 +4455,52 @@ async function pintarEmbudo(silencioso){
     const visible = [...document.querySelectorAll('.lfila[data-lead]')]
       .some(el => Number(el.dataset.lead) === LABIERTO);
     if (visible) abrirLead(LABIERTO);
+  } else if (EABIERTO != null && window.innerWidth > 1000){
+    const visible = [...document.querySelectorAll('.lfila[data-espera]')]
+      .some(el => el.dataset.espera === EABIERTO);
+    if (visible) abrirEspera(EABIERTO);
   }
+}
+
+// Los botones de arriba de la lista: Abiertos, Cerrados y, si el
+// servidor da la lista de espera, En espera (cuenta solo a quien espera
+// ahora; los ya avisados salen dentro, aparte).
+function filtrosEmbudo(){
+  const vivos = LEADS.filter(l => !['ganado','perdido'].includes(l.etapa)).length;
+  const f = [['activos','Abiertos', vivos], ['cerrados','Cerrados', LEADS.length - vivos]];
+  if (ESPERA !== null) f.push(['espera','En espera', esperando().length]);
+  return f;
+}
+function enlazarFiltrosEmbudo(){
+  document.querySelectorAll('#lfiltro button[data-lf]').forEach(b =>
+    b.addEventListener('click', () => {
+      LFILTRO = b.dataset.lf;
+      LEXP = {};   // lo desplegado era de la lista anterior
+      document.querySelectorAll('#lfiltro button[data-lf]').forEach(x => {
+        x.classList.toggle('on', x === b);
+        x.setAttribute('aria-pressed', String(x === b));
+      });
+      pintarLista($('#lbusca')?.value.trim());
+    }));
+}
+// Pone al día los botones sin rehacerlos (no se pierde el foco) salvo
+// que cambie cuáles hay: la lista de espera aparece al aplicar la 121.
+function ponerFiltrosEmbudo(){
+  const caja = $('#lfiltro'); if (!caja) return;
+  if (LFILTRO === 'espera' && ESPERA === null) LFILTRO = 'activos';
+  const f = filtrosEmbudo();
+  const hay = [...caja.querySelectorAll('button[data-lf]')].map(b => b.dataset.lf);
+  if (hay.join() === f.map(x => x[0]).join()){
+    caja.querySelectorAll('button[data-lf]').forEach((b, i) => {
+      b.textContent = `${f[i][1]} ${nf.format(f[i][2])}`;
+      b.classList.toggle('on', LFILTRO === f[i][0]);
+      b.setAttribute('aria-pressed', String(LFILTRO === f[i][0]));
+    });
+    return;
+  }
+  caja.innerHTML = f.map(([k,t,n]) => `<button class="${LFILTRO===k?'on':''}" data-lf="${k}"
+                   aria-pressed="${LFILTRO===k}">${t} ${nf.format(n)}</button>`).join('');
+  enlazarFiltrosEmbudo();
 }
 
 // El refresco de la pantalla del Embudo, sin reescribirla. Antes el
@@ -4470,23 +4528,20 @@ async function refrescarEmbudoVista(){
 // con la ficha abierta vacía el fondo un instante, la página se
 // encoge y el modal salta.
 async function refrescarEmbudo(){
-  const [a, b] = await Promise.all([
+  const [a, b, e] = await Promise.all([
     supabase.rpc('mt_mis_leads'),
-    supabase.rpc('mt_embudo_resumen')
+    supabase.rpc('mt_embudo_resumen'),
+    supabase.rpc('mt_mi_lista_espera')
   ]);
   if (a.data) LEADS = a.data;
   if (b.data) EMBUDO = b.data;
+  aplicaEspera(e);
 
   const c = document.querySelector('.fcuentas');
   if (c) c.outerHTML = cuentasEtapa();
-  // Las cuentas de «Abiertos» y «Cerrados» también: si no, decían el
-  // número de cuando se entró en la pestaña.
-  const vivos = LEADS.filter(l => !['ganado','perdido'].includes(l.etapa)).length;
-  document.querySelectorAll('.orden button[data-lf]').forEach(b => {
-    b.textContent = b.dataset.lf === 'activos'
-      ? `Abiertos ${nf.format(vivos)}`
-      : `Cerrados ${nf.format(LEADS.length - vivos)}`;
-  });
+  // Las cuentas de «Abiertos», «Cerrados» y «En espera» también: si no,
+  // decían el número de cuando se entró en la pestaña.
+  ponerFiltrosEmbudo();
   pintarLista($('#lbusca')?.value.trim());
 }
 
@@ -4503,6 +4558,7 @@ function cuentasEtapa(){
 
 function pintarLista(q){
   const cont = $('#lista-leads'); if (!cont) return;
+  if (LFILTRO === 'espera') return pintarEspera(cont, q);
   const norm = t => String(t || '').toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
@@ -4590,10 +4646,199 @@ function enlazarLeads(){
   });
 }
 
+/* ---------- lista de espera ----------
+   Quien pidió una sede concreta, no había despacho para él y aceptó que
+   se le avise cuando quede uno libre. La lista la llena y la avisa el
+   asistente (mt_lista_espera); aquí solo se enseña. */
+function aplicaEspera(r){
+  if (r && !r.error && Array.isArray(r.data)) ESPERA = r.data;
+  // El servidor aún no tiene la 121: sin botón. Otro fallo (la red…):
+  // se queda lo que había, como el resto del Embudo.
+  else if (r?.error && sinFuncion(r.error, 'mt_mi_lista_espera')) ESPERA = null;
+}
+const esperando = () => (ESPERA || []).filter(e => e.estado === 'activa');
+
+// «Velázquez, Serrano · 4 personas · despacho»
+function buscaEspera(e){
+  const p = [];
+  const sedes = (Array.isArray(e.centros) ? e.centros : []).filter(Boolean);
+  if (sedes.length) p.push(sedes.join(', '));
+  const n = Number(e.personas);
+  if (n > 0) p.push(`${nf.format(n)} ${n === 1 ? 'persona' : 'personas'}`);
+  if (e.tipo) p.push(String(e.tipo));
+  return p.join(' · ');
+}
+const avisadaTxt = e => e.avisado_en ? `Avisado el ${fechaCorta(e.avisado_en)}` : 'Avisado';
+
+function pintarEspera(cont, q){
+  const norm = t => String(t || '').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '');
+  let l = [...(ESPERA || [])];
+  if (q){
+    const n = norm(q), num = q.replace(/[^0-9]/g, '');
+    l = l.filter(x => norm(x.nombre).includes(n) || norm(x.email).includes(n) ||
+      norm(buscaEspera(x)).includes(n) ||
+      (num.length >= 3 && String(x.telefono || x.user_ref).includes(num)));
+  }
+  if (!l.length){
+    cont.innerHTML = `<div class="vacio">${q
+      ? `Nadie coincide con «${esc(q)}».`
+      : `<strong>Nadie está esperando hueco ahora.</strong><br>
+         Cuando el asistente apunte a alguien a la lista de espera de una
+         sede, saldrá aquí, con lo que busca y desde cuándo.`}</div>`;
+    return;
+  }
+  const grupos = [['activa', 'Esperando hueco', 'oro'], ['avisada', 'Ya avisados', 'sin']];
+  cont.innerHTML = grupos.map(([estado, titulo, tono]) => {
+    const dentro = l.filter(x => estado === 'activa' ? x.estado === 'activa' : x.estado !== 'activa');
+    if (!dentro.length) return '';
+    return `<div class="lgcab ${tono}">${esc(titulo)}
+              <span class="mono">${dentro.length}</span></div>
+            ${dentro.map(filaEspera).join('')}`;
+  }).join('');
+
+  cont.querySelectorAll('.lfila[data-espera]').forEach(el => {
+    const ir = () => abrirEspera(el.dataset.espera);
+    el.addEventListener('click', ir);
+    el.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); ir(); }
+    });
+  });
+}
+
+function filaEspera(e){
+  const tel = e.telefono || e.user_ref;
+  const busca = buscaEspera(e);
+  const activa = e.estado === 'activa';
+  const cuando = activa ? `Esperando desde el ${fechaCorta(e.creado_en)}` : avisadaTxt(e);
+  return `<div class="lfila${e.id === EABIERTO ? ' on' : ''}" data-espera="${esc(e.id)}" tabindex="0" role="button"
+    aria-label="${esc(e.nombre || tel)}. ${esc(cuando)}">
+    <div class="lfila-txt">
+      <div class="lfila-nom${e.nombre ? '' : ' mono'}">${
+        e.nombre ? `<bdi>${esc(e.nombre)}</bdi>` : esc(String(tel).split('@')[0])}</div>
+      <div class="lfila-pide">${busca ? esc(busca) : 'Sin concretar qué busca'}</div>
+      <div class="lfila-esp${activa ? '' : ' avisada'}">${esc(cuando)}</div>
+    </div>
+  </div>`;
+}
+
+function abrirEspera(id){
+  const e = (ESPERA || []).find(x => x.id === id); if (!e) return;
+  EABIERTO = id; LABIERTO = null;
+  const ancho = window.innerWidth > 1000;   // el mismo umbral que el CSS
+  const caja = ancho && VISTA === 'embudo' && $('#pficha') ? '#pficha' : '#mbox';
+  if (caja === '#mbox'){
+    $('#modal').style.display = 'block';
+    TURNO_DET++;   // ninguna conversación tardía pisa la ventana
+  } else $('#pficha').className = 'panel';
+  // Lo que hay dentro no es una conversación: el refresco de
+  // Conversaciones no debe confundirlo con una.
+  delete $(caja).dataset.c;
+
+  const marcar = telefonoE164(e.telefono || e.user_ref);
+  const mailOk = correoValido(e.email);
+  const correo = mailOk ? String(e.email).trim() : '';
+  const activa = e.estado === 'activa';
+  const sedes = (Array.isArray(e.centros) ? e.centros : []).filter(Boolean);
+  const n = Number(e.personas);
+  const avisos = Number(e.avisos) || 0;
+  const lead = LEADS.find(x => x.user_ref === e.user_ref);
+
+  $(caja).innerHTML = `
+   <div class="lficha">
+    <div class="fcab">
+      <div style="display:flex;justify-content:space-between;gap:16px">
+        <h2>${nom(e.nombre, e.telefono || e.user_ref)}</h2>
+        ${caja === '#mbox'
+          ? '<button class="cerrar" id="fx" aria-label="Cerrar">×</button>' : ''}
+      </div>
+      ${e.nombre && marcar ? `<p class="dmeta"><a href="tel:${esc(marcar)}" class="mono">${esc(marcar)}</a></p>` : ''}
+      ${correo ? `<p class="dmeta"><a href="mailto:${esc(correo)}">${esc(correo)}</a></p>` : ''}
+      <span class="festado${activa ? '' : ' avisada'}">${activa ? 'En lista de espera' : esc(avisadaTxt(e))}</span>
+      ${marcar || correo ? `<div class="fllamar">
+        ${marcar ? `<a class="pri" href="tel:${esc(marcar)}">Llamar</a>
+        <a class="secu" href="https://wa.me/${esc(marcar.slice(1))}"
+           target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ''}
+        ${correo ? `<a class="${marcar ? 'secu' : 'pri'}" href="mailto:${esc(correo)}">Correo</a>` : ''}
+      </div>` : ''}
+    </div>
+
+    <div class="fsec">
+      <h3 class="h">Qué busca</h3>
+      <dl class="fbusca">
+        <dt>${sedes.length === 1 ? 'Sede' : 'Sedes'}</dt><dd>${sedes.length ? sedes.map(esc).join(', ') : '—'}</dd>
+        ${n > 0 ? `<dt>Para</dt><dd>${nf.format(n)} ${n === 1 ? 'persona' : 'personas'}</dd>` : ''}
+        ${e.tipo ? `<dt>Tipo</dt><dd>${esc(String(e.tipo).charAt(0).toUpperCase() + String(e.tipo).slice(1))}</dd>` : ''}
+        ${Number(e.presupuesto) > 0 ? `<dt>Presupuesto</dt><dd>${nf.format(Number(e.presupuesto))} €</dd>` : ''}
+      </dl>
+      ${e.resumen ? `<figure class="frecuento">
+        <figcaption>Lo que pidió</figcaption>
+        <blockquote>${esc(e.resumen)}</blockquote>
+      </figure>` : ''}
+    </div>
+
+    <div class="fsec">
+      <h3 class="h">Aviso</h3>
+      <p class="ftxt">${activa
+        ? `Está en la lista desde el ${esc(fechaCorta(e.creado_en))}. El asistente le
+           avisará en cuanto quede libre un despacho que le encaje${
+           e.caduca_en ? `; si no se libera ninguno, sale de la lista el ${esc(fechaCorta(e.caduca_en))}` : ''}.`
+        : `${esc(avisadaTxt(e))}${avisos
+           ? `, de ${nf.format(avisos)} ${avisos === 1 ? 'despacho libre' : 'despachos libres'}` : ''}.
+           Se apuntó el ${esc(fechaCorta(e.creado_en))}.`}</p>
+      <div class="facc">
+        <button class="cbtn" id="ever">Ver conversación</button>
+        ${lead ? '<button class="cbtn" id="eficha">Abrir su ficha</button>' : ''}
+      </div>
+    </div>
+   </div>`;
+
+  // La fila de quien se está viendo, marcada en la lista.
+  document.querySelectorAll('.lfila[data-espera]').forEach(el =>
+    el.classList.toggle('on', el.dataset.espera === id));
+  document.querySelectorAll('.lfila[data-lead]').forEach(el => el.classList.remove('on'));
+
+  $('#fx')?.addEventListener('click', cerrar);
+
+  $('#ever')?.addEventListener('click', async () => {
+    cerrar();
+    const ref = e.user_ref;
+    ABIERTO = null;
+    await irA('convs');
+    if (VISTA !== 'convs') return;      // se ha ido a otra pestaña mientras
+    if (window.innerWidth > 1000 && !$('#pdetalle')){ ABIERTO = ref; return; }
+    const b = $('#buscar');
+    if (b){ b.value = String(e.telefono || ref || '').split('@')[0]; filtrar(b.value); }
+    if (ref) abrir(ref);
+  });
+
+  $('#eficha')?.addEventListener('click', () => {
+    if (caja === '#mbox') cerrar();
+    LFILTRO = ['ganado','perdido'].includes(lead.etapa) ? 'cerrados' : 'activos';
+    LEXP = {};
+    const lb = $('#lbusca'); if (lb) lb.value = '';
+    ponerFiltrosEmbudo();
+    pintarLista('');
+    abrirLead(lead.id);
+    // La fila, a la vista en la lista (puede estar más abajo).
+    document.querySelector(`.lfila[data-lead="${lead.id}"]`)?.scrollIntoView?.({ block:'nearest' });
+  });
+
+  seguirColumnas();
+}
+
 /* ---------- ficha ---------- */
 function abrirLead(id){
   const l = LEADS.find(x => x.id === id); if (!l) return;
-  LABIERTO = id;
+  LABIERTO = id; EABIERTO = null;
+  // Si la lista está en «En espera» (se llega con «Abrir en Embudo» o
+  // «Ver en el embudo»), pasa a la de este lead, para que su fila se vea.
+  if (LFILTRO === 'espera' && $('#lista-leads')){
+    LFILTRO = ['ganado','perdido'].includes(l.etapa) ? 'cerrados' : 'activos';
+    LEXP = {};
+    ponerFiltrosEmbudo();
+    pintarLista($('#lbusca')?.value.trim());
+  }
   const v = (x) => x == null ? '' : esc(String(x));
 
   const tel = (l.telefono || l.user_ref || '').replace(/[^0-9+]/g, '');
