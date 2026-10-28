@@ -1191,7 +1191,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-10-23 · lista de espera';
+const VERSION = '2026-10-28 · contactado por fuera';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -1346,6 +1346,9 @@ supabase.rpc = async (nombre, args, opciones) => {
 const $ = s => document.querySelector(s);
 const nf = new Intl.NumberFormat('es-ES');
 let TENANT = null, CONVS = [];
+// Contactados por fuera del sistema (mt_contactados_fuera, SQL 42):
+// user_ref → { en, por, nota }. CONTACTADOS_OK = la función existe.
+let CONTACTADOS = new Map(), CONTACTADOS_OK = false;
 // Toda la terminología y el horario laboral vienen del cliente
 // (tabla tenants), no del código. Estos son solo los valores por
 // defecto si la configuración no llegara.
@@ -2972,7 +2975,8 @@ const SENALES = {
   // resultados se esconden solos. Hacen falta para poder encontrar a
   // quien se dejó fuera y volver a incluirlo.
   pausado:       { etq: 'En pausa',      campo: c => !!c.pausado_hasta, pill: 'nt' },
-  fuera:         { etq: 'Fuera del recuento', campo: c => !!c.fuera_del_recuento, pill: 'nt' }
+  fuera:         { etq: 'Fuera del recuento', campo: c => !!c.fuera_del_recuento, pill: 'nt' },
+  contactado:    { etq: 'Contactado por fuera', campo: c => CONTACTADOS.has(c.user_ref), pill: 'nt' }
 };
 const aplicaFiltros = (lista, filtros) =>
   lista.filter(c => [...filtros].every(k => SENALES[k].campo(c)));
@@ -3002,6 +3006,8 @@ async function pintarConvs(silencioso){
     return;
   }
   CONTACTOS = data || [];
+  await leerContactados();
+  if (turno !== TURNO_CONVS || VISTA !== 'convs') return;
 
   pintaEn(`
     <h2 class="tit">Conversaciones</h2>
@@ -3274,6 +3280,7 @@ const filaC = c => {
   // "Interés" importa menos que saber que no cuenta.
   const senales = [
     c.fuera_del_recuento ? '<span class="pill hist">Fuera del recuento</span>' : '',
+    CONTACTADOS.has(c.user_ref) ? '<span class="pill hist">Contactado por fuera</span>' : '',
     c.pausado_hasta      ? '<span class="pill nt">En pausa</span>'             : '',
     c.cita          ? '<span class="pill vd">Cita</span>'          : '',
     c.interes       ? '<span class="pill az">Interés</span>'       : '',
@@ -3886,6 +3893,20 @@ function vuelveCuando(d){
                   : `El asistente vuelve a responderle el ${fecha(d)}.`;
 }
 
+// «Contactado por fuera del sistema»: alguien de la empresa ya le ha
+// escrito o llamado por su cuenta. El asistente le sigue respondiendo si
+// escribe, pero no le escribe por su cuenta para retomar la conversación
+// (el reenganche de antes de 24 h). Si la función aún no está en la base
+// (SQL 42 sin ejecutar), el botón no sale y todo lo demás sigue igual.
+async function leerContactados(){
+  try {
+    const { data, error } = await supabase.rpc('mt_contactados_fuera');
+    if (error) { CONTACTADOS_OK = false; return; }
+    CONTACTADOS_OK = true;
+    CONTACTADOS = new Map((Array.isArray(data) ? data : []).map(x => [x.user_ref, x]));
+  } catch (e) { CONTACTADOS_OK = false; }
+}
+
 function gestion(c){
   const puedo  = !!(TENANT && TENANT.puede_escribir);
   const pedida = c.pausa_pedida_hasta || null;
@@ -3897,7 +3918,9 @@ function gestion(c){
     puedo && !pedida && !auto
       ? '<button class="cbtn" id="gpausar">Parar al asistente</button>' : '',
     puedo && !c.fuera_del_recuento
-      ? '<button class="cbtn" id="gexcluir">Dejar fuera del recuento</button>' : ''
+      ? '<button class="cbtn" id="gexcluir">Dejar fuera del recuento</button>' : '',
+    puedo && CONTACTADOS_OK && !CONTACTADOS.has(c.user_ref)
+      ? '<button class="cbtn" id="gfuera">Contactado por fuera del sistema</button>' : ''
   ].join('');
 
   const avisos = [];
@@ -3920,6 +3943,15 @@ function gestion(c){
       <b>Fuera del recuento.</b> Sus conversaciones no entran en el Latido
       ni en tus números. Puedes seguir leyéndolas.</span>
       ${puedo ? '<button class="cbtn sec" id="gincluir">Volver a contar</button>' : ''}</div>`);
+  }
+
+  const marca = CONTACTADOS.get(c.user_ref);
+  if (marca){
+    avisos.push(`<div class="gav"><span class="gtx">
+      <b>Contactado por fuera del sistema</b>${marca.en ? ' el ' + esc(fecha(marca.en)) : ''}${marca.por ? ' por ' + esc(marca.por) : ''}.
+      ${marca.nota ? '«' + esc(marca.nota) + '». ' : ''}El asistente no le escribirá por su cuenta para retomar
+      la conversación. Si te escribe, le sigue respondiendo.</span>
+      ${puedo ? '<button class="cbtn sec" id="gfueraq">Quitar la marca</button>' : ''}</div>`);
   }
 
   const bloque = `<div class="gest">${avisos.join('')}
@@ -3985,6 +4017,27 @@ function enlazarGestion(contact, recargar){
         'Hecho: ya no cuenta en las cifras.'));
     caja.querySelector('[data-no]')?.addEventListener('click', limpiar);
   });
+
+  $('#gfuera')?.addEventListener('click', () => {
+    caja.innerHTML = `<div class="gopc">
+      <span class="glab">Queda claro que ya le habéis contactado y el asistente no le volverá
+        a escribir por su cuenta. Si te escribe, le seguirá respondiendo.</span>
+      <input type="text" id="gnota" maxlength="200"
+             placeholder="Cómo le contactasteis, para acordarte (opcional)">
+      <button class="cbtn" data-si="1">Marcar como contactado</button>
+      <button class="cbtn sec" data-no="1">Dejarlo</button>
+    </div>`;
+    caja.querySelector('[data-si]')?.addEventListener('click', () =>
+      llamar('mt_contactado_fuera_marcar',
+        { p_user_ref: contact,
+          p_nota: ($('#gnota')?.value || '').trim() || null },
+        'Hecho: queda como contactado por fuera del sistema.'));
+    caja.querySelector('[data-no]')?.addEventListener('click', limpiar);
+  });
+
+  $('#gfueraq')?.addEventListener('click', () =>
+    llamar('mt_contactado_fuera_quitar', { p_user_ref: contact },
+           'Marca quitada.'));
 
   $('#gincluir')?.addEventListener('click', () =>
     llamar('mt_incluir', { p_user_ref: contact },
@@ -4096,7 +4149,7 @@ async function abrir(contact){
     if (!ec && Array.isArray(cs)) CONTACTOS = cs;
   }
 
-  const msgs = await leerMensajes(contact);
+  const [msgs] = await Promise.all([leerMensajes(contact), leerContactados()]);
   if (turno !== TURNO_DET) return;          // ya se ha pedido a otra persona
   pintarDetalle(caja, contact, msgs);
   // Se abre por el final, como cualquier chat: lo último que se ha
@@ -4194,6 +4247,7 @@ function pintarDetalle(caja, contact, msgs, html){
   enlazarGestion(contact, async aviso => {
     const { data } = await supabase.rpc('mt_mis_contactos');
     if (data) CONTACTOS = data;
+    await leerContactados();
     // La lista de la izquierda también cambia: la persona gana o
     // pierde su marca de "en pausa" o "fuera del recuento".
     if ($('#pconvs')) render(BUSCA);
