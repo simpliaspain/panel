@@ -1116,6 +1116,47 @@
     .dias{gap:4px;flex-wrap:nowrap}
     .dias button{flex:1 1 0;width:auto;min-width:0}
   }
+
+  /* ---------- CONVERSACIÓN: CABECERA FIJA Y COMPACTA (02/11) ----------
+     En una conversación larga, el nombre y los botones (Llamar,
+     WhatsApp, Contactado por fuera…) se iban arriba con el scroll y
+     había que subir a buscarlos. Ahora se quedan fijos y solo se
+     desplaza la conversación. Y ocupan menos, para que quepa más
+     conversación sin bajar. La cabecera va de borde a borde (márgenes
+     negativos del mismo tamaño que el relleno de su caja) para que los
+     mensajes no asomen por los lados al pasar por debajo. */
+  .dcab{position:sticky;top:0;z-index:4;background:var(--blanco);
+        padding:12px 0 10px;margin-bottom:12px}
+  .dcab h2{font-size:18px;line-height:1.25}
+  .dcab .dmeta{font-size:12.5px;margin-top:2px}
+  .dcab .dacc{margin:8px 0 0;gap:6px}
+  .dcab .cbtn{padding:6px 10px}
+  .dcab .gest{margin:8px 0 0;gap:6px}
+  .dcab .gav{padding:6px 12px;border-radius:10px;font-size:12.5px;line-height:1.45;gap:8px}
+  .dcab .gav .cbtn{padding:5px 10px}
+  .dcab .gopc{padding:8px 12px;border-radius:10px;gap:6px}
+  .dcab .gopc input[type=text]{padding:6px 10px}
+  /* El «top» de sticky cuenta desde DENTRO del relleno de la caja que se
+     desplaza: con top:0 la cabecera se quedaba 24 px por debajo del borde
+     y los mensajes asomaban por encima. Por eso va en negativo. */
+  /* Columna de la derecha (ordenador): su caja tiene 24 px de relleno */
+  #pdetalle .dcab{top:-24px;margin:-24px -24px 12px;padding:14px 24px 10px;
+                  border-radius:var(--r) var(--r) 0 0}
+  /* Ventana (ordenador, desde el Latido o la Agenda): la ventana tiene
+     24 px de relleno y la caja, 32 */
+  #mbox .dcab{top:-24px;margin:-32px -32px 12px;padding:16px 32px 10px;
+              border-radius:var(--r) var(--r) 0 0}
+  /* Móvil y tableta: la cabecera se queda debajo de la franja fija de la ×
+     (60 px), que tapa lo que pasa por encima. De 821 a 1000 px la ventana
+     tiene 24 px de relleno y la caja 32 a los lados; desde 820 px, la
+     ventana ninguno y la caja 20. */
+  @media(max-width:1000px){
+    #mbox .dcab{top:calc(36px + env(safe-area-inset-top));margin:0 -32px 12px;
+                padding:4px 32px 10px;border-radius:0}
+  }
+  @media(max-width:820px){
+    #mbox .dcab{top:calc(60px + env(safe-area-inset-top));margin:0 -20px 12px;padding:4px 20px 10px}
+  }
 </style>
 </head>
 <body>
@@ -1191,7 +1232,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-10-28 · contactado por fuera';
+const VERSION = '2026-11-02 · cabecera fija en la conversación';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -1616,9 +1657,41 @@ async function arrancar(){
   if (CFG.modulos?.agenda === false)
     document.querySelector('nav button[data-v="agenda"]')?.remove();
 
-  await pintarLatido();
+  // Si se ha llegado desde el «Ver» del correo diario, directo a esa
+  // conversación; si no, al Latido como siempre.
+  if (!(await abrirDesdeEnlace())) await pintarLatido();
   autoRefresco();
 }
+
+/* ---------- enlace directo a una conversación ----------
+   El correo diario de conversaciones (SQL 46) lleva, en cada persona,
+   «Ver»: …/#c=<user_ref>&t=<slug>. Se abre Conversaciones con esa
+   persona, con sus botones de siempre (también «Contactado por fuera
+   del sistema»). Va en la parte # del enlace, que no se manda a ningún
+   servidor, y sigue ahí después de «Entrar». Si el enlace es de otro
+   cliente, no se abre nada: se queda en el Latido. */
+function leerEnlace(){
+  const h = String(location.hash || '').replace(/^#/, '');
+  if (!h) return null;
+  const p = new URLSearchParams(h);
+  const c = (p.get('c') || '').trim();
+  return c ? { contact: c, slug: (p.get('t') || '').trim() } : null;
+}
+async function abrirDesdeEnlace(){
+  const e = leerEnlace();
+  if (!e) return false;
+  // Se quita del enlace: al recargar o al compartir la dirección ya no
+  // vuelve a abrir a esa persona.
+  history.replaceState(null, '', location.pathname + location.search);
+  if (e.slug && TENANT?.slug && e.slug !== TENANT.slug) return false;
+  await irA('convs');
+  await abrir(e.contact);
+  return true;
+}
+// Con el panel ya abierto, otro «Ver» en la misma pestaña.
+window.addEventListener('hashchange', () => {
+  if (TENANT && $('#app').style.display === 'block') abrirDesdeEnlace();
+});
 
 let RANGO = 168;  // horas. El Latido abre en 7 días (lo pidió el cliente).
 
@@ -3947,10 +4020,10 @@ function gestion(c){
 
   const marca = CONTACTADOS.get(c.user_ref);
   if (marca){
-    avisos.push(`<div class="gav"><span class="gtx">
-      <b>Contactado por fuera del sistema</b>${marca.en ? ' el ' + esc(fecha(marca.en)) : ''}${marca.por ? ' por ' + esc(marca.por) : ''}.
-      ${marca.nota ? '«' + esc(marca.nota) + '». ' : ''}El asistente no le escribirá por su cuenta para retomar
-      la conversación. Si te escribe, le sigue respondiendo.</span>
+    // Corto, porque va en la cabecera fija: qué ha cambiado lo explica
+    // el cuadro al marcar, y aquí queda al pasar por encima.
+    avisos.push(`<div class="gav" title="El asistente no le escribirá por su cuenta para retomar la conversación. Si te escribe, le sigue respondiendo."><span class="gtx">
+      <b>Contactado por fuera del sistema</b>${marca.en ? ' el ' + esc(fecha(marca.en)) : ''}${marca.por ? ' por ' + esc(marca.por) : ''}${marca.nota ? ' · «' + esc(marca.nota) + '»' : ''}.</span>
       ${puedo ? '<button class="cbtn sec" id="gfueraq">Quitar la marca</button>' : ''}</div>`);
   }
 
@@ -4179,11 +4252,17 @@ function htmlDetalle(contact, msgs, conCerrar){
         ${conCerrar
           ? '<button class="cerrar" id="cx" aria-label="Cerrar">×</button>' : ''}
       </div>
-      ${c.nombre ? `<p class="dmeta">${marcar
-          ? `<a href="tel:${esc(marcar)}" class="mono">${esc(marcar)}</a>`
-          : `<span class="mono">${esc(tel)}</span>`}</p>` : ''}
-      ${mailOk ? `<p class="dmeta"><a href="mailto:${esc(correo)}">${esc(correo)}</a></p>`
-        : crudo ? `<p class="dmeta">${esc(crudo)}</p>` : ''}
+      ${(() => {
+        // Teléfono y correo en una sola línea: la cabecera es fija y
+        // cada línea que ocupa es conversación que no se ve.
+        const partes = [
+          c.nombre ? (marcar
+            ? `<a href="tel:${esc(marcar)}" class="mono">${esc(marcar)}</a>`
+            : `<span class="mono">${esc(tel)}</span>`) : '',
+          mailOk ? `<a href="mailto:${esc(correo)}">${esc(correo)}</a>` : crudo ? esc(crudo) : ''
+        ].filter(Boolean);
+        return partes.length ? `<p class="dmeta">${partes.join(' · ')}</p>` : '';
+      })()}
       <div class="dacc">
         ${marcar ? `<a class="cbtn pri" href="tel:${esc(marcar)}">Llamar</a>` : ''}
         ${marcar ? `<a class="cbtn" id="dwa" href="https://wa.me/${esc(marcar.slice(1))}"
