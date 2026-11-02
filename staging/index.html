@@ -1191,7 +1191,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-10-28 · contactado por fuera';
+const VERSION = '2026-11-02 · enlace a una conversación';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -1616,9 +1616,41 @@ async function arrancar(){
   if (CFG.modulos?.agenda === false)
     document.querySelector('nav button[data-v="agenda"]')?.remove();
 
-  await pintarLatido();
+  // Si se ha llegado desde el «Ver» del correo diario, directo a esa
+  // conversación; si no, al Latido como siempre.
+  if (!(await abrirDesdeEnlace())) await pintarLatido();
   autoRefresco();
 }
+
+/* ---------- enlace directo a una conversación ----------
+   El correo diario de conversaciones (SQL 46) lleva, en cada persona,
+   «Ver»: …/#c=<user_ref>&t=<slug>. Se abre Conversaciones con esa
+   persona, con sus botones de siempre (también «Contactado por fuera
+   del sistema»). Va en la parte # del enlace, que no se manda a ningún
+   servidor, y sigue ahí después de «Entrar». Si el enlace es de otro
+   cliente, no se abre nada: se queda en el Latido. */
+function leerEnlace(){
+  const h = String(location.hash || '').replace(/^#/, '');
+  if (!h) return null;
+  const p = new URLSearchParams(h);
+  const c = (p.get('c') || '').trim();
+  return c ? { contact: c, slug: (p.get('t') || '').trim() } : null;
+}
+async function abrirDesdeEnlace(){
+  const e = leerEnlace();
+  if (!e) return false;
+  // Se quita del enlace: al recargar o al compartir la dirección ya no
+  // vuelve a abrir a esa persona.
+  history.replaceState(null, '', location.pathname + location.search);
+  if (e.slug && TENANT?.slug && e.slug !== TENANT.slug) return false;
+  await irA('convs');
+  await abrir(e.contact);
+  return true;
+}
+// Con el panel ya abierto, otro «Ver» en la misma pestaña.
+window.addEventListener('hashchange', () => {
+  if (TENANT && $('#app').style.display === 'block') abrirDesdeEnlace();
+});
 
 let RANGO = 168;  // horas. El Latido abre en 7 días (lo pidió el cliente).
 
