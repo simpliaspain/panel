@@ -282,6 +282,10 @@
   .msg.a .burb{background:var(--pulso);color:#fff;border-bottom-right-radius:4px}
   .hora{font-size:11px;color:var(--gris);margin-top:5px;opacity:.8}
   .msg.a .hora{color:var(--azul-suave)}
+  /* Reenganche: el mismo azul, con un borde discontinuo y una etiqueta
+     técnica pequeña; se distingue sin llamar la atención */
+  .msg.reeng .burb{outline:1.5px dashed rgba(255,255,255,.55);outline-offset:-5px}
+  .msg .rtag{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.78;margin-bottom:4px}
 
   .aviso{
     background:var(--ambar-tenue);border:1px solid var(--ambar-borde);border-radius:14px;
@@ -1232,7 +1236,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-02 · cabecera fija en la conversación';
+const VERSION = '2026-11-03 · reenganches en la conversación';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -4136,10 +4140,16 @@ let TURNO_DET = 0;
 // no se reescribe: reescribir mueve el foco y borra una selección.
 const PINTADO = new WeakMap();
 
+// mt_mensajes_contacto2 (SQL 54) trae además qué mensajes son del
+// reenganche, también los que salieron sin llegar a la memoria del
+// asistente. Si no está, la de siempre.
 async function leerMensajes(contact){
-  const { data, error } = await supabase.rpc('mt_mensajes_contacto', { p_user_ref: contact });
+  let { data, error } = await supabase.rpc('mt_mensajes_contacto2', { p_user_ref: contact });
+  if (error) ({ data, error } = await supabase.rpc('mt_mensajes_contacto', { p_user_ref: contact }));
   return error ? null : (data || []);
 }
+const GANCHOS_REENGANCHE = { pendiente: 'lo que quedó pendiente', siguiente_paso: 'el siguiente paso',
+  objecion: 'lo que no le encajó', dato_util: 'un dato útil' };
 
 /* ---------- la columna de la derecha sigue a quien lee ----------
    En pantalla ancha, la conversación (y la ficha del Embudo) va fija
@@ -4290,8 +4300,14 @@ function htmlDetalle(contact, msgs, conCerrar){
       let sep = '';
       const f = m.cuando ? new Date(m.cuando).toDateString() : null;
       if (f && f !== dia){ dia = f; sep = `<div class="sep"><span>${fecha(m.cuando)}</span></div>`; }
-      return sep + `<div class="msg ${m.papel === 'human' ? 'h' : 'a'}">
-        <div class="burb"><span class="btxt">${esc(txt)}</span>
+      // Mensaje del reenganche: el asistente le escribió solo porque la
+      // conversación se había quedado parada. Marca discreta, no otro color.
+      const re = m.papel !== 'human' && m.reenganche && typeof m.reenganche === 'object' ? m.reenganche : null;
+      const reTip = re ? 'Reenganche automático: se le escribió porque dejó de contestar'
+        + (GANCHOS_REENGANCHE[re.gancho] ? ` · gancho: ${GANCHOS_REENGANCHE[re.gancho]}` : '') : '';
+      return sep + `<div class="msg ${m.papel === 'human' ? 'h' : 'a'}${re ? ' reeng' : ''}">
+        <div class="burb"${re ? ` title="${esc(reTip)}"` : ''}>${re
+          ? '<div class="rtag mono" aria-label="Mensaje de reenganche automático">↻ reenganche · auto</div>' : ''}<span class="btxt">${esc(txt)}</span>
           <div class="hora">${m.cuando ? hora(m.cuando) : 'sin hora'}${
             m.latencia_ms ? `, ${(m.latencia_ms/1000).toFixed(1).replace('.', ',')} s` : ''}</div>
         </div></div>`;
