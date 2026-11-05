@@ -1720,7 +1720,9 @@
   /* Fila de correo en dos líneas: caben el doble en la misma pantalla. */
   .co-fila{display:flex;gap:12px;align-items:center;padding:8px 16px}
   .co-fcuerpo{flex:1 1 auto;min-width:0;display:grid;gap:2px}
-  .co-l1,.co-l2{display:flex;align-items:center;gap:8px;min-width:0}
+  /* Altura fija por línea: todas las filas miden lo mismo, lleven lo que lleven. */
+  .co-l1,.co-l2{display:flex;align-items:center;gap:8px;min-width:0;height:18px}
+  .co-l1 .co-av.co-avmini{width:18px;height:18px;font-size:9px;margin:0;vertical-align:0;flex:none}
   .co-l1 .co-de{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:700}
   .co-l1 .co-hora{flex:none;font-size:12px;color:var(--gris)}
   .co-l2 .co-asunto{flex:1 1 auto;min-width:0;font-size:13px;color:var(--tinta-suave)}
@@ -1733,11 +1735,15 @@
   .co-av.co-logomal{background:var(--rojo-texto);color:#fff;font-weight:800}
   .co-dde .co-av.co-logo{width:40px;height:40px;font-size:15px}
   /* Al pasar el puntero: archivar y eliminar en lugar de la hora */
-  .co-filacc{display:none;gap:2px;flex:none}
-  .co-filacc .co-ibtn{width:28px;height:26px;background:var(--blanco)}
-  .co-fila:hover .co-filacc,.co-fila:focus-within .co-filacc{display:flex}
-  .co-fila:hover .co-l1 .co-hora,.co-fila:focus-within .co-l1 .co-hora{display:none}
-  @media (hover:none){ .co-fila:hover .co-filacc{display:none} .co-fila:hover .co-l1 .co-hora{display:inline} }
+  /* Los iconos flotan encima de la fila (no ocupan sitio): al pasar el puntero
+     nada cambia de tamaño ni se mueve; solo aparecen sobre el hueco de la hora. */
+  .co-fila{position:relative}
+  .co-filacc{position:absolute;right:12px;top:6px;display:flex;gap:2px;
+             opacity:0;pointer-events:none;transition:opacity .15s ease}
+  .co-filacc .co-ibtn{width:28px;height:26px;background:var(--blanco);box-shadow:0 0 0 1px var(--linea)}
+  .co-fila:hover .co-filacc,.co-fila:focus-within .co-filacc{opacity:1;pointer-events:auto}
+  .co-fila:hover .co-l1 .co-hora,.co-fila:focus-within .co-l1 .co-hora{visibility:hidden}
+  @media (hover:none){ .co-fila:hover .co-filacc{opacity:0;pointer-events:none} .co-fila:hover .co-l1 .co-hora{visibility:visible} }
   /* Seleccionados (varios) */
   .co-fila.sel{background:var(--azul-suave)}
   .co-fila.sel.on{background:var(--azul-borde)}
@@ -1897,7 +1903,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-05 · correo en pruebas 2 (datos de ejemplo)';
+const VERSION = '2026-11-05 · correo en pruebas 3 (datos de ejemplo)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
