@@ -1480,7 +1480,8 @@
   .co-msg .co-orig{padding:0;border:0;white-space:normal}
   .co-orig p{margin:0 0 12px}
   .co-orig p:last-child{margin-bottom:0}
-  .co-msg textarea.co-txt{min-height:260px}
+  /* La respuesta crece con su texto: sin barra propia; se desplaza el correo entero. */
+  .co-msg textarea.co-txt{min-height:260px;overflow:hidden;resize:none}
   .co-addadj{margin-top:8px}
 
   /* Adjuntos: tarjeta con miniatura, Ver y Descargar; «Descargar todos» arriba. */
@@ -1715,6 +1716,60 @@
     .co-regla{left:16px;right:16px;bottom:16px;max-width:none}
   }
 
+  /* ---- 05/11 (8): filas compactas, logos, acciones al pasar, selección, Embudo, Documentos ---- */
+  /* Fila de correo en dos líneas: caben el doble en la misma pantalla. */
+  .co-fila{display:flex;gap:12px;align-items:center;padding:8px 16px}
+  .co-fcuerpo{flex:1 1 auto;min-width:0;display:grid;gap:2px}
+  .co-l1,.co-l2{display:flex;align-items:center;gap:8px;min-width:0}
+  .co-l1 .co-de{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:700}
+  .co-l1 .co-hora{flex:none;font-size:12px;color:var(--gris)}
+  .co-l2 .co-asunto{flex:1 1 auto;min-width:0;font-size:13px;color:var(--tinta-suave)}
+  .co-l2 .co-etis{flex:none;margin:0;flex-wrap:nowrap;gap:4px}
+  .co-l2 .co-etis .pill{font-size:10.5px;padding:2px 6px}
+  .co-fila.nuevo .co-de::before{width:6px;height:6px;margin-right:6px}
+  /* Logo de quien escribe (o su inicial) */
+  .co-av.co-logo{position:relative;width:32px;height:32px;flex:none;font-size:13px;background:var(--aire);overflow:hidden}
+  .co-av.co-logo img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:5px;background:var(--blanco);border-radius:999px;border:1px solid var(--linea)}
+  .co-av.co-logomal{background:var(--rojo-texto);color:#fff;font-weight:800}
+  .co-dde .co-av.co-logo{width:40px;height:40px;font-size:15px}
+  /* Al pasar el puntero: archivar y eliminar en lugar de la hora */
+  .co-filacc{display:none;gap:2px;flex:none}
+  .co-filacc .co-ibtn{width:28px;height:26px;background:var(--blanco)}
+  .co-fila:hover .co-filacc,.co-fila:focus-within .co-filacc{display:flex}
+  .co-fila:hover .co-l1 .co-hora,.co-fila:focus-within .co-l1 .co-hora{display:none}
+  @media (hover:none){ .co-fila:hover .co-filacc{display:none} .co-fila:hover .co-l1 .co-hora{display:inline} }
+  /* Seleccionados (varios) */
+  .co-fila.sel{background:var(--azul-suave)}
+  .co-fila.sel.on{background:var(--azul-borde)}
+  .co-bulk{display:flex;align-items:center;gap:8px;background:var(--aire)}
+  .co-bulk b{font-size:13px;margin-right:4px;white-space:nowrap}
+  .co-bulk .co-sel{padding:4px 8px;font-size:12px;min-width:0;flex:0 1 120px}
+  .co-bulk .co-selx{margin-left:auto;font-size:17px}
+  .co-bayudat kbd{font-family:'JetBrains Mono',monospace;font-size:10.5px;background:var(--blanco);border:1px solid var(--linea);
+                  border-bottom-width:2px;border-radius:4px;padding:0 4px}
+  /* Embudo › Correo: por dónde va y siguiente paso */
+  .emb-paso{display:grid;gap:4px;padding:12px 16px;border-radius:10px;background:var(--aire);margin:4px 0 16px;font-size:15px;line-height:1.5}
+  .emb-paso span{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--azul-texto)}
+  .emb-accesos{border-top:0;padding-top:0;margin-top:0}
+  /* Documentos: fotos por centro y espacio */
+  .co-drive{text-decoration:none;display:inline-block;margin:0}
+  .co-drive[aria-disabled=true]{opacity:.5}
+  .co-fotosdrive .co-interr{margin-right:4px}
+  .co-centros{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+  .co-centro{gap:12px;align-content:start}
+  .co-centrocab{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .co-centrocab .co-editar{padding:0;text-decoration:none}
+  .co-sinfotos{font-size:12px}
+  .co-espacio{display:grid;gap:6px}
+  .co-espnom{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px}
+  .co-centro .co-espnom span{color:var(--tinta);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600}
+  .co-espnom small{color:var(--gris);font-size:12px}
+  .co-miniaturas{display:flex;gap:6px;align-items:center}
+  .co-mini{width:64px;height:44px;padding:0;border-radius:4px;overflow:hidden;background:var(--fondo);border:1px solid var(--linea);flex:none}
+  .co-mini img{width:100%;height:100%;object-fit:cover;display:block}
+  .co-mini:hover{border-color:var(--pulso)}
+  .co-mas{font-size:12px;font-weight:700;color:var(--gris)}
+
   /* Lado a lado en la ventana (tableta): la ventana se ensancha. */
   #mbox.co-mboxancho{max-width:1200px}
   /* Por debajo de 900 px no cabe lado a lado: el botón no se enseña. */
@@ -1842,7 +1897,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-05 · correo en pruebas (datos de ejemplo)';
+const VERSION = '2026-11-05 · correo en pruebas 2 (datos de ejemplo)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -2435,6 +2490,7 @@ function coMover(ids, destino, conRegla = true){
               : destino === 'archivados' ? (lista.length > 1 ? `${lista.length} correos archivados.` : 'Archivado.')
               : lista.length > 1 ? `${lista.length} correos movidos a «${nom}».` : `Movido a «${nom}».`;
   coHacer(texto, () => lista.forEach(c => {
+      CO.seleccion.delete(c.id);
       if (!coFuera(c)) c.antes = c.carpeta;              // para «Restaurar»
       c.carpeta = destino;
       // Un borrador que deja de ser de «Nuevos clientes» ya no se responde.
@@ -2470,6 +2526,7 @@ function correoAcceso(){
   const b = document.querySelector('nav button[data-v="correo"]');
   if (b) b.hidden = !correoPermitido();
   CO.cliente = esSimplia() ? (CO.cliente || 'oficinasya') : TENANT?.slug;
+  coLeerVista();
   coBadge();
 }
 function coBadge(){
@@ -2543,12 +2600,17 @@ Un saludo,`,
 ];
 
 // Fotos de los despachos: las mismas carpetas de Drive que usa Laura por WhatsApp (norma del 28/10).
+// Lo que hay en cada carpeta de centro, según la norma: despachos, sala, zonas comunes, coworking.
+// (Ejemplo. En la versión real lo lee [MT] Catálogo de despachos y guarda miniaturas, sin descargar las fotos.)
 CO.fotosDrive = [
-  { centro:'IBC Velázquez', despachos:[['VE-14', 3], ['VE-21', 4]] },
-  { centro:'IBC Capitán Haya', despachos:[['CH-28', 2], ['CH-05', 3]] },
-  { centro:'IBC Serrano', despachos:[['SE-07', 3]] },
-  { centro:'La Florida (Pozuelo)', despachos:[] }
+  { centro:'IBC Velázquez', items:[['Despacho VE-14','despacho',3], ['Despacho VE-21','despacho',4], ['Sala de reuniones','sala',2], ['Zonas comunes','comunes',5]] },
+  { centro:'IBC Capitán Haya', items:[['Despacho CH-28','despacho',2], ['Despacho CH-05','despacho',3], ['Sala de reuniones','sala',1], ['Zonas comunes','comunes',4]] },
+  { centro:'IBC Serrano', items:[['Despacho SE-07','despacho',3], ['Zonas comunes','comunes',3], ['Coworking','coworking',2]] },
+  { centro:'La Florida (Pozuelo)', items:[['Zonas comunes','comunes',2]] }
 ];
+// Enlace a la carpeta de fotos de Drive (en la versión real sale de la configuración del cliente en Supabase).
+// (Es la carpeta privada de OficinasYA: solo la abre quien tenga permiso en Drive.)
+CO.driveUrl = 'https://drive.google.com/drive/folders/1qEhFnONaLQMOCEmf-VyHrgB_YL1lblq8';
 CO.fotosMax = 3; CO.fotosActivo = true;
 
 // Respuestas automáticas: cada buzón con las suyas.
@@ -2578,6 +2640,7 @@ const CO_ICO_ARRIBA = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidd
 const CO_ICO_LADO = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="2" width="5" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
 const CO_ICO_ARCH = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="3" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 6v6.5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6M6.5 9h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
 const CO_ICO_PAP = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M6 4.5V3h4v1.5M4 4.5l.7 8.6a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9l.7-8.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CO_ICO_REST = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7a5 5 0 1 1 1.5 3.6M3 3.5V7h3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 // Lado a lado solo si hay sitio: en el móvil, siempre uno debajo del otro.
 const coLadoCabe = enVentana => enVentana ? innerWidth >= 900 : true;
 const coParrafos = t => String(t || '').split(/\n{2,}/).map(p => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`).join('');
@@ -2606,7 +2669,11 @@ function coAdjResp(c){
       .map(d => ({ nombre: d.nombre, tipo: d.tipo, kb: d.kb, quitar:`data-co="quitaradj" data-doc="${d.id}"` }))
   ];
 }
-const coAdjDe = (id, g) => { const c = CO.correos.find(x => x.id === id); return !c ? [] : g === 'rec' ? (c.recibidos || []).filter(a => !a.peligro) : coAdjResp(c); };
+const coAdjDe = (id, g) => {
+  // Fotos de un espacio de Drive (Documentos): id = centro * 100 + espacio.
+  if (g === 'drive'){ const it = CO.fotosDrive[Math.floor(id / 100)]?.items[id % 100]; if (!it) return [];
+    return Array.from({ length: it[2] }, (_, k) => ({ nombre: `${it[0]} · ${k + 1}.jpg`, tipo:'img', kb: 640 + k * 53 })); }
+  const c = CO.correos.find(x => x.id === id); return !c ? [] : g === 'rec' ? (c.recibidos || []).filter(a => !a.peligro) : coAdjResp(c); };
 
 function coListaAdj(lista, id, g, editable){
   if (!lista.length) return '';
@@ -2940,6 +3007,30 @@ const coDeslizarNom = k => CO_DESLIZAR.find(x => x[0] === k)?.[1] || '';
 
 // ---- Búsqueda con filtros ----
 CO.busca = { q:'', f:new Set() };
+// Selección de varios correos (Ctrl/Cmd para sumar uno, Mayús para un tramo).
+CO.seleccion = new Set(); CO.ancla = null;
+function coSeleccionar(id, e){
+  const orden = coListaDatos().lista.map(c => c.id);
+  if (e && (e.ctrlKey || e.metaKey)){
+    CO.seleccion.has(id) ? CO.seleccion.delete(id) : CO.seleccion.add(id);
+    CO.ancla = id; return false;                               // no abre
+  }
+  if (e && e.shiftKey && CO.ancla != null && orden.includes(CO.ancla)){
+    const [a, b] = [orden.indexOf(CO.ancla), orden.indexOf(id)].sort((x, y) => x - y);
+    CO.seleccion = new Set(orden.slice(a, b + 1)); return false;
+  }
+  CO.seleccion = new Set([id]); CO.ancla = id; return true;    // clic normal: abre
+}
+const coVariosSel = () => [...CO.seleccion].filter(id => CO.correos.some(c => c.id === id && !c.borrado));
+// La vista del correo (arriba-abajo o lado a lado) se guarda para cada cuenta.
+// En la versión real va en las preferencias del usuario en Supabase; aquí, en este navegador.
+const coClaveVista = () => `simplia:correo:vista:${USUARIO_EMAIL || 'anon'}`;
+function coLeerVista(){ try { const v = localStorage.getItem(coClaveVista()); if (v === 'lado' || v === 'arriba') CO.vista = v; } catch {} }
+function coGuardarVista(){ try { localStorage.setItem(coClaveVista(), CO.vista); } catch {} }
+// Las respuestas crecen con su texto: sin barra dentro; se desplaza el correo entero.
+function coAjustarAltos(){
+  document.querySelectorAll('#cotxt, #etxt').forEach(t => { t.style.height = 'auto'; t.style.height = (t.scrollHeight + 4) + 'px'; });
+}
 const CO_FILTROS = [['responder','Por responder'], ['adjuntos','Con adjuntos'], ['hoy','Hoy'], ['semana','Últimos 7 días'], ['peligro','Sospechosos']];
 const coNorm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const coBuscando = () => !!(CO.busca.q.trim() || CO.busca.f.size);
@@ -3028,6 +3119,31 @@ CO.leads = [
   { id:107, nombre:'Tomás Gil', email:'tgil@gilyasociados.es', asunto:'Despacho para 5', busca:'Despacho para 5',
     etapa:'cerrado', seg:2, eventos:[[-12,'Escribió'], [-9,'Primer seguimiento'], [-6,'Segundo seguimiento'], [-5,'Contestó: «Ya hemos encontrado oficina, gracias»']] }
 ];
+// Lo que dijimos en nuestro último correo (se ve en el seguimiento, en Correo).
+Object.assign(CO.leads.find(l => l.id === 101), { diasSin:3,
+  ultimoNuestro:'Buenos días, Paula:\n\nGracias por escribirnos. En IBC Capitán Haya tenemos libre un despacho para 2 personas, de 12 m², por 980 € al mes + IVA. Le adjunto fotos.\n\nPuede reservar la visita aquí: reservas.simpliaspain.com/oficinasya/capitan-haya\n\nUn saludo,' });
+Object.assign(CO.leads.find(l => l.id === 102), { diasSin:4,
+  ultimoNuestro:'Hola, Sofía:\n\nTe escribo por si te surgió alguna duda sobre el puesto fijo en el coworking. Sigue libre.\n\nUn saludo,' });
+Object.assign(CO.leads.find(l => l.id === 103), { userRef:'34600111222@s.whatsapp.net', telefono:'+34600111222' });
+// Los seguimientos que tocan se preparan como borradores en Correo › Por revisar:
+// desde ahí se revisan, se cambian y se envían, como cualquier respuesta.
+for (const l of CO.leads.filter(x => x.etapa === 'toca')){
+  const id = 1000 + l.id;
+  CO.correos.push({ id, leadId: l.id, esSeguimiento: true, carpeta:'comerciales', estado:'borrador', nuevo:true,
+    de: l.nombre, email: l.email, asunto: 'Re: ' + l.asunto, seguro: 100, llegada: Date.now() - 30 * 60000,
+    motivo: `Seguimiento ${l.seg + 1}${l.seg + 1 >= CO.seguimiento.max ? ' (el último)' : ''}: no ha contestado en ${l.diasSin} días.`,
+    cuerpo: l.ultimoNuestro, respuesta: l.propuesta, adjuntos: [], fuentes: ['Vuestro último correo y lo que buscaba'] });
+  l.correoId = id;
+}
+// La respuesta de Andrés (lead 105) también está en Correo, con su borrador.
+CO.correos.push({ id: 1105, leadId: 105, carpeta:'comerciales', estado:'borrador', nuevo:true, de:'Andrés Vidal',
+  email:'avidal@vidalarquitectos.es', asunto:'Re: Despacho para 4 en Velázquez', seguro: 98, llegada: Date.now() - 20 * 3600e3,
+  motivo:'Contesta al seguimiento: quiere ver el despacho el jueves a las 10.',
+  cuerpo:'Hola,\n\n¿Podemos verlo el jueves a las 10?\n\nGracias,\nAndrés',
+  respuesta:'Buenos días, Andrés:\n\nPerfecto, le esperamos el jueves 12 a las 10:00 en IBC Velázquez. Pregunte en recepción por el equipo comercial.\n\nUn saludo,',
+  adjuntos: [], fuentes: ['Catálogo: despacho VE-21 libre', 'Agenda del centro: jueves 12, 10:00 libre'] });
+CO.leads.find(l => l.id === 105).correoId = 1105;
+
 const CO_ETAPAS = [['toca','Toca seguimiento'], ['contesto','Han contestado'], ['espera','Esperando respuesta'], ['visita','Visita reservada'], ['cerrado','Cerrados']];
 const coLead = id => CO.leads.find(l => l.id === id);
 const coFecha = ms => new Date(ms).toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' });
@@ -3147,6 +3263,9 @@ function pintarCorreo(){
     }
     if (scrollY !== ventanaY) scrollTo(0, ventanaY);
   }
+  coAjustarAltos();
+  // Tras ajustar la altura, el correo abierto vuelve a donde estaba (si es el mismo).
+  if (mismaPestana && CO.lectorDe === CO.abierto && sitio['.co-lector'] != null && $('.co-lector')) $('.co-lector').scrollTop = sitio['.co-lector'];
   CO.lectorDe = CO.abierto;
   if (CO.irA){ const destino = document.getElementById(CO.irA); CO.irA = null; destino?.scrollIntoView({ block:'start' }); }
   coEnlazar();
@@ -3199,13 +3318,15 @@ function coBandeja(){
             <button class="co-bayuda" data-co="bayuda" aria-expanded="${!!CO.bayuda}" title="Cómo buscar">?</button>
           </div>
           ${CO.bayuda ? `<div class="co-bayudat">
+            <div><b>Buscar</b></div>
             <div><code>de:lucia</code> remitente</div><div><code>asunto:despacho</code> en el asunto</div>
             <div><code>carpeta:facturas</code> carpeta</div><div><code>tiene:adjunto</code> con adjuntos</div>
             <div><code>es:respondido</code> · <code>es:borrador</code> · <code>es:sospechoso</code></div><div><code>para:reservas</code> buzón</div>
+            <div style="margin-top:4px"><b>Atajos</b></div>
+            <div><kbd>↑</kbd> <kbd>↓</kbd> correo anterior o siguiente · <kbd>Mayús</kbd>+<kbd>↑↓</kbd> seleccionar varios</div>
+            <div><kbd>Ctrl</kbd>+clic suma uno · <kbd>Mayús</kbd>+clic un tramo · <kbd>Ctrl</kbd>+<kbd>A</kbd> todos</div>
+            <div><kbd>Supr</kbd> eliminar · <kbd>E</kbd> archivar · <kbd>Ctrl</kbd>+<kbd>Z</kbd> deshacer · <kbd>/</kbd> buscar · <kbd>Esc</kbd> quitar selección</div>
           </div>` : ''}
-          <div class="co-bfiltros" role="group" aria-label="Filtros">
-            ${CO_FILTROS.map(([k, t]) => `<button class="chip ${CO.busca.f.has(k) ? 'on az' : ''}" data-co="bfiltro" data-v="${k}" aria-pressed="${CO.busca.f.has(k)}">${t}</button>`).join('')}
-          </div>
         </div>
         ${coListaCab()}
         <div class="co-lscroll">${coListaFilas()}</div>
@@ -3232,6 +3353,15 @@ function coListaDatos(){
 }
 function coListaCab(){
   const { lista, titulo, sistema, pie } = coListaDatos();
+  // Varios seleccionados: acciones para todos a la vez.
+  const varios = coVariosSel();
+  if (varios.length > 1) return `<div class="co-lcab co-bulk" role="toolbar" aria-label="Acciones con los seleccionados">
+    <b>${varios.length} seleccionados</b>
+    <button class="co-ibtn" data-co="selarchivar" title="Archivar (E)" aria-label="Archivar los seleccionados">${CO_ICO_ARCH}</button>
+    <button class="co-ibtn" data-co="selpapelera" title="Eliminar (Supr)" aria-label="Eliminar los seleccionados">${CO_ICO_PAP}</button>
+    <select class="co-sel" data-co="selmover" aria-label="Mover los seleccionados a">
+      <option value="">Mover a…</option>${CO.carpetas.map(k => `<option value="${esc(k.id)}">${esc(k.nombre)}</option>`).join('')}</select>
+    <button class="co-ibtn co-selx" data-co="selquitar" title="Quitar selección (Esc)" aria-label="Quitar selección">×</button></div>`;
   return `<div class="co-lcab" title="${esc(pie)}"><h3>${esc(titulo)}</h3><span class="co-para">${lista.length}</span>
     ${coBuscando() ? '<button class="co-editar co-blimpiar" data-co="blimpiar">Quitar búsqueda</button>' : ''}
     ${sistema ? `<button class="cbtn peligro co-vaciar" data-co="vaciar" data-id="${sistema.id}" ${lista.length ? '' : 'disabled'}>Vaciar ${sistema.nombre}</button>` : ''}</div>`;
@@ -3240,6 +3370,11 @@ function coListaFilas(){
   const { lista } = coListaDatos();
   return lista.length ? lista.map(coFila).join('')
     : `<div class="vacio">${coBuscando() ? 'Nada coincide con la búsqueda.' : 'No hay correos aquí.'}</div>`;
+}
+function coPintarListaQuieta(){
+  const ls = $('#cocuerpo .co-lscroll'), y = ls?.scrollTop;
+  coPintarLista();
+  if (ls) $('#cocuerpo .co-lscroll').scrollTop = y;
 }
 // Repinta solo la cabecera y las filas: el buscador no pierde el foco.
 function coPintarLista(){
@@ -3251,28 +3386,51 @@ function coPintarLista(){
   });
 }
 
+/* Logo de la empresa que escribe: por su dominio. Nunca en correos sospechosos
+   (un logo daría confianza a un engaño) ni en correos personales (Gmail, Outlook…).
+   En la maqueta se pide a DuckDuckGo y solo para dominios conocidos; en la versión
+   real lo busca el servidor una vez por dominio (BIMI o el icono de su web) y lo guarda. */
+const CO_LOGOS = ['idealista.com', 'iberdrola.es', 'cal.com', 'agenciatributaria.gob.es'];
+function coLogo(c, clase = ''){
+  const dom = String(c.email || '').split('@')[1]?.toLowerCase() || '';
+  const base = CO_LOGOS.find(d => dom === d || dom.endsWith('.' + d));
+  const ini = esc(String(c.de || '?').trim().charAt(0).toUpperCase());
+  if (coSeguridad(c).nivel !== 'ok') return `<span class="co-av co-logo co-logomal ${clase}" aria-hidden="true">!</span>`;
+  return `<span class="co-av co-logo ${clase}" aria-hidden="true">${base
+    ? `<img src="https://icons.duckduckgo.com/ip3/${base}.ico" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span>${ini}</span></span>`;
+}
+
 function coFila(c){
   const carp = coCarp(c.carpeta), seg = coSeguridad(c), pres = coPresencia(c);
   const eti = [];
-  if (c.estado === 'borrador') eti.push('<span class="pill am">Respuesta por revisar</span>');
+  if (c.esSeguimiento && c.estado === 'borrador') eti.push('<span class="pill am">Seguimiento</span>');
+  else if (c.estado === 'borrador') eti.push('<span class="pill am">Por revisar</span>');
   if (c.estado === 'enviando') eti.push('<span class="pill az">Enviando…</span>');
   if (c.estado === 'enviado') eti.push('<span class="pill vd">Respondido</span>');
   if (c.estado === 'descartado') eti.push('<span class="pill hist">Sin responder</span>');
   if (c.alerta) eti.push('<span class="pill rj">Falta un dato</span>');
   if (seg.nivel !== 'ok') eti.push('<span class="pill co-peligro">Peligroso</span>');
-  if (CO.carpeta === '_revisar' || CO.carpeta === '_todo' || coBuscando()) eti.push(`<span class="pill nt">${esc(carp?.nombre || 'Bandeja de entrada')}</span>`);
-  if (coOtroIdioma(c)) eti.push(`<span class="pill nt">${esc((CO_IDIOMAS[c.idioma] || c.idioma).replace(/^./, l => l.toUpperCase()))}</span>`);
+  if (CO.carpeta === '_todo' || coBuscando()) eti.push(`<span class="pill nt">${esc(carp?.nombre || 'Bandeja de entrada')}</span>`);
+  if (coOtroIdioma(c)) eti.push(`<span class="pill nt">${esc(String(c.idioma).toUpperCase())}</span>`);
+  const sel = CO.seleccion.size > 1 && CO.seleccion.has(c.id);
+  // Al pasar el puntero: archivar y eliminar (o restaurar), con símbolo.
+  const acc = coFuera(c)
+    ? `<button class="co-ibtn" data-co="restaurar" data-id="${c.id}" title="Restaurar" aria-label="Restaurar">${CO_ICO_REST}</button>`
+    : `<button class="co-ibtn" data-co="archivar" data-id="${c.id}" title="Archivar" aria-label="Archivar">${CO_ICO_ARCH}</button>
+       <button class="co-ibtn" data-co="papelera" data-id="${c.id}" title="Eliminar" aria-label="Eliminar">${CO_ICO_PAP}</button>`;
   // Deslizar (pantallas táctiles): el fondo dice qué pasará al soltar.
   return `<div class="co-swipe">
     <div class="co-swfondo" aria-hidden="true"><span class="izq">${esc(coDeslizarNom(CO.deslizar.der))}</span><span class="der">${esc(coDeslizarNom(CO.deslizar.izq))}</span></div>
-    <div class="co-fila ${c.nuevo?'nuevo':''} ${c.id===CO.abierto && coLector()?'on':''}" tabindex="0" role="button" data-co="abrir" data-id="${c.id}"
-    draggable="true" data-drag="${c.id}">
-    <div class="co-de">${coMarca(c.de)} <span class="co-para">&lt;${coMarca(c.email)}&gt;</span></div>
-    <div class="co-hora">${pres ? coAvatar(pres, 'co-avmini ' + pres.que, `${pres.nombre} ${pres.que === 'respondiendo' ? 'está respondiendo' : 'lo está viendo'}`) : ''}${esc(coHora(c))}</div>
-    <div class="co-asunto">${coMarca(c.asunto)}</div><div></div>
-    <div class="co-resumen">${esc(c.motivo)}</div>
-    ${eti.length ? `<div class="co-etis">${eti.join('')}</div>` : ''}
-  </div></div>`;
+    <div class="co-fila ${c.nuevo?'nuevo':''} ${c.id===CO.abierto && coLector()?'on':''} ${sel?'sel':''}" tabindex="0" role="option" aria-selected="${sel}"
+      data-co="abrir" data-id="${c.id}" draggable="true" data-drag="${c.id}">
+      ${coLogo(c)}
+      <div class="co-fcuerpo">
+        <div class="co-l1"><span class="co-de">${coMarca(c.de)}</span>
+          ${pres ? coAvatar(pres, 'co-avmini ' + pres.que, `${pres.nombre} ${pres.que === 'respondiendo' ? 'está respondiendo' : 'lo está viendo'}`) : ''}
+          <span class="co-hora">${esc(coHora(c))}</span><span class="co-filacc">${acc}</span></div>
+        <div class="co-l2"><span class="co-asunto">${coMarca(c.asunto)}</span>${eti.length ? `<span class="co-etis">${eti.join('')}</span>` : ''}</div>
+      </div>
+    </div></div>`;
 }
 
 /* Abre un correo: a la derecha en el ordenador, en la ventana en
@@ -3285,6 +3443,7 @@ function coAbrir(id){
   $('#mbox').classList.toggle('co-mboxancho', !!$('#mbox .co-lado'));
   $('#modal').style.display = 'block';
   $('#modal').scrollTo?.(0, 0);
+  coAjustarAltos();
   pintarCorreo();
 }
 
@@ -3322,7 +3481,7 @@ function coDetalle(c, enVentana){
           ${enVentana ? '<button class="cerrar" data-co="cerrar" aria-label="Cerrar">×</button>' : ''}
         </div>
         <div class="co-dde">
-          <span class="co-av" aria-hidden="true">${esc(String(c.de || '?').trim().charAt(0).toUpperCase())}</span>
+          ${coLogo(c)}
           <div><b>${esc(c.de)}</b> <span class="co-para">&lt;${esc(c.email)}&gt;</span><br>
             <span class="co-para">Para ${esc(buzon)} · ${esc(coHoraLarga(c))}</span>
             ${c.responderA ? `<br><span class="co-para">La respuesta irá a <b>${esc(c.responderA)}</b></span>` : ''}</div>
@@ -3344,7 +3503,8 @@ function coDetalle(c, enVentana){
       </div>
 
       <div class="co-par">
-        <section class="co-msg" aria-label="Correo recibido">
+        <section class="co-msg" aria-label="${c.esSeguimiento ? 'Vuestro último correo' : 'Correo recibido'}">
+          ${c.esSeguimiento ? '<div class="co-msgt">Vuestro último correo · sin respuesta</div>' : ''}
           ${coOtroIdioma(c) ? `<div class="co-idioma">
             ${c.verTraduccion
               ? `Traducido del ${esc(CO_IDIOMAS[c.idioma] || c.idioma)} <button class="co-editar" data-co="traducir" data-id="${c.id}">Ver el original</button>`
@@ -3355,7 +3515,7 @@ function coDetalle(c, enVentana){
         </section>
         ${conResp ? `
         <section class="co-msg co-msgresp" aria-label="${c.estado==='enviado' ? 'Respuesta enviada' : 'Respuesta propuesta'}">
-          <div class="co-msgt">${c.estado==='enviado' ? 'Respuesta enviada' : 'Respuesta propuesta'}
+          <div class="co-msgt">${c.estado==='enviado' ? (c.esSeguimiento ? 'Seguimiento enviado' : 'Respuesta enviada') : (c.esSeguimiento ? 'Seguimiento propuesto' : 'Respuesta propuesta')}
             ${c.estado==='enviado' ? `<span class="co-msgq">${esc(c.enviadoPor)}</span>` : ''}</div>
           ${c.alerta && editable ? `<div class="co-alerta">${esc(c.alerta)}</div>` : ''}
           ${editable && coOtroIdioma(c) && c.respuestaEs != null ? `<div class="co-escribir rangos" role="group" aria-label="En qué idioma escribes">
@@ -3466,22 +3626,35 @@ function coBorrarCarpeta(id){
 }
 
 function coDocumentos(){
-  const total = CO.fotosDrive.reduce((s, c) => s + c.despachos.length, 0);
+  const desp = CO.fotosDrive.reduce((s, c) => s + c.items.filter(i => i[1] === 'despacho').length, 0);
+  const fotos = CO.fotosDrive.reduce((s, c) => s + c.items.reduce((t, i) => t + i[2], 0), 0);
   return `
     <div class="panel">
-      <div class="cabpanel"><div><h3>Fotos de los despachos</h3>
+      <div class="cabpanel"><div><h3>Fotos de los espacios</h3>
         <p class="ph">Cuando ofrece un despacho, adjunta sus fotos. Salen de vuestra carpeta de Drive, las mismas que manda Laura por WhatsApp.</p></div>
-        <label class="co-interr"><input type="checkbox" data-co="fotosact" ${CO.fotosActivo?'checked':''}> Adjuntar fotos</label></div>
+        ${CO.driveUrl
+          ? `<a class="btn corto co-drive" href="${esc(CO.driveUrl)}" target="_blank" rel="noopener noreferrer">Abrir la carpeta de Drive</a>`
+          : '<span class="btn corto co-drive" aria-disabled="true" title="Falta poner el enlace de la carpeta">Abrir la carpeta de Drive</span>'}</div>
       <div class="co-fotosdrive">
-        <span class="co-para">Como mucho</span>
+        <label class="co-interr"><input type="checkbox" data-co="fotosact" ${CO.fotosActivo?'checked':''}> Adjuntar fotos</label>
+        <span class="co-para">· como mucho</span>
         <select class="co-sel" data-co="fotosmax" aria-label="Fotos por despacho">
-          ${[2,3,4,5].map(n => `<option value="${n}" ${CO.fotosMax===n?'selected':''}>${n} fotos por despacho</option>`).join('')}</select>
-        <span class="co-para">· ${total} despachos con fotos</span>
-        <button class="cbtn sec" data-co="fotosdrive">Volver a leer Drive</button>
+          ${[2,3,4,5].map(n => `<option value="${n}" ${CO.fotosMax===n?'selected':''}>${n} por despacho</option>`).join('')}</select>
+        <span class="co-para">· ${desp} despachos con fotos, ${fotos} fotos en total</span>
       </div>
       <div class="co-centros">
-        ${CO.fotosDrive.map(c => `<div class="co-centro"><b>${esc(c.centro)}</b>
-          <span>${c.despachos.length ? c.despachos.map(([d, n]) => `${esc(d)} (${n})`).join(' · ') : '<span class="tn-falta">Sin fotos: ofrece la visita</span>'}</span></div>`).join('')}
+        ${CO.fotosDrive.map((c, ci) => `<div class="co-centro">
+          <div class="co-centrocab"><b>${esc(c.centro)}</b>
+            ${CO.driveUrl ? `<a class="co-editar" href="${esc(CO.driveUrl)}" target="_blank" rel="noopener noreferrer">Abrir en Drive</a>` : ''}</div>
+          ${c.items.some(i => i[1] === 'despacho') ? '' : '<div class="tn-falta co-sinfotos">Sin fotos de despachos: ofrece la visita</div>'}
+          ${c.items.map(([nom, tipo, n], ii) => `<div class="co-espacio">
+            <div class="co-espnom"><span>${esc(nom)}</span><small>${n} ${n === 1 ? 'foto' : 'fotos'}</small></div>
+            <div class="co-miniaturas">${Array.from({ length: Math.min(n, 4) }, (_, k) =>
+              `<button class="co-mini" data-co="ver" data-id="${ci * 100 + ii}" data-g="drive" data-i="${k}" aria-label="Ver ${esc(nom)}, foto ${k + 1}">
+                <img src="${coImagen(`${nom} · ${k + 1}.jpg`, 160, 108)}" alt="" loading="lazy"></button>`).join('')}
+              ${n > 4 ? `<span class="co-mas">+${n - 4}</span>` : ''}</div>
+          </div>`).join('')}
+        </div>`).join('')}
       </div>
     </div>
     <div class="panel">
@@ -3542,13 +3715,14 @@ function coAjustes(){
         <button class="btn corto" data-co="conectar">Conectar otro buzón</button></div>
       ${CO.buzones.map(x => `<div class="co-bfila">
         <div class="ccuerpo"><strong>${esc(x.email)}</strong>
-          <span><span class="dot on" style="display:inline-block;margin-right:6px"></span>Conectado · ${esc(x.proveedor)} · último correo leído ${esc(x.leido)}</span>
+          <span>${x.estado === 'conectado'
+            ? '<span class="dot on" style="display:inline-block;margin-right:6px"></span>Conectado'
+            : '<span class="dot mal" style="display:inline-block;margin-right:6px"></span>Desconectado'}</span>
           <span class="co-para">Salida: ${esc(x.smtp)}:${x.puerto}</span></div>
         <label class="co-para" style="margin:0">Modo
           <select class="co-sel" data-co="modobuzon" data-buzon="${esc(x.email)}" aria-label="Modo de ${esc(x.email)}">
             ${Object.entries(CO_MODOS).map(([k,m]) => `<option value="${k}" ${x.modo===k?'selected':''}>${esc(m.t)}</option>`).join('')}</select></label>
         <label class="co-interr"><input type="checkbox" ${x.carpetasEnBuzon?'checked':''} data-co="cenbuzon"> Carpetas también en el buzón</label>
-        <button class="cbtn" data-co="probar">Probar conexión</button>
         <button class="cbtn peligro" data-co="desconectar">Desconectar</button></div>`).join('')}
       <dl class="co-modos">${Object.values(CO_MODOS).map(m => `<dt>${esc(m.t)}</dt><dd>${esc(m.d)}</dd>`).join('')}</dl>
     </div>
@@ -3720,7 +3894,7 @@ function coAccion(el, e){
     case 'vista': {
       const t = $('#cotxt'); const abierto = CO.correos.find(x => x.id === CO.abierto);
       if (t && abierto?.estado === 'borrador') abierto.respuesta = t.value;
-      CO.vista = el.dataset.v;
+      CO.vista = el.dataset.v; coGuardarVista();
       return coLector() ? pintarCorreo() : coAbrir(CO.abierto);
     }
     case 'ver': return coVer(nid, el.dataset.g, Number(el.dataset.i));
@@ -3742,7 +3916,10 @@ function coAccion(el, e){
       const err = coLeerAuto(); if (err) return coAviso(err);
       return coAviso(`Respuestas automáticas de ${CO.autoBuzon} guardadas.`);
     }
-    case 'abrir': return coAbrir(nid);
+    case 'abrir': return coSeleccionar(nid, e) ? coAbrir(nid) : coPintarListaQuieta();
+    case 'selarchivar': return coMover(coVariosSel(), 'archivados');
+    case 'selpapelera': return coMover(coVariosSel(), 'papelera');
+    case 'selquitar': CO.seleccion = new Set(CO.abierto != null ? [CO.abierto] : []); return coPintarListaQuieta();
     case 'cerrar': return cerrar();
     case 'bayuda': CO.bayuda = !CO.bayuda; return pintarCorreo();
     case 'bfiltro': { const f = CO.busca.f; f.has(el.dataset.v) ? f.delete(el.dataset.v) : f.add(el.dataset.v); return coPintarLista(); }
@@ -3786,8 +3963,12 @@ function coAccion(el, e){
     case 'enoseguir': { const l = coLead(nid), antes = l.etapa;
       return coHacer(`Sin más seguimientos para ${l.nombre}.`, () => { l.etapa = 'cerrado'; l.motivo = 'Cerrado a mano'; }, () => { l.etapa = antes; }); }
     case 'eircorreo': { const l = coLead(nid);
-      CO.tab = 'bandeja'; if (l?.correoId){ CO.carpeta = '_todo'; CO.abierto = l.correoId; }
+      CO.tab = 'bandeja'; CO.busca = { q:'', f:new Set() };
+      if (l?.correoId){ CO.carpeta = '_todo'; CO.abierto = l.correoId; CO.seleccion = new Set([l.correoId]); }
       return irA('correo'); }
+    case 'econvs': { const l = coLead(nid); if (!l?.userRef) return;
+      return (async () => { await irA('convs'); await abrir(l.userRef); })(); }
+    case 'eagenda': return irA('agenda');
     case 'irseg': CO.tab = 'ajustes'; CO.irA = 'co-sec-seguimiento'; return irA('correo');
     case 'traducir': c.verTraduccion = !c.verTraduccion; return coRepintarDonde();
     case 'escribiren': c.escribirEs = el.dataset.v === 'mio'; c.versiones = null; return coRepintarDonde();
@@ -3882,6 +4063,13 @@ function coEnviar(c){
   paso.t = setTimeout(() => {
     c.estado = 'enviado'; c.enviadoPor = `Enviada desde el panel por ${quien}`;
     delete CO.presencia[c.id];
+    // Si es de un lead del Embudo, el lead avanza solo.
+    const l = c.leadId && coLead(c.leadId);
+    if (l){
+      if (c.esSeguimiento){ l.seg++; l.eventos.push([0, `Seguimiento ${l.seg} enviado`]); }
+      else l.eventos.push([0, 'Le respondimos']);
+      l.etapa = 'espera'; l.proximo = Date.now() + CO.seguimiento.dias * CO_DIA;
+    }
     CO.historial = CO.historial.filter(p => p !== paso);
     coBadge(); coRepintarDonde(); coAviso(`Respuesta enviada a ${para}.`);
   }, 10000);
@@ -3935,29 +4123,24 @@ function embDetalle(l){
         <div><b>${esc(l.asunto)}</b><br><span class="co-para">${esc(l.email)} · ${esc(l.busca)}</span></div></div>
     </div>
     <ol class="emb-tl">${l.eventos.map(([d, t]) => `<li><span>${embCuando(d)}</span>${esc(t)}</li>`).join('')}</ol>
-    ${l.etapa === 'toca' ? `
-      <section class="co-msg co-msgresp">
-        <div class="co-msgt">Seguimiento ${l.seg + 1} de ${CO.seguimiento.max}${ult ? ' · el último' : ''} · propuesto</div>
-        <textarea class="co-txt" id="etxt" data-id="${l.id}" aria-label="Texto del seguimiento">${esc(l.propuesta)}</textarea>
-        ${coReescUI(l, 'lead')}
-        <div class="co-firmaprev">${coFirmaHTML(CO.buzones[0].email)}</div>
-      </section>
-      <div class="co-acc">
-        <button class="btn corto" data-co="eenviar" data-id="${l.id}">Enviar seguimiento</button>
-        <button class="cbtn" data-co="eposponer" data-id="${l.id}">Posponer 2 días</button>
-        <button class="cbtn peligro" data-co="enoseguir" data-id="${l.id}">No seguir</button>
-        <button class="co-editar" style="margin-left:auto" data-co="eircorreo" data-id="${l.id}">Ver en Correo</button>
-      </div>`
-    : l.etapa === 'contesto' ? `<div class="co-alerta">Ha contestado: respóndele desde Correo. El seguimiento se ha parado solo.</div>
-      <div class="co-acc"><button class="btn corto" data-co="eircorreo" data-id="${l.id}">Responder en Correo</button></div>`
-    : l.etapa === 'espera' || l.etapa === 'enviando' ? `<p class="emb-nota">${l.seg >= CO.seguimiento.max
-        ? 'Ya se le han enviado todos los seguimientos. Si contesta, lo verás en «Han contestado».'
-        : `Si no contesta, el ${coFecha(l.proximo)} tendrás aquí el seguimiento ${l.seg + 1} preparado.`}</p>
-      <div class="co-acc"><button class="cbtn peligro" data-co="enoseguir" data-id="${l.id}">No seguir</button>
-        <button class="co-editar" style="margin-left:auto" data-co="eircorreo" data-id="${l.id}">Ver en Correo</button></div>`
-    : l.etapa === 'visita' ? '<p class="emb-nota">Tiene visita reservada: no se le hacen seguimientos.</p>'
-    : `<p class="emb-nota">${esc(l.motivo || 'Cerrado.')}</p>`}
+    <div class="emb-paso"><span>Siguiente paso</span><b>${esc(embSiguiente(l))}</b></div>
+    <!-- Desde el Embudo no se envía nada: se va a Correo, a Conversaciones o a la Agenda. -->
+    <div class="co-acc emb-accesos">
+      ${l.correoId ? `<button class="btn corto" data-co="eircorreo" data-id="${l.id}">${l.etapa === 'toca' ? 'Ver el seguimiento en Correo' : l.etapa === 'contesto' ? 'Responder en Correo' : 'Abrir en Correo'}</button>` : ''}
+      ${l.userRef ? `<button class="cbtn" data-co="econvs" data-id="${l.id}">Ver en Conversaciones</button>` : ''}
+      ${l.visitaEn ? `<button class="cbtn" data-co="eagenda" data-id="${l.id}">Ver en la Agenda</button>` : ''}
+    </div>
   </div>`;
+}
+// Lo que toca hacer con cada lead, en una frase.
+function embSiguiente(l){
+  if (l.etapa === 'toca') return `Revisar y enviar el seguimiento ${l.seg + 1}${l.seg + 1 >= CO.seguimiento.max ? ' (el último)' : ''}: ya está escrito en Correo › Por revisar.`;
+  if (l.etapa === 'contesto') return 'Responderle: ha contestado. Su respuesta y un borrador están en Correo › Por revisar.';
+  if (l.etapa === 'espera' || l.etapa === 'enviando') return l.seg >= CO.seguimiento.max
+    ? 'Esperar su respuesta. Ya se le han enviado todos los seguimientos.'
+    : `Esperar su respuesta. Si no contesta, el ${coFecha(l.proximo)} se preparará el seguimiento ${l.seg + 1}.`;
+  if (l.etapa === 'visita') return l.visitaEn ? `Visita el ${coFecha(l.visitaEn)} a las ${new Date(l.visitaEn).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' })}${l.centro ? ' en ' + l.centro : ''}.` : 'Tiene visita reservada.';
+  return l.motivo || 'Cerrado: no hay nada más que hacer.';
 }
 function pintarEmbudoCorreo(){
   if (VISTA !== 'embudo') return;
@@ -3999,11 +4182,17 @@ function coEnviarSeguimiento(l){
     coAviso(`Seguimiento enviado a ${l.nombre}.`);
   }, 10000);
 }
-// El selector WhatsApp / Correo de arriba del Embudo.
+// El selector WhatsApp / Correo de arriba del Embudo. Hacia WhatsApp no se pasa por
+// la pantalla de carga: se marca el botón al momento y la lista cambia al llegar los datos.
 document.addEventListener('click', e => {
   const b = e.target.closest?.('[data-embcanal]'); if (!b) return;
   if (CO.embudoCanal === b.dataset.embcanal) return;
-  CO.embudoCanal = b.dataset.embcanal; irA('embudo');
+  CO.embudoCanal = b.dataset.embcanal;
+  document.querySelectorAll('[data-embcanal]').forEach(x => {
+    const on = x.dataset.embcanal === CO.embudoCanal; x.classList.toggle('on', on); x.setAttribute('aria-selected', on);
+  });
+  if (CO.embudoCanal === 'whatsapp') return pintarEmbudo(true);
+  pintarEmbudoCorreo();
 });
 
 function coVaciarConfirmar(id){
@@ -4104,6 +4293,7 @@ function coCambio(el){
   const a = el.dataset.co, nid = Number(el.dataset.id);
   const c = CO.correos.find(x => x.id === nid);
   if (a === 'mover') return coMover([nid], el.value);
+  if (a === 'selmover' && el.value) return coMover(coVariosSel(), el.value);
   if (a === 'uidioma'){
     const u = (CO.usuarios[CO.cliente] || []).find(x => x.email === el.dataset.email); u.idioma = el.value;
     return coAviso(`Idioma de ${u.nombre}: ${CO_IDIOMAS[el.value]}. Los correos en otro idioma se le ofrecerán traducidos.`);
@@ -4160,6 +4350,7 @@ function coEnlazar(){
       if (!o || (id === 'cotxt' && o.estado !== 'borrador')) return;
       coPonerTexto(o, e.target.value);
       if (o.versiones) o.versiones[o.vi] = e.target.value;
+      e.target.style.height = 'auto'; e.target.style.height = (e.target.scrollHeight + 4) + 'px';
     });
     // «Pídele un cambio»: Intro = Reescribir.
     $(sel).addEventListener('keydown', e => {
@@ -4274,15 +4465,17 @@ function coEnlazar(){
   $('#vista').addEventListener('dragstart', e => {
     const fila = e.target.closest?.('[data-drag]'); if (!fila || VISTA !== 'correo') return;
     const c = CO.correos.find(x => x.id === Number(fila.dataset.drag));
-    CO.arrastrando = c.id;
-    e.dataTransfer.setData('text/x-correo', String(c.id));
+    // Si el correo está entre los seleccionados, se arrastran todos.
+    const varios = coVariosSel();
+    CO.arrastrando = varios.length > 1 && varios.includes(c.id) ? varios : [c.id];
+    e.dataTransfer.setData('text/x-correo', CO.arrastrando.join(','));
     e.dataTransfer.setData('text/plain', c.asunto);
     e.dataTransfer.effectAllowed = 'move';
     // La «etiqueta» que se ve al arrastrar: el asunto, corto.
     // El puntero queda en la esquina vacía de arriba a la izquierda: la etiqueta va
     // abajo a la derecha y nunca tapa el puntero.
     const g = document.createElement('div'); g.className = 'co-arrastre';
-    g.innerHTML = `<span>${esc(c.asunto)}</span>`;
+    g.innerHTML = `<span>${CO.arrastrando.length > 1 ? `${CO.arrastrando.length} correos` : esc(c.asunto)}</span>`;
     document.body.append(g); e.dataTransfer.setDragImage(g, 0, 0); setTimeout(() => g.remove(), 0);
     fila.classList.add('arrastrando'); $('.co-carps')?.classList.add('soltando');
   });
@@ -4293,7 +4486,7 @@ function coEnlazar(){
   $('#vista').addEventListener('dragover', e => {
     const z = e.target.closest?.('[data-drop]'); if (!z || CO.arrastrando == null) return;
     e.preventDefault();
-    const mismo = CO.correos.find(x => x.id === CO.arrastrando)?.carpeta === z.dataset.drop;
+    const mismo = CO.arrastrando.every(id => CO.correos.find(x => x.id === id)?.carpeta === z.dataset.drop);
     e.dataTransfer.dropEffect = mismo ? 'none' : 'move';
     document.querySelectorAll('.co-carp.sobre').forEach(x => x !== z && x.classList.remove('sobre'));
     z.classList.toggle('sobre', !mismo);
@@ -4304,9 +4497,36 @@ function coEnlazar(){
   $('#vista').addEventListener('drop', e => {
     const z = e.target.closest?.('[data-drop]'); if (!z || CO.arrastrando == null) return;
     e.preventDefault();
-    const id = Number(e.dataTransfer.getData('text/x-correo')) || CO.arrastrando;
+    const dato = e.dataTransfer.getData('text/x-correo');
+    const ids = dato ? dato.split(',').map(Number).filter(Boolean) : CO.arrastrando;
     CO.arrastrando = null;
-    coMover([id], z.dataset.drop);
+    coMover(ids, z.dataset.drop);
+  });
+
+  /* Atajos de la bandeja (no actúan si se está escribiendo o hay una ventana abierta):
+     ↑ ↓ moverse · Mayús+↑↓ seleccionar · Ctrl/Cmd+A todos · Supr eliminar · E archivar · Esc quitar selección. */
+  document.addEventListener('keydown', e => {
+    if (VISTA !== 'correo' || CO.tab !== 'bandeja' || escribiendo() || CO.visor || $('#modal').style.display === 'block') return;
+    const lista = coListaDatos().lista.map(c => c.id); if (!lista.length) return;
+    const actual = CO.abierto != null && lista.includes(CO.abierto) ? CO.abierto : null;
+    const objetivo = () => { const v = coVariosSel(); return v.length ? v : actual != null ? [actual] : []; };
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+      e.preventDefault();
+      const i = actual == null ? -1 : lista.indexOf(actual);
+      const j = Math.max(0, Math.min(lista.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)));
+      const id = lista[j];
+      if (e.shiftKey){ if (CO.ancla == null) CO.ancla = actual ?? id; coSeleccionar(id, { shiftKey:true }); CO.abierto = id; coPintarListaQuieta(); }
+      else { coSeleccionar(id); coAbrir(id); }
+      document.querySelector(`.co-fila[data-id="${id}"]`)?.scrollIntoView({ block:'nearest' });
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a'){
+      e.preventDefault(); CO.seleccion = new Set(lista); coPintarListaQuieta();
+    } else if (e.key === 'Delete' || (e.key === 'Backspace' && e.metaKey)){
+      const ids = objetivo(); if (ids.length){ e.preventDefault(); coMover(ids, 'papelera'); }
+    } else if (e.key.toLowerCase() === 'e' && !e.ctrlKey && !e.metaKey && !e.altKey){
+      const ids = objetivo(); if (ids.length){ e.preventDefault(); coMover(ids, 'archivados'); }
+    } else if (e.key === 'Escape' && CO.seleccion.size > 1){
+      CO.seleccion = new Set(actual != null ? [actual] : []); coPintarListaQuieta();
+    }
   });
 
   // Ctrl+Z / Cmd+Z: deshace lo último hecho con un correo. Si se está
