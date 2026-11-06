@@ -1759,6 +1759,18 @@
   .emb-accesos{border-top:0;padding-top:0;margin-top:0}
   /* Documentos: fotos por centro y espacio */
   .co-drive{text-decoration:none;display:inline-block;margin:0}
+  .correo .co-fotoscab{align-items:center;margin-bottom:12px}
+  .correo .co-fotoscab h3{margin:0}
+  /* Ficha de un compañero en línea: al pasar el puntero (o con el teclado) */
+  .co-persona{position:relative;display:inline-flex;outline:none;border-radius:999px}
+  .co-persona:focus-visible{box-shadow:0 0 0 2px var(--pulso)}
+  .co-ptip{position:absolute;top:calc(100% + 10px);right:-8px;z-index:40;display:grid;gap:2px;
+           min-width:200px;max-width:300px;padding:8px 12px;border-radius:10px;background:var(--tinta);color:#fff;
+           font-size:12px;font-weight:500;line-height:1.5;white-space:normal;text-align:left;
+           box-shadow:0 6px 18px rgba(10,31,74,.22);opacity:0;pointer-events:none;transition:opacity .15s ease}
+  .co-ptip b{font-size:13px;font-weight:700}
+  .co-ptip span{color:var(--borde-fuerte)}
+  .co-persona:hover .co-ptip,.co-persona:focus .co-ptip{opacity:1}
   .co-drive[aria-disabled=true]{opacity:.5}
   .co-fotosdrive .co-interr{margin-right:4px}
   .co-centros{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
@@ -1903,7 +1915,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-05 · correo en pruebas 3 (datos de ejemplo)';
+const VERSION = '2026-11-06 · correo en pruebas 4 (datos de ejemplo)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -2711,18 +2723,29 @@ const CO_IMG = new Map();
 function coImagen(nombre, w = 1200, h = 800){
   const clave = `${nombre}|${w}`;
   if (CO_IMG.has(clave)) return CO_IMG.get(clave);
+  // Relleno neutro (la maqueta no ve vuestras fotos de Drive): fondo gris suave y una
+  // cámara. En la versión real aquí va la foto de verdad, en pequeño.
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
   const x = cv.getContext('2d');
-  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#E5EFFE'); g.addColorStop(.62, '#DBEAFE'); g.addColorStop(.62, '#CBD5E1'); g.addColorStop(1, '#E2E8F0');
+  const g = x.createLinearGradient(0, 0, w, h); g.addColorStop(0, '#F1F5F9'); g.addColorStop(1, '#E2E8F0');
   x.fillStyle = g; x.fillRect(0, 0, w, h);
-  x.fillStyle = '#FFFFFF'; x.fillRect(w * .58, h * .12, w * .3, h * .38);          // ventana
-  x.strokeStyle = '#94A3B8'; x.lineWidth = Math.max(2, w / 200); x.strokeRect(w * .58, h * .12, w * .3, h * .38);
-  x.fillStyle = '#0A1F4A'; x.fillRect(w * .12, h * .5, w * .36, h * .05);         // mesa
-  x.fillRect(w * .15, h * .55, w * .02, h * .2); x.fillRect(w * .43, h * .55, w * .02, h * .2);
-  x.fillStyle = '#1B7CFF'; x.fillRect(w * .24, h * .42, w * .1, h * .08);         // pantalla
-  x.fillStyle = 'rgba(10,31,74,.78)'; x.fillRect(0, h * .84, w, h * .16);
-  x.fillStyle = '#FFFFFF'; x.font = `600 ${Math.round(h * .06)}px "Plus Jakarta Sans", sans-serif`;
-  x.fillText(nombre.replace(/\.[a-z]+$/i, ''), w * .04, h * .94);
+  const grande = w >= 400, s = Math.min(w, h) * (grande ? .14 : .32);              // tamaño de la cámara
+  const cx = w / 2, cy = h / 2 - (grande ? h * .06 : 0);
+  x.strokeStyle = '#94A3B8'; x.lineWidth = Math.max(1.5, s / 14); x.lineJoin = 'round';
+  x.beginPath();
+  if (x.roundRect) x.roundRect(cx - s * .75, cy - s * .45, s * 1.5, s * 1.05, s * .14);                       // cuerpo
+  else x.rect(cx - s * .75, cy - s * .45, s * 1.5, s * 1.05);                                                 // (navegadores antiguos)
+  x.stroke();
+  x.beginPath(); x.moveTo(cx - s * .28, cy - s * .45); x.lineTo(cx - s * .18, cy - s * .62);
+  x.lineTo(cx + s * .18, cy - s * .62); x.lineTo(cx + s * .28, cy - s * .45); x.stroke();                   // visor
+  x.beginPath(); x.arc(cx, cy + s * .07, s * .3, 0, Math.PI * 2); x.stroke();                               // objetivo
+  if (grande){
+    x.fillStyle = '#64748B'; x.textAlign = 'center';
+    x.font = `600 ${Math.round(h * .035)}px "Plus Jakarta Sans", sans-serif`;
+    x.fillText(nombre.replace(/\.[a-z]+$/i, ''), cx, cy + s * 1.1);
+    x.fillStyle = '#94A3B8'; x.font = `500 ${Math.round(h * .026)}px "Plus Jakarta Sans", sans-serif`;
+    x.fillText('Vista previa de ejemplo', cx, cy + s * 1.1 + h * .05);
+  }
   const url = cv.toDataURL(/\.jpe?g$/i.test(nombre) ? 'image/jpeg' : 'image/png', .86);
   CO_IMG.set(clave, url);
   return url;
@@ -2998,6 +3021,7 @@ function coReescUI(o, tipo){
   const n = o.versiones.length;
   return `<div class="co-reesc">
     <div class="co-reesc-chips">${[['corto','Más corto'],['formal','Más formal'],['cercano','Más cercano'],['visita','Añade la visita']]
+      .filter(([k]) => !(k === 'visita' && o.esSeguimiento))          // en un seguimiento, no
       .map(([k, t]) => `<button class="chip" data-co="reesc" data-tipo="${tipo}" data-id="${o.id}" data-v="${k}">${t}</button>`).join('')}
       ${n > 1 ? `<span class="co-vers"><button data-co="vant" data-tipo="${tipo}" data-id="${o.id}" ${o.vi ? '' : 'disabled'} aria-label="Versión anterior">‹</button>
         Versión ${o.vi + 1} de ${n}<button data-co="vsig" data-tipo="${tipo}" data-id="${o.id}" ${o.vi < n - 1 ? '' : 'disabled'} aria-label="Versión siguiente">›</button></span>` : ''}</div>
@@ -3178,10 +3202,19 @@ const coEscribeEnMio = c => coOtroIdioma(c) && c.escribirEs !== false && c.respu
 
 // ---- Fotos de perfil (o las iniciales de fábrica) ----
 function coAvatar(u, clase = '', titulo = ''){
-  const t = titulo || u?.nombre || '';
+  // titulo === false: sin el aviso del navegador (cuando ya hay una ficha propia al pasar el puntero).
+  const t = titulo === false ? '' : ` title="${esc(titulo || u?.nombre || '')}"`;
   return /^data:image\//.test(u?.foto || '')
-    ? `<span class="co-av ${clase} co-avfoto" title="${esc(t)}"><img src="${esc(u.foto)}" alt=""></span>`
-    : `<span class="co-av ${clase}" title="${esc(t)}">${esc(coIniciales(u?.nombre))}</span>`;
+    ? `<span class="co-av ${clase} co-avfoto"${t}><img src="${esc(u.foto)}" alt=""></span>`
+    : `<span class="co-av ${clase}"${t}>${esc(coIniciales(u?.nombre))}</span>`;
+}
+// Qué está haciendo un compañero ahora mismo (para su ficha en «En línea»).
+function coQueHace(email){
+  const lineas = Object.entries(CO.presencia).filter(([, p]) => p.email === email).map(([id, p]) => {
+    const c = CO.correos.find(x => x.id === Number(id)); if (!c) return null;
+    return `${p.que === 'respondiendo' ? 'Respondiendo a' : 'Viendo'} ${c.de}: «${c.asunto}»`;
+  }).filter(Boolean);
+  return lineas.length ? lineas : ['En línea, sin ningún correo abierto'];
 }
 const coPuedeFoto = email => email === USUARIO_EMAIL || esAdminCorreo();
 
@@ -3239,8 +3272,11 @@ function pintarCorreo(){
             data-co="tab" data-v="${k}">${t}${k==='bandeja' && n ? ` <span class="navn">${n}</span>` : ''}</button>`).join('')}
         </div>
         <div class="co-ctrl">
-          ${propio && coEnLinea().length ? `<span class="co-enlinea" title="Compañeros conectados ahora: ${esc(coEnLinea().map(u => u.nombre).join(', '))}">En línea
-            ${coEnLinea().map(u => coAvatar(u)).join('')}</span>` : ''}
+          ${propio && coEnLinea().length ? `<span class="co-enlinea">En línea
+            ${coEnLinea().map(u => `<span class="co-persona" tabindex="0" aria-label="${esc(u.nombre)}: ${esc(coQueHace(u.email).join('. '))}">
+              ${coAvatar(u, '', false)}
+              <span class="co-ptip" role="tooltip"><b>${esc(u.nombre)}</b>
+                ${coQueHace(u.email).map(t => `<span>${esc(t)}</span>`).join('')}</span></span>`).join('')}</span>` : ''}
           ${esSimplia() ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
             <select data-co="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug===CO.cliente?'selected':''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
           ${propio ? `<div class="co-popw">
@@ -3636,8 +3672,7 @@ function coDocumentos(){
   const fotos = CO.fotosDrive.reduce((s, c) => s + c.items.reduce((t, i) => t + i[2], 0), 0);
   return `
     <div class="panel">
-      <div class="cabpanel"><div><h3>Fotos de los espacios</h3>
-        <p class="ph">Cuando ofrece un despacho, adjunta sus fotos. Salen de vuestra carpeta de Drive, las mismas que manda Laura por WhatsApp.</p></div>
+      <div class="cabpanel co-fotoscab"><div><h3>Fotos de los espacios</h3></div>
         ${CO.driveUrl
           ? `<a class="btn corto co-drive" href="${esc(CO.driveUrl)}" target="_blank" rel="noopener noreferrer">Abrir la carpeta de Drive</a>`
           : '<span class="btn corto co-drive" aria-disabled="true" title="Falta poner el enlace de la carpeta">Abrir la carpeta de Drive</span>'}</div>
