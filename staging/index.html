@@ -1959,7 +1959,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-09 · conversaciones: filtros, fotos y más chat';
+const VERSION = '2026-11-09 · conversaciones: filtros, fotos y más chat (correo apagado en producción)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -2578,9 +2578,19 @@ let USUARIO_EMAIL = '';
 const SIMPLIA_EQUIPO = ['sergio@simpliaspain.com', 'roberto@simpliaspain.com', 'simpliaspain@gmail.com'];
 const esSimplia = () => TENANT?.rol === 'operador' || SIMPLIA_EQUIPO.includes(USUARIO_EMAIL);
 // Cualquier persona de la empresa ve el correo y la configuración de su empresa.
-// Mientras está en pruebas (staging): solo las empresas de esta lista y el equipo de Simplia.
+// PRODUCCIÓN (panel.simpliaspain.com fuera de /staging): el correo está
+// APAGADO para todos. Solo lo ven las empresas a las que Simplia le dé
+// acceso, añadiendo su slug a CO_EMPRESAS_CON_ACCESO (decisión del 09/11:
+// primero las pruebas, después se activa a cada cliente).
+const CO_EMPRESAS_CON_ACCESO = [];
+// STAGING y pruebas en local: las empresas de esta lista y el equipo de Simplia.
 const CO_EMPRESAS_EN_PRUEBAS = ['oficinasya'];
-function correoPermitido(){ return !!TENANT && (esSimplia() || CO_EMPRESAS_EN_PRUEBAS.includes(TENANT.slug)); }
+const CO_EN_PRODUCCION = location.hostname === 'panel.simpliaspain.com' && !location.pathname.startsWith('/staging');
+function correoPermitido(){
+  if (!TENANT) return false;
+  if (CO_EN_PRODUCCION) return CO_EMPRESAS_CON_ACCESO.includes(TENANT.slug);
+  return esSimplia() || CO_EMPRESAS_EN_PRUEBAS.includes(TENANT.slug);
+}
 // Añadir y quitar usuarios: el administrador de la empresa (o el equipo de Simplia).
 const esAdminCorreo = () => esSimplia() || TENANT?.rol === 'admin';
 // Clientes que puede elegir el equipo de Simplia (en la versión real, mt_tenants).
