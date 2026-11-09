@@ -1842,6 +1842,47 @@
     .co-modo{flex-wrap:wrap}
     .co-modo button{margin-left:0}
   }
+
+  /* ---------- CONVERSACIONES (09/11): más conversación a la vista ----------
+     Sin subtítulo, filtros plegados en «Filtros», cabecera de una fila
+     (foto, nombre y teléfono), las acciones de vez en cuando en «Más»,
+     burbujas algo más compactas y la columna del chat más alta. */
+  h2.convs-tit{margin-bottom:16px}
+  .fbtn{display:inline-flex;align-items:center;gap:6px;background:var(--fondo);color:var(--tinta-suave);
+        font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px}
+  .fbtn:hover{color:var(--tinta)}
+  .fbtn.activo{background:var(--pulso);color:#fff}
+  .fbtn .fcn{font-size:11px;font-weight:700;background:rgba(255,255,255,.25);border-radius:999px;padding:0 7px}
+  .fbtn .fflecha{font-size:10px;transition:transform .15s}
+  .fbtn.abierto .fflecha{transform:rotate(180deg)}
+  .flimpia{background:none;color:var(--gris);font-size:12.5px;padding:6px 4px;text-decoration:underline}
+  .flimpia:hover{color:var(--pulso)}
+  #fchips{margin:0 0 16px}
+  #fchips[hidden]{display:none}
+  /* Fotos de WhatsApp: encima de la inicial; si no cargan, queda la inicial */
+  .ini{position:relative;overflow:hidden}
+  .ini img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+  .ini.foto{color:transparent}
+  .dcab .dfila{display:flex;align-items:center;gap:10px}
+  .dcab .dav{width:34px;height:34px;font-size:13px;flex:0 0 auto}
+  .dcab .dnom{flex:1 1 auto;min-width:0;display:flex;align-items:baseline;gap:2px 10px;flex-wrap:wrap}
+  .dcab .dnom .dmeta{margin-top:0}
+  .dcab .dfila .cerrar{margin-left:auto;align-self:flex-start}
+  .dmas{position:relative}
+  .dmas > summary{list-style:none;cursor:pointer;user-select:none}
+  .dmas > summary::-webkit-details-marker{display:none}
+  .dmas[open] > summary{background:var(--pulso);color:#fff}
+  .dmenu{position:absolute;top:calc(100% + 6px);left:0;z-index:20;display:flex;flex-direction:column;gap:4px;
+         min-width:240px;background:var(--blanco);border:1px solid var(--linea);border-radius:12px;
+         padding:6px;box-shadow:0 8px 24px rgba(10,31,74,.12)}
+  .dmenu .cbtn{text-align:left;width:100%}
+  #pdetalle .msg,#mbox .msg{margin-bottom:6px}
+  #pdetalle .msg .burb,#mbox .msg .burb{padding:8px 12px;font-size:14px;line-height:1.5;max-width:min(88%, 62ch)}
+  #pdetalle .hora,#mbox .hora{margin-top:2px;font-size:10.5px}
+  #pdetalle .sep{margin:12px 0 8px}
+  @media(min-width:1001px){
+    #pdetalle{max-height:calc(100vh - 168px)}
+  }
 </style>
 </head>
 <body>
@@ -1918,7 +1959,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-09 · visita y reenganche en Conversaciones';
+const VERSION = '2026-11-09 · conversaciones: filtros, fotos y más chat';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -2080,6 +2121,11 @@ let CONTACTADOS = new Map(), CONTACTADOS_OK = false;
 // user_ref → { apertura, reserva, reenganche }. VISITA_CENTROS: el
 // nombre corto de cada centro, para el [[VISITA:centro]] de los mensajes.
 let VISITAS = new Map(), VISITA_CENTROS = {};
+// Foto de perfil de WhatsApp de cada persona (mt_fotos_panel, SQL 60):
+// user_ref → dirección de la foto. Si no hay o no carga, la inicial.
+let FOTOS = new Map();
+// Los filtros rápidos de Conversaciones van plegados en «Filtros».
+let FILTROS_ABIERTOS = (() => { try { return localStorage.getItem('convs_filtros') === '1'; } catch { return false; } })();
 // Toda la terminología y el horario laboral vienen del cliente
 // (tabla tenants), no del código. Estos son solo los valores por
 // defecto si la configuración no llegara.
@@ -6130,9 +6176,7 @@ async function pintarConvs(silencioso){
   if (turno !== TURNO_CONVS || VISTA !== 'convs') return;
 
   pintaEn(`
-    <h2 class="tit">Conversaciones</h2>
-    <p class="sub">Todas las personas que han escrito a tu asistente,
-       con su historial completo.</p>
+    <h2 class="tit convs-tit">Conversaciones</h2>
     <div class="convs2">
       <div class="panel" id="pconvs"></div>
       <div id="pdetalle" class="panel vacio-det">
@@ -6222,9 +6266,13 @@ function render(busqueda){
         ${Object.entries(ORDENES).map(([k,o]) =>
           `<button class="${ORDEN===k?'on':''}" data-o="${k}">${o.etq}</button>`).join('')}
       </div>
+      <button class="fbtn${FILTRO.size ? ' activo' : ''}${FILTROS_ABIERTOS ? ' abierto' : ''}" id="vfiltros"
+              aria-expanded="${FILTROS_ABIERTOS}" aria-controls="fchips">Filtros${
+        FILTRO.size ? `<span class="fcn">${nf.format(FILTRO.size)}</span>` : ''}<span class="fflecha" aria-hidden="true">▾</span></button>
+      ${FILTRO.size && !FILTROS_ABIERTOS ? '<button class="flimpia" id="limpiar2">Quitar filtros</button>' : ''}
     </div>
 
-    <div class="chips">
+    <div class="chips" id="fchips"${FILTROS_ABIERTOS ? '' : ' hidden'}>
       ${chips.map(c => `<button class="chip ${c.s.pill}${c.activo ? ' on' : ''}"
           data-f="${c.k}" aria-pressed="${c.activo}">
         ${esc(c.s.etq)}<span class="cn">${nf.format(c.n)}</span>
@@ -6247,6 +6295,12 @@ function render(busqueda){
       render();
     }));
   $('#limpiar')?.addEventListener('click', () => { FILTRO.clear(); render(); });
+  $('#limpiar2')?.addEventListener('click', () => { FILTRO.clear(); render($('#buscar')?.value.trim() || ''); });
+  $('#vfiltros')?.addEventListener('click', () => {
+    FILTROS_ABIERTOS = !FILTROS_ABIERTOS;
+    try { localStorage.setItem('convs_filtros', FILTROS_ABIERTOS ? '1' : '0'); } catch {}
+    render($('#buscar')?.value.trim() || '');
+  });
 
   cont.querySelectorAll('.orden button[data-o]').forEach(b =>
     b.addEventListener('click', () => {
@@ -6414,7 +6468,7 @@ const filaC = c => {
   ].join('');
 
   return `<div class="pers${c.user_ref === ABIERTO ? ' on' : ''}" data-c="${esc(c.user_ref)}" tabindex="0" role="button">
-    <div class="ini${ini ? '' : ' anon'}">${ini ? esc(ini) : '·'}</div>
+    ${avatar(c)}
     <div class="pcuerpo">
       <div class="pnom">${c.nombre
         ? `<bdi>${marca(c.nombre)}</bdi>`
@@ -7031,7 +7085,26 @@ function vuelveCuando(d){
 // (el reenganche de antes de 24 h). Si la función aún no está en la base
 // (SQL 42 sin ejecutar), el botón no sale y todo lo demás sigue igual.
 async function leerContactados(){
-  await Promise.all([leerSoloContactados(), leerVisitas()]);
+  await Promise.all([leerSoloContactados(), leerVisitas(), leerFotos()]);
+}
+async function leerFotos(){
+  try {
+    const { data, error } = await supabase.rpc('mt_fotos_panel');
+    if (error || !data || typeof data !== 'object') return;
+    FOTOS = new Map(Object.entries(data).filter(([, u]) => /^https:\/\//.test(String(u))));
+  } catch (e) { /* sin fotos: las iniciales de siempre */ }
+}
+// El menú «Más» de la conversación se cierra al pulsar fuera de él.
+document.addEventListener('click', e => {
+  document.querySelectorAll('details.dmas[open]').forEach(d => { if (!d.contains(e.target)) d.removeAttribute('open'); });
+});
+// El círculo de la persona: su foto de WhatsApp encima de la inicial. Si
+// la foto no carga (caducada, borrada), se quita y queda la inicial.
+function avatar(c, clase){
+  const ini = inicialDe(c);
+  const url = FOTOS.get(c.user_ref);
+  return `<div class="${clase || 'ini'}${ini ? '' : ' anon'}${url ? ' foto' : ''}">${ini ? esc(ini) : '·'}${url
+    ? `<img src="${esc(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.remove('foto');this.remove()">` : ''}</div>`;
 }
 async function leerSoloContactados(){
   try {
@@ -7065,16 +7138,17 @@ function abrioSinReservar(ref){
   // Una reserva de antes de abrir el enlace y con la visita ya pasada no cuenta.
   return new Date(r.inicio) < Date.now() && new Date(r.creado_en) < new Date(ap.primera_en);
 }
-// «hoy a las 06:13», «mañana a las 20:45», «el jueves 12 de noviembre a las 10:00».
+// «hoy 06:13», «mañana 20:45», «ayer 06:13», «jue 12 nov, 10:00». Corto:
+// va en la cabecera fija de la conversación.
 function diaYHora(d){
   const f = new Date(d);
   if (!d || isNaN(f)) return '';
   const otro = n => { const x = new Date(); x.setDate(x.getDate() + n); return x.toDateString(); };
   const h = hora(f);
-  if (f.toDateString() === otro(0))  return `hoy a las ${h}`;
-  if (f.toDateString() === otro(1))  return `mañana a las ${h}`;
-  if (f.toDateString() === otro(-1)) return `ayer a las ${h}`;
-  return `el ${f.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' })} a las ${h}`;
+  if (f.toDateString() === otro(0))  return `hoy ${h}`;
+  if (f.toDateString() === otro(1))  return `mañana ${h}`;
+  if (f.toDateString() === otro(-1)) return `ayer ${h}`;
+  return `${f.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' }).replace(/\./g, '')}, ${h}`;
 }
 // Aviso de la cabecera: qué ha pasado con la visita y, si hay uno
 // previsto, cuándo le escribirá el asistente (el reenganche). Lo mismo
@@ -7083,29 +7157,32 @@ function avisoVisita(c){
   const v = VISITAS.get(c.user_ref);
   if (!v) return '';
   const ap = v.apertura, rs = v.reserva, re = v.reenganche;
+  // Una línea: qué pasó con la visita, dónde y cuándo; y si el asistente
+  // le va a escribir, a qué hora (sin el texto: se ve en la conversación
+  // cuando sale).
   const partes = [];
   let alerta = false;
+  const donde = (centro, d) => [centro ? esc(centro) : '', d ? esc(diaYHora(d)) : ''].filter(Boolean).join(' · ');
   if (reservaViva(rs) && !abrioSinReservar(c.user_ref)){
     const fut = rs.inicio && new Date(rs.inicio) >= Date.now();
-    partes.push(`<b>${fut ? 'Visita reservada' : 'Tuvo visita'}</b>${rs.centro_txt ? ' en ' + esc(rs.centro_txt) : ''}${rs.inicio ? ' ' + esc(diaYHora(rs.inicio)) : ''}.`);
+    partes.push(`<b>${fut ? 'Visita reservada' : 'Tuvo visita'}</b>`, donde(rs.centro_txt, rs.inicio));
   } else if (ap){
     alerta = true;
     const cancelo = rs && !reservaViva(rs) && new Date(rs.creado_en) >= new Date(ap.primera_en);
-    partes.push(`<b>Abrió el enlace de visita</b>${ap.centro_txt ? ' de ' + esc(ap.centro_txt) : ''} ${esc(diaYHora(ap.ultima_en))}${Number(ap.veces) > 1 ? ` (${nf.format(ap.veces)} veces)` : ''} y <b>${cancelo ? 'canceló la reserva' : 'no ha reservado'}</b>.`);
+    partes.push(`<b>${cancelo ? 'Canceló la visita' : 'Abrió el enlace de visita sin reservar'}</b>`, donde(ap.centro_txt, ap.ultima_en));
   } else if (rs && !reservaViva(rs)){
     alerta = true;
-    partes.push(`<b>Canceló la visita</b>${rs.centro_txt ? ' de ' + esc(rs.centro_txt) : ''}${rs.inicio ? ' (era ' + esc(diaYHora(rs.inicio)) + ')' : ''}.`);
+    partes.push('<b>Canceló la visita</b>', donde(rs.centro_txt, rs.inicio));
   }
   // El reenganche no sale si alguien del equipo le escribe antes o lo
   // marca como contactado: en esos casos no se anuncia.
   if (re && re.estado === 'programado' && re.cuando && new Date(re.cuando) > Date.now()
       && !CONTACTADOS.has(c.user_ref) && !c.pausado_hasta){
-    const t = String(re.texto || '').replace(/\s+/g, ' ').trim();
-    partes.push(`El asistente le escribirá ${esc(diaYHora(re.cuando))} si no contesta antes${
-      t ? `: «${esc(t.length > 140 ? t.slice(0, 139) + '…' : t)}»` : ''}.`);
+    partes.push(`Le escribirá ${esc(diaYHora(re.cuando))}`);
   }
-  if (!partes.length) return '';
-  return `<div class="gav${alerta ? ' al' : ''}" title="El mensaje previsto no sale si le escribís antes desde el WhatsApp de la empresa o lo marcáis como «Contactado por fuera del sistema»."><span class="gtx">${partes.join(' ')}</span></div>`;
+  const txt = partes.filter(Boolean).join(' · ');
+  if (!txt) return '';
+  return `<div class="gav${alerta ? ' al' : ''}" title="Si no contesta antes, el asistente le escribirá a esa hora. No sale si le escribís desde el WhatsApp de la empresa o lo marcáis como «Contactado por fuera del sistema»."><span class="gtx">${txt}</span></div>`;
 }
 // En la memoria del asistente el enlace de visita queda como
 // [[VISITA:centro]]; a la persona le llegó el enlace de verdad. Se
@@ -7127,7 +7204,9 @@ function gestion(c){
   // alguien del equipo contesta a mano. Se enseña, pero no se toca.
   const auto   = !pedida && c.pausado_hasta && c.pausado_por !== 'panel';
 
-  const botones = [
+  // Lo que se usa de vez en cuando va dentro de «Más»: en una línea de
+  // botones cabe más conversación debajo.
+  const extra = [
     puedo && !pedida && !auto
       ? '<button class="cbtn" id="gpausar">Parar al asistente</button>' : '',
     puedo && !c.fuera_del_recuento
@@ -7135,6 +7214,8 @@ function gestion(c){
     puedo && CONTACTADOS_OK && !CONTACTADOS.has(c.user_ref)
       ? '<button class="cbtn" id="gfuera">Contactado por fuera del sistema</button>' : ''
   ].join('');
+  const botones = extra ? `<details class="dmas"><summary class="cbtn" aria-label="Más acciones">Más<span aria-hidden="true"> ▾</span></summary>
+    <div class="dmenu">${extra}</div></details>` : '';
 
   const avisos = [];
   const visita = avisoVisita(c);
@@ -7182,6 +7263,9 @@ function gestion(c){
 function enlazarGestion(contact, recargar){
   const caja = $('#gcaja'), msg = $('#gmsg');
   if (!caja || !msg) return;
+  // Al elegir una acción de «Más», el menú se cierra y sus opciones salen debajo.
+  document.querySelectorAll('.dmas .dmenu button').forEach(b =>
+    b.addEventListener('click', () => b.closest('details')?.removeAttribute('open')));
   const limpiar = () => { caja.innerHTML = ''; msg.textContent = ''; msg.className = 'gmsg'; };
 
   const llamar = async (fn, args, textoOk) => {
@@ -7395,11 +7479,9 @@ function htmlDetalle(contact, msgs, conCerrar){
   let dia = null;
   return `
     <div class="dcab">
-      <div style="display:flex;justify-content:space-between;gap:16px">
-        <h2>${nom(c.nombre, tel)}</h2>
-        ${conCerrar
-          ? '<button class="cerrar" id="cx" aria-label="Cerrar">×</button>' : ''}
-      </div>
+      <div class="dfila">
+        ${avatar(c, 'ini dav')}
+        <div class="dnom"><h2>${nom(c.nombre, tel)}</h2>
       ${(() => {
         // Teléfono y correo en una sola línea: la cabecera es fija y
         // cada línea que ocupa es conversación que no se ve.
@@ -7410,7 +7492,10 @@ function htmlDetalle(contact, msgs, conCerrar){
           mailOk ? `<a href="mailto:${esc(correo)}">${esc(correo)}</a>` : crudo ? esc(crudo) : ''
         ].filter(Boolean);
         return partes.length ? `<p class="dmeta">${partes.join(' · ')}</p>` : '';
-      })()}
+      })()}</div>
+        ${conCerrar
+          ? '<button class="cerrar" id="cx" aria-label="Cerrar">×</button>' : ''}
+      </div>
       <div class="dacc">
         ${marcar ? `<a class="cbtn pri" href="tel:${esc(marcar)}">Llamar</a>` : ''}
         ${marcar ? `<a class="cbtn" id="dwa" href="https://wa.me/${esc(marcar.slice(1))}"
@@ -7502,6 +7587,7 @@ function pintarDetalle(caja, contact, msgs, html){
 // para copiarlo. Repintar ahora lo borraría. Se espera al siguiente.
 function ocupadoDetalle(el){
   if (($('#gcaja')?.innerHTML || '').trim()) return true;
+  if (el.querySelector?.('details.dmas[open]')) return true;   // el menú «Más» abierto
   const sel = window.getSelection?.();
   if (sel && !sel.isCollapsed && sel.anchorNode && el.contains?.(sel.anchorNode)) return true;
   return false;
