@@ -1959,7 +1959,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-09 · conversaciones: filtros, fotos y más chat (correo apagado en producción)';
+const VERSION = '2026-11-09 · «Más» se abre al pasar el ratón (correo apagado en producción)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -7108,6 +7108,46 @@ async function leerFotos(){
 document.addEventListener('click', e => {
   document.querySelectorAll('details.dmas[open]').forEach(d => { if (!d.contains(e.target)) d.removeAttribute('open'); });
 });
+// En el ordenador, «Más» se abre solo al pasar el ratón por encima y se
+// cierra al sacarlo (con un respiro de 300 ms, para cruzar el hueco
+// entre el botón y el menú sin que se cierre). Si además se pulsa, se
+// queda abierto hasta pulsar fuera o elegir una opción. En el móvil y
+// con el teclado funciona como siempre: se abre y se cierra pulsando.
+// Va por delegación en `document` porque el refresco rehace la cabecera.
+{
+  const conRaton = () => window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
+  const cierres = new WeakMap();
+  document.addEventListener('pointerover', e => {
+    if (e.pointerType !== 'mouse' || !conRaton()) return;
+    const d = e.target.closest?.('details.dmas'); if (!d) return;
+    clearTimeout(cierres.get(d));
+    if (!d.open){ d.open = true; d.dataset.porRaton = '1'; }
+  });
+  document.addEventListener('pointerout', e => {
+    if (e.pointerType !== 'mouse') return;
+    const d = e.target.closest?.('details.dmas'); if (!d) return;
+    if (e.relatedTarget && d.contains(e.relatedTarget)) return;   // sigue dentro
+    if (!d.dataset.porRaton) return;                            // lo abrió un clic
+    clearTimeout(cierres.get(d));
+    cierres.set(d, setTimeout(() => { d.open = false; }, 300));
+  });
+  // Pulsar «Más» cuando ya lo ha abierto el ratón lo deja fijo en vez de
+  // cerrarlo. Con el teclado (detail = 0) se abre y cierra como siempre.
+  document.addEventListener('click', e => {
+    const s = e.target.closest?.('details.dmas > summary'); if (!s) return;
+    const d = s.parentElement;
+    if (e.detail > 0 && d.open && d.dataset.porRaton){
+      e.preventDefault();
+      clearTimeout(cierres.get(d));
+      delete d.dataset.porRaton;
+    }
+  }, true);
+  // Cerrado por lo que sea: la próxima vez vuelve a empezar de cero.
+  document.addEventListener('toggle', e => {
+    const d = e.target;
+    if (d?.matches?.('details.dmas') && !d.open){ clearTimeout(cierres.get(d)); delete d.dataset.porRaton; }
+  }, true);
+}
 // El círculo de la persona: su foto de WhatsApp encima de la inicial. Si
 // la foto no carga (caducada, borrada), se quita y queda la inicial.
 function avatar(c, clase){
