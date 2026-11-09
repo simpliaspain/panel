@@ -285,6 +285,9 @@
   /* Reenganche: el mismo azul, con un borde discontinuo y una etiqueta
      técnica pequeña; se distingue sin llamar la atención */
   .msg.reeng .burb{outline:1.5px dashed rgba(255,255,255,.55);outline-offset:-5px}
+  .msg .vlink{display:inline-block;padding:1px 9px;border-radius:999px;background:rgba(255,255,255,.2);
+    font-weight:600;font-size:.94em}
+  .msg.h .vlink{background:var(--fondo-hueco)}
   .msg .rtag{font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;opacity:.78;margin-bottom:4px}
 
   .aviso{
@@ -1915,7 +1918,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-06 · correo en pruebas 4 (datos de ejemplo)';
+const VERSION = '2026-11-09 · visita y reenganche en Conversaciones';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 // Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
@@ -2073,6 +2076,10 @@ let TENANT = null, CONVS = [];
 // Contactados por fuera del sistema (mt_contactados_fuera, SQL 42):
 // user_ref → { en, por, nota }. CONTACTADOS_OK = la función existe.
 let CONTACTADOS = new Map(), CONTACTADOS_OK = false;
+// Visita y reenganche de cada persona (mt_visitas_panel, SQL 58):
+// user_ref → { apertura, reserva, reenganche }. VISITA_CENTROS: el
+// nombre corto de cada centro, para el [[VISITA:centro]] de los mensajes.
+let VISITAS = new Map(), VISITA_CENTROS = {};
 // Toda la terminología y el horario laboral vienen del cliente
 // (tabla tenants), no del código. Estos son solo los valores por
 // defecto si la configuración no llegara.
@@ -6079,6 +6086,8 @@ const SENALES = {
   interes:       { etq: 'Interés',       campo: c => c.interes,        pill: 'az' },
   contacto:      { etq: 'Con contacto',  campo: c => c.contacto,       pill: 'nt' },
   cita:          { etq: 'Con cita',      campo: c => !!c.cita,         pill: 'vd' },
+  // Llegó a la agenda de visitas y no reservó: a quien conviene escribir.
+  abrio:         { etq: 'Abrió y no reservó', campo: c => abrioSinReservar(c.user_ref), pill: 'am' },
   sin_respuesta: { etq: 'Sin respuesta', campo: c => c.sin_respuesta,  pill: 'am' },
   friccion:      { etq: 'Fricción',      campo: c => c.friccion,       pill: 'rj' },
   vuelto:        { etq: 'Ha vuelto',     campo: c => Number(c.conversaciones) > 1, pill: 'nt' },
@@ -6158,6 +6167,9 @@ async function refrescarConvs(){
   if (error || VISTA !== 'convs' || !$('#pconvs')) return;
   ULTIMA = Date.now(); pintarCuando();
   CONTACTOS = data || [];
+  // La visita también cambia sola: alguien abre el enlace o reserva.
+  await leerVisitas();
+  if (VISTA !== 'convs' || !$('#pconvs')) return;
 
   // Si mientras tanto alguien se ha puesto a escribir en el buscador,
   // repintar la lista le quitaría el foco a mitad de palabra.
@@ -6394,7 +6406,8 @@ const filaC = c => {
     CONTACTADOS.has(c.user_ref) ? '<span class="pill hist">Contactado por fuera</span>' : '',
     c.pausado_hasta      ? '<span class="pill nt">En pausa</span>'             : '',
     c.cita          ? '<span class="pill vd">Cita</span>'          : '',
-    c.interes       ? '<span class="pill az">Interés</span>'       : '',
+    abrioSinReservar(c.user_ref) ? '<span class="pill am">Abrió y no reservó</span>' : '',
+    c.interes      ? '<span class="pill az">Interés</span>'       : '',
     c.contacto      ? '<span class="pill nt">Contacto</span>'      : '',
     c.sin_respuesta ? '<span class="pill am">Sin respuesta</span>' : '',
     c.friccion      ? '<span class="pill rj">Fricción</span>'      : ''
@@ -7018,12 +7031,93 @@ function vuelveCuando(d){
 // (el reenganche de antes de 24 h). Si la función aún no está en la base
 // (SQL 42 sin ejecutar), el botón no sale y todo lo demás sigue igual.
 async function leerContactados(){
+  await Promise.all([leerSoloContactados(), leerVisitas()]);
+}
+async function leerSoloContactados(){
   try {
     const { data, error } = await supabase.rpc('mt_contactados_fuera');
     if (error) { CONTACTADOS_OK = false; return; }
     CONTACTADOS_OK = true;
     CONTACTADOS = new Map((Array.isArray(data) ? data : []).map(x => [x.user_ref, x]));
   } catch (e) { CONTACTADOS_OK = false; }
+}
+
+// La visita de cada persona: si abrió el enlace de visita, si reservó
+// y el reenganche que tiene previsto (mt_visitas_panel, SQL 58). Si la
+// función no está o falla, se queda lo que había y el panel sigue igual.
+async function leerVisitas(){
+  try {
+    const { data, error } = await supabase.rpc('mt_visitas_panel');
+    if (error || !data || typeof data !== 'object') return;
+    VISITAS = new Map((Array.isArray(data.personas) ? data.personas : []).map(x => [x.user_ref, x]));
+    VISITA_CENTROS = data.centros && typeof data.centros === 'object' ? data.centros : {};
+  } catch (e) { /* sin consecuencias */ }
+}
+const reservaViva = r => !!r && r.evento !== 'BOOKING_CANCELLED';
+// Abrió el enlace de visita y no tiene una reserva hecha desde entonces
+// (o la canceló). Es a quien conviene escribir: llegó hasta la agenda.
+function abrioSinReservar(ref){
+  const v = VISITAS.get(ref);
+  const ap = v?.apertura;
+  if (!ap) return false;
+  const r = v.reserva;
+  if (!reservaViva(r)) return true;
+  // Una reserva de antes de abrir el enlace y con la visita ya pasada no cuenta.
+  return new Date(r.inicio) < Date.now() && new Date(r.creado_en) < new Date(ap.primera_en);
+}
+// «hoy a las 06:13», «mañana a las 20:45», «el jueves 12 de noviembre a las 10:00».
+function diaYHora(d){
+  const f = new Date(d);
+  if (!d || isNaN(f)) return '';
+  const otro = n => { const x = new Date(); x.setDate(x.getDate() + n); return x.toDateString(); };
+  const h = hora(f);
+  if (f.toDateString() === otro(0))  return `hoy a las ${h}`;
+  if (f.toDateString() === otro(1))  return `mañana a las ${h}`;
+  if (f.toDateString() === otro(-1)) return `ayer a las ${h}`;
+  return `el ${f.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' })} a las ${h}`;
+}
+// Aviso de la cabecera: qué ha pasado con la visita y, si hay uno
+// previsto, cuándo le escribirá el asistente (el reenganche). Lo mismo
+// que dice el correo diario, para que el panel y el correo no se contradigan.
+function avisoVisita(c){
+  const v = VISITAS.get(c.user_ref);
+  if (!v) return '';
+  const ap = v.apertura, rs = v.reserva, re = v.reenganche;
+  const partes = [];
+  let alerta = false;
+  if (reservaViva(rs) && !abrioSinReservar(c.user_ref)){
+    const fut = rs.inicio && new Date(rs.inicio) >= Date.now();
+    partes.push(`<b>${fut ? 'Visita reservada' : 'Tuvo visita'}</b>${rs.centro_txt ? ' en ' + esc(rs.centro_txt) : ''}${rs.inicio ? ' ' + esc(diaYHora(rs.inicio)) : ''}.`);
+  } else if (ap){
+    alerta = true;
+    const cancelo = rs && !reservaViva(rs) && new Date(rs.creado_en) >= new Date(ap.primera_en);
+    partes.push(`<b>Abrió el enlace de visita</b>${ap.centro_txt ? ' de ' + esc(ap.centro_txt) : ''} ${esc(diaYHora(ap.ultima_en))}${Number(ap.veces) > 1 ? ` (${nf.format(ap.veces)} veces)` : ''} y <b>${cancelo ? 'canceló la reserva' : 'no ha reservado'}</b>.`);
+  } else if (rs && !reservaViva(rs)){
+    alerta = true;
+    partes.push(`<b>Canceló la visita</b>${rs.centro_txt ? ' de ' + esc(rs.centro_txt) : ''}${rs.inicio ? ' (era ' + esc(diaYHora(rs.inicio)) + ')' : ''}.`);
+  }
+  // El reenganche no sale si alguien del equipo le escribe antes o lo
+  // marca como contactado: en esos casos no se anuncia.
+  if (re && re.estado === 'programado' && re.cuando && new Date(re.cuando) > Date.now()
+      && !CONTACTADOS.has(c.user_ref) && !c.pausado_hasta){
+    const t = String(re.texto || '').replace(/\s+/g, ' ').trim();
+    partes.push(`El asistente le escribirá ${esc(diaYHora(re.cuando))} si no contesta antes${
+      t ? `: «${esc(t.length > 140 ? t.slice(0, 139) + '…' : t)}»` : ''}.`);
+  }
+  if (!partes.length) return '';
+  return `<div class="gav${alerta ? ' al' : ''}" title="El mensaje previsto no sale si le escribís antes desde el WhatsApp de la empresa o lo marcáis como «Contactado por fuera del sistema»."><span class="gtx">${partes.join(' ')}</span></div>`;
+}
+// En la memoria del asistente el enlace de visita queda como
+// [[VISITA:centro]]; a la persona le llegó el enlace de verdad. Se
+// enseña como una etiqueta, y si lo abrió, a qué hora.
+function txtMensaje(t, ref){
+  const ap = VISITAS.get(ref)?.apertura;
+  return esc(t).replace(/\[\[VISITA:([a-z0-9-]+)\]\]/gi, (m, k) => {
+    const cl = k.toLowerCase();
+    const abierto = ap && String(ap.centro || '').toLowerCase() === cl
+      ? ` · abierto ${esc(diaYHora(ap.primera_en))}` : '';
+    return `<span class="vlink" title="Aquí le llegó el enlace para reservar la visita">Enlace de visita · ${esc(VISITA_CENTROS[cl] || k)}${abierto}</span>`;
+  });
 }
 
 function gestion(c){
@@ -7043,6 +7137,8 @@ function gestion(c){
   ].join('');
 
   const avisos = [];
+  const visita = avisoVisita(c);
+  if (visita) avisos.push(visita);
   if (pedida && c.pausa_aplicada){
     avisos.push(`<div class="gav"><span class="gtx">
       <b>El asistente no le responde</b>, ${esc(hastaCuando(pedida))}.</span>
@@ -7349,7 +7445,7 @@ function htmlDetalle(contact, msgs, conCerrar){
         + (GANCHOS_REENGANCHE[re.gancho] ? ` · gancho: ${GANCHOS_REENGANCHE[re.gancho]}` : '') : '';
       return sep + `<div class="msg ${m.papel === 'human' ? 'h' : 'a'}${re ? ' reeng' : ''}">
         <div class="burb"${re ? ` title="${esc(reTip)}"` : ''}>${re
-          ? '<div class="rtag mono" aria-label="Mensaje de reenganche automático">↻ reenganche · auto</div>' : ''}<span class="btxt">${esc(txt)}</span>
+          ? '<div class="rtag mono" aria-label="Mensaje de reenganche automático">↻ reenganche · auto</div>' : ''}<span class="btxt">${txtMensaje(txt, contact)}</span>
           <div class="hora">${m.cuando ? hora(m.cuando) : 'sin hora'}${
             m.latencia_ms ? `, ${(m.latencia_ms/1000).toFixed(1).replace('.', ',')} s` : ''}</div>
         </div></div>`;
