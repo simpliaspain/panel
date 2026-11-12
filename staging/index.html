@@ -128,6 +128,16 @@
     background:var(--blanco);color:var(--tinta);
   }
   input:focus{border-color:var(--pulso)}
+  /* «Mantener la sesión iniciada»: casilla pequeña, sin el aspecto de
+     los campos de texto (el estilo general de input le daba ancho
+     completo y borde). */
+  .recordar{display:flex;align-items:center;gap:8px;font-weight:500;
+    color:var(--tinta-suave);margin:-4px 0 18px;cursor:pointer}
+  .recordar input{width:16px;height:16px;margin:0;padding:0;flex:none;
+    accent-color:var(--pulso);cursor:pointer}
+  /* Mientras se mira si hay una sesión guardada no se enseña la
+     entrada: sin esto, al recargar se veía un instante el formulario. */
+  body.comprobando #login{visibility:hidden}
   .btn{
     width:100%;background:var(--pulso);color:#fff;padding:16px;border-radius:10px;
     font-size:15px;font-weight:700;transition:filter .15s ease;margin-top:4px;
@@ -1904,6 +1914,9 @@
         <input id="em" type="email" autocomplete="email" placeholder="tu@empresa.com">
         <label for="pw">Contraseña</label>
         <input id="pw" type="password" autocomplete="current-password" placeholder="••••••••">
+        <label class="recordar" for="recordar" title="Desmárcala en un ordenador compartido: la sesión se cerrará al cerrar la pestaña.">
+          <input id="recordar" type="checkbox" checked> Mantener la sesión iniciada
+        </label>
         <button class="btn" id="entrar">Entrar al panel</button>
       </div>
     </div>
@@ -1959,12 +1972,56 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-09 · «Más» se abre al pasar el ratón (correo apagado en producción)';
+const VERSION = '2026-11-12 · la sesión se mantiene al recargar (correo apagado en producción)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
-// Sesión en memoria: los artefactos no permiten almacenamiento del navegador.
+/* ---------- sesión guardada ----------
+   Antes la sesión vivía solo en memoria (persistSession:false, de
+   cuando el panel se probaba como artefacto, que no deja guardar nada):
+   cada recarga, y cada enlace «Ver» del correo diario en una pestaña
+   nueva, pedía otra vez email y contraseña.
+
+   Ahora Supabase guarda la sesión (con su token de refresco) y la
+   renueva sola. Dónde la guarda depende de «Mantener la sesión
+   iniciada»:
+     · marcada (por defecto) → localStorage: sigue al recargar, en
+       pestañas nuevas y al cerrar el navegador, hasta pulsar «Salir»;
+     · desmarcada → sessionStorage: se borra al cerrar la pestaña
+       (para ordenadores compartidos).
+   Staging y producción comparten dominio, así que cada uno tiene su
+   propia clave: entrar en uno no deja dentro del otro.
+   Si el navegador no deja guardar nada (modo privado estricto), todo
+   falla en silencio y el panel funciona como antes: pide entrar. */
+const ENTORNO_SESION = location.pathname.startsWith('/staging') ? 'staging' : 'produccion';
+const CLAVE_SESION = 'simplia-panel-sesion-' + ENTORNO_SESION;
+const CLAVE_RECORDAR = 'simplia-panel-recordar-' + ENTORNO_SESION;
+function recordarSesion(){
+  try { return localStorage.getItem(CLAVE_RECORDAR) !== '0'; } catch { return false; }
+}
+const ALMACEN_SESION = {
+  getItem(k){
+    try { return localStorage.getItem(k) ?? sessionStorage.getItem(k); } catch { return null; }
+  },
+  setItem(k, v){
+    try {
+      if (recordarSesion()){ localStorage.setItem(k, v); sessionStorage.removeItem(k); }
+      else { sessionStorage.setItem(k, v); localStorage.removeItem(k); }
+    } catch {}
+  },
+  removeItem(k){
+    try { localStorage.removeItem(k); } catch {}
+    try { sessionStorage.removeItem(k); } catch {}
+  }
+};
+// Si hay una sesión guardada, la entrada no se enseña mientras se
+// comprueba (ver arrancarConSesionGuardada, al final).
+if (ALMACEN_SESION.getItem(CLAVE_SESION)) document.body.classList.add('comprobando');
+
 const supabase = createClient(URL, KEY, {
-  auth: { persistSession:false, autoRefreshToken:true, detectSessionInUrl:false }
+  auth: {
+    persistSession: true, autoRefreshToken: true, detectSessionInUrl: false,
+    storageKey: CLAVE_SESION, storage: ALMACEN_SESION
+  }
 });
 
 /* ============================================================
@@ -2188,6 +2245,10 @@ async function entrar(){
   const b = $('#entrar'), e = $('#err');
   e.style.display = 'none';
   b.disabled = true; b.textContent = 'Comprobando…';
+
+  // Antes de entrar: así Supabase guarda la sesión ya en el sitio
+  // elegido (localStorage o sessionStorage).
+  try { localStorage.setItem(CLAVE_RECORDAR, $('#recordar')?.checked === false ? '0' : '1'); } catch {}
 
   const { data: sesion, error } = await supabase.auth.signInWithPassword({
     email: $('#em').value.trim(), password: $('#pw').value
@@ -8806,6 +8867,28 @@ const cuandoCorto = d => {
   d.className = 'staging';
   d.textContent = 'Staging, no es lo que ve el cliente · versión ' + VERSION;
   document.body.insertBefore(d, document.body.firstChild);
+})();
+
+/* ---------- entrar con la sesión guardada ----------
+   Va al final del archivo a propósito: arrancar() usa variables
+   declaradas con let por todo el script, y aquí ya existen todas.
+   getSession() renueva el acceso con el token de refresco si hace
+   falta; si ya no vale (se cerró la sesión desde otro sitio, se
+   cambió la contraseña…), devuelve vacío y sale la entrada de siempre. */
+(async function arrancarConSesionGuardada(){
+  let sesion = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    sesion = data?.session || null;
+  } catch (e) { console.warn('No se ha podido leer la sesión guardada:', e); }
+  document.body.classList.remove('comprobando');
+  if (!sesion) return;
+  // Si mientras tanto alguien ya ha pulsado «Entrar», no se arranca dos veces.
+  if ($('#app').style.display === 'block') return;
+  USUARIO_EMAIL = String(sesion.user?.email || '').trim().toLowerCase();
+  $('#login').style.display = 'none';
+  $('#app').style.display = 'block';
+  await arrancar();
 })();
 </script>
 </body>
