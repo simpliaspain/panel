@@ -3618,12 +3618,12 @@ function pintarCorreo(){
    SQL 78), la pestaña Correo enseña los datos reales EN SOLO LECTURA:
    cada conversación con la respuesta que dio el equipo y la que habría dado
    el asistente (que no envía nada) y lo que falta en la hoja. Desde el 16/11
-   noche ya no se compara con el equipo (SQL 89). En Configuración, el estado
+   noche ya no se compara con el equipo (SQL 90). En Configuración, el estado
    del buzón y el campo para guardar su contraseña (va directa a Vault con
    mt_correo_guardar_clave, SQL 77; nunca se enseña).
    16/11 noche: la bandeja tiene la forma de la maqueta (carpetas, lista
-   con buscador y el correo a la derecha), y lo que falta en la hoja y las
-   cifras por tipo van en «Mejoras» (SQL 87).
+   con buscador y el correo a la derecha), y lo que falta en la hoja va en
+   «Mejoras» (SQL 87).
    En producción solo lo ven las empresas de CO_EMPRESAS_CON_ACCESO.
    ===================================================================== */
 CO.real = null;          // { slug, buzones, puede_editar, hilos, resumen, faltan, mejorar }
@@ -3664,7 +3664,7 @@ function crFotos(bo){
 /* Imágenes que trae cada correo (16/11 noche): sobre todo las fotos que el
    equipo pega en sus respuestas. La bandeja solo guarda nombre, tipo y
    tamaño; la imagen la baja «[MT] Correo · Adjunto» del buzón (solo
-   lectura, SQL 88) y la guarda 30 días. Las muy pequeñas (logos de firmas)
+   lectura, SQL 89) y la guarda 30 días. Las muy pequeñas (logos de firmas)
    no se enseñan. */
 const N8N_ADJUNTO = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/adjunto';
 const CR_ADJ = new Map();     // 'mensaje|n' -> URL del blob, '' si no se pudo, null pidiéndose
@@ -3852,7 +3852,7 @@ function crCarpetas(){
 function crFila(h){
   const p = crRemite(crPrimero(h).de);
   const eti = [];
-  // 16/11 noche: sin comparación con el equipo (el usuario la quitó; SQL 89).
+  // 16/11 noche: sin comparación con el equipo (el usuario la quitó; SQL 90).
   if (h.borrador) eti.push('<span class="pill am">Respuesta propuesta</span>');
   if ((h.borrador?.faltan || []).length) eti.push('<span class="pill rj">Falta un dato</span>');
   // En «Todos» o al buscar, la carpeta (como en la maqueta). Máximo dos etiquetas: el asunto se tiene que leer.
