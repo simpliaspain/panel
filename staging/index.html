@@ -2099,7 +2099,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-16d · correo con carpetas como la maqueta, fotos de los correos y «Mejoras» (lo que falta en la hoja); en producción para OficinasYA (modo sombra)';
+const VERSION = '2026-11-16e · correo con carpetas como la maqueta, fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3617,8 +3617,8 @@ function pintarCorreo(){
    Si el cliente tiene un buzón conectado de verdad (mt_correo_panel_buzones,
    SQL 78), la pestaña Correo enseña los datos reales EN SOLO LECTURA:
    cada conversación con la respuesta que dio el equipo y la que habría dado
-   el asistente (que no envía nada), el veredicto de la comparación, el
-   resumen por tipo y lo que falta en la hoja. En Configuración, el estado
+   el asistente (que no envía nada) y lo que falta en la hoja. Desde el 16/11
+   noche ya no se compara con el equipo (SQL 89). En Configuración, el estado
    del buzón y el campo para guardar su contraseña (va directa a Vault con
    mt_correo_guardar_clave, SQL 77; nunca se enseña).
    16/11 noche: la bandeja tiene la forma de la maqueta (carpetas, lista
@@ -3850,10 +3850,10 @@ function crCarpetas(){
 }
 
 function crFila(h){
-  const p = crRemite(crPrimero(h).de), v = CR_VER[h.comparacion?.veredicto];
+  const p = crRemite(crPrimero(h).de);
   const eti = [];
-  if (h.borrador && !v) eti.push('<span class="pill am">Respuesta propuesta</span>');
-  if (v) eti.push(`<span class="pill ${v[1]}">${esc(v[0] === 'El equipo no contestó por correo' ? 'Sin respuesta del equipo' : v[0])}</span>`);
+  // 16/11 noche: sin comparación con el equipo (el usuario la quitó; SQL 89).
+  if (h.borrador) eti.push('<span class="pill am">Respuesta propuesta</span>');
   if ((h.borrador?.faltan || []).length) eti.push('<span class="pill rj">Falta un dato</span>');
   // En «Todos» o al buscar, la carpeta (como en la maqueta). Máximo dos etiquetas: el asunto se tiene que leer.
   if ((CO.realCarpeta === '_todo' || CO.realBusca?.trim()) && eti.length < 2)
@@ -3885,12 +3885,10 @@ function crPintarLista(){
 
 function crDetalle(h, enVentana){
   const msgs = h.mensajes || [];
-  const bo = h.borrador, cp = h.comparacion, v = CR_VER[cp?.veredicto];
+  const bo = h.borrador;
   const p = crRemite(crPrimero(h).de);
   const carp = CR_CARPETAS.find(k => k.id === crCarpetaDe(h));
   const lado = !!bo && CO.vista === 'lado' && coLadoCabe(enVentana);
-  const puntos = cp?.puntos && typeof cp.puntos === 'object' ? Object.entries(cp.puntos).filter(([, t]) => t) : [];
-  const PUNTO = { datos:'Datos y precios', siguiente_paso:'Siguiente paso', tono:'Tono', falto:'Lo que faltó' };
   const faltan = bo?.faltan || [];
   return `
     <div class="co-det ${lado ? 'co-lado' : ''}">
@@ -3927,11 +3925,6 @@ function crDetalle(h, enVentana){
             <div class="co-orig">${crBorrador(bo.texto)}</div>
             ${crFotos(bo)}
           </section>
-          ${cp ? `<section class="co-msg cr-cmp" aria-label="Comparación con el equipo">
-            <div class="co-msgt">Comparado con el equipo</div>
-            <div class="cr-ver"><span class="pill ${v?.[1] || 'nt'}">${esc(v?.[0] || cp.veredicto)}</span>${cp.explicacion ? ` ${esc(cp.explicacion)}` : ''}</div>
-            ${puntos.length ? `<div class="cr-puntos">${puntos.map(([k, t]) => `<div><b>${esc(PUNTO[k] || k)}:</b> ${esc(typeof t === 'string' ? t : JSON.stringify(t))}</div>`).join('')}</div>` : ''}
-          </section>` : ''}
         </div>` : h.tipo === 'comercial' && !h.a_persona ? '<p class="co-para">El asistente todavía no ha preparado su respuesta.</p>' : ''}
       </div>
     </div>`;
@@ -4004,10 +3997,6 @@ function crMejorar(){
   const ds = info.datos || [];
   const pend = ds.filter(f => !f.estado || f.estado === 'vuelve');
   const hechos = ds.filter(f => f.estado === 'anadido'), nodamos = ds.filter(f => f.estado === 'no_damos');
-  const res = CO.real.resumen || [];
-  const tot = k => res.reduce((s, x) => s + Number(x[k] || 0), 0);
-  const comp = s => Number(s.igual) + Number(s.mejor) + Number(s.peor) + Number(s.equivocado);
-  const pct = s => comp(s) ? Math.round((Number(s.igual) + Number(s.mejor)) * 100 / comp(s)) + ' %' : '—';
   const deshacer = f => `<li>${esc(f.dato)}${info.puede_marcar ? ` <button class="co-editar" data-cr="falta" data-v="" data-dato="${esc(f.dato)}">Deshacer</button>` : ''}</li>`;
   const pestBotones = info.hoja?.url ? Object.entries(CR_PESTANAS).map(([k, P]) =>
     `<a class="cbtn sec" href="${esc(crUrlPestana(k))}" target="_blank" rel="noopener">${esc(P.nombre)}</a>`).join('') : '';
@@ -4023,16 +4012,6 @@ function crMejorar(){
       ${pend.length ? pend.map(f => crItemFalta(f, info)).join('') : '<div class="vacio">No falta nada: todo lo que han preguntado está en la hoja.</div>'}
       ${hechos.length ? `<details class="cr-fhechos"><summary>Ya añadidos (${hechos.length})</summary><ul>${hechos.map(deshacer).join('')}</ul></details>` : ''}
       ${nodamos.length ? `<details class="cr-fhechos"><summary>No lo damos (${nodamos.length})</summary><ul>${nodamos.map(deshacer).join('')}</ul></details>` : ''}
-    </div>
-    <div class="panel cr-mej">
-      <h3>Cómo responde comparado con el equipo</h3>
-      <p class="co-para">Cuando el equipo contesta un correo de un cliente, se compara con la respuesta que había preparado el asistente.</p>
-      ${res.length ? `<div class="cr-tscroll"><table class="cr-tabla">
-        <thead><tr><th>Tipo de consulta</th><th>Comparados</th><th>Igual</th><th>Mejor</th><th>Peor</th><th>Equivocado</th><th>Sin respuesta del equipo</th><th>Igual o mejor</th></tr></thead>
-        <tbody>${res.map(s => `<tr><td>${esc(CR_SUBTIPO[s.subtipo] || s.subtipo)}</td><td>${comp(s)}</td><td>${s.igual}</td><td>${s.mejor}</td><td>${s.peor}</td><td>${s.equivocado}</td><td>${s.sin_respuesta}</td><td><b>${pct(s)}</b></td></tr>`).join('')}</tbody>
-        <tfoot><tr><td>Total</td><td>${comp({ igual:tot('igual'), mejor:tot('mejor'), peor:tot('peor'), equivocado:tot('equivocado') })}</td><td>${tot('igual')}</td><td>${tot('mejor')}</td><td>${tot('peor')}</td><td>${tot('equivocado')}</td><td>${tot('sin_respuesta')}</td>
-          <td><b>${pct({ igual:tot('igual'), mejor:tot('mejor'), peor:tot('peor'), equivocado:tot('equivocado') })}</b></td></tr></tfoot>
-      </table></div>` : '<div class="vacio">Todavía no hay comparaciones.</div>'}
     </div>`;
 }
 
@@ -4043,7 +4022,7 @@ function crTope(){
   const color = usado >= tope ? 'rj' : usado >= tope * 0.8 ? 'am' : 'vd';
   return `<div class="cr-buzon" id="cr-tope">
     <b>Tope diario del asistente de correo</b> <span class="pill ${color}">${usado} de ${tope} hoy</span>
-    <div class="fila"><span>Cuenta los borradores y las comparaciones con la respuesta del equipo (clasificar no cuenta).
+    <div class="fila"><span>Cuenta las respuestas propuestas que escribe el asistente (clasificar no cuenta).
       Al llegar al tope deja de escribir borradores hasta mañana. Al 80 % llega un aviso al equipo de Simplia.</span></div>
     ${r.puede_cambiar_tope ? `<div class="cr-clave">
         <label for="crtope">Nuevo tope al día</label>
@@ -4087,9 +4066,6 @@ function coPintarReal(){
   const ventanaY = scrollY;
   const hs = CO.real.hilos || [];
   const hoy = hs.filter(h => h.primer_recibido_en && new Date(h.primer_recibido_en).toDateString() === new Date().toDateString()).length;
-  const res = CO.real.resumen || [];
-  const s = k => res.reduce((a, x) => a + Number(x[k] || 0), 0);
-  const comparados = s('igual') + s('mejor') + s('peor') + s('equivocado');
   const pend = (CO.real.mejorar?.datos || []).filter(f => !f.estado || f.estado === 'vuelve').length;
   const tabs = [['bandeja', 'Bandeja'], ['mejorar', 'Mejoras'], ['ajustes', 'Configuración']];
   $('#vista').innerHTML = `
@@ -4108,7 +4084,6 @@ function coPintarReal(){
         <span><b>${hoy}</b> han entrado hoy</span>
         <span><b class="az">${crEnCarpeta('nuevos').length}</b> nuevos clientes</span>
         <span><b>${crEnCarpeta('_prop').length}</b> con respuesta propuesta</span>
-        ${comparados ? `<button class="cr-cifbtn" data-cr="tab" data-v="mejorar" title="Ver el detalle por tipo de consulta"><b>${Math.round((s('igual') + s('mejor')) * 100 / comparados)} %</b> igual o mejor que el equipo</button>` : ''}
         <span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>
       </div>` : ''}
       <div id="cocuerpo" class="co-cuerpo">${enBandeja ? crBandeja() : CO.realTab === 'mejorar' ? crMejorar() : crConfiguracion()}</div>
