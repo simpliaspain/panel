@@ -1974,6 +1974,41 @@
   .cr-buzon .fila{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--tinta-suave);margin:6px 0 10px}
   .cr-clave{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .cr-clave input{max-width:280px;margin:0}
+  /* Bandeja real con carpetas (16/11 noche) y «Mejorar respuestas». */
+  .cr-hilo{display:grid;gap:12px;align-content:start;min-width:0}
+  .co-msg.cr-env{background:var(--fondo-hueco)}
+  .co-msg.cr-cmp .cr-ver{margin:0 0 8px}
+  .cr-cifbtn{font:inherit;font-size:13px;color:var(--gris);background:none;border:0;padding:0;cursor:pointer;text-align:left}
+  .cr-cifbtn:hover{color:var(--pulso)}
+  .cr-cifbtn b{font-size:15px;color:var(--verde-oscuro);margin-right:4px}
+  .co-ej.cr-sombra{background:#E5EFFE;color:var(--azul-texto);cursor:help}
+  .co-real .co-fila{cursor:pointer}
+  .cr-mej h3{font-size:17px;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+  .cr-mej > .co-para{margin:0 0 14px}
+  .cr-mcab{display:flex;gap:12px 24px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+  .cr-mcab > div:first-child{flex:1 1 420px}
+  .cr-mcab .co-para{line-height:1.6;max-width:72ch;margin:0}
+  .cr-mhoja{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .cr-mhoja .cbtn{text-decoration:none}
+  .cr-fitem{border:1px solid var(--linea);border-radius:12px;padding:14px 16px;margin-bottom:10px;background:var(--blanco)}
+  .cr-fitem.vuelve{border-color:var(--coral-fondo)}
+  .cr-fdato{font-size:15px;font-weight:700;line-height:1.4;margin-bottom:4px}
+  .cr-fdato::first-letter{text-transform:uppercase}
+  .cr-fmeta{font-size:12px;color:var(--gris);margin-bottom:8px}
+  .cr-fdonde{font-size:13px;line-height:1.6;color:var(--tinta-suave);margin-bottom:10px}
+  .cr-facc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .cr-facc a.cbtn{text-decoration:none}
+  .cr-fder{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .cr-fhechos{margin-top:12px;font-size:13px;color:var(--tinta-suave)}
+  .cr-fhechos summary{cursor:pointer;font-weight:600}
+  .cr-fhechos ul{margin:8px 0 0 18px;display:grid;gap:4px}
+  .cr-tscroll{overflow-x:auto}
+  .cr-tabla{width:100%;border-collapse:collapse;font-size:13px}
+  .cr-tabla th,.cr-tabla td{padding:8px 10px;border-bottom:1px solid var(--linea);text-align:right;white-space:nowrap}
+  .cr-tabla th:first-child,.cr-tabla td:first-child{text-align:left}
+  .cr-tabla th{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.05em}
+  .cr-tabla tfoot td{font-weight:700;border-bottom:0}
+  @media(max-width:640px){ .cr-fder{margin-left:0} }
   #pdetalle .msg,#mbox .msg{margin-bottom:6px}
   #pdetalle .msg .burb,#mbox .msg .burb{padding:8px 12px;font-size:14px;line-height:1.5;max-width:min(88%, 62ch)}
   #pdetalle .hora,#mbox .hora{margin-top:2px;font-size:10.5px}
@@ -2064,7 +2099,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-16b · correo en producción para OficinasYA (modo sombra); cuentas del panel y «pon tu contraseña»; equipo de Simplia con candado';
+const VERSION = '2026-11-16c · correo con carpetas como la maqueta y «Mejorar respuestas» (lo que falta en la hoja); en producción para OficinasYA (modo sombra)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3586,12 +3621,15 @@ function pintarCorreo(){
    resumen por tipo y lo que falta en la hoja. En Configuración, el estado
    del buzón y el campo para guardar su contraseña (va directa a Vault con
    mt_correo_guardar_clave, SQL 77; nunca se enseña).
-   Si no hay buzón real, o las funciones fallan, se queda la maqueta.
-   Solo staging y local: en producción correoPermitido() ya lo apaga.
+   16/11 noche: la bandeja tiene la forma de la maqueta (carpetas, lista
+   con buscador y el correo a la derecha), y lo que falta en la hoja y las
+   cifras por tipo van en «Mejorar respuestas» (SQL 87).
+   En producción solo lo ven las empresas de CO_EMPRESAS_CON_ACCESO.
    ===================================================================== */
-CO.real = null;          // { slug, buzones, puede_editar, hilos, resumen, faltan }
-CO.realTab = 'conversaciones';
-CO.realFiltro = 'comercial';
+CO.real = null;          // { slug, buzones, puede_editar, hilos, resumen, faltan, mejorar }
+CO.realTab = 'bandeja';
+CO.realCarpeta = '_prop';
+CO.realBusca = '';
 CO.realAbierto = null;
 const CR_SUBTIPO = { despacho_meses:'Despacho por meses', equipo:'Equipo (6 o más)', despacho_horas:'Despacho por horas',
   puesto:'Puesto de coworking', sala:'Sala', oficina_virtual:'Oficina virtual', broker:'Broker', portal:'Portal',
@@ -3654,14 +3692,16 @@ const crBorrador = t => coParrafos(t).replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\
 async function coCargarReal(){
   const slug = crSlug();
   try {
-    const [b, d] = await Promise.all([
+    const [b, d, f] = await Promise.all([
       supabase.rpc('mt_correo_panel_buzones', { p_slug: slug }),
-      supabase.rpc('mt_correo_panel', { p_slug: slug, p_desde: null })
+      supabase.rpc('mt_correo_panel', { p_slug: slug, p_desde: null }),
+      // Lo que falta en la hoja (SQL 87). Si falla, la bandeja sale igual.
+      supabase.rpc('mt_correo_faltan', { p_slug: slug })
     ]);
     if (b.error){ CO.real = null; CO.realEstado = 'error'; coBadge(); return false; }
     if (!b.data?.buzones?.length){ CO.real = null; CO.realEstado = 'sin'; coBadge(); return false; }
     if (d.error){ CO.real = null; CO.realEstado = 'error'; coBadge(); return false; }
-    CO.real = { slug, ...b.data, ...d.data };
+    CO.real = { slug, ...b.data, ...d.data, mejorar: f.error ? null : f.data };
     CO.realEstado = 'ok';
     coBadge();
     return true;
@@ -3687,74 +3727,261 @@ function coPintarSinBuzon(){
     </div>`;
 }
 
-function crFiltrados(){
+/* ---------- Bandeja real (16/11 noche): como la maqueta, en solo lectura ----------
+   Pedido del usuario: «que se vea como en staging aunque no se puedan
+   enviar mails», con sus carpetas. Las carpetas salen de cómo clasifica el
+   asistente cada conversación (cada una va a una sola carpeta). No hay
+   enviar, mover ni borrar: el modo sombra no toca el buzón. Lo que falta
+   en la hoja va en su apartado («Mejorar respuestas»), no en la bandeja. */
+const CR_CARPETAS = [
+  { id:'nuevos',     nombre:'Nuevos clientes', siempre:true, resp:true,
+    que:'Personas o empresas que preguntan por un despacho, puesto, sala, oficina virtual o domiciliación. El asistente prepara la respuesta que daría.' },
+  { id:'persona',    nombre:'A una persona', siempre:true,
+    que:'Lo que el asistente no contestaría solo: quejas, brokers, casos delicados o dudas que necesitan a alguien del equipo.' },
+  { id:'clientes',   nombre:'Clientes actuales', siempre:true, que:'Quien ya trabaja en uno de vuestros centros.' },
+  { id:'proveedor',  nombre:'Proveedores', que:'Proveedores, facturas y servicios.' },
+  { id:'avisos',     nombre:'Avisos automáticos', que:'Avisos de bancos, plataformas y sistemas.' },
+  { id:'newsletter', nombre:'Publicidad y newsletters', que:'Boletines y publicidad.' },
+  { id:'personal',   nombre:'Personal o interno', que:'Correos personales o del propio equipo.' },
+  { id:'otros',      nombre:'Otros', que:'Lo que no encaja en las demás carpetas.' },
+  { id:'spam',       nombre:'Spam', que:'Correo no deseado.' },
+  { id:'enviados',   nombre:'Enviados por el equipo', que:'Conversaciones que empezó el equipo y en las que el cliente aún no ha contestado.' },
+  { id:'sin',        nombre:'Sin clasificar', que:'Recién llegados: el asistente aún no los ha clasificado.' }
+];
+const CR_ESPECIALES = { _prop:'Con respuesta propuesta', _todo:'Todos' };
+function crCarpetaDe(h){
+  if (!h.tipo) return 'sin';
+  if (h.subtipo === 'saliente') return 'enviados';
+  if (h.a_persona) return 'persona';
+  if (h.tipo === 'comercial') return 'nuevos';
+  if (h.tipo === 'cliente_actual') return 'clientes';
+  return ['proveedor', 'avisos', 'newsletter', 'personal', 'spam'].includes(h.subtipo) ? h.subtipo
+       : h.subtipo === 'facturas' ? 'proveedor' : 'otros';
+}
+// «Ana Prueba <ana@x.es>» → { nombre:'Ana Prueba', email:'ana@x.es' }
+function crRemite(de){
+  const s = String(de || '').trim(), m = s.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);
+  return m ? { nombre: m[1].trim() || m[2].trim(), email: m[2].trim() } : { nombre: s || '(sin remitente)', email: s.includes('@') ? s : '' };
+}
+const crPrimero = h => (h.mensajes || []).find(m => m.sentido === 'recibido') || (h.mensajes || [])[0] || {};
+function crHora(f){
+  if (!f) return '';
+  const d = new Date(f), hoy = new Date();
+  if (d.toDateString() === hoy.toDateString()) return d.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+  const ayer = new Date(hoy); ayer.setDate(hoy.getDate() - 1);
+  if (d.toDateString() === ayer.toDateString()) return 'ayer';
+  return d.toLocaleDateString('es-ES', { day:'numeric', month:'short' });
+}
+function crEnCarpeta(id){
   const hs = CO.real?.hilos || [];
-  const f = CO.realFiltro;
-  if (f === 'comercial') return hs.filter(h => h.tipo === 'comercial' && !h.a_persona);
-  if (f === 'persona') return hs.filter(h => h.a_persona);
-  if (f === 'sin') return hs.filter(h => h.comparacion?.veredicto === 'sin_respuesta');
-  if (f === 'otros') return hs.filter(h => h.tipo && h.tipo !== 'comercial');
-  if (f === 'pend') return hs.filter(h => !h.tipo);
-  return hs;
+  if (id === '_prop') return hs.filter(h => h.borrador);
+  if (id === '_todo') return hs;
+  return hs.filter(h => crCarpetaDe(h) === id);
+}
+function crBuscar(lista){
+  const q = coNorm(CO.realBusca || '').trim();
+  if (!q) return lista;
+  return lista.filter(h => coNorm([h.asunto, h.motivo, ...(h.mensajes || []).flatMap(m => [m.de, m.texto])].join(' ')).includes(q));
+}
+// La lista: la de la carpeta o, si se busca, en todas.
+const crLista = () => crBuscar(CO.realBusca?.trim() ? (CO.real?.hilos || []) : crEnCarpeta(CO.realCarpeta));
+
+function crCarpetas(){
+  const n = id => crEnCarpeta(id).length;
+  const boton = (id, nombre, pt, que) => `<button class="co-carp ${id === '_prop' ? 'rev' : ''} ${CO.realCarpeta === id && !CO.realBusca?.trim() ? 'on' : ''}"
+      data-cr="carp" data-id="${id}" ${que ? `title="${esc(que)}"` : ''}><span class="pt ${pt}"></span><span class="co-cnomb">${esc(nombre)}</span><span class="cn">${n(id)}</span></button>`;
+  return `
+    ${boton('_prop', CR_ESPECIALES._prop, 'rev', 'Correos de clientes en los que el asistente ha preparado la respuesta que daría (no se envía).')}
+    ${boton('_todo', CR_ESPECIALES._todo, '', 'Todas las conversaciones de los últimos 3 meses.')}
+    <div class="co-sepcarp"></div>
+    ${CR_CARPETAS.filter(c => c.siempre || n(c.id)).map(c => boton(c.id, c.nombre, c.resp ? 'resp' : '', c.que)).join('')}`;
 }
 
 function crFila(h){
-  const prim = (h.mensajes || []).find(m => m.sentido === 'recibido') || (h.mensajes || [])[0] || {};
-  const v = CR_VER[h.comparacion?.veredicto];
-  return `<button class="cr-fila ${CO.realAbierto === h.id ? 'on' : ''}" data-cr="abrir" data-id="${esc(h.id)}">
-    <b>${esc(h.asunto || '(sin asunto)')}</b>
-    <small>${esc(prim.de || '')} · ${esc(crFecha(h.ultimo_en))}</small>
-    ${h.tipo ? `<span class="pill ${h.tipo === 'comercial' ? 'az' : 'nt'}">${esc(CR_SUBTIPO[h.subtipo] || CR_TIPO[h.tipo] || h.tipo)}</span>` : '<span class="pill nt">Sin clasificar</span>'}
-    ${h.a_persona ? '<span class="pill am">A una persona</span>' : ''}
-    ${v ? `<span class="pill ${v[1]}">${esc(v[0])}</span>` : h.borrador ? '<span class="pill nt">Con borrador</span>' : ''}
-  </button>`;
+  const p = crRemite(crPrimero(h).de), v = CR_VER[h.comparacion?.veredicto];
+  const eti = [];
+  if (h.borrador && !v) eti.push('<span class="pill am">Respuesta propuesta</span>');
+  if (v) eti.push(`<span class="pill ${v[1]}">${esc(v[0] === 'El equipo no contestó por correo' ? 'Sin respuesta del equipo' : v[0])}</span>`);
+  if ((h.borrador?.faltan || []).length) eti.push('<span class="pill rj">Falta un dato</span>');
+  // En «Todos» o al buscar, la carpeta (como en la maqueta). Máximo dos etiquetas: el asunto se tiene que leer.
+  if ((CO.realCarpeta === '_todo' || CO.realBusca?.trim()) && eti.length < 2)
+    eti.push(`<span class="pill nt">${esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>`);
+  return `<div class="co-fila ${CO.realAbierto === h.id && coLector() ? 'on' : ''}" tabindex="0" role="option" aria-selected="${CO.realAbierto === h.id}"
+      data-cr="abrir" data-id="${esc(h.id)}">
+      <span class="co-av co-logo" aria-hidden="true"><span>${esc(p.nombre.charAt(0).toUpperCase() || '?')}</span></span>
+      <div class="co-fcuerpo">
+        <div class="co-l1"><span class="co-de" title="${esc(p.email)}">${esc(p.nombre)}</span><span class="co-hora">${esc(crHora(h.ultimo_en))}</span></div>
+        <div class="co-l2"><span class="co-asunto">${esc(h.asunto || '(sin asunto)')}</span>${eti.length ? `<span class="co-etis">${eti.join('')}</span>` : ''}</div>
+      </div></div>`;
+}
+function crListaCab(){
+  const buscando = !!CO.realBusca?.trim();
+  const c = CR_CARPETAS.find(k => k.id === CO.realCarpeta);
+  const titulo = buscando ? 'Resultados' : CR_ESPECIALES[CO.realCarpeta] || c?.nombre || '';
+  return `<div class="co-lcab" title="${esc(buscando ? 'Busca en todas las carpetas.' : c?.que || '')}"><h3>${esc(titulo)}</h3><span class="co-para">${crLista().length}</span>
+    ${buscando ? '<button class="co-editar co-blimpiar" data-cr="blimpiar">Quitar búsqueda</button>' : ''}</div>`;
+}
+const crListaFilas = () => { const l = crLista(); return l.length ? l.map(crFila).join('')
+  : `<div class="vacio">${CO.realBusca?.trim() ? 'Nada coincide con la búsqueda.' : 'No hay correos aquí.'}</div>`; };
+// Al escribir en el buscador se repinta solo la lista: no pierde el foco.
+function crPintarLista(){
+  const cab = $('#cocuerpo .co-lcab'), filas = $('#cocuerpo .co-lscroll'); if (!cab || !filas) return;
+  const t = document.createElement('div'); t.innerHTML = crListaCab(); cab.replaceWith(t.firstElementChild);
+  filas.innerHTML = crListaFilas(); filas.scrollTop = 0;
+  document.querySelectorAll('#cocuerpo .co-carp').forEach(b => b.classList.toggle('on', !CO.realBusca?.trim() && b.dataset.id === CO.realCarpeta));
 }
 
-function crDetalle(h){
-  if (!h) return `<div class="vacio">Elige una conversación de la lista.</div>`;
+function crDetalle(h, enVentana){
   const msgs = h.mensajes || [];
-  const bo = h.borrador, cp = h.comparacion;
-  const resp = cp?.respuesta_mensaje_id ? msgs.find(m => m.id === cp.respuesta_mensaje_id)
-             : bo ? msgs.find(m => m.sentido === 'enviado' && new Date(m.fecha) > new Date((msgs.find(x => x.id === bo.mensaje_id) || {}).fecha || 0)) : null;
-  const v = CR_VER[cp?.veredicto];
-  const puntos = cp?.puntos && typeof cp.puntos === 'object' ? Object.entries(cp.puntos) : [];
+  const bo = h.borrador, cp = h.comparacion, v = CR_VER[cp?.veredicto];
+  const p = crRemite(crPrimero(h).de);
+  const carp = CR_CARPETAS.find(k => k.id === crCarpetaDe(h));
+  const lado = !!bo && CO.vista === 'lado' && coLadoCabe(enVentana);
+  const puntos = cp?.puntos && typeof cp.puntos === 'object' ? Object.entries(cp.puntos).filter(([, t]) => t) : [];
   const PUNTO = { datos:'Datos y precios', siguiente_paso:'Siguiente paso', tono:'Tono', falto:'Lo que faltó' };
+  const adj = m => (m.adjuntos || []).filter(a => !a.en_linea);
+  const faltan = bo?.faltan || [];
   return `
-    <h3>${esc(h.asunto || '(sin asunto)')}</h3>
-    <div class="cr-motivo">${esc([CR_TIPO[h.tipo], CR_SUBTIPO[h.subtipo], h.motivo].filter(Boolean).join(' · '))}${h.buzon ? ` · ${esc(h.buzon)}` : ''}</div>
-    ${msgs.map(m => `<div class="cr-msg ${m.sentido === 'enviado' ? 'env' : ''}">
-        <div class="cr-de">${m.sentido === 'enviado' ? 'Enviado por el equipo' : 'Recibido'} · ${esc(m.de || '')} · ${esc(crFecha(m.fecha))}</div>
-        ${m.texto ? coParrafos(m.texto) : '<p class="cr-adj">(Sin texto guardado: no es un correo comercial o venía vacío.)</p>'}
-        ${(m.adjuntos || []).filter(a => !a.en_linea).length ? `<div class="cr-adj">Adjuntos: ${(m.adjuntos || []).filter(a => !a.en_linea).map(a => esc(a.nombre || a.tipo)).join(', ')}</div>` : ''}
-      </div>`).join('')}
-    ${bo ? `
-      <div class="cr-ver">${v ? `<span class="pill ${v[1]}">${esc(v[0])}</span>` : '<span class="pill nt">Aún sin comparar</span>'}
-        ${cp?.explicacion ? ` ${esc(cp.explicacion)}` : ''}</div>
-      ${puntos.length ? `<div class="cr-puntos">${puntos.map(([k, t]) => `<div><b>${esc(PUNTO[k] || k)}:</b> ${esc(typeof t === 'string' ? t : JSON.stringify(t))}</div>`).join('')}</div>` : ''}
-      <div class="cr-comp">
-        <div><h4>Respuesta del equipo</h4>${resp ? coParrafos(resp.texto || '') : '<p class="cr-adj">Todavía no hay respuesta del equipo por correo.</p>'}</div>
-        <div><h4>Lo que habría contestado el asistente <span class="pill nt">no se envió</span></h4>${crBorrador(bo.texto)}${crFotos(bo)}
-          ${(bo.faltan || []).length ? `<div class="cr-adj">Le faltaba: ${bo.faltan.map(esc).join(' · ')}</div>` : ''}</div>
-      </div>` : h.tipo === 'comercial' && !h.a_persona ? '<p class="cr-adj">El asistente todavía no ha escrito su borrador.</p>' : ''}`;
+    <div class="co-det ${lado ? 'co-lado' : ''}">
+      <div class="co-dcab">
+        <div class="co-dtit">
+          <h3>${esc(h.asunto || '(sin asunto)')}</h3>
+          ${bo ? `<div class="co-vistas" role="group" aria-label="Cómo ver el correo y la respuesta">
+            <button class="co-vbtn ${lado ? '' : 'on'}" data-cr="vista" data-v="arriba" aria-pressed="${!lado}" title="Correo arriba y respuesta debajo">${CO_ICO_ARRIBA}</button>
+            <button class="co-vbtn ${lado ? 'on' : ''}" data-cr="vista" data-v="lado" aria-pressed="${lado}" title="Correo a la izquierda y respuesta a la derecha">${CO_ICO_LADO}</button>
+          </div>` : ''}
+          ${enVentana ? '<button class="cerrar" data-cr="cerrar" aria-label="Cerrar">×</button>' : ''}
+        </div>
+        <div class="co-dde">
+          <span class="co-av co-logo" aria-hidden="true"><span>${esc(p.nombre.charAt(0).toUpperCase() || '?')}</span></span>
+          <div><b>${esc(p.nombre)}</b> ${p.email && p.email !== p.nombre ? `<span class="co-para">&lt;${esc(p.email)}&gt;</span>` : ''}<br>
+            <span class="co-para">Para ${esc(h.buzon || '')} · ${esc(crFecha(crPrimero(h).fecha || h.ultimo_en))}</span></div>
+        </div>
+        <div class="co-clasif"><div><b>${esc(carp?.nombre || 'Sin clasificar')}</b>${h.tipo === 'comercial' && CR_SUBTIPO[h.subtipo] ? ` · ${esc(CR_SUBTIPO[h.subtipo])}` : ''}${h.motivo ? ` · <span class="por">${esc(h.motivo)}</span>` : ''}</div></div>
+      </div>
+      <div class="co-par">
+        <div class="cr-hilo">
+          ${msgs.map(m => `<section class="co-msg ${m.sentido === 'enviado' ? 'cr-env' : ''}" aria-label="${m.sentido === 'enviado' ? 'Respuesta del equipo' : 'Correo recibido'}">
+            ${msgs.length > 1 || m.sentido === 'enviado' ? `<div class="co-msgt">${m.sentido === 'enviado' ? 'Respondió el equipo' : 'Recibido'}
+              <span class="co-msgq">${esc(crRemite(m.de).nombre)} · ${esc(crFecha(m.fecha))}</span></div>` : ''}
+            <div class="co-orig">${m.texto ? coParrafos(m.texto) : '<p class="co-para">El texto no se guarda: no es un correo de un cliente o interesado.</p>'}</div>
+            ${adj(m).length ? `<div class="cr-adj" style="margin-top:8px">Adjuntos: ${adj(m).map(a => esc(a.nombre || a.tipo)).join(', ')}</div>` : ''}
+          </section>`).join('')}
+        </div>
+        ${bo ? `<div class="cr-hilo">
+          <section class="co-msg co-msgresp" aria-label="Respuesta propuesta">
+            <div class="co-msgt">Respuesta propuesta <span class="co-msgq">no se envía · modo sombra</span></div>
+            ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}.
+              <button class="co-editar" data-cr="irmejorar">Ver cómo añadirlo</button></div>` : ''}
+            <div class="co-orig">${crBorrador(bo.texto)}</div>
+            ${crFotos(bo)}
+          </section>
+          ${cp ? `<section class="co-msg cr-cmp" aria-label="Comparación con el equipo">
+            <div class="co-msgt">Comparado con el equipo</div>
+            <div class="cr-ver"><span class="pill ${v?.[1] || 'nt'}">${esc(v?.[0] || cp.veredicto)}</span>${cp.explicacion ? ` ${esc(cp.explicacion)}` : ''}</div>
+            ${puntos.length ? `<div class="cr-puntos">${puntos.map(([k, t]) => `<div><b>${esc(PUNTO[k] || k)}:</b> ${esc(typeof t === 'string' ? t : JSON.stringify(t))}</div>`).join('')}</div>` : ''}
+          </section>` : ''}
+        </div>` : h.tipo === 'comercial' && !h.a_persona ? '<p class="co-para">El asistente todavía no ha preparado su respuesta.</p>' : ''}
+      </div>
+    </div>`;
 }
 
-function crConversaciones(){
-  const r = CO.real;
-  const lista = crFiltrados();
-  if (CO.realAbierto && !lista.some(h => h.id === CO.realAbierto)) CO.realAbierto = null;
-  const abierto = (r.hilos || []).find(h => h.id === CO.realAbierto);
-  const FILTROS = [['comercial','Comerciales'], ['persona','A una persona'], ['sin','Sin respuesta'], ['otros','Otros'], ['pend','Sin clasificar'], ['todos','Todos']];
-  const pct = s => { const t = s.igual + s.mejor + s.peor + s.equivocado; return t ? Math.round((s.igual + s.mejor) * 100 / t) + ' % bien' : '—'; };
+function crBandeja(){
+  const lista = crLista();
+  // En el ordenador siempre hay uno abierto a la derecha.
+  if (coLector() && !lista.some(h => h.id === CO.realAbierto)) CO.realAbierto = lista[0]?.id ?? null;
+  const abierto = (CO.real.hilos || []).find(h => h.id === CO.realAbierto);
   return `
-    ${(r.resumen || []).length ? `<div class="cr-res">${r.resumen.map(s => `<span class="co-chip" title="Igual ${s.igual} · Mejor ${s.mejor} · Peor ${s.peor} · Equivocado ${s.equivocado} · Sin respuesta ${s.sin_respuesta}">
-        ${esc(CR_SUBTIPO[s.subtipo] || s.subtipo)}: ${s.igual + s.mejor + s.peor + s.equivocado} comparados · ${pct(s)}</span>`).join('')}</div>` : ''}
-    ${(r.faltan || []).length ? `<div class="cr-falta">Falta en la hoja: ${r.faltan.slice(0, 12).map(f => `<span class="pill am">${esc(f.dato)}${f.veces > 1 ? ` ×${f.veces}` : ''}</span>`).join('')}</div>` : ''}
-    <div class="cr-cols">
-      <div class="cr-lista">
-        <div class="cr-filtros">${FILTROS.map(([k, t]) => `<button class="rg ${CO.realFiltro === k ? 'on' : ''}" data-cr="filtro" data-v="${k}">${t}</button>`).join('')}</div>
-        ${lista.length ? lista.map(crFila).join('') : '<div class="vacio" style="padding:16px">No hay conversaciones en este filtro.</div>'}
+    <div class="co-bandeja ${CO.vista === 'lado' && abierto?.borrador ? 'co-ladov' : ''}">
+      <div class="panel co-carps" role="list" aria-label="Carpetas">${crCarpetas()}</div>
+      <div class="panel co-lista">
+        <div class="co-lbusca"><div class="co-bwrap">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <input id="crbusca" type="search" value="${esc(CO.realBusca || '')}" placeholder="Buscar en el correo" aria-label="Buscar en el correo" autocomplete="off" spellcheck="false" data-cr="busca">
+        </div></div>
+        ${crListaCab()}
+        <div class="co-lscroll">${crListaFilas()}</div>
       </div>
-      <div class="cr-det">${crDetalle(abierto)}</div>
+      <div class="panel co-lector" aria-live="polite">${abierto ? crDetalle(abierto, false) : '<div class="vacio">Elige un correo para verlo aquí.</div>'}</div>
+    </div>`;
+}
+
+/* ---------- Mejorar respuestas: lo que falta en la hoja y cómo va ----------
+   Decisión del usuario (16/11): «guiado a la hoja». Cada dato que le faltó
+   al asistente, cuántas veces, en qué correos, en qué pestaña de la hoja
+   va y cómo rellenarlo; «Ya lo he añadido» o «No lo damos» lo quitan de la
+   lista (mt_correo_falta_marcar, SQL 87). La pestaña es una suposición por
+   palabras: por eso los botones abren cualquiera de las tres. */
+const CR_PESTANAS = {
+  centros:  { nombre:'Centros', como:'Una fila por centro: busca el centro y rellena su columna (horario, m², servicios, salas…) o escríbelo en «notas».' },
+  tarifas:  { nombre:'Tarifas', como:'Una fila por servicio: «servicio», «precio» y «ámbito» (el centro o «todos»); las condiciones (fianza, permanencia, descuentos…) en «notas».' },
+  reglas:   { nombre:'Reglas', como:'Añade una fila: en «clave», un nombre corto (por ejemplo, correo_certificado); en «valor», la respuesta tal como la daríais a un cliente.' }
+};
+function crPestanaDe(dato){
+  const d = coNorm(dato);
+  const precio = /precio|tarifa|coste|cuesta|cuota|descuento|iva\b|fianza|matricula|garantia|permanencia|preaviso|pago|€|euro|bono|anual|bienal/.test(d);
+  if (/disponib/.test(d) && !precio) return 'disponibilidad';
+  if (precio) return 'tarifas';
+  if (/horario|m²|m2\b|metros|parking|aparcamiento|direccion|capacidad|puestos|aulas?\b|salas?\b|recepcion|servicios|suelo|espejos/.test(d)) return 'centros';
+  return 'reglas';
+}
+function crUrlPestana(clave){
+  const hoja = CO.real?.mejorar?.hoja; if (!hoja?.url) return '';
+  const p = (hoja.pestanas || []).find(x => x.clave === clave);
+  return hoja.url + (p ? '#gid=' + encodeURIComponent(p.gid) : '');
+}
+function crItemFalta(f, info){
+  const pest = crPestanaDe(f.dato), P = CR_PESTANAS[pest];
+  const hilos = (f.hilos || []).map(id => (CO.real.hilos || []).find(h => h.id === id)).filter(Boolean);
+  const url = P ? crUrlPestana(pest) : '';
+  const marcar = info.puede_marcar;
+  return `<div class="cr-fitem ${f.estado === 'vuelve' ? 'vuelve' : ''}">
+    <div class="cr-fdato">${esc(f.dato)}</div>
+    <div class="cr-fmeta">${f.veces === 1 ? 'Lo echó de menos 1 vez' : `Lo echó de menos ${f.veces} veces`}${f.ultimo_en ? ` · la última, ${esc(crFecha(f.ultimo_en))}` : ''}
+      ${f.estado === 'vuelve' ? ' · <span class="pill rj">Lo marcasteis como añadido, pero lo ha vuelto a echar de menos</span>' : ''}</div>
+    <div class="cr-fdonde">${P ? `<b>Dónde va:</b> pestaña «${esc(P.nombre)}» de vuestra hoja. ${esc(P.como)}`
+      : `<b>Disponibilidad:</b> cambia cada día, así que no va en la hoja. Si preferís que el asistente no la dé por correo, pulsa «No lo damos».`}</div>
+    <div class="cr-facc">
+      ${url ? `<a class="cbtn" href="${esc(url)}" target="_blank" rel="noopener">Abrir «${esc(P.nombre)}»</a>` : ''}
+      ${hilos.slice(0, 3).map((h, i) => `<button class="co-editar" data-cr="irhilo" data-id="${esc(h.id)}">${hilos.length > 1 ? `Ver el correo ${i + 1}` : 'Ver el correo'}</button>`).join('')}
+      ${marcar ? `<span class="cr-fder"><button class="cbtn sec" data-cr="falta" data-v="anadido" data-dato="${esc(f.dato)}">Ya lo he añadido</button>
+        <button class="cbtn sec" data-cr="falta" data-v="no_damos" data-dato="${esc(f.dato)}">No lo damos</button></span>` : ''}
+    </div></div>`;
+}
+function crMejorar(){
+  const info = CO.real.mejorar || { datos:[] };
+  const ds = info.datos || [];
+  const pend = ds.filter(f => !f.estado || f.estado === 'vuelve');
+  const hechos = ds.filter(f => f.estado === 'anadido'), nodamos = ds.filter(f => f.estado === 'no_damos');
+  const res = CO.real.resumen || [];
+  const tot = k => res.reduce((s, x) => s + Number(x[k] || 0), 0);
+  const comp = s => Number(s.igual) + Number(s.mejor) + Number(s.peor) + Number(s.equivocado);
+  const pct = s => comp(s) ? Math.round((Number(s.igual) + Number(s.mejor)) * 100 / comp(s)) + ' %' : '—';
+  const deshacer = f => `<li>${esc(f.dato)}${info.puede_marcar ? ` <button class="co-editar" data-cr="falta" data-v="" data-dato="${esc(f.dato)}">Deshacer</button>` : ''}</li>`;
+  const pestBotones = info.hoja?.url ? Object.entries(CR_PESTANAS).map(([k, P]) =>
+    `<a class="cbtn sec" href="${esc(crUrlPestana(k))}" target="_blank" rel="noopener">${esc(P.nombre)}</a>`).join('') : '';
+  return `
+    <div class="panel cr-mej">
+      <div class="cr-mcab">
+        <div><h3>Lo que le falta al asistente${pend.length ? ` <span class="pill am">${pend.length}</span>` : ''}</h3>
+          <p class="co-para">Cuando un cliente pregunta algo que no está en vuestra hoja, el asistente no se lo inventa: lo apunta aquí.
+            Añadidlo a la hoja y en unos 10 minutos lo sabrán el asistente de correo y Laura (WhatsApp); si tenéis prisa, usad el menú de publicar de la propia hoja.</p></div>
+        ${pestBotones ? `<div class="cr-mhoja"><span class="co-para">Abrir la hoja:</span> ${pestBotones}</div>` : ''}
+      </div>
+      ${!info.puede_marcar && esSimplia() ? '<p class="co-para">Para marcar datos como añadidos, abre el candado de arriba.</p>' : ''}
+      ${pend.length ? pend.map(f => crItemFalta(f, info)).join('') : '<div class="vacio">No falta nada: todo lo que han preguntado está en la hoja.</div>'}
+      ${hechos.length ? `<details class="cr-fhechos"><summary>Ya añadidos (${hechos.length})</summary><ul>${hechos.map(deshacer).join('')}</ul></details>` : ''}
+      ${nodamos.length ? `<details class="cr-fhechos"><summary>No lo damos (${nodamos.length})</summary><ul>${nodamos.map(deshacer).join('')}</ul></details>` : ''}
+    </div>
+    <div class="panel cr-mej">
+      <h3>Cómo responde comparado con el equipo</h3>
+      <p class="co-para">Cuando el equipo contesta un correo de un cliente, se compara con la respuesta que había preparado el asistente.</p>
+      ${res.length ? `<div class="cr-tscroll"><table class="cr-tabla">
+        <thead><tr><th>Tipo de consulta</th><th>Comparados</th><th>Igual</th><th>Mejor</th><th>Peor</th><th>Equivocado</th><th>Sin respuesta del equipo</th><th>Igual o mejor</th></tr></thead>
+        <tbody>${res.map(s => `<tr><td>${esc(CR_SUBTIPO[s.subtipo] || s.subtipo)}</td><td>${comp(s)}</td><td>${s.igual}</td><td>${s.mejor}</td><td>${s.peor}</td><td>${s.equivocado}</td><td>${s.sin_respuesta}</td><td><b>${pct(s)}</b></td></tr>`).join('')}</tbody>
+        <tfoot><tr><td>Total</td><td>${comp({ igual:tot('igual'), mejor:tot('mejor'), peor:tot('peor'), equivocado:tot('equivocado') })}</td><td>${tot('igual')}</td><td>${tot('mejor')}</td><td>${tot('peor')}</td><td>${tot('equivocado')}</td><td>${tot('sin_respuesta')}</td>
+          <td><b>${pct({ igual:tot('igual'), mejor:tot('mejor'), peor:tot('peor'), equivocado:tot('equivocado') })}</b></td></tr></tfoot>
+      </table></div>` : '<div class="vacio">Todavía no hay comparaciones.</div>'}
     </div>`;
 }
 
@@ -3800,27 +4027,60 @@ function crConfiguracion(){
 }
 
 function coPintarReal(){
-  const listaY = $('.cr-lista')?.scrollTop, detY = $('.cr-det')?.scrollTop, ventanaY = scrollY;
-  const tabs = [['conversaciones', 'Conversaciones'], ['ajustes', 'Configuración']];
+  if (!['bandeja', 'mejorar', 'ajustes'].includes(CO.realTab)) CO.realTab = 'bandeja';
+  const enBandeja = CO.realTab === 'bandeja';
+  // La pantalla no se mueve al repintar: listas y correo abierto vuelven a donde estaban.
+  const misma = CO.realPintadoTab === CO.realTab;
+  const sitio = {};
+  if (misma) for (const s of ['#cocuerpo', '.co-lscroll', '.co-carps', '.co-lector']){ const el = $(s); if (el) sitio[s] = el.scrollTop; }
+  const ventanaY = scrollY;
+  const hs = CO.real.hilos || [];
+  const hoy = hs.filter(h => h.primer_recibido_en && new Date(h.primer_recibido_en).toDateString() === new Date().toDateString()).length;
+  const res = CO.real.resumen || [];
+  const s = k => res.reduce((a, x) => a + Number(x[k] || 0), 0);
+  const comparados = s('igual') + s('mejor') + s('peor') + s('equivocado');
+  const pend = (CO.real.mejorar?.datos || []).filter(f => !f.estado || f.estado === 'vuelve').length;
+  const tabs = [['bandeja', 'Bandeja'], ['mejorar', 'Mejorar respuestas'], ['ajustes', 'Configuración']];
   $('#vista').innerHTML = `
-    <div class="correo co-real">
+    <div class="correo co-real ${enBandeja ? 'co-bandeja-v' : ''}">
       <div class="co-top">
         <h2 class="tit">Correo</h2>
         <div class="rangos co-tabs" role="tablist">
-          ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}</button>`).join('')}
+          ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}${k === 'mejorar' && pend ? ` <span class="navn">${pend}</span>` : ''}</button>`).join('')}
         </div>
         <div class="co-ctrl">
           ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
             <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
         </div>
       </div>
-      <div class="cr-aviso">Modo sombra: el asistente lee vuestro correo y escribe la respuesta que daría, pero no envía nada ni toca vuestro buzón. Aquí se compara con lo que contestó el equipo.</div>
-      <div id="cocuerpo">${CO.realTab === 'ajustes' ? crConfiguracion() : crConversaciones()}</div>
+      ${enBandeja ? `<div class="co-cifras">
+        <span><b>${hoy}</b> han entrado hoy</span>
+        <span><b class="az">${crEnCarpeta('nuevos').length}</b> nuevos clientes</span>
+        <span><b>${crEnCarpeta('_prop').length}</b> con respuesta propuesta</span>
+        ${comparados ? `<button class="cr-cifbtn" data-cr="tab" data-v="mejorar" title="Ver el detalle por tipo de consulta"><b>${Math.round((s('igual') + s('mejor')) * 100 / comparados)} %</b> igual o mejor que el equipo</button>` : ''}
+        <span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>
+      </div>` : ''}
+      <div id="cocuerpo" class="co-cuerpo">${enBandeja ? crBandeja() : CO.realTab === 'mejorar' ? crMejorar() : crConfiguracion()}</div>
     </div>`;
-  if (listaY != null && $('.cr-lista')) $('.cr-lista').scrollTop = listaY;
-  if (detY != null && $('.cr-det') && CO.realPintado === CO.realAbierto) $('.cr-det').scrollTop = detY;
-  CO.realPintado = CO.realAbierto;
+  if (misma){
+    for (const [k, y] of Object.entries(sitio)){
+      if (k === '.co-lector' && CO.realPintado !== CO.realAbierto) continue;   // otro correo: arriba
+      const el = $(k); if (el) el.scrollTop = y;
+    }
+  }
   if (scrollY !== ventanaY) scrollTo(0, ventanaY);
+  CO.realPintado = CO.realAbierto;
+  CO.realPintadoTab = CO.realTab;
+  if (CO.irA){ const destino = document.getElementById(CO.irA); CO.irA = null; destino?.scrollIntoView({ block:'start' }); }
+  crCargarFotos();
+}
+// Pantallas pequeñas (sin lector a la derecha): el correo se abre en la ventana.
+function crAbrirVentana(id){
+  const h = (CO.real?.hilos || []).find(x => x.id === id); if (!h) return;
+  $('#mbox').innerHTML = crDetalle(h, true);
+  $('#mbox').classList.toggle('co-mboxancho', !!$('#mbox .co-lado'));
+  $('#modal').style.display = 'block';
+  $('#modal').scrollTo?.(0, 0);
   crCargarFotos();
 }
 
@@ -3832,8 +4092,39 @@ if (!window.__crOyentes){
     if (!el || VISTA !== 'correo' || !CO.real) return;
     const que = el.dataset.cr;
     if (que === 'tab'){ CO.realTab = el.dataset.v; return coPintarReal(); }
-    if (que === 'filtro'){ CO.realFiltro = el.dataset.v; return coPintarReal(); }
-    if (que === 'abrir'){ CO.realAbierto = el.dataset.id; return coPintarReal(); }
+    if (que === 'carp'){ CO.realCarpeta = el.dataset.id; CO.realBusca = ''; CO.realAbierto = null; return coPintarReal(); }
+    if (que === 'blimpiar'){ CO.realBusca = ''; return coPintarReal(); }
+    if (que === 'abrir'){
+      CO.realAbierto = el.dataset.id;
+      if (!coLector()) return crAbrirVentana(el.dataset.id);
+      return coPintarReal();
+    }
+    if (que === 'cerrar') return cerrar();
+    if (que === 'vista'){
+      CO.vista = el.dataset.v === 'lado' ? 'lado' : 'arriba'; coGuardarVista();
+      if ($('#modal').style.display === 'block' && $('#mbox .co-det') && !coLector()) return crAbrirVentana(CO.realAbierto);
+      return coPintarReal();
+    }
+    // Desde un dato que falta: abre ese correo en la bandeja (en la carpeta «Todos»).
+    if (que === 'irhilo'){
+      CO.realTab = 'bandeja'; CO.realCarpeta = '_todo'; CO.realBusca = ''; CO.realAbierto = el.dataset.id;
+      coPintarReal();
+      $(`#cocuerpo .co-fila[data-id="${CSS.escape(el.dataset.id)}"]`)?.scrollIntoView({ block:'center' });
+      if (!coLector()) crAbrirVentana(el.dataset.id);
+      return;
+    }
+    if (que === 'irmejorar'){ if ($('#modal').style.display === 'block') cerrar(); CO.realTab = 'mejorar'; return coPintarReal(); }
+    if (que === 'falta'){
+      el.disabled = true;
+      const { error } = await supabase.rpc('mt_correo_falta_marcar', { p_slug: CO.real.slug, p_dato: el.dataset.dato, p_estado: el.dataset.v || null });
+      el.disabled = false;
+      if (error) return coAviso('No se ha podido guardar: ' + (error.message || 'error'));
+      coAviso(el.dataset.v === 'anadido' ? 'Marcado como añadido. Si el asistente lo vuelve a echar de menos, volverá a salir aquí.'
+        : el.dataset.v === 'no_damos' ? 'Marcado: no lo dais. Ya no sale en la lista.' : 'Vuelve a la lista.');
+      const r = await supabase.rpc('mt_correo_faltan', { p_slug: CO.real.slug });
+      if (!r.error && CO.real) CO.real.mejorar = r.data;
+      return VISTA === 'correo' && CO.real ? coPintarReal() : null;
+    }
     if (que === 'tope'){
       const tope = Math.round(Number($('#crtope')?.value));
       if (!(tope >= 1 && tope <= 1000)) return coAviso('El tope tiene que ser un número entre 1 y 1000.');
@@ -3859,6 +4150,25 @@ if (!window.__crOyentes){
       return VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
     }
   });
+  // Buscador: repinta solo la lista, sin perder el foco.
+  document.addEventListener('input', e => {
+    if (e.target?.dataset?.cr !== 'busca' || VISTA !== 'correo' || !CO.real) return;
+    CO.realBusca = e.target.value;
+    crPintarLista();
+  });
+  // Teclado en la lista: Intro abre; ↑ y ↓ pasan al anterior o al siguiente.
+  document.addEventListener('keydown', e => {
+    const f = e.target?.closest?.('.co-real .co-fila[data-cr="abrir"]');
+    if (!f || VISTA !== 'correo' || !CO.real) return;
+    if (e.key === 'Enter'){ e.preventDefault(); f.click(); return; }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault(); e.stopPropagation();
+    const otra = e.key === 'ArrowDown' ? f.nextElementSibling : f.previousElementSibling;
+    if (!otra?.matches?.('.co-fila')) return;
+    const id = otra.dataset.id;
+    if (coLector()){ CO.realAbierto = id; coPintarReal(); $(`#cocuerpo .co-fila[data-id="${CSS.escape(id)}"]`)?.focus(); }
+    else otra.focus();
+  }, true);
   document.addEventListener('change', async e => {
     if (e.target?.dataset?.cr !== 'cliente' || VISTA !== 'correo') return;
     CO.cliente = e.target.value; CO.realAbierto = null; CO.real = null; CO.realPedidoPara = null;
