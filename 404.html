@@ -1886,6 +1886,94 @@
          min-width:240px;background:var(--blanco);border:1px solid var(--linea);border-radius:12px;
          padding:6px;box-shadow:0 8px 24px rgba(10,31,74,.12)}
   .dmenu .cbtn{text-align:left;width:100%}
+  /* ---------- EQUIPO DE SIMPLIA: ELEGIR EMPRESA Y CANDADO (16/11) ---------- */
+  .opfranja{position:sticky;top:var(--hdralto, 63px);z-index:19;display:flex;align-items:center;flex-wrap:wrap;
+            gap:8px 14px;padding:8px 24px;background:#E5EFFE;border-bottom:1px solid var(--linea);font-size:13px}
+  @media(max-width:820px){.opfranja{padding:8px 16px}}
+  .opfranja[hidden]{display:none}
+  .opfranja.abierto{background:var(--ambar-fondo)}
+  .opfranja b{font-weight:700}
+  .opcandado{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;
+             border:1.5px solid var(--azul-texto, #1F4FA0);background:var(--blanco);font-size:13px;font-weight:600;cursor:pointer}
+  .opfranja.abierto .opcandado{border-color:var(--ambar-texto);color:var(--ambar-texto)}
+  .opcandado svg{flex:none}
+  .opcambiar{background:none;text-decoration:underline;font-size:13px;cursor:pointer;color:inherit}
+  #opcuentas{margin-left:auto}
+  /* ---------- CUENTAS DEL PANEL (equipo de Simplia, 16/11) ---------- */
+  .cu-form{display:grid;grid-template-columns:2fr 1.5fr 1fr auto;gap:10px;align-items:end}
+  @media(max-width:900px){.cu-form{grid-template-columns:1fr}}
+  .cu-form input,.cu-form select{margin:0}
+  .cu-envia{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tinta-suave);margin-top:10px;font-weight:500}
+  .cu-envia input{width:16px;height:16px;margin:0;accent-color:var(--pulso)}
+  .cu-res{margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--verde-tenue);font-size:13px}
+  .cu-res.mal{background:var(--coral-fondo);color:var(--coral-texto)}
+  .cu-enlace{display:flex;gap:8px;margin-top:8px}
+  .cu-enlace input{margin:0;font-size:12px}
+  .cu-lista{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .cu-fila{border:1px solid var(--linea);border-radius:12px;padding:12px 14px;background:var(--blanco)}
+  .cu-fila .cu-cab{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+  .cu-fila b{font-size:15px}
+  .cu-fila small{color:var(--gris);font-size:12px}
+  .cu-emps{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .cu-emp{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--linea);border-radius:999px;padding:4px 6px 4px 12px;font-size:13px}
+  .cu-emp select{margin:0;padding:2px 6px;font-size:12px;width:auto;border-radius:8px}
+  .cu-x{background:none;font-size:15px;line-height:1;padding:2px 6px;color:var(--gris);cursor:pointer}
+  .cu-x:hover{color:var(--coral-texto)}
+  /* ---------- PON TU CONTRASEÑA (enlace de alta, 16/11) ---------- */
+  .alta-ok{color:var(--verde-oscuro);font-size:14px;margin-bottom:12px}
+  body.eligiendo nav{visibility:hidden}
+  .opelegir{max-width:760px;margin:0 auto}
+  .opelegir h2{font-size:24px;margin-bottom:6px}
+  .opelegir p{color:var(--tinta-suave);font-size:14px;margin-bottom:18px}
+  .oplista{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .opemp{text-align:left;background:var(--blanco);border:1px solid var(--linea);border-radius:12px;padding:14px 16px;cursor:pointer}
+  .opemp:hover{border-color:var(--pulso)}
+  .opemp b{display:block;font-size:16px;margin-bottom:4px}
+  .opemp small{display:block;color:var(--gris);font-size:12px;line-height:1.5}
+  /* ---------- CORREO REAL · MODO SOMBRA (16/11) ---------- */
+  .cr-aviso{font-size:13px;color:var(--tinta-suave);margin:4px 0 14px}
+  .cr-res{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .cr-res .co-chip{cursor:default}
+  .cr-falta{margin:-4px 0 14px;font-size:13px;color:var(--tinta-suave)}
+  .cr-falta .pill{margin:2px 4px 2px 0}
+  .cr-cols{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:16px;align-items:start}
+  @media(max-width:900px){.cr-cols{grid-template-columns:1fr}}
+  .cr-lista{background:var(--blanco);border:1px solid var(--linea);border-radius:12px;overflow:auto;
+            max-height:calc(100vh - 260px)}
+  .cr-filtros{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border-bottom:1px solid var(--linea);position:sticky;top:0;background:var(--blanco)}
+  .cr-fila{display:block;width:100%;text-align:left;padding:10px 12px;border-bottom:1px solid var(--linea);background:none}
+  .cr-fila:hover{background:var(--fondo-hueco)}
+  .cr-fila.on{background:#E5EFFE}
+  .cr-fila b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cr-fila small{display:block;color:var(--gris);font-size:12px;margin:2px 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cr-fila .pill{font-size:11px;margin-right:4px}
+  .cr-det{background:var(--blanco);border:1px solid var(--linea);border-radius:12px;padding:16px 18px;
+          max-height:calc(100vh - 260px);overflow:auto}
+  .cr-det h3{font-size:17px;margin-bottom:4px}
+  .cr-motivo{font-size:13px;color:var(--tinta-suave);margin-bottom:12px}
+  .cr-msg{border:1px solid var(--linea);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+  .cr-msg.env{background:var(--fondo-hueco)}
+  .cr-msg .cr-de{font-size:12px;color:var(--gris);margin-bottom:6px}
+  .cr-msg p{font-size:14px;line-height:1.5;margin:0 0 8px}
+  .cr-adj{font-size:12px;color:var(--gris)}
+  .cr-comp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+  @media(max-width:1100px){.cr-comp{grid-template-columns:1fr}}
+  .cr-comp > div{border:1px solid var(--linea);border-radius:10px;padding:10px 12px}
+  .cr-comp h4{font-size:13px;margin-bottom:8px}
+  .cr-comp p{font-size:14px;line-height:1.5;margin:0 0 8px}
+  /* Fotos que se adjuntarían (16/11) */
+  .cr-fotos{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+  .cr-foto{margin:0;width:160px;max-width:calc(50% - 4px)}
+  .cr-foto .cr-fimg{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid var(--linea);background:var(--fondo, #f3f4f6)}
+  .cr-foto figcaption{font-size:11px;color:var(--gris);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cr-foto .cr-fmal{display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--gris);padding:6px}
+  .cr-ver{margin:14px 0 8px;font-size:14px}
+  .cr-puntos{font-size:13px;line-height:1.5;color:var(--tinta-suave)}
+  .cr-puntos b{color:var(--tinta)}
+  .cr-buzon{border:1px solid var(--linea);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:var(--blanco)}
+  .cr-buzon .fila{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--tinta-suave);margin:6px 0 10px}
+  .cr-clave{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .cr-clave input{max-width:280px;margin:0}
   #pdetalle .msg,#mbox .msg{margin-bottom:6px}
   #pdetalle .msg .burb,#mbox .msg .burb{padding:8px 12px;font-size:14px;line-height:1.5;max-width:min(88%, 62ch)}
   #pdetalle .hora,#mbox .hora{margin-top:2px;font-size:10.5px}
@@ -1944,6 +2032,10 @@
       <button class="salir" id="salir">Salir</button>
     </div>
   </header>
+  <!-- Equipo de Simplia: con qué empresa está y el candado (16/11). Fuera de
+       la cabecera para no cambiar cómo se reparte en cada ancho; fija justo
+       debajo de ella (--hdralto lo pone opFranja). -->
+  <div id="opfranja" class="opfranja" hidden></div>
   <main>
     <div id="vista"></div>
   </main>
@@ -1972,7 +2064,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-12 · la sesión se mantiene al recargar (correo apagado en producción)';
+const VERSION = '2026-11-16 · cuentas del panel y «pon tu contraseña»; equipo de Simplia con candado; correo real en sombra (correo apagado en producción)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -2023,6 +2115,21 @@ const supabase = createClient(URL, KEY, {
     storageKey: CLAVE_SESION, storage: ALMACEN_SESION
   }
 });
+
+// Equipo de Simplia con el candado cerrado: si Supabase niega un cambio,
+// se dice claro por qué (en vez del error técnico) y dónde se abre.
+{
+  const rpcOriginal = supabase.rpc.bind(supabase);
+  supabase.rpc = (...args) => Promise.resolve(rpcOriginal(...args)).then(r => {
+    const m = String(r?.error?.message || '') + ' ' + String(r?.error?.code || '');
+    let cerrado = false;
+    try { cerrado = OP.activo && !OP.abierto; } catch (e) { /* OP aún no existe */ }
+    if (r?.error && cerrado && /modo lectura|permiso|42501/i.test(m)){
+      coAviso('Estás en «Solo mirar». Para hacer cambios, abre el candado de arriba.');
+    }
+    return r;
+  });
+}
 
 /* ============================================================
    REGISTRO DE INCIDENCIAS
@@ -2213,6 +2320,8 @@ const E = k => CFG.etiquetas[k] || '';
 (async () => {
   const punto = document.querySelector('.card .dot');
   const poner = (txt, ok) => {
+    // La página «Pon tu contraseña» sustituye la tarjeta de entrada: ya no hay #ping.
+    if (!$('#ping')) return;
     $('#ping').textContent = txt;
     // El punto deja de latir y se pone gris si no hay servicio: en
     // verde junto a «sin conexión» se contradecía a sí mismo.
@@ -2276,6 +2385,9 @@ async function entrar(){
   }
   $('#login').style.display = 'none';
   $('#app').style.display = 'block';
+  // Al entrar con contraseña, el equipo de Simplia elige empresa (al
+  // recargar, no: sigue en la misma con el candado cerrado).
+  OP.elegir = true;
   await arrancar();
 }
 
@@ -2352,9 +2464,10 @@ function irA(v){
   }
   if (v === 'latido') return pintarLatido();
   if (v === 'convs')  return pintarConvs();
-  if (v === 'embudo') return CO.embudoCanal === 'correo' && correoPermitido() ? pintarEmbudoCorreo() : pintarEmbudo();
+  if (v === 'embudo') return CO.embudoCanal === 'correo' && correoPermitido() && CO_MAQUETA ? pintarEmbudoCorreo() : pintarEmbudo();
   if (v === 'agenda') return pintarAgenda();
   if (v === 'correo' && correoPermitido()) return pintarCorreo();
+  if (v === 'cuentas') return pintarCuentas();
   return pintarAjustes();
 }
 
@@ -2647,6 +2760,11 @@ const CO_EMPRESAS_CON_ACCESO = [];
 // STAGING y pruebas en local: las empresas de esta lista y el equipo de Simplia.
 const CO_EMPRESAS_EN_PRUEBAS = ['oficinasya'];
 const CO_EN_PRODUCCION = location.hostname === 'panel.simpliaspain.com' && !location.pathname.startsWith('/staging');
+// 16/11: fuera los datos de ejemplo. El Correo enseña solo lo real (modo
+// sombra) y, sin buzón, un aviso; el Embudo y la Agenda no mezclan correos
+// de ejemplo. El código de la maqueta se queda como referencia de diseño
+// de lo que falta (bandeja, documentos, seguimientos): true para verla.
+const CO_MAQUETA = false;
 function correoPermitido(){
   if (!TENANT) return false;
   if (CO_EN_PRODUCCION) return CO_EMPRESAS_CON_ACCESO.includes(TENANT.slug);
@@ -2655,7 +2773,7 @@ function correoPermitido(){
 // Añadir y quitar usuarios: el administrador de la empresa (o el equipo de Simplia).
 const esAdminCorreo = () => esSimplia() || TENANT?.rol === 'admin';
 // Clientes que puede elegir el equipo de Simplia (en la versión real, mt_tenants).
-const CO_CLIENTES = [{ slug:'oficinasya', nombre:'Oficinas YA!' }, { slug:'regus', nombre:'Regus' }, { slug:'simplia', nombre:'Simplia Spain' }];
+const CO_CLIENTES = [{ slug:'oficinasya', nombre:'Oficinas YA!' }, { slug:'simplia', nombre:'Simplia Spain' }];
 CO.usuarios = {
   oficinasya: [
     { email:'roberto@oficinasya.es', nombre:'Roberto', rol:'admin', idioma:'es', foto:'' },
@@ -2672,8 +2790,10 @@ function correoAcceso(){
   coBadge();
 }
 function coBadge(){
-  const n = CO.cliente === 'oficinasya' ? coPorRevisar().length : 0;
-  const badge = $('#navcorreo'); if (badge){ badge.textContent = n; badge.hidden = !n; }
+  // Con datos reales (modo sombra) no hay nada que revisar ni enviar: sin número.
+  const n = CO.real || !CO_MAQUETA ? 0 : CO.cliente === 'oficinasya' ? coPorRevisar().length : 0;
+  // `hidden` solo no basta: el estilo de .navn lo pisa y se veía un «0».
+  const badge = $('#navcorreo'); if (badge){ badge.textContent = n; badge.hidden = !n; badge.style.display = n ? '' : 'none'; }
   return n;
 }
 
@@ -3021,6 +3141,15 @@ function coFirmaHTML(buzon){
    Solo cambia la lista, las carpetas y las cifras: el correo abierto y lo
    que se esté escribiendo no se tocan. */
 function coRefrescar(manual){
+  // Datos reales: se vuelven a pedir y se repinta sin perder lo abierto.
+  if (CO.real){
+    coCargarReal().then(() => {
+      ULTIMA = Date.now(); pintarCuando();
+      if (VISTA === 'correo' && !escribiendo()) CO.real ? coPintarReal() : pintarCorreo();
+    });
+    return;
+  }
+  if (!CO_MAQUETA) return;
   CO.actualizado = Date.now();
   const nuevo = CO.pendientes.shift();
   if (nuevo){ nuevo.llegada = Date.now(); CO.correos.push(nuevo); }
@@ -3369,8 +3498,17 @@ function coResumenCanales(resWa){
 
 function pintarCorreo(){
   if (VISTA !== 'correo') return;
-  document.documentElement.style.setProperty('--cohdr', ($('header')?.offsetHeight || 63) + 'px');
+  if (OP.activo) opAltos();
+  else document.documentElement.style.setProperty('--cohdr', ($('header')?.offsetHeight || 63) + 'px');
   if (!CO.cliente) CO.cliente = esSimplia() ? 'oficinasya' : TENANT?.slug;
+  // Datos reales (modo sombra) si el cliente tiene un buzón conectado. La
+  // primera vez se piden y, mientras llegan, «Cargando…».
+  if (CO.real && CO.real.slug === crSlug()) return coPintarReal();
+  if (CO.realPedidoPara !== crSlug()){
+    CO.realPedidoPara = crSlug(); CO.realEstado = 'cargando';
+    coCargarReal().then(ok => { if (VISTA === 'correo') ok ? coPintarReal() : coPintarSinBuzon(); });
+  }
+  if (!CO_MAQUETA) return coPintarSinBuzon();
   if (CO.tab === 'carpetas'){ CO.tab = 'ajustes'; CO.irA = 'co-sec-carpetas'; }
   const propio = CO.cliente === 'oficinasya';
   const n = coBadge();
@@ -3401,7 +3539,7 @@ function pintarCorreo(){
               ${coAvatar(u, '', false)}
               <span class="co-ptip" role="tooltip"><b>${esc(u.nombre)}</b>
                 ${coQueHace(u.email).map(t => `<span>${esc(t)}</span>`).join('')}</span></span>`).join('')}</span>` : ''}
-          ${esSimplia() ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
+          ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
             <select data-co="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug===CO.cliente?'selected':''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
           ${propio ? `<div class="co-popw">
             <button class="co-chip" data-co="pop" aria-expanded="${CO.pop}" aria-haspopup="true">Buzones: ${esc(nomBuzones)} ▾</button>
@@ -3435,6 +3573,295 @@ function pintarCorreo(){
   CO.lectorDe = CO.abierto;
   if (CO.irA){ const destino = document.getElementById(CO.irA); CO.irA = null; destino?.scrollIntoView({ block:'start' }); }
   coEnlazar();
+}
+
+/* =====================================================================
+   CORREO REAL · MODO SOMBRA (16/11)
+   Si el cliente tiene un buzón conectado de verdad (mt_correo_panel_buzones,
+   SQL 78), la pestaña Correo enseña los datos reales EN SOLO LECTURA:
+   cada conversación con la respuesta que dio el equipo y la que habría dado
+   el asistente (que no envía nada), el veredicto de la comparación, el
+   resumen por tipo y lo que falta en la hoja. En Configuración, el estado
+   del buzón y el campo para guardar su contraseña (va directa a Vault con
+   mt_correo_guardar_clave, SQL 77; nunca se enseña).
+   Si no hay buzón real, o las funciones fallan, se queda la maqueta.
+   Solo staging y local: en producción correoPermitido() ya lo apaga.
+   ===================================================================== */
+CO.real = null;          // { slug, buzones, puede_editar, hilos, resumen, faltan }
+CO.realTab = 'conversaciones';
+CO.realFiltro = 'comercial';
+CO.realAbierto = null;
+const CR_SUBTIPO = { despacho_meses:'Despacho por meses', equipo:'Equipo (6 o más)', despacho_horas:'Despacho por horas',
+  puesto:'Puesto de coworking', sala:'Sala', oficina_virtual:'Oficina virtual', broker:'Broker', portal:'Portal',
+  generico:'Consulta', avisos:'Avisos', newsletter:'Boletines', proveedor:'Proveedor', empleo:'Empleo',
+  spam:'Spam', personal:'Personal o interno', facturas:'Facturas' };
+const CR_TIPO = { comercial:'Comercial', cliente_actual:'Cliente actual', no_comercial:'No comercial' };
+const CR_VER = { igual:['Igual que el equipo','vd'], mejor:['Mejor que el equipo','vd'], peor:['Peor que el equipo','am'],
+  equivocado:['Equivocado','rj'], sin_respuesta:['El equipo no contestó por correo','nt'] };
+const crSlug = () => esSimplia() ? (CO.cliente || 'oficinasya') : TENANT?.slug;
+const crFecha = f => f ? new Date(f).toLocaleString('es-ES', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+// El borrador lleva las marcas de Laura: [[VISITA:gasset]] se convierte en el
+// enlace de reserva al enviar (con el nombre y el teléfono de esa persona).
+// En la vista previa se enseña qué iría ahí, sin inventar el enlace.
+/* Fotos del despacho que se adjuntarían (las mismas de Drive que manda Laura).
+   Las sirve «[MT] Correo · Foto» con la sesión del panel: solo si quien mira
+   ve esa empresa. Se piden una vez y se guardan mientras dure la página. */
+const N8N_FOTO = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/foto';
+const CR_FOTOS = new Map();   // 'borrador|n' -> URL del blob, o '' si no se pudo
+const crNombreFoto = c => String(c || '').replace(/-(\d+)$/, ', despacho $1').replace(/-(sala|aula|coworking|comunes)$/, m =>
+  ({ '-sala':', sala de reuniones', '-aula':', aula', '-coworking':', coworking', '-comunes':', zonas comunes' })[m]).replace(/^./, x => x.toUpperCase());
+function crFotos(bo){
+  const fs = Array.isArray(bo?.fotos) ? bo.fotos : [];
+  if (!fs.length) return '';
+  return `<div class="cr-adj" style="margin-top:8px">Fotos que se adjuntarían (${esc(crNombreFoto(fs[0].clave))}):</div>
+    <div class="cr-fotos">${fs.map((f, i) => {
+      const k = bo.id + '|' + i, url = CR_FOTOS.get(k);
+      return `<figure class="cr-foto">${url === '' ? `<div class="cr-fimg cr-fmal">No se ha podido cargar la foto</div>`
+        : `<img class="cr-fimg" data-crfoto="${esc(bo.id)}" data-n="${i}" alt="${esc(f.nombre || 'Foto del despacho')}" ${url ? `src="${url}"` : ''}>`}
+        <figcaption title="${esc(f.nombre || '')}">${esc(f.nombre || '')}</figcaption></figure>`;
+    }).join('')}</div>`;
+}
+async function crCargarFotos(){
+  const imgs = [...document.querySelectorAll('img[data-crfoto]:not([src])')];
+  if (!imgs.length) return;
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) return;
+  for (const img of imgs){
+    const k = img.dataset.crfoto + '|' + img.dataset.n;
+    if (CR_FOTOS.has(k)){ if (CR_FOTOS.get(k)) img.src = CR_FOTOS.get(k); continue; }
+    CR_FOTOS.set(k, null);
+    try {
+      const r = await fetch(`${N8N_FOTO}?b=${encodeURIComponent(img.dataset.crfoto)}&n=${encodeURIComponent(img.dataset.n)}`,
+        { headers:{ 'Authorization':'Bearer ' + token } });
+      if (!r.ok || !/^image\//.test(r.headers.get('content-type') || '')) throw new Error(r.status);
+      // window.URL: en este archivo «URL» es la dirección de Supabase.
+      const url = window.URL.createObjectURL(await r.blob());
+      CR_FOTOS.set(k, url);
+      document.querySelectorAll(`img[data-crfoto="${img.dataset.crfoto}"][data-n="${img.dataset.n}"]`).forEach(x => { x.src = url; });
+    } catch (e) {
+      CR_FOTOS.set(k, '');
+      document.querySelectorAll(`img[data-crfoto="${img.dataset.crfoto}"][data-n="${img.dataset.n}"]`).forEach(x => {
+        x.outerHTML = '<div class="cr-fimg cr-fmal">No se ha podido cargar la foto</div>'; });
+    }
+  }
+}
+const crBorrador = t => coParrafos(t).replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi,
+  (_m, c) => `<span class="pill az" title="Al enviar, aquí va el enlace de reserva de visita de ese centro">Enlace para reservar la visita · ${c.replace(/-/g, ' ')}</span>`);
+
+async function coCargarReal(){
+  const slug = crSlug();
+  try {
+    const [b, d] = await Promise.all([
+      supabase.rpc('mt_correo_panel_buzones', { p_slug: slug }),
+      supabase.rpc('mt_correo_panel', { p_slug: slug, p_desde: null })
+    ]);
+    if (b.error){ CO.real = null; CO.realEstado = 'error'; coBadge(); return false; }
+    if (!b.data?.buzones?.length){ CO.real = null; CO.realEstado = 'sin'; coBadge(); return false; }
+    if (d.error){ CO.real = null; CO.realEstado = 'error'; coBadge(); return false; }
+    CO.real = { slug, ...b.data, ...d.data };
+    CO.realEstado = 'ok';
+    coBadge();
+    return true;
+  } catch (e) { CO.real = null; CO.realEstado = 'error'; return false; }
+}
+
+// Sin buzón real (o cargando, o con error): un aviso, sin datos de ejemplo.
+function coPintarSinBuzon(){
+  const e = CO.realEstado;
+  const texto = e === 'cargando' ? 'Cargando el correo…'
+    : e === 'error' ? '<strong>No se ha podido cargar el correo.</strong><br>Vuelve a entrar en la pestaña en un momento.'
+    : '<strong>Esta empresa aún no tiene un buzón de correo conectado.</strong><br>El asistente de correo lo conecta el equipo de Simplia. Cuando esté conectado, aquí verás cómo clasifica y cómo respondería cada correo, sin enviar nada.';
+  $('#vista').innerHTML = `
+    <div class="correo co-real">
+      <div class="co-top">
+        <h2 class="tit">Correo</h2>
+        <div class="co-ctrl">
+          ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
+            <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
+        </div>
+      </div>
+      <div class="panel"><div class="vacio">${texto}</div></div>
+    </div>`;
+}
+
+function crFiltrados(){
+  const hs = CO.real?.hilos || [];
+  const f = CO.realFiltro;
+  if (f === 'comercial') return hs.filter(h => h.tipo === 'comercial' && !h.a_persona);
+  if (f === 'persona') return hs.filter(h => h.a_persona);
+  if (f === 'sin') return hs.filter(h => h.comparacion?.veredicto === 'sin_respuesta');
+  if (f === 'otros') return hs.filter(h => h.tipo && h.tipo !== 'comercial');
+  if (f === 'pend') return hs.filter(h => !h.tipo);
+  return hs;
+}
+
+function crFila(h){
+  const prim = (h.mensajes || []).find(m => m.sentido === 'recibido') || (h.mensajes || [])[0] || {};
+  const v = CR_VER[h.comparacion?.veredicto];
+  return `<button class="cr-fila ${CO.realAbierto === h.id ? 'on' : ''}" data-cr="abrir" data-id="${esc(h.id)}">
+    <b>${esc(h.asunto || '(sin asunto)')}</b>
+    <small>${esc(prim.de || '')} · ${esc(crFecha(h.ultimo_en))}</small>
+    ${h.tipo ? `<span class="pill ${h.tipo === 'comercial' ? 'az' : 'nt'}">${esc(CR_SUBTIPO[h.subtipo] || CR_TIPO[h.tipo] || h.tipo)}</span>` : '<span class="pill nt">Sin clasificar</span>'}
+    ${h.a_persona ? '<span class="pill am">A una persona</span>' : ''}
+    ${v ? `<span class="pill ${v[1]}">${esc(v[0])}</span>` : h.borrador ? '<span class="pill nt">Con borrador</span>' : ''}
+  </button>`;
+}
+
+function crDetalle(h){
+  if (!h) return `<div class="vacio">Elige una conversación de la lista.</div>`;
+  const msgs = h.mensajes || [];
+  const bo = h.borrador, cp = h.comparacion;
+  const resp = cp?.respuesta_mensaje_id ? msgs.find(m => m.id === cp.respuesta_mensaje_id)
+             : bo ? msgs.find(m => m.sentido === 'enviado' && new Date(m.fecha) > new Date((msgs.find(x => x.id === bo.mensaje_id) || {}).fecha || 0)) : null;
+  const v = CR_VER[cp?.veredicto];
+  const puntos = cp?.puntos && typeof cp.puntos === 'object' ? Object.entries(cp.puntos) : [];
+  const PUNTO = { datos:'Datos y precios', siguiente_paso:'Siguiente paso', tono:'Tono', falto:'Lo que faltó' };
+  return `
+    <h3>${esc(h.asunto || '(sin asunto)')}</h3>
+    <div class="cr-motivo">${esc([CR_TIPO[h.tipo], CR_SUBTIPO[h.subtipo], h.motivo].filter(Boolean).join(' · '))}${h.buzon ? ` · ${esc(h.buzon)}` : ''}</div>
+    ${msgs.map(m => `<div class="cr-msg ${m.sentido === 'enviado' ? 'env' : ''}">
+        <div class="cr-de">${m.sentido === 'enviado' ? 'Enviado por el equipo' : 'Recibido'} · ${esc(m.de || '')} · ${esc(crFecha(m.fecha))}</div>
+        ${m.texto ? coParrafos(m.texto) : '<p class="cr-adj">(Sin texto guardado: no es un correo comercial o venía vacío.)</p>'}
+        ${(m.adjuntos || []).filter(a => !a.en_linea).length ? `<div class="cr-adj">Adjuntos: ${(m.adjuntos || []).filter(a => !a.en_linea).map(a => esc(a.nombre || a.tipo)).join(', ')}</div>` : ''}
+      </div>`).join('')}
+    ${bo ? `
+      <div class="cr-ver">${v ? `<span class="pill ${v[1]}">${esc(v[0])}</span>` : '<span class="pill nt">Aún sin comparar</span>'}
+        ${cp?.explicacion ? ` ${esc(cp.explicacion)}` : ''}</div>
+      ${puntos.length ? `<div class="cr-puntos">${puntos.map(([k, t]) => `<div><b>${esc(PUNTO[k] || k)}:</b> ${esc(typeof t === 'string' ? t : JSON.stringify(t))}</div>`).join('')}</div>` : ''}
+      <div class="cr-comp">
+        <div><h4>Respuesta del equipo</h4>${resp ? coParrafos(resp.texto || '') : '<p class="cr-adj">Todavía no hay respuesta del equipo por correo.</p>'}</div>
+        <div><h4>Lo que habría contestado el asistente <span class="pill nt">no se envió</span></h4>${crBorrador(bo.texto)}${crFotos(bo)}
+          ${(bo.faltan || []).length ? `<div class="cr-adj">Le faltaba: ${bo.faltan.map(esc).join(' · ')}</div>` : ''}</div>
+      </div>` : h.tipo === 'comercial' && !h.a_persona ? '<p class="cr-adj">El asistente todavía no ha escrito su borrador.</p>' : ''}`;
+}
+
+function crConversaciones(){
+  const r = CO.real;
+  const lista = crFiltrados();
+  if (CO.realAbierto && !lista.some(h => h.id === CO.realAbierto)) CO.realAbierto = null;
+  const abierto = (r.hilos || []).find(h => h.id === CO.realAbierto);
+  const FILTROS = [['comercial','Comerciales'], ['persona','A una persona'], ['sin','Sin respuesta'], ['otros','Otros'], ['pend','Sin clasificar'], ['todos','Todos']];
+  const pct = s => { const t = s.igual + s.mejor + s.peor + s.equivocado; return t ? Math.round((s.igual + s.mejor) * 100 / t) + ' % bien' : '—'; };
+  return `
+    ${(r.resumen || []).length ? `<div class="cr-res">${r.resumen.map(s => `<span class="co-chip" title="Igual ${s.igual} · Mejor ${s.mejor} · Peor ${s.peor} · Equivocado ${s.equivocado} · Sin respuesta ${s.sin_respuesta}">
+        ${esc(CR_SUBTIPO[s.subtipo] || s.subtipo)}: ${s.igual + s.mejor + s.peor + s.equivocado} comparados · ${pct(s)}</span>`).join('')}</div>` : ''}
+    ${(r.faltan || []).length ? `<div class="cr-falta">Falta en la hoja: ${r.faltan.slice(0, 12).map(f => `<span class="pill am">${esc(f.dato)}${f.veces > 1 ? ` ×${f.veces}` : ''}</span>`).join('')}</div>` : ''}
+    <div class="cr-cols">
+      <div class="cr-lista">
+        <div class="cr-filtros">${FILTROS.map(([k, t]) => `<button class="rg ${CO.realFiltro === k ? 'on' : ''}" data-cr="filtro" data-v="${k}">${t}</button>`).join('')}</div>
+        ${lista.length ? lista.map(crFila).join('') : '<div class="vacio" style="padding:16px">No hay conversaciones en este filtro.</div>'}
+      </div>
+      <div class="cr-det">${crDetalle(abierto)}</div>
+    </div>`;
+}
+
+function crTope(){
+  const r = CO.real;
+  if (r.tope == null) return '';
+  const usado = Number(r.usado_hoy || 0), tope = Number(r.tope);
+  const color = usado >= tope ? 'rj' : usado >= tope * 0.8 ? 'am' : 'vd';
+  return `<div class="cr-buzon" id="cr-tope">
+    <b>Tope diario del asistente de correo</b> <span class="pill ${color}">${usado} de ${tope} hoy</span>
+    <div class="fila"><span>Cuenta los borradores y las comparaciones con la respuesta del equipo (clasificar no cuenta).
+      Al llegar al tope deja de escribir borradores hasta mañana. Al 80 % llega un aviso al equipo de Simplia.</span></div>
+    ${r.puede_cambiar_tope ? `<div class="cr-clave">
+        <label for="crtope">Nuevo tope al día</label>
+        <input id="crtope" type="number" min="1" max="1000" step="1" value="${tope}" style="max-width:120px">
+        <button class="cbtn" data-cr="tope">Cambiar el tope</button>
+      </div>` : ''}
+  </div>`;
+}
+
+function crConfiguracion(){
+  const r = CO.real;
+  const EST = { ok:['Leyendo','vd'], bloqueado:['Parado: contraseña rechazada','rj'], error:['Error al leer','am'] };
+  return crTope() + (r.buzones || []).map(b => {
+    const e = EST[b.estado] || [b.estado, 'nt'];
+    return `<div class="cr-buzon">
+      <b>${esc(b.email)}</b> <span class="pill ${e[1]}">${esc(e[0])}</span> <span class="pill nt">${b.modo === 'sombra' ? 'Modo sombra: solo observa' : esc(b.modo)}</span>
+      <div class="fila">
+        <span>Contraseña: ${b.tiene_clave ? 'guardada' : 'falta'}</span>
+        <span>Última lectura: ${b.leido_en ? esc(crFecha(b.leido_en)) : 'todavía no'}</span>
+        <span>Carpetas: ${esc([...(b.carpetas_entrada || []), ...(b.carpetas_enviados || [])].join(', '))}</span>
+        ${b.ultimo_error ? `<span>Último error al leer: ${esc(b.ultimo_error)}</span>` : ''}
+        ${b.ultimo_error_ia ? `<span>Último error del asistente (${esc(crFecha(b.ultimo_error_ia_en))}): ${esc(b.ultimo_error_ia)}</span>` : ''}
+      </div>
+      ${r.puede_editar ? `<div class="cr-clave">
+          <label class="sr" for="crclave-${esc(b.id)}">Contraseña de ${esc(b.email)}</label>
+          <input id="crclave-${esc(b.id)}" type="password" autocomplete="new-password" placeholder="${b.tiene_clave ? 'Cambiar la contraseña' : 'Contraseña del buzón'}">
+          <button class="cbtn" data-cr="clave" data-id="${esc(b.id)}">Guardar contraseña</button>
+        </div>
+        <div class="cr-adj" style="margin-top:6px">Se guarda cifrada y no se vuelve a enseñar. Solo se usa para leer el buzón; el asistente no envía nada.</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function coPintarReal(){
+  const listaY = $('.cr-lista')?.scrollTop, detY = $('.cr-det')?.scrollTop, ventanaY = scrollY;
+  const tabs = [['conversaciones', 'Conversaciones'], ['ajustes', 'Configuración']];
+  $('#vista').innerHTML = `
+    <div class="correo co-real">
+      <div class="co-top">
+        <h2 class="tit">Correo</h2>
+        <div class="rangos co-tabs" role="tablist">
+          ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}</button>`).join('')}
+        </div>
+        <div class="co-ctrl">
+          ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
+            <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
+        </div>
+      </div>
+      <div class="cr-aviso">Modo sombra: el asistente lee vuestro correo y escribe la respuesta que daría, pero no envía nada ni toca vuestro buzón. Aquí se compara con lo que contestó el equipo.</div>
+      <div id="cocuerpo">${CO.realTab === 'ajustes' ? crConfiguracion() : crConversaciones()}</div>
+    </div>`;
+  if (listaY != null && $('.cr-lista')) $('.cr-lista').scrollTop = listaY;
+  if (detY != null && $('.cr-det') && CO.realPintado === CO.realAbierto) $('.cr-det').scrollTop = detY;
+  CO.realPintado = CO.realAbierto;
+  if (scrollY !== ventanaY) scrollTo(0, ventanaY);
+  crCargarFotos();
+}
+
+// Clics y cambios de la vista real (un solo oyente, se pone una vez).
+if (!window.__crOyentes){
+  window.__crOyentes = true;
+  document.addEventListener('click', async e => {
+    const el = e.target.closest?.('[data-cr]');
+    if (!el || VISTA !== 'correo' || !CO.real) return;
+    const que = el.dataset.cr;
+    if (que === 'tab'){ CO.realTab = el.dataset.v; return coPintarReal(); }
+    if (que === 'filtro'){ CO.realFiltro = el.dataset.v; return coPintarReal(); }
+    if (que === 'abrir'){ CO.realAbierto = el.dataset.id; return coPintarReal(); }
+    if (que === 'tope'){
+      const tope = Math.round(Number($('#crtope')?.value));
+      if (!(tope >= 1 && tope <= 1000)) return coAviso('El tope tiene que ser un número entre 1 y 1000.');
+      el.disabled = true;
+      const { error } = await supabase.rpc('mt_correo_tope_cambiar', { p_slug: CO.real.slug, p_tope: tope });
+      el.disabled = false;
+      if (error) return coAviso('No se ha podido cambiar: ' + (error.message || 'error'));
+      coAviso(`Tope cambiado a ${tope} al día. Si ya se había avisado hoy, volverá a avisar al llegar al 80 % del nuevo tope.`);
+      await coCargarReal();
+      return VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
+    }
+    if (que === 'clave'){
+      const inp = document.getElementById('crclave-' + el.dataset.id);
+      const clave = inp?.value || '';
+      if (!clave){ inp?.focus(); return coAviso('Escribe la contraseña del buzón.'); }
+      el.disabled = true;
+      const { error } = await supabase.rpc('mt_correo_guardar_clave', { p_buzon: el.dataset.id, p_clave: clave });
+      if (inp) inp.value = '';
+      el.disabled = false;
+      if (error) return coAviso('No se ha podido guardar: ' + (error.message || 'error'));
+      coAviso('Contraseña guardada. El asistente vuelve a leer el buzón en unos minutos.');
+      await coCargarReal();
+      return VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
+    }
+  });
+  document.addEventListener('change', async e => {
+    if (e.target?.dataset?.cr !== 'cliente' || VISTA !== 'correo') return;
+    CO.cliente = e.target.value; CO.realAbierto = null; CO.real = null; CO.realPedidoPara = null;
+    pintarCorreo();
+  });
 }
 
 function coSinBuzones(){
@@ -4260,7 +4687,7 @@ function coRepintarDonde(){
 
 /* ===================== Embudo › Correo (seguimiento) ===================== */
 function embudoCabecera(){
-  if (!correoPermitido()) return '<h2 class="tit">Embudo</h2>';
+  if (!correoPermitido() || !CO_MAQUETA) return '<h2 class="tit">Embudo</h2>';
   const n = CO.cliente === 'oficinasya' ? CO.leads.filter(l => l.etapa === 'toca').length : 0;
   return `<div class="emb-cab"><h2 class="tit">Embudo</h2>
     <div class="rangos emb-canal" role="tablist" aria-label="Canal">
@@ -4722,6 +5149,235 @@ function enlazarNav(){
 }
 enlazarNav();
 
+/* ---------- equipo de Simplia: elegir empresa y candado (16/11) ----------
+   Una cuenta de mt_operadores no es de ninguna empresa: al entrar elige con
+   cuál (mt_mis_clientes) y ve su panel tal cual lo ve el cliente.
+   mt_ver_como(empresa, modo) lo apunta en Supabase y deja registro.
+   El CANDADO de la franja de arriba:
+     cerrado ('lectura')   → solo mirar. Supabase niega cualquier cambio
+                             (mt_puede_escribir y mt_cierre_panel_permiso,
+                             SQL 79), no solo la pantalla.
+     abierto ('escritura') → puede actuar, solo en esta empresa. La franja
+                             se pone ámbar: los cambios son reales.
+   Al recargar o al cambiar de empresa, el candado vuelve a cerrarse. */
+const OP = { activo:false, elegir:false, slug:null, abierto:false };
+const OP_CANDADO = abierto => abierto
+  ? '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 7V4.8a2.5 2.5 0 0 1 4.9-.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  : '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+
+function opFranja(){
+  const f = $('#opfranja'); if (!f) return;
+  if (!OP.activo || !TENANT){ f.hidden = true; return; }
+  f.hidden = false;
+  f.classList.toggle('abierto', OP.abierto);
+  f.innerHTML = `
+    <span>Equipo de Simplia · Estás viendo el panel de <b>${esc(TENANT.nombre || TENANT.slug)}</b></span>
+    <button type="button" class="opcandado" id="opcandado" aria-pressed="${OP.abierto}"
+      title="${OP.abierto ? 'Pulsa para volver a solo mirar' : 'Pulsa para poder hacer cambios en esta empresa'}">
+      ${OP_CANDADO(OP.abierto)} ${OP.abierto ? 'Puedes hacer cambios: son reales' : 'Solo mirar'}</button>
+    <button type="button" class="opcambiar" id="opcuentas">Cuentas</button>
+    <button type="button" class="opcambiar opsig" id="opcambiar">Cambiar de empresa</button>`;
+  $('#opcandado').onclick = opCandado;
+  $('#opcuentas').onclick = () => irA('cuentas');
+  $('#opcambiar').onclick = () => opElegir();
+  opAltos();
+}
+// La franja va pegada debajo de la cabecera, que cambia de alto según el
+// ancho. El correo calcula su altura con --cohdr: se le suma la franja.
+function opAltos(){
+  const h = $('header')?.offsetHeight || 63;
+  const f = $('#opfranja');
+  document.documentElement.style.setProperty('--hdralto', h + 'px');
+  document.documentElement.style.setProperty('--cohdr', (h + (f && !f.hidden ? f.offsetHeight : 0)) + 'px');
+}
+addEventListener('resize', () => { if (OP.activo) opAltos(); });
+
+async function opCandado(){
+  const b = $('#opcandado'); if (b) b.disabled = true;
+  const abrir = !OP.abierto;
+  const { data, error } = await supabase.rpc('mt_ver_como', { p_slug: OP.slug, p_modo: abrir ? 'escritura' : 'lectura' });
+  if (error || data !== true){
+    if (b) b.disabled = false;
+    return coAviso('No se ha podido cambiar el candado' + (error?.message ? ': ' + error.message : '.'));
+  }
+  OP.abierto = abrir;
+  // Lo que puede hacer se vuelve a pedir a Supabase (no se supone).
+  const r = await supabase.rpc('mt_mi_config');
+  const t = Array.isArray(r.data) ? r.data[0] : r.data;
+  if (t) Object.assign(TENANT, t);
+  CO.real = null; CO.realPedidoPara = null;
+  opFranja();
+  coAviso(abrir ? 'Candado abierto: los cambios que hagas son reales en esta empresa.' : 'Candado cerrado: solo mirar.');
+  irA(VISTA);
+}
+
+async function opElegir(){
+  OP.elegir = false;
+  document.body.classList.add('eligiendo');
+  $('#opfranja').hidden = true;
+  $('#vista').innerHTML = esqueleto('latido');
+  const { data, error } = await supabase.rpc('mt_mis_clientes');
+  if (error){
+    $('#vista').innerHTML = `<div class="panel"><div class="vacio"><strong>No se ha podido cargar la lista de empresas.</strong><br>${esc(error.message || '')}</div></div>`;
+    return;
+  }
+  const hace = f => { if (!f) return 'sin conversaciones todavía'; const d = Math.round((Date.now() - new Date(f)) / 864e5);
+    return d < 1 ? 'última conversación hoy' : d === 1 ? 'última conversación ayer' : `última conversación hace ${d} días`; };
+  $('#vista').innerHTML = `
+    <div class="opelegir">
+      <h2>¿Con qué empresa quieres entrar?</h2>
+      <p>Verás su panel tal como lo ve el cliente. Entras en modo «Solo mirar»: para hacer cambios, abre el candado de arriba.
+        También puedes <button type="button" class="opcambiar" id="opircuentas">gestionar las cuentas</button> (crear cuentas de clientes y del equipo).</p>
+      <div class="oplista">${(data || []).map(e => `
+        <button type="button" class="opemp" data-opslug="${esc(e.slug)}">
+          <b>${esc(e.nombre || e.slug)}</b>
+          <small>${e.activo ? 'Activa' : 'Inactiva'} · ${Number(e.personas || 0)} personas · ${Number(e.mensajes || 0)} mensajes</small>
+          <small>${esc(hace(e.ultimo))}</small>
+        </button>`).join('') || '<div class="vacio">No hay empresas.</div>'}</div>
+    </div>`;
+  $('#vista').querySelectorAll('[data-opslug]').forEach(b => b.addEventListener('click', () => opEntrar(b.dataset.opslug)));
+  // Sin empresa elegida todavía: el menú de arriba sigue escondido.
+  $('#opircuentas')?.addEventListener('click', () => pintarCuentas(true));
+}
+
+/* ---------- cuentas del panel (equipo de Simplia, 16/11) ----------
+   Crear la cuenta de una persona y darle acceso a una empresa (como
+   administrador o empleado) o al equipo de Simplia; cambiar su rol, quitar
+   el acceso y volver a mandarle el enlace para poner su contraseña.
+   Lo que necesita la clave de servicio de Supabase (crear el usuario y el
+   enlace) lo hace el flujo de n8n «[MT] Panel · Cuentas» (16-MT-Panel-
+   Cuentas.json), que comprueba que quien pide es del equipo de Simplia; el
+   resto, las funciones del SQL 80. No depende del candado: no toca datos
+   de ninguna empresa, solo quién entra. */
+const N8N_CUENTAS = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/panel/cuentas';
+const CU = { datos: null, filtro: '', ultimo: null };
+const cuRol = r => r === 'admin' ? 'Administrador' : r === 'viewer' ? 'Empleado' : r;
+const cuBase = () => location.origin + (location.pathname.startsWith('/staging') ? '/staging/' : '/');
+
+async function cuLlamarN8n(cuerpo){
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) return { ok:false, error:'La sesión ha caducado: vuelve a entrar.' };
+  try {
+    const r = await fetch(N8N_CUENTAS, { method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + token },
+      body: JSON.stringify({ ...cuerpo, base: cuBase() }) });
+    const j = await r.json().catch(() => ({}));
+    return r.ok ? j : { ok:false, error: j.error || ('El servidor ha respondido ' + r.status) };
+  } catch (e) { return { ok:false, error:'No se ha podido contactar con el servidor.' }; }
+}
+
+async function pintarCuentas(desdeMenu){
+  VISTA = 'cuentas';
+  document.querySelectorAll('nav button').forEach(x => x.classList.remove('on'));
+  window.scrollTo(0, 0);
+  if (!CU.datos || desdeMenu) $('#vista').innerHTML = esqueleto('latido');
+  const { data, error } = await supabase.rpc('mt_cuentas_panel');
+  if (error){
+    $('#vista').innerHTML = `<div class="panel"><div class="vacio"><strong>No se han podido cargar las cuentas.</strong><br>${esc(error.message || '')}</div></div>`;
+    return;
+  }
+  CU.datos = data || { cuentas:[], empresas:[] };
+  cuPintar();
+}
+
+function cuPintar(){
+  const d = CU.datos, f = CU.filtro.trim().toLowerCase();
+  const cuentas = (d.cuentas || []).filter(c => !f || c.email.toLowerCase().includes(f)
+    || (c.empresas || []).some(e => (e.nombre || e.slug).toLowerCase().includes(f)));
+  const opcEmp = (d.empresas || []).map(e => `<option value="${esc(e.slug)}">${esc(e.nombre || e.slug)}${e.activo ? '' : ' (inactiva)'}</option>`).join('');
+  const hace = t => t ? new Date(t).toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' }) : 'nunca';
+  const u = CU.ultimo;
+  $('#vista').innerHTML = `
+    <div class="cabpanel"><h2 class="tit">Cuentas del panel</h2>
+      ${$('#opfranja')?.hidden ? '<button class="cbtn sec" type="button" id="cuvolver">Elegir empresa</button>' : ''}</div>
+    <div class="panel">
+      <h3 style="font-size:16px;margin-bottom:10px">Dar acceso a una persona</h3>
+      <div class="cu-form">
+        <div><label for="cuemail">Correo</label><input id="cuemail" type="email" autocomplete="off" placeholder="nombre@empresa.com"></div>
+        <div><label for="cuemp">Empresa</label><select id="cuemp">${opcEmp}<option value="__operador">Equipo de Simplia (ve todas)</option></select></div>
+        <div id="curolw"><label for="curol">Rol</label><select id="curol"><option value="admin">Administrador</option><option value="viewer">Empleado</option></select></div>
+        <button class="btn corto" id="cucrear" type="button">Dar acceso</button>
+      </div>
+      <label class="cu-envia"><input type="checkbox" id="cuenviar" checked> Enviarle por correo el enlace para poner su contraseña (desde info@simpliaspain.com)</label>
+      ${u ? `<div class="cu-res ${u.ok ? '' : 'mal'}">${u.ok
+          ? `Hecho: ${esc(u.email)} ${u.enviado ? 'ha recibido el enlace por correo' : 'ya tiene acceso'}. Si no le llega, pásale este enlace (sirve una vez y caduca en una hora):
+             <div class="cu-enlace"><input id="cuenlace" readonly value="${esc(u.enlace || '')}"><button class="cbtn" id="cucopiar" type="button">Copiar</button></div>`
+          : esc(u.error || 'No se ha podido.')}</div>` : ''}
+    </div>
+    <div class="panel">
+      <div class="cu-cab" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <h3 style="font-size:16px">Cuentas (${cuentas.length})</h3>
+        <input id="cufiltro" type="search" placeholder="Buscar por correo o empresa" value="${esc(CU.filtro)}" style="max-width:280px;margin:0 0 0 auto">
+      </div>
+      <div class="cu-lista">${cuentas.map(c => `
+        <div class="cu-fila">
+          <div class="cu-cab"><b>${esc(c.email)}</b>${c.yo ? ' <span class="pill nt">Tú</span>' : ''}
+            ${c.operador ? `<span class="cu-emp">Equipo de Simplia ${c.yo ? '' : `<button class="cu-x" title="Quitar del equipo de Simplia" data-cuquitar="${esc(c.user_id)}" data-slug="">×</button>`}</span>` : ''}
+            <small>Último acceso: ${esc(hace(c.ultima_entrada))}</small>
+            <button class="cbtn sec" type="button" data-cuenlace="${esc(c.email)}" style="margin-left:auto">Enviar enlace de contraseña</button></div>
+          <div class="cu-emps">${(c.empresas || []).map(e => `
+            <span class="cu-emp">${esc(e.nombre || e.slug)}
+              <select data-curol="${esc(c.user_id)}" data-slug="${esc(e.slug)}" aria-label="Rol en ${esc(e.nombre || e.slug)}">
+                <option value="admin" ${e.rol === 'admin' ? 'selected' : ''}>Administrador</option>
+                <option value="viewer" ${e.rol === 'viewer' ? 'selected' : ''}>Empleado</option></select>
+              <button class="cu-x" title="Quitar el acceso a ${esc(e.nombre || e.slug)}" data-cuquitar="${esc(c.user_id)}" data-slug="${esc(e.slug)}">×</button></span>`).join('')
+            || (c.operador ? '' : '<small>Sin acceso al panel (puede ser una cuenta de la Oficina).</small>')}</div>
+        </div>`).join('') || '<div class="vacio">Ninguna cuenta.</div>'}</div>
+    </div>`;
+
+  $('#cuvolver')?.addEventListener('click', () => opElegir());
+  const emp = $('#cuemp'), rolw = $('#curolw');
+  emp.onchange = () => { rolw.style.visibility = emp.value === '__operador' ? 'hidden' : 'visible'; };
+  $('#cufiltro').oninput = e => { CU.filtro = e.target.value; const pos = e.target.selectionStart; cuPintar(); const i = $('#cufiltro'); i.focus(); i.setSelectionRange(pos, pos); };
+  $('#cucopiar')?.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('#cuenlace').value); coAviso('Enlace copiado.'); }
+    catch { $('#cuenlace').select(); coAviso('Selecciona y copia el enlace.'); }
+  });
+  $('#cucrear').onclick = async () => {
+    const email = $('#cuemail').value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ $('#cuemail').focus(); return coAviso('Escribe un correo válido.'); }
+    const operador = emp.value === '__operador';
+    const empresa = (d.empresas || []).find(x => x.slug === emp.value);
+    const b = $('#cucrear'); b.disabled = true; b.textContent = 'Creando…';
+    const r = await cuLlamarN8n({ accion:'crear', email, slug: operador ? null : emp.value, rol: operador ? 'operador' : $('#curol').value,
+      enviar: $('#cuenviar').checked, empresa_nombre: empresa?.nombre || '' });
+    CU.ultimo = { ...r, email };
+    await pintarCuentas();
+  };
+  $('#vista').querySelectorAll('[data-cuenlace]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    const r = await cuLlamarN8n({ accion:'enlace', email: b.dataset.cuenlace, enviar: true });
+    CU.ultimo = { ...r, email: b.dataset.cuenlace };
+    cuPintar();
+  }));
+  $('#vista').querySelectorAll('[data-curol]').forEach(s => s.addEventListener('change', async () => {
+    const { error } = await supabase.rpc('mt_cuentas_rol', { p_user: s.dataset.curol, p_slug: s.dataset.slug, p_rol: s.value });
+    coAviso(error ? 'No se ha podido cambiar: ' + error.message : 'Rol cambiado a ' + cuRol(s.value) + '.');
+    await pintarCuentas();
+  }));
+  $('#vista').querySelectorAll('[data-cuquitar]').forEach(b => b.addEventListener('click', async () => {
+    const fila = b.closest('.cu-fila')?.querySelector('b')?.textContent || '';
+    const donde = b.dataset.slug ? (d.empresas.find(e => e.slug === b.dataset.slug)?.nombre || b.dataset.slug) : 'el equipo de Simplia';
+    if (!confirm(`¿Quitar a ${fila} el acceso a ${donde}? La cuenta no se borra: se le puede volver a dar acceso.`)) return;
+    const { error } = await supabase.rpc('mt_cuentas_quitar', { p_user: b.dataset.cuquitar, p_slug: b.dataset.slug || null });
+    coAviso(error ? 'No se ha podido: ' + error.message : 'Acceso quitado.');
+    await pintarCuentas();
+  }));
+}
+
+async function opEntrar(slug){
+  const { data, error } = await supabase.rpc('mt_ver_como', { p_slug: slug, p_modo: 'lectura' });
+  if (error || data !== true){ coAviso('No se ha podido entrar en esa empresa' + (error?.message ? ': ' + error.message : '.')); return false; }
+  OP.slug = slug; OP.abierto = false;
+  CO.cliente = slug; CO.real = null; CO.realPedidoPara = null; CO.realAbierto = null;
+  document.body.classList.remove('eligiendo');
+  VISTA = 'latido';
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x.dataset.v === 'latido'));
+  $('#vista').innerHTML = esqueleto('latido');
+  await arrancar();
+}
+
 /* ---------- carga ---------- */
 async function arrancar(){
   // Mientras llega la configuración, el esqueleto: la pantalla se
@@ -4753,6 +5409,28 @@ async function arrancar(){
     return;
   }
   const t = Array.isArray(cfg) ? cfg[0] : cfg;
+  // Equipo de Simplia: primero elige con qué empresa entra; al recargar
+  // sigue en la misma, pero el candado vuelve a cerrarse.
+  if (t?.es_operador){
+    OP.activo = true;
+    // Desde el enlace del aviso del tope se entra directo en esa empresa.
+    const tope = leerTope();
+    if (tope && t.slug !== tope){
+      OP.elegir = false;
+      if (await opEntrar(tope) !== false) return;
+      history.replaceState(null, '', location.pathname + location.search);   // no se pudo: a elegir
+      return opElegir();
+    }
+    if (OP.elegir){ OP.elegir = false; return opElegir(); }
+    if (!OP.slug){
+      OP.slug = t.slug; OP.abierto = false;
+      await supabase.rpc('mt_ver_como', { p_slug: t.slug, p_modo: 'lectura' });
+      const r2 = await supabase.rpc('mt_mi_config');
+      const t2 = Array.isArray(r2.data) ? r2.data[0] : r2.data;
+      if (t2) Object.assign(t, t2);
+    }
+    CO.cliente = t.slug;
+  }
   if (!t){
     $('#vista').innerHTML = `<div class="panel"><div class="vacio">
       <strong>Tu cuenta no tiene ningún cliente asignado.</strong><br>
@@ -4761,6 +5439,7 @@ async function arrancar(){
     return;
   }
   TENANT = t;
+  opFranja();
   // El rol y los ajustes se guardan para que los bloques del Latido
   // sepan qué puede hacer quien mira sin volver a preguntarlo.
   CFG.rol = t.rol;
@@ -4838,7 +5517,28 @@ function leerEnlace(){
   const c = (p.get('c') || '').trim();
   return c ? { contact: c, slug: (p.get('t') || '').trim() } : null;
 }
+/* Enlace del aviso del tope (correo de [MT] Correo · Procesar al 80 %):
+   …/staging/#tope=<slug>. Abre Correo › Configuración de esa empresa,
+   donde el equipo de Simplia sube el tope. Un operador entra antes en esa
+   empresa (en «Solo mirar»; cambiar el tope no necesita abrir el candado). */
+function leerTope(){
+  const p = new URLSearchParams(String(location.hash || '').replace(/^#/, ''));
+  return (p.get('tope') || '').trim() || null;
+}
 async function abrirDesdeEnlace(){
+  const tope = leerTope();
+  if (tope){
+    if (OP.activo && TENANT?.slug !== tope){
+      if (await opEntrar(tope) !== false) return true;
+      history.replaceState(null, '', location.pathname + location.search);
+      return false;
+    }
+    history.replaceState(null, '', location.pathname + location.search);
+    if (TENANT?.slug !== tope || !correoPermitido()) return false;
+    CO.cliente = tope; CO.realTab = 'ajustes';
+    await irA('correo');
+    return true;
+  }
   const e = leerEnlace();
   if (!e) return false;
   // Se quita del enlace: al recargar o al compartir la dirección ya no
@@ -6574,7 +7274,7 @@ async function pintarAgenda(silencioso){
   if (!silencioso) $('#vista').innerHTML = esqueleto('lista');
 
   // Con el correo activado, la Agenda junta WhatsApp y correo: visitas y cifras del embudo.
-  const conCorreo = correoPermitido() && CO.cliente === 'oficinasya';
+  const conCorreo = CO_MAQUETA && correoPermitido() && CO.cliente === 'oficinasya';
   const [{ data, error }, resumenWa] = await Promise.all([
     supabase.rpc('mt_mis_citas'),
     conCorreo ? supabase.rpc('mt_embudo_resumen').then(r => r, () => ({ error: true })) : Promise.resolve(null)
@@ -8875,7 +9575,61 @@ const cuandoCorto = d => {
    getSession() renueva el acceso con el token de refresco si hace
    falta; si ya no vale (se cerró la sesión desde otro sitio, se
    cambió la contraseña…), devuelve vacío y sale la entrada de siempre. */
+/* ---------- «Pon tu contraseña» (enlace de alta, 16/11) ----------
+   El enlace que crea «[MT] Panel · Cuentas» trae #alta=<token>&e=<correo>.
+   El token es de un solo uso (Supabase, tipo recovery) y caduca en una
+   hora: se comprueba con verifyOtp, que abre la sesión, y la persona pone
+   su contraseña (updateUser). Se quita del enlace en cuanto se lee, para
+   que no se quede en el historial ni se comparta sin querer. */
+function leerAlta(){
+  const h = new URLSearchParams(String(location.hash || '').replace(/^#/, ''));
+  const token = h.get('alta');
+  if (!token) return null;
+  history.replaceState(null, '', location.pathname + location.search);
+  return { token, email: (h.get('e') || '').trim().toLowerCase() };
+}
+
+async function mostrarAlta(alta){
+  document.body.classList.remove('comprobando');
+  $('#login').style.display = '';
+  const card = $('#login .card');
+  const pintar = (cuerpo) => { card.innerHTML = `<div class="marca cardmarca">Simplia<span>Spain</span></div>
+    <h2>Pon tu <em>contraseña.</em></h2>${cuerpo}`; };
+  pintar(`<div class="estado"><span class="dot on"></span><span>Comprobando el enlace…</span></div>`);
+  const { error } = await supabase.auth.verifyOtp({ token_hash: alta.token, type: 'recovery' });
+  if (error){
+    pintar(`<div class="err" style="display:block">Este enlace ya se ha usado o ha caducado (dura una hora).
+      Pide uno nuevo a SimpliaSpain.</div>
+      <a class="btn" href="${esc(location.pathname)}" style="display:block;text-align:center">Ir a la entrada</a>`);
+    return;
+  }
+  pintar(`<p class="alta-ok">Cuenta: <b>${esc(alta.email)}</b></p>
+    <div class="err" id="altaerr"></div>
+    <label for="altapw1">Contraseña nueva (mínimo 8 caracteres)</label>
+    <input id="altapw1" type="password" autocomplete="new-password">
+    <label for="altapw2">Repítela</label>
+    <input id="altapw2" type="password" autocomplete="new-password">
+    <button class="btn" id="altaok" type="button">Guardar y entrar</button>`);
+  const err = t => { const e = $('#altaerr'); e.textContent = t; e.style.display = 'block'; };
+  $('#altaok').onclick = async () => {
+    const a = $('#altapw1').value, b = $('#altapw2').value;
+    if (a.length < 8) return err('La contraseña tiene que tener al menos 8 caracteres.');
+    if (a !== b) return err('Las dos contraseñas no son iguales.');
+    const bt = $('#altaok'); bt.disabled = true; bt.textContent = 'Guardando…';
+    const { error: e2 } = await supabase.auth.updateUser({ password: a });
+    if (e2){ bt.disabled = false; bt.textContent = 'Guardar y entrar'; return err('No se ha podido guardar: ' + (e2.message || 'error')); }
+    USUARIO_EMAIL = alta.email;
+    $('#login').style.display = 'none';
+    $('#app').style.display = 'block';
+    OP.elegir = true;
+    await arrancar();
+  };
+  $('#altapw1').focus();
+}
+
 (async function arrancarConSesionGuardada(){
+  const alta = leerAlta();
+  if (alta) return mostrarAlta(alta);
   let sesion = null;
   try {
     const { data } = await supabase.auth.getSession();
