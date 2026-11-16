@@ -2099,7 +2099,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-16e · correo con carpetas como la maqueta, fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
+const VERSION = '2026-11-16f · correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3754,6 +3754,13 @@ async function coCargarReal(){
     if (!b.data?.buzones?.length){ CO.real = null; CO.realEstado = 'sin'; coBadge(); return false; }
     if (d.error){ CO.real = null; CO.realEstado = 'error'; coBadge(); return false; }
     CO.real = { slug, ...b.data, ...d.data, mejorar: f.error ? null : f.data };
+    // 16/11 noche (pedido del usuario): fuera de la pantalla los correos de los
+    // que no se guarda el texto (avisos, boletines, proveedores, spam, los que
+    // empezó el equipo…). Solo se ocultan aquí: el buzón y Supabase no cambian.
+    const conTexto = m => !!String(m.texto || '').trim();
+    CO.real.hilos = (CO.real.hilos || [])
+      .map(h => ({ ...h, mensajes: (h.mensajes || []).filter(m => conTexto(m) || crImagenesDe(m).length) }))
+      .filter(h => h.mensajes.some(conTexto));
     CO.realEstado = 'ok';
     coBadge();
     return true;
@@ -3790,7 +3797,7 @@ const CR_CARPETAS = [
     que:'Personas o empresas que preguntan por un despacho, puesto, sala, oficina virtual o domiciliación. El asistente prepara la respuesta que daría.' },
   { id:'persona',    nombre:'A una persona', siempre:true,
     que:'Lo que el asistente no contestaría solo: quejas, brokers, casos delicados o dudas que necesitan a alguien del equipo.' },
-  { id:'clientes',   nombre:'Clientes actuales', siempre:true, que:'Quien ya trabaja en uno de vuestros centros.' },
+  { id:'clientes',   nombre:'Clientes actuales', que:'Quien ya trabaja en uno de vuestros centros.' },
   { id:'proveedor',  nombre:'Proveedores', que:'Proveedores, facturas y servicios.' },
   { id:'avisos',     nombre:'Avisos automáticos', que:'Avisos de bancos, plataformas y sistemas.' },
   { id:'newsletter', nombre:'Publicidad y newsletters', que:'Boletines y publicidad.' },
@@ -3913,7 +3920,7 @@ function crDetalle(h, enVentana){
           ${msgs.map(m => `<section class="co-msg ${m.sentido === 'enviado' ? 'cr-env' : ''}" aria-label="${m.sentido === 'enviado' ? 'Respuesta del equipo' : 'Correo recibido'}">
             ${msgs.length > 1 || m.sentido === 'enviado' ? `<div class="co-msgt">${m.sentido === 'enviado' ? 'Respondió el equipo' : 'Recibido'}
               <span class="co-msgq">${esc(crRemite(m.de).nombre)} · ${esc(crFecha(m.fecha))}</span></div>` : ''}
-            <div class="co-orig">${m.texto ? coParrafos(m.texto) : '<p class="co-para">El texto no se guarda: no es un correo de un cliente o interesado.</p>'}</div>
+            ${m.texto ? `<div class="co-orig">${coParrafos(m.texto)}</div>` : ''}
             ${crAdjuntosMsg(m)}
           </section>`).join('')}
         </div>
