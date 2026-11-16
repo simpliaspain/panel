@@ -1961,6 +1961,12 @@
   .cr-comp > div{border:1px solid var(--linea);border-radius:10px;padding:10px 12px}
   .cr-comp h4{font-size:13px;margin-bottom:8px}
   .cr-comp p{font-size:14px;line-height:1.5;margin:0 0 8px}
+  /* Fotos que se adjuntarían (16/11) */
+  .cr-fotos{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+  .cr-foto{margin:0;width:160px;max-width:calc(50% - 4px)}
+  .cr-foto .cr-fimg{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;border:1px solid var(--linea);background:var(--fondo, #f3f4f6)}
+  .cr-foto figcaption{font-size:11px;color:var(--gris);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cr-foto .cr-fmal{display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:var(--gris);padding:6px}
   .cr-ver{margin:14px 0 8px;font-size:14px}
   .cr-puntos{font-size:13px;line-height:1.5;color:var(--tinta-suave)}
   .cr-puntos b{color:var(--tinta)}
@@ -3597,6 +3603,49 @@ const crFecha = f => f ? new Date(f).toLocaleString('es-ES', { day:'numeric', mo
 // El borrador lleva las marcas de Laura: [[VISITA:gasset]] se convierte en el
 // enlace de reserva al enviar (con el nombre y el teléfono de esa persona).
 // En la vista previa se enseña qué iría ahí, sin inventar el enlace.
+/* Fotos del despacho que se adjuntarían (las mismas de Drive que manda Laura).
+   Las sirve «[MT] Correo · Foto» con la sesión del panel: solo si quien mira
+   ve esa empresa. Se piden una vez y se guardan mientras dure la página. */
+const N8N_FOTO = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/foto';
+const CR_FOTOS = new Map();   // 'borrador|n' -> URL del blob, o '' si no se pudo
+const crNombreFoto = c => String(c || '').replace(/-(\d+)$/, ', despacho $1').replace(/-(sala|aula|coworking|comunes)$/, m =>
+  ({ '-sala':', sala de reuniones', '-aula':', aula', '-coworking':', coworking', '-comunes':', zonas comunes' })[m]).replace(/^./, x => x.toUpperCase());
+function crFotos(bo){
+  const fs = Array.isArray(bo?.fotos) ? bo.fotos : [];
+  if (!fs.length) return '';
+  return `<div class="cr-adj" style="margin-top:8px">Fotos que se adjuntarían (${esc(crNombreFoto(fs[0].clave))}):</div>
+    <div class="cr-fotos">${fs.map((f, i) => {
+      const k = bo.id + '|' + i, url = CR_FOTOS.get(k);
+      return `<figure class="cr-foto">${url === '' ? `<div class="cr-fimg cr-fmal">No se ha podido cargar la foto</div>`
+        : `<img class="cr-fimg" data-crfoto="${esc(bo.id)}" data-n="${i}" alt="${esc(f.nombre || 'Foto del despacho')}" ${url ? `src="${url}"` : ''}>`}
+        <figcaption title="${esc(f.nombre || '')}">${esc(f.nombre || '')}</figcaption></figure>`;
+    }).join('')}</div>`;
+}
+async function crCargarFotos(){
+  const imgs = [...document.querySelectorAll('img[data-crfoto]:not([src])')];
+  if (!imgs.length) return;
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) return;
+  for (const img of imgs){
+    const k = img.dataset.crfoto + '|' + img.dataset.n;
+    if (CR_FOTOS.has(k)){ if (CR_FOTOS.get(k)) img.src = CR_FOTOS.get(k); continue; }
+    CR_FOTOS.set(k, null);
+    try {
+      const r = await fetch(`${N8N_FOTO}?b=${encodeURIComponent(img.dataset.crfoto)}&n=${encodeURIComponent(img.dataset.n)}`,
+        { headers:{ 'Authorization':'Bearer ' + token } });
+      if (!r.ok || !/^image\//.test(r.headers.get('content-type') || '')) throw new Error(r.status);
+      // window.URL: en este archivo «URL» es la dirección de Supabase.
+      const url = window.URL.createObjectURL(await r.blob());
+      CR_FOTOS.set(k, url);
+      document.querySelectorAll(`img[data-crfoto="${img.dataset.crfoto}"][data-n="${img.dataset.n}"]`).forEach(x => { x.src = url; });
+    } catch (e) {
+      CR_FOTOS.set(k, '');
+      document.querySelectorAll(`img[data-crfoto="${img.dataset.crfoto}"][data-n="${img.dataset.n}"]`).forEach(x => {
+        x.outerHTML = '<div class="cr-fimg cr-fmal">No se ha podido cargar la foto</div>'; });
+    }
+  }
+}
 const crBorrador = t => coParrafos(t).replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi,
   (_m, c) => `<span class="pill az" title="Al enviar, aquí va el enlace de reserva de visita de ese centro">Enlace para reservar la visita · ${c.replace(/-/g, ' ')}</span>`);
 
@@ -3682,7 +3731,7 @@ function crDetalle(h){
       ${puntos.length ? `<div class="cr-puntos">${puntos.map(([k, t]) => `<div><b>${esc(PUNTO[k] || k)}:</b> ${esc(typeof t === 'string' ? t : JSON.stringify(t))}</div>`).join('')}</div>` : ''}
       <div class="cr-comp">
         <div><h4>Respuesta del equipo</h4>${resp ? coParrafos(resp.texto || '') : '<p class="cr-adj">Todavía no hay respuesta del equipo por correo.</p>'}</div>
-        <div><h4>Lo que habría contestado el asistente <span class="pill nt">no se envió</span></h4>${crBorrador(bo.texto)}
+        <div><h4>Lo que habría contestado el asistente <span class="pill nt">no se envió</span></h4>${crBorrador(bo.texto)}${crFotos(bo)}
           ${(bo.faltan || []).length ? `<div class="cr-adj">Le faltaba: ${bo.faltan.map(esc).join(' · ')}</div>` : ''}</div>
       </div>` : h.tipo === 'comercial' && !h.a_persona ? '<p class="cr-adj">El asistente todavía no ha escrito su borrador.</p>' : ''}`;
 }
@@ -3770,6 +3819,7 @@ function coPintarReal(){
   if (detY != null && $('.cr-det') && CO.realPintado === CO.realAbierto) $('.cr-det').scrollTop = detY;
   CO.realPintado = CO.realAbierto;
   if (scrollY !== ventanaY) scrollTo(0, ventanaY);
+  crCargarFotos();
 }
 
 // Clics y cambios de la vista real (un solo oyente, se pone una vez).
