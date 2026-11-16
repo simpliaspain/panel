@@ -1886,6 +1886,27 @@
          min-width:240px;background:var(--blanco);border:1px solid var(--linea);border-radius:12px;
          padding:6px;box-shadow:0 8px 24px rgba(10,31,74,.12)}
   .dmenu .cbtn{text-align:left;width:100%}
+  /* ---------- EQUIPO DE SIMPLIA: ELEGIR EMPRESA Y CANDADO (16/11) ---------- */
+  .opfranja{position:sticky;top:var(--hdralto, 63px);z-index:19;display:flex;align-items:center;flex-wrap:wrap;
+            gap:8px 14px;padding:8px 24px;background:#E5EFFE;border-bottom:1px solid var(--linea);font-size:13px}
+  @media(max-width:820px){.opfranja{padding:8px 16px}}
+  .opfranja[hidden]{display:none}
+  .opfranja.abierto{background:var(--ambar-fondo)}
+  .opfranja b{font-weight:700}
+  .opcandado{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;
+             border:1.5px solid var(--azul-texto, #1F4FA0);background:var(--blanco);font-size:13px;font-weight:600;cursor:pointer}
+  .opfranja.abierto .opcandado{border-color:var(--ambar-texto);color:var(--ambar-texto)}
+  .opcandado svg{flex:none}
+  .opcambiar{background:none;text-decoration:underline;font-size:13px;cursor:pointer;color:inherit;margin-left:auto}
+  body.eligiendo nav{visibility:hidden}
+  .opelegir{max-width:760px;margin:0 auto}
+  .opelegir h2{font-size:24px;margin-bottom:6px}
+  .opelegir p{color:var(--tinta-suave);font-size:14px;margin-bottom:18px}
+  .oplista{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .opemp{text-align:left;background:var(--blanco);border:1px solid var(--linea);border-radius:12px;padding:14px 16px;cursor:pointer}
+  .opemp:hover{border-color:var(--pulso)}
+  .opemp b{display:block;font-size:16px;margin-bottom:4px}
+  .opemp small{display:block;color:var(--gris);font-size:12px;line-height:1.5}
   /* ---------- CORREO REAL · MODO SOMBRA (16/11) ---------- */
   .cr-aviso{font-size:13px;color:var(--tinta-suave);margin:4px 0 14px}
   .cr-res{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
@@ -1982,6 +2003,10 @@
       <button class="salir" id="salir">Salir</button>
     </div>
   </header>
+  <!-- Equipo de Simplia: con qué empresa está y el candado (16/11). Fuera de
+       la cabecera para no cambiar cómo se reparte en cada ancho; fija justo
+       debajo de ella (--hdralto lo pone opFranja). -->
+  <div id="opfranja" class="opfranja" hidden></div>
   <main>
     <div id="vista"></div>
   </main>
@@ -2010,7 +2035,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-16 · correo real en modo sombra (solo staging; correo apagado en producción)';
+const VERSION = '2026-11-16 · equipo de Simplia: elegir empresa y candado; correo real en modo sombra (correo apagado en producción)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -2061,6 +2086,21 @@ const supabase = createClient(URL, KEY, {
     storageKey: CLAVE_SESION, storage: ALMACEN_SESION
   }
 });
+
+// Equipo de Simplia con el candado cerrado: si Supabase niega un cambio,
+// se dice claro por qué (en vez del error técnico) y dónde se abre.
+{
+  const rpcOriginal = supabase.rpc.bind(supabase);
+  supabase.rpc = (...args) => Promise.resolve(rpcOriginal(...args)).then(r => {
+    const m = String(r?.error?.message || '') + ' ' + String(r?.error?.code || '');
+    let cerrado = false;
+    try { cerrado = OP.activo && !OP.abierto; } catch (e) { /* OP aún no existe */ }
+    if (r?.error && cerrado && /modo lectura|permiso|42501/i.test(m)){
+      coAviso('Estás en «Solo mirar». Para hacer cambios, abre el candado de arriba.');
+    }
+    return r;
+  });
+}
 
 /* ============================================================
    REGISTRO DE INCIDENCIAS
@@ -2314,6 +2354,9 @@ async function entrar(){
   }
   $('#login').style.display = 'none';
   $('#app').style.display = 'block';
+  // Al entrar con contraseña, el equipo de Simplia elige empresa (al
+  // recargar, no: sigue en la misma con el candado cerrado).
+  OP.elegir = true;
   await arrancar();
 }
 
@@ -3417,7 +3460,8 @@ function coResumenCanales(resWa){
 
 function pintarCorreo(){
   if (VISTA !== 'correo') return;
-  document.documentElement.style.setProperty('--cohdr', ($('header')?.offsetHeight || 63) + 'px');
+  if (OP.activo) opAltos();
+  else document.documentElement.style.setProperty('--cohdr', ($('header')?.offsetHeight || 63) + 'px');
   if (!CO.cliente) CO.cliente = esSimplia() ? 'oficinasya' : TENANT?.slug;
   // Datos reales (modo sombra) si el cliente tiene un buzón conectado. La
   // primera vez se piden y, mientras llegan, se ve la maqueta un instante.
@@ -3456,7 +3500,7 @@ function pintarCorreo(){
               ${coAvatar(u, '', false)}
               <span class="co-ptip" role="tooltip"><b>${esc(u.nombre)}</b>
                 ${coQueHace(u.email).map(t => `<span>${esc(t)}</span>`).join('')}</span></span>`).join('')}</span>` : ''}
-          ${esSimplia() ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
+          ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
             <select data-co="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug===CO.cliente?'selected':''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
           ${propio ? `<div class="co-popw">
             <button class="co-chip" data-co="pop" aria-expanded="${CO.pop}" aria-haspopup="true">Buzones: ${esc(nomBuzones)} ▾</button>
@@ -3637,7 +3681,7 @@ function coPintarReal(){
           ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}</button>`).join('')}
         </div>
         <div class="co-ctrl">
-          ${esSimplia() ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
+          ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
             <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
         </div>
       </div>
@@ -4967,6 +5011,104 @@ function enlazarNav(){
 }
 enlazarNav();
 
+/* ---------- equipo de Simplia: elegir empresa y candado (16/11) ----------
+   Una cuenta de mt_operadores no es de ninguna empresa: al entrar elige con
+   cuál (mt_mis_clientes) y ve su panel tal cual lo ve el cliente.
+   mt_ver_como(empresa, modo) lo apunta en Supabase y deja registro.
+   El CANDADO de la franja de arriba:
+     cerrado ('lectura')   → solo mirar. Supabase niega cualquier cambio
+                             (mt_puede_escribir y mt_cierre_panel_permiso,
+                             SQL 79), no solo la pantalla.
+     abierto ('escritura') → puede actuar, solo en esta empresa. La franja
+                             se pone ámbar: los cambios son reales.
+   Al recargar o al cambiar de empresa, el candado vuelve a cerrarse. */
+const OP = { activo:false, elegir:false, slug:null, abierto:false };
+const OP_CANDADO = abierto => abierto
+  ? '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 7V4.8a2.5 2.5 0 0 1 4.9-.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  : '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+
+function opFranja(){
+  const f = $('#opfranja'); if (!f) return;
+  if (!OP.activo || !TENANT){ f.hidden = true; return; }
+  f.hidden = false;
+  f.classList.toggle('abierto', OP.abierto);
+  f.innerHTML = `
+    <span>Equipo de Simplia · Estás viendo el panel de <b>${esc(TENANT.nombre || TENANT.slug)}</b></span>
+    <button type="button" class="opcandado" id="opcandado" aria-pressed="${OP.abierto}"
+      title="${OP.abierto ? 'Pulsa para volver a solo mirar' : 'Pulsa para poder hacer cambios en esta empresa'}">
+      ${OP_CANDADO(OP.abierto)} ${OP.abierto ? 'Puedes hacer cambios: son reales' : 'Solo mirar'}</button>
+    <button type="button" class="opcambiar" id="opcambiar">Cambiar de empresa</button>`;
+  $('#opcandado').onclick = opCandado;
+  $('#opcambiar').onclick = () => opElegir();
+  opAltos();
+}
+// La franja va pegada debajo de la cabecera, que cambia de alto según el
+// ancho. El correo calcula su altura con --cohdr: se le suma la franja.
+function opAltos(){
+  const h = $('header')?.offsetHeight || 63;
+  const f = $('#opfranja');
+  document.documentElement.style.setProperty('--hdralto', h + 'px');
+  document.documentElement.style.setProperty('--cohdr', (h + (f && !f.hidden ? f.offsetHeight : 0)) + 'px');
+}
+addEventListener('resize', () => { if (OP.activo) opAltos(); });
+
+async function opCandado(){
+  const b = $('#opcandado'); if (b) b.disabled = true;
+  const abrir = !OP.abierto;
+  const { data, error } = await supabase.rpc('mt_ver_como', { p_slug: OP.slug, p_modo: abrir ? 'escritura' : 'lectura' });
+  if (error || data !== true){
+    if (b) b.disabled = false;
+    return coAviso('No se ha podido cambiar el candado' + (error?.message ? ': ' + error.message : '.'));
+  }
+  OP.abierto = abrir;
+  // Lo que puede hacer se vuelve a pedir a Supabase (no se supone).
+  const r = await supabase.rpc('mt_mi_config');
+  const t = Array.isArray(r.data) ? r.data[0] : r.data;
+  if (t) Object.assign(TENANT, t);
+  CO.real = null; CO.realPedidoPara = null;
+  opFranja();
+  coAviso(abrir ? 'Candado abierto: los cambios que hagas son reales en esta empresa.' : 'Candado cerrado: solo mirar.');
+  irA(VISTA);
+}
+
+async function opElegir(){
+  OP.elegir = false;
+  document.body.classList.add('eligiendo');
+  $('#opfranja').hidden = true;
+  $('#vista').innerHTML = esqueleto('latido');
+  const { data, error } = await supabase.rpc('mt_mis_clientes');
+  if (error){
+    $('#vista').innerHTML = `<div class="panel"><div class="vacio"><strong>No se ha podido cargar la lista de empresas.</strong><br>${esc(error.message || '')}</div></div>`;
+    return;
+  }
+  const hace = f => { if (!f) return 'sin conversaciones todavía'; const d = Math.round((Date.now() - new Date(f)) / 864e5);
+    return d < 1 ? 'última conversación hoy' : d === 1 ? 'última conversación ayer' : `última conversación hace ${d} días`; };
+  $('#vista').innerHTML = `
+    <div class="opelegir">
+      <h2>¿Con qué empresa quieres entrar?</h2>
+      <p>Verás su panel tal como lo ve el cliente. Entras en modo «Solo mirar»: para hacer cambios, abre el candado de arriba.</p>
+      <div class="oplista">${(data || []).map(e => `
+        <button type="button" class="opemp" data-opslug="${esc(e.slug)}">
+          <b>${esc(e.nombre || e.slug)}</b>
+          <small>${e.activo ? 'Activa' : 'Inactiva'} · ${Number(e.personas || 0)} personas · ${Number(e.mensajes || 0)} mensajes</small>
+          <small>${esc(hace(e.ultimo))}</small>
+        </button>`).join('') || '<div class="vacio">No hay empresas.</div>'}</div>
+    </div>`;
+  $('#vista').querySelectorAll('[data-opslug]').forEach(b => b.addEventListener('click', () => opEntrar(b.dataset.opslug)));
+}
+
+async function opEntrar(slug){
+  const { data, error } = await supabase.rpc('mt_ver_como', { p_slug: slug, p_modo: 'lectura' });
+  if (error || data !== true) return coAviso('No se ha podido entrar en esa empresa' + (error?.message ? ': ' + error.message : '.'));
+  OP.slug = slug; OP.abierto = false;
+  CO.cliente = slug; CO.real = null; CO.realPedidoPara = null; CO.realAbierto = null;
+  document.body.classList.remove('eligiendo');
+  VISTA = 'latido';
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x.dataset.v === 'latido'));
+  $('#vista').innerHTML = esqueleto('latido');
+  await arrancar();
+}
+
 /* ---------- carga ---------- */
 async function arrancar(){
   // Mientras llega la configuración, el esqueleto: la pantalla se
@@ -4998,6 +5140,20 @@ async function arrancar(){
     return;
   }
   const t = Array.isArray(cfg) ? cfg[0] : cfg;
+  // Equipo de Simplia: primero elige con qué empresa entra; al recargar
+  // sigue en la misma, pero el candado vuelve a cerrarse.
+  if (t?.es_operador){
+    OP.activo = true;
+    if (OP.elegir){ OP.elegir = false; return opElegir(); }
+    if (!OP.slug){
+      OP.slug = t.slug; OP.abierto = false;
+      await supabase.rpc('mt_ver_como', { p_slug: t.slug, p_modo: 'lectura' });
+      const r2 = await supabase.rpc('mt_mi_config');
+      const t2 = Array.isArray(r2.data) ? r2.data[0] : r2.data;
+      if (t2) Object.assign(t, t2);
+    }
+    CO.cliente = t.slug;
+  }
   if (!t){
     $('#vista').innerHTML = `<div class="panel"><div class="vacio">
       <strong>Tu cuenta no tiene ningún cliente asignado.</strong><br>
@@ -5006,6 +5162,7 @@ async function arrancar(){
     return;
   }
   TENANT = t;
+  opFranja();
   // El rol y los ajustes se guardan para que los bloques del Latido
   // sepan qué puede hacer quien mira sin volver a preguntarlo.
   CFG.rol = t.rol;
