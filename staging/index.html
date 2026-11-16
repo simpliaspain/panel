@@ -1974,7 +1974,7 @@
   .cr-buzon .fila{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--tinta-suave);margin:6px 0 10px}
   .cr-clave{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .cr-clave input{max-width:280px;margin:0}
-  /* Bandeja real con carpetas (16/11 noche) y «Mejorar respuestas». */
+  /* Bandeja real con carpetas (16/11 noche) y «Mejoras». */
   .cr-hilo{display:grid;gap:12px;align-content:start;min-width:0}
   .co-msg.cr-env{background:var(--fondo-hueco)}
   .co-msg.cr-cmp .cr-ver{margin:0 0 8px}
@@ -2099,7 +2099,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-16c · correo con carpetas como la maqueta y «Mejorar respuestas» (lo que falta en la hoja); en producción para OficinasYA (modo sombra)';
+const VERSION = '2026-11-16d · correo con carpetas como la maqueta, fotos de los correos y «Mejoras» (lo que falta en la hoja); en producción para OficinasYA (modo sombra)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3623,7 +3623,7 @@ function pintarCorreo(){
    mt_correo_guardar_clave, SQL 77; nunca se enseña).
    16/11 noche: la bandeja tiene la forma de la maqueta (carpetas, lista
    con buscador y el correo a la derecha), y lo que falta en la hoja y las
-   cifras por tipo van en «Mejorar respuestas» (SQL 87).
+   cifras por tipo van en «Mejoras» (SQL 87).
    En producción solo lo ven las empresas de CO_EMPRESAS_CON_ACCESO.
    ===================================================================== */
 CO.real = null;          // { slug, buzones, puede_editar, hilos, resumen, faltan, mejorar }
@@ -3661,7 +3661,59 @@ function crFotos(bo){
         <figcaption title="${esc(f.nombre || '')}">${esc(f.nombre || '')}</figcaption></figure>`;
     }).join('')}</div>`;
 }
+/* Imágenes que trae cada correo (16/11 noche): sobre todo las fotos que el
+   equipo pega en sus respuestas. La bandeja solo guarda nombre, tipo y
+   tamaño; la imagen la baja «[MT] Correo · Adjunto» del buzón (solo
+   lectura, SQL 88) y la guarda 30 días. Las muy pequeñas (logos de firmas)
+   no se enseñan. */
+const N8N_ADJUNTO = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/adjunto';
+const CR_ADJ = new Map();     // 'mensaje|n' -> URL del blob, '' si no se pudo, null pidiéndose
+const crEsImagen = a => /^image\/(jpeg|jpg|png|gif|webp)$/i.test(a?.tipo || '');
+const crImagenesDe = m => (m.adjuntos || []).map((a, i) => ({ ...a, i })).filter(a => crEsImagen(a) && Number(a.bytes || 0) >= 12000);
+function crAdjuntosMsg(m){
+  const imgs = crImagenesDe(m);
+  const otros = (m.adjuntos || []).filter(a => !a.en_linea && !crEsImagen(a));
+  return `${imgs.length ? `<div class="cr-fotos">${imgs.map(a => {
+      const url = CR_ADJ.get(m.id + '|' + a.i);
+      return `<figure class="cr-foto">${url === '' ? `<div class="cr-fimg cr-fmal">No se ha podido cargar la imagen</div>`
+        : `<a ${url ? `href="${url}"` : ''} target="_blank" rel="noopener" data-cradja="${esc(m.id)}|${a.i}" title="Abrir en grande">
+             <img class="cr-fimg" data-cradj="${esc(m.id)}" data-n="${a.i}" alt="${esc(a.nombre || 'Imagen del correo')}" ${url ? `src="${url}"` : ''}></a>`}
+        ${a.nombre ? `<figcaption title="${esc(a.nombre)}">${esc(a.nombre)}</figcaption>` : ''}</figure>`; }).join('')}</div>` : ''}
+    ${otros.length ? `<div class="cr-adj" style="margin-top:8px">Adjuntos: ${otros.map(a => esc(a.nombre || a.tipo)).join(', ')}</div>` : ''}`;
+}
+async function crCargarAdjuntos(){
+  const imgs = [...document.querySelectorAll('img[data-cradj]:not([src])')];
+  if (!imgs.length) return;
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) return;
+  const poner = (k, url) => {
+    const [mid, n] = k.split('|');
+    document.querySelectorAll(`img[data-cradj="${CSS.escape(mid)}"][data-n="${n}"]`).forEach(x => {
+      if (url) { x.src = url; x.closest('a')?.setAttribute('href', url); }
+      else x.closest('a').outerHTML = '<div class="cr-fimg cr-fmal">No se ha podido cargar la imagen</div>';
+    });
+  };
+  // De dos en dos: cada una abre una conexión al buzón la primera vez.
+  const cola = imgs.map(img => img.dataset.cradj + '|' + img.dataset.n).filter((k, i, a) => a.indexOf(k) === i);
+  const trabajar = async () => {
+    for (let k; (k = cola.shift()); ){
+      if (CR_ADJ.has(k)){ if (CR_ADJ.get(k) !== null) poner(k, CR_ADJ.get(k)); continue; }
+      CR_ADJ.set(k, null);
+      const [mid, n] = k.split('|');
+      try {
+        const r = await fetch(`${N8N_ADJUNTO}?m=${encodeURIComponent(mid)}&n=${encodeURIComponent(n)}`, { headers:{ 'Authorization':'Bearer ' + token } });
+        if (!r.ok || !/^image\//.test(r.headers.get('content-type') || '')) throw new Error(r.status);
+        const url = window.URL.createObjectURL(await r.blob());   // window.URL: aquí «URL» es la de Supabase
+        CR_ADJ.set(k, url); poner(k, url);
+      } catch (e) { CR_ADJ.set(k, ''); poner(k, ''); }
+    }
+  };
+  await Promise.all([trabajar(), trabajar()]);
+}
+
 async function crCargarFotos(){
+  crCargarAdjuntos();
   const imgs = [...document.querySelectorAll('img[data-crfoto]:not([src])')];
   if (!imgs.length) return;
   const { data } = await supabase.auth.getSession();
@@ -3732,7 +3784,7 @@ function coPintarSinBuzon(){
    enviar mails», con sus carpetas. Las carpetas salen de cómo clasifica el
    asistente cada conversación (cada una va a una sola carpeta). No hay
    enviar, mover ni borrar: el modo sombra no toca el buzón. Lo que falta
-   en la hoja va en su apartado («Mejorar respuestas»), no en la bandeja. */
+   en la hoja va en su apartado («Mejoras»), no en la bandeja. */
 const CR_CARPETAS = [
   { id:'nuevos',     nombre:'Nuevos clientes', siempre:true, resp:true,
     que:'Personas o empresas que preguntan por un despacho, puesto, sala, oficina virtual o domiciliación. El asistente prepara la respuesta que daría.' },
@@ -3839,7 +3891,6 @@ function crDetalle(h, enVentana){
   const lado = !!bo && CO.vista === 'lado' && coLadoCabe(enVentana);
   const puntos = cp?.puntos && typeof cp.puntos === 'object' ? Object.entries(cp.puntos).filter(([, t]) => t) : [];
   const PUNTO = { datos:'Datos y precios', siguiente_paso:'Siguiente paso', tono:'Tono', falto:'Lo que faltó' };
-  const adj = m => (m.adjuntos || []).filter(a => !a.en_linea);
   const faltan = bo?.faltan || [];
   return `
     <div class="co-det ${lado ? 'co-lado' : ''}">
@@ -3865,7 +3916,7 @@ function crDetalle(h, enVentana){
             ${msgs.length > 1 || m.sentido === 'enviado' ? `<div class="co-msgt">${m.sentido === 'enviado' ? 'Respondió el equipo' : 'Recibido'}
               <span class="co-msgq">${esc(crRemite(m.de).nombre)} · ${esc(crFecha(m.fecha))}</span></div>` : ''}
             <div class="co-orig">${m.texto ? coParrafos(m.texto) : '<p class="co-para">El texto no se guarda: no es un correo de un cliente o interesado.</p>'}</div>
-            ${adj(m).length ? `<div class="cr-adj" style="margin-top:8px">Adjuntos: ${adj(m).map(a => esc(a.nombre || a.tipo)).join(', ')}</div>` : ''}
+            ${crAdjuntosMsg(m)}
           </section>`).join('')}
         </div>
         ${bo ? `<div class="cr-hilo">
@@ -3906,7 +3957,7 @@ function crBandeja(){
     </div>`;
 }
 
-/* ---------- Mejorar respuestas: lo que falta en la hoja y cómo va ----------
+/* ---------- Mejoras: lo que falta en la hoja y cómo va ----------
    Decisión del usuario (16/11): «guiado a la hoja». Cada dato que le faltó
    al asistente, cuántas veces, en qué correos, en qué pestaña de la hoja
    va y cómo rellenarlo; «Ya lo he añadido» o «No lo damos» lo quitan de la
@@ -4040,7 +4091,7 @@ function coPintarReal(){
   const s = k => res.reduce((a, x) => a + Number(x[k] || 0), 0);
   const comparados = s('igual') + s('mejor') + s('peor') + s('equivocado');
   const pend = (CO.real.mejorar?.datos || []).filter(f => !f.estado || f.estado === 'vuelve').length;
-  const tabs = [['bandeja', 'Bandeja'], ['mejorar', 'Mejorar respuestas'], ['ajustes', 'Configuración']];
+  const tabs = [['bandeja', 'Bandeja'], ['mejorar', 'Mejoras'], ['ajustes', 'Configuración']];
   $('#vista').innerHTML = `
     <div class="correo co-real ${enBandeja ? 'co-bandeja-v' : ''}">
       <div class="co-top">
