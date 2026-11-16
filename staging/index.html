@@ -1897,7 +1897,30 @@
              border:1.5px solid var(--azul-texto, #1F4FA0);background:var(--blanco);font-size:13px;font-weight:600;cursor:pointer}
   .opfranja.abierto .opcandado{border-color:var(--ambar-texto);color:var(--ambar-texto)}
   .opcandado svg{flex:none}
-  .opcambiar{background:none;text-decoration:underline;font-size:13px;cursor:pointer;color:inherit;margin-left:auto}
+  .opcambiar{background:none;text-decoration:underline;font-size:13px;cursor:pointer;color:inherit}
+  #opcuentas{margin-left:auto}
+  /* ---------- CUENTAS DEL PANEL (equipo de Simplia, 16/11) ---------- */
+  .cu-form{display:grid;grid-template-columns:2fr 1.5fr 1fr auto;gap:10px;align-items:end}
+  @media(max-width:900px){.cu-form{grid-template-columns:1fr}}
+  .cu-form input,.cu-form select{margin:0}
+  .cu-envia{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tinta-suave);margin-top:10px;font-weight:500}
+  .cu-envia input{width:16px;height:16px;margin:0;accent-color:var(--pulso)}
+  .cu-res{margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--verde-tenue);font-size:13px}
+  .cu-res.mal{background:var(--coral-fondo);color:var(--coral-texto)}
+  .cu-enlace{display:flex;gap:8px;margin-top:8px}
+  .cu-enlace input{margin:0;font-size:12px}
+  .cu-lista{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .cu-fila{border:1px solid var(--linea);border-radius:12px;padding:12px 14px;background:var(--blanco)}
+  .cu-fila .cu-cab{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+  .cu-fila b{font-size:15px}
+  .cu-fila small{color:var(--gris);font-size:12px}
+  .cu-emps{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .cu-emp{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--linea);border-radius:999px;padding:4px 6px 4px 12px;font-size:13px}
+  .cu-emp select{margin:0;padding:2px 6px;font-size:12px;width:auto;border-radius:8px}
+  .cu-x{background:none;font-size:15px;line-height:1;padding:2px 6px;color:var(--gris);cursor:pointer}
+  .cu-x:hover{color:var(--coral-texto)}
+  /* ---------- PON TU CONTRASEÑA (enlace de alta, 16/11) ---------- */
+  .alta-ok{color:var(--verde-oscuro);font-size:14px;margin-bottom:12px}
   body.eligiendo nav{visibility:hidden}
   .opelegir{max-width:760px;margin:0 auto}
   .opelegir h2{font-size:24px;margin-bottom:6px}
@@ -2035,7 +2058,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-16 · equipo de Simplia: elegir empresa y candado; correo real en modo sombra (correo apagado en producción)';
+const VERSION = '2026-11-16 · cuentas del panel y «pon tu contraseña»; equipo de Simplia con candado; correo real en sombra (correo apagado en producción)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -2291,6 +2314,8 @@ const E = k => CFG.etiquetas[k] || '';
 (async () => {
   const punto = document.querySelector('.card .dot');
   const poner = (txt, ok) => {
+    // La página «Pon tu contraseña» sustituye la tarjeta de entrada: ya no hay #ping.
+    if (!$('#ping')) return;
     $('#ping').textContent = txt;
     // El punto deja de latir y se pone gris si no hay servicio: en
     // verde junto a «sin conexión» se contradecía a sí mismo.
@@ -2436,6 +2461,7 @@ function irA(v){
   if (v === 'embudo') return CO.embudoCanal === 'correo' && correoPermitido() ? pintarEmbudoCorreo() : pintarEmbudo();
   if (v === 'agenda') return pintarAgenda();
   if (v === 'correo' && correoPermitido()) return pintarCorreo();
+  if (v === 'cuentas') return pintarCuentas();
   return pintarAjustes();
 }
 
@@ -5037,8 +5063,10 @@ function opFranja(){
     <button type="button" class="opcandado" id="opcandado" aria-pressed="${OP.abierto}"
       title="${OP.abierto ? 'Pulsa para volver a solo mirar' : 'Pulsa para poder hacer cambios en esta empresa'}">
       ${OP_CANDADO(OP.abierto)} ${OP.abierto ? 'Puedes hacer cambios: son reales' : 'Solo mirar'}</button>
-    <button type="button" class="opcambiar" id="opcambiar">Cambiar de empresa</button>`;
+    <button type="button" class="opcambiar" id="opcuentas">Cuentas</button>
+    <button type="button" class="opcambiar opsig" id="opcambiar">Cambiar de empresa</button>`;
   $('#opcandado').onclick = opCandado;
+  $('#opcuentas').onclick = () => irA('cuentas');
   $('#opcambiar').onclick = () => opElegir();
   opAltos();
 }
@@ -5086,7 +5114,8 @@ async function opElegir(){
   $('#vista').innerHTML = `
     <div class="opelegir">
       <h2>¿Con qué empresa quieres entrar?</h2>
-      <p>Verás su panel tal como lo ve el cliente. Entras en modo «Solo mirar»: para hacer cambios, abre el candado de arriba.</p>
+      <p>Verás su panel tal como lo ve el cliente. Entras en modo «Solo mirar»: para hacer cambios, abre el candado de arriba.
+        También puedes <button type="button" class="opcambiar" id="opircuentas">gestionar las cuentas</button> (crear cuentas de clientes y del equipo).</p>
       <div class="oplista">${(data || []).map(e => `
         <button type="button" class="opemp" data-opslug="${esc(e.slug)}">
           <b>${esc(e.nombre || e.slug)}</b>
@@ -5095,6 +5124,134 @@ async function opElegir(){
         </button>`).join('') || '<div class="vacio">No hay empresas.</div>'}</div>
     </div>`;
   $('#vista').querySelectorAll('[data-opslug]').forEach(b => b.addEventListener('click', () => opEntrar(b.dataset.opslug)));
+  // Sin empresa elegida todavía: el menú de arriba sigue escondido.
+  $('#opircuentas')?.addEventListener('click', () => pintarCuentas(true));
+}
+
+/* ---------- cuentas del panel (equipo de Simplia, 16/11) ----------
+   Crear la cuenta de una persona y darle acceso a una empresa (como
+   administrador o empleado) o al equipo de Simplia; cambiar su rol, quitar
+   el acceso y volver a mandarle el enlace para poner su contraseña.
+   Lo que necesita la clave de servicio de Supabase (crear el usuario y el
+   enlace) lo hace el flujo de n8n «[MT] Panel · Cuentas» (16-MT-Panel-
+   Cuentas.json), que comprueba que quien pide es del equipo de Simplia; el
+   resto, las funciones del SQL 80. No depende del candado: no toca datos
+   de ninguna empresa, solo quién entra. */
+const N8N_CUENTAS = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/panel/cuentas';
+const CU = { datos: null, filtro: '', ultimo: null };
+const cuRol = r => r === 'admin' ? 'Administrador' : r === 'viewer' ? 'Empleado' : r;
+const cuBase = () => location.origin + (location.pathname.startsWith('/staging') ? '/staging/' : '/');
+
+async function cuLlamarN8n(cuerpo){
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) return { ok:false, error:'La sesión ha caducado: vuelve a entrar.' };
+  try {
+    const r = await fetch(N8N_CUENTAS, { method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + token },
+      body: JSON.stringify({ ...cuerpo, base: cuBase() }) });
+    const j = await r.json().catch(() => ({}));
+    return r.ok ? j : { ok:false, error: j.error || ('El servidor ha respondido ' + r.status) };
+  } catch (e) { return { ok:false, error:'No se ha podido contactar con el servidor.' }; }
+}
+
+async function pintarCuentas(desdeMenu){
+  VISTA = 'cuentas';
+  document.querySelectorAll('nav button').forEach(x => x.classList.remove('on'));
+  window.scrollTo(0, 0);
+  if (!CU.datos || desdeMenu) $('#vista').innerHTML = esqueleto('latido');
+  const { data, error } = await supabase.rpc('mt_cuentas_panel');
+  if (error){
+    $('#vista').innerHTML = `<div class="panel"><div class="vacio"><strong>No se han podido cargar las cuentas.</strong><br>${esc(error.message || '')}</div></div>`;
+    return;
+  }
+  CU.datos = data || { cuentas:[], empresas:[] };
+  cuPintar();
+}
+
+function cuPintar(){
+  const d = CU.datos, f = CU.filtro.trim().toLowerCase();
+  const cuentas = (d.cuentas || []).filter(c => !f || c.email.toLowerCase().includes(f)
+    || (c.empresas || []).some(e => (e.nombre || e.slug).toLowerCase().includes(f)));
+  const opcEmp = (d.empresas || []).map(e => `<option value="${esc(e.slug)}">${esc(e.nombre || e.slug)}${e.activo ? '' : ' (inactiva)'}</option>`).join('');
+  const hace = t => t ? new Date(t).toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' }) : 'nunca';
+  const u = CU.ultimo;
+  $('#vista').innerHTML = `
+    <div class="cabpanel"><h2 class="tit">Cuentas del panel</h2>
+      ${$('#opfranja')?.hidden ? '<button class="cbtn sec" type="button" id="cuvolver">Elegir empresa</button>' : ''}</div>
+    <div class="panel">
+      <h3 style="font-size:16px;margin-bottom:10px">Dar acceso a una persona</h3>
+      <div class="cu-form">
+        <div><label for="cuemail">Correo</label><input id="cuemail" type="email" autocomplete="off" placeholder="nombre@empresa.com"></div>
+        <div><label for="cuemp">Empresa</label><select id="cuemp">${opcEmp}<option value="__operador">Equipo de Simplia (ve todas)</option></select></div>
+        <div id="curolw"><label for="curol">Rol</label><select id="curol"><option value="admin">Administrador</option><option value="viewer">Empleado</option></select></div>
+        <button class="btn corto" id="cucrear" type="button">Dar acceso</button>
+      </div>
+      <label class="cu-envia"><input type="checkbox" id="cuenviar" checked> Enviarle por correo el enlace para poner su contraseña (desde info@simpliaspain.com)</label>
+      ${u ? `<div class="cu-res ${u.ok ? '' : 'mal'}">${u.ok
+          ? `Hecho: ${esc(u.email)} ${u.enviado ? 'ha recibido el enlace por correo' : 'ya tiene acceso'}. Si no le llega, pásale este enlace (sirve una vez y caduca en una hora):
+             <div class="cu-enlace"><input id="cuenlace" readonly value="${esc(u.enlace || '')}"><button class="cbtn" id="cucopiar" type="button">Copiar</button></div>`
+          : esc(u.error || 'No se ha podido.')}</div>` : ''}
+    </div>
+    <div class="panel">
+      <div class="cu-cab" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <h3 style="font-size:16px">Cuentas (${cuentas.length})</h3>
+        <input id="cufiltro" type="search" placeholder="Buscar por correo o empresa" value="${esc(CU.filtro)}" style="max-width:280px;margin:0 0 0 auto">
+      </div>
+      <div class="cu-lista">${cuentas.map(c => `
+        <div class="cu-fila">
+          <div class="cu-cab"><b>${esc(c.email)}</b>${c.yo ? ' <span class="pill nt">Tú</span>' : ''}
+            ${c.operador ? `<span class="cu-emp">Equipo de Simplia ${c.yo ? '' : `<button class="cu-x" title="Quitar del equipo de Simplia" data-cuquitar="${esc(c.user_id)}" data-slug="">×</button>`}</span>` : ''}
+            <small>Último acceso: ${esc(hace(c.ultima_entrada))}</small>
+            <button class="cbtn sec" type="button" data-cuenlace="${esc(c.email)}" style="margin-left:auto">Enviar enlace de contraseña</button></div>
+          <div class="cu-emps">${(c.empresas || []).map(e => `
+            <span class="cu-emp">${esc(e.nombre || e.slug)}
+              <select data-curol="${esc(c.user_id)}" data-slug="${esc(e.slug)}" aria-label="Rol en ${esc(e.nombre || e.slug)}">
+                <option value="admin" ${e.rol === 'admin' ? 'selected' : ''}>Administrador</option>
+                <option value="viewer" ${e.rol === 'viewer' ? 'selected' : ''}>Empleado</option></select>
+              <button class="cu-x" title="Quitar el acceso a ${esc(e.nombre || e.slug)}" data-cuquitar="${esc(c.user_id)}" data-slug="${esc(e.slug)}">×</button></span>`).join('')
+            || (c.operador ? '' : '<small>Sin acceso al panel (puede ser una cuenta de la Oficina).</small>')}</div>
+        </div>`).join('') || '<div class="vacio">Ninguna cuenta.</div>'}</div>
+    </div>`;
+
+  $('#cuvolver')?.addEventListener('click', () => opElegir());
+  const emp = $('#cuemp'), rolw = $('#curolw');
+  emp.onchange = () => { rolw.style.visibility = emp.value === '__operador' ? 'hidden' : 'visible'; };
+  $('#cufiltro').oninput = e => { CU.filtro = e.target.value; const pos = e.target.selectionStart; cuPintar(); const i = $('#cufiltro'); i.focus(); i.setSelectionRange(pos, pos); };
+  $('#cucopiar')?.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('#cuenlace').value); coAviso('Enlace copiado.'); }
+    catch { $('#cuenlace').select(); coAviso('Selecciona y copia el enlace.'); }
+  });
+  $('#cucrear').onclick = async () => {
+    const email = $('#cuemail').value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ $('#cuemail').focus(); return coAviso('Escribe un correo válido.'); }
+    const operador = emp.value === '__operador';
+    const empresa = (d.empresas || []).find(x => x.slug === emp.value);
+    const b = $('#cucrear'); b.disabled = true; b.textContent = 'Creando…';
+    const r = await cuLlamarN8n({ accion:'crear', email, slug: operador ? null : emp.value, rol: operador ? 'operador' : $('#curol').value,
+      enviar: $('#cuenviar').checked, empresa_nombre: empresa?.nombre || '' });
+    CU.ultimo = { ...r, email };
+    await pintarCuentas();
+  };
+  $('#vista').querySelectorAll('[data-cuenlace]').forEach(b => b.addEventListener('click', async () => {
+    b.disabled = true;
+    const r = await cuLlamarN8n({ accion:'enlace', email: b.dataset.cuenlace, enviar: true });
+    CU.ultimo = { ...r, email: b.dataset.cuenlace };
+    cuPintar();
+  }));
+  $('#vista').querySelectorAll('[data-curol]').forEach(s => s.addEventListener('change', async () => {
+    const { error } = await supabase.rpc('mt_cuentas_rol', { p_user: s.dataset.curol, p_slug: s.dataset.slug, p_rol: s.value });
+    coAviso(error ? 'No se ha podido cambiar: ' + error.message : 'Rol cambiado a ' + cuRol(s.value) + '.');
+    await pintarCuentas();
+  }));
+  $('#vista').querySelectorAll('[data-cuquitar]').forEach(b => b.addEventListener('click', async () => {
+    const fila = b.closest('.cu-fila')?.querySelector('b')?.textContent || '';
+    const donde = b.dataset.slug ? (d.empresas.find(e => e.slug === b.dataset.slug)?.nombre || b.dataset.slug) : 'el equipo de Simplia';
+    if (!confirm(`¿Quitar a ${fila} el acceso a ${donde}? La cuenta no se borra: se le puede volver a dar acceso.`)) return;
+    const { error } = await supabase.rpc('mt_cuentas_quitar', { p_user: b.dataset.cuquitar, p_slug: b.dataset.slug || null });
+    coAviso(error ? 'No se ha podido: ' + error.message : 'Acceso quitado.');
+    await pintarCuentas();
+  }));
 }
 
 async function opEntrar(slug){
@@ -9277,7 +9434,61 @@ const cuandoCorto = d => {
    getSession() renueva el acceso con el token de refresco si hace
    falta; si ya no vale (se cerró la sesión desde otro sitio, se
    cambió la contraseña…), devuelve vacío y sale la entrada de siempre. */
+/* ---------- «Pon tu contraseña» (enlace de alta, 16/11) ----------
+   El enlace que crea «[MT] Panel · Cuentas» trae #alta=<token>&e=<correo>.
+   El token es de un solo uso (Supabase, tipo recovery) y caduca en una
+   hora: se comprueba con verifyOtp, que abre la sesión, y la persona pone
+   su contraseña (updateUser). Se quita del enlace en cuanto se lee, para
+   que no se quede en el historial ni se comparta sin querer. */
+function leerAlta(){
+  const h = new URLSearchParams(String(location.hash || '').replace(/^#/, ''));
+  const token = h.get('alta');
+  if (!token) return null;
+  history.replaceState(null, '', location.pathname + location.search);
+  return { token, email: (h.get('e') || '').trim().toLowerCase() };
+}
+
+async function mostrarAlta(alta){
+  document.body.classList.remove('comprobando');
+  $('#login').style.display = '';
+  const card = $('#login .card');
+  const pintar = (cuerpo) => { card.innerHTML = `<div class="marca cardmarca">Simplia<span>Spain</span></div>
+    <h2>Pon tu <em>contraseña.</em></h2>${cuerpo}`; };
+  pintar(`<div class="estado"><span class="dot on"></span><span>Comprobando el enlace…</span></div>`);
+  const { error } = await supabase.auth.verifyOtp({ token_hash: alta.token, type: 'recovery' });
+  if (error){
+    pintar(`<div class="err" style="display:block">Este enlace ya se ha usado o ha caducado (dura una hora).
+      Pide uno nuevo a SimpliaSpain.</div>
+      <a class="btn" href="${esc(location.pathname)}" style="display:block;text-align:center">Ir a la entrada</a>`);
+    return;
+  }
+  pintar(`<p class="alta-ok">Cuenta: <b>${esc(alta.email)}</b></p>
+    <div class="err" id="altaerr"></div>
+    <label for="altapw1">Contraseña nueva (mínimo 8 caracteres)</label>
+    <input id="altapw1" type="password" autocomplete="new-password">
+    <label for="altapw2">Repítela</label>
+    <input id="altapw2" type="password" autocomplete="new-password">
+    <button class="btn" id="altaok" type="button">Guardar y entrar</button>`);
+  const err = t => { const e = $('#altaerr'); e.textContent = t; e.style.display = 'block'; };
+  $('#altaok').onclick = async () => {
+    const a = $('#altapw1').value, b = $('#altapw2').value;
+    if (a.length < 8) return err('La contraseña tiene que tener al menos 8 caracteres.');
+    if (a !== b) return err('Las dos contraseñas no son iguales.');
+    const bt = $('#altaok'); bt.disabled = true; bt.textContent = 'Guardando…';
+    const { error: e2 } = await supabase.auth.updateUser({ password: a });
+    if (e2){ bt.disabled = false; bt.textContent = 'Guardar y entrar'; return err('No se ha podido guardar: ' + (e2.message || 'error')); }
+    USUARIO_EMAIL = alta.email;
+    $('#login').style.display = 'none';
+    $('#app').style.display = 'block';
+    OP.elegir = true;
+    await arrancar();
+  };
+  $('#altapw1').focus();
+}
+
 (async function arrancarConSesionGuardada(){
+  const alta = leerAlta();
+  if (alta) return mostrarAlta(alta);
   let sesion = null;
   try {
     const { data } = await supabase.auth.getSession();
