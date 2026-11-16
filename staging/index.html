@@ -2762,7 +2762,7 @@ function correoPermitido(){
 // Añadir y quitar usuarios: el administrador de la empresa (o el equipo de Simplia).
 const esAdminCorreo = () => esSimplia() || TENANT?.rol === 'admin';
 // Clientes que puede elegir el equipo de Simplia (en la versión real, mt_tenants).
-const CO_CLIENTES = [{ slug:'oficinasya', nombre:'Oficinas YA!' }, { slug:'regus', nombre:'Regus' }, { slug:'simplia', nombre:'Simplia Spain' }];
+const CO_CLIENTES = [{ slug:'oficinasya', nombre:'Oficinas YA!' }, { slug:'simplia', nombre:'Simplia Spain' }];
 CO.usuarios = {
   oficinasya: [
     { email:'roberto@oficinasya.es', nombre:'Roberto', rol:'admin', idioma:'es', foto:'' },
