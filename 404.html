@@ -2064,7 +2064,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-16 · cuentas del panel y «pon tu contraseña»; equipo de Simplia con candado; correo real en sombra (correo apagado en producción)';
+const VERSION = '2026-11-16b · correo en producción para OficinasYA (modo sombra); cuentas del panel y «pon tu contraseña»; equipo de Simplia con candado';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -2756,7 +2756,9 @@ const esSimplia = () => TENANT?.rol === 'operador' || SIMPLIA_EQUIPO.includes(US
 // APAGADO para todos. Solo lo ven las empresas a las que Simplia le dé
 // acceso, añadiendo su slug a CO_EMPRESAS_CON_ACCESO (decisión del 09/11:
 // primero las pruebas, después se activa a cada cliente).
-const CO_EMPRESAS_CON_ACCESO = [];
+// 16/11: OficinasYA, para todo el que entre en su panel (sus cuentas y el
+// equipo de Simplia). Sigue en modo sombra: solo lee, no envía nada.
+const CO_EMPRESAS_CON_ACCESO = ['oficinasya'];
 // STAGING y pruebas en local: las empresas de esta lista y el equipo de Simplia.
 const CO_EMPRESAS_EN_PRUEBAS = ['oficinasya'];
 const CO_EN_PRODUCCION = location.hostname === 'panel.simpliaspain.com' && !location.pathname.startsWith('/staging');
