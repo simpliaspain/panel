@@ -1886,6 +1886,44 @@
          min-width:240px;background:var(--blanco);border:1px solid var(--linea);border-radius:12px;
          padding:6px;box-shadow:0 8px 24px rgba(10,31,74,.12)}
   .dmenu .cbtn{text-align:left;width:100%}
+  /* ---------- CORREO REAL · MODO SOMBRA (16/11) ---------- */
+  .cr-aviso{font-size:13px;color:var(--tinta-suave);margin:4px 0 14px}
+  .cr-res{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .cr-res .co-chip{cursor:default}
+  .cr-falta{margin:-4px 0 14px;font-size:13px;color:var(--tinta-suave)}
+  .cr-falta .pill{margin:2px 4px 2px 0}
+  .cr-cols{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:16px;align-items:start}
+  @media(max-width:900px){.cr-cols{grid-template-columns:1fr}}
+  .cr-lista{background:var(--blanco);border:1px solid var(--linea);border-radius:12px;overflow:auto;
+            max-height:calc(100vh - 260px)}
+  .cr-filtros{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border-bottom:1px solid var(--linea);position:sticky;top:0;background:var(--blanco)}
+  .cr-fila{display:block;width:100%;text-align:left;padding:10px 12px;border-bottom:1px solid var(--linea);background:none}
+  .cr-fila:hover{background:var(--fondo-hueco)}
+  .cr-fila.on{background:#E5EFFE}
+  .cr-fila b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cr-fila small{display:block;color:var(--gris);font-size:12px;margin:2px 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cr-fila .pill{font-size:11px;margin-right:4px}
+  .cr-det{background:var(--blanco);border:1px solid var(--linea);border-radius:12px;padding:16px 18px;
+          max-height:calc(100vh - 260px);overflow:auto}
+  .cr-det h3{font-size:17px;margin-bottom:4px}
+  .cr-motivo{font-size:13px;color:var(--tinta-suave);margin-bottom:12px}
+  .cr-msg{border:1px solid var(--linea);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+  .cr-msg.env{background:var(--fondo-hueco)}
+  .cr-msg .cr-de{font-size:12px;color:var(--gris);margin-bottom:6px}
+  .cr-msg p{font-size:14px;line-height:1.5;margin:0 0 8px}
+  .cr-adj{font-size:12px;color:var(--gris)}
+  .cr-comp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+  @media(max-width:1100px){.cr-comp{grid-template-columns:1fr}}
+  .cr-comp > div{border:1px solid var(--linea);border-radius:10px;padding:10px 12px}
+  .cr-comp h4{font-size:13px;margin-bottom:8px}
+  .cr-comp p{font-size:14px;line-height:1.5;margin:0 0 8px}
+  .cr-ver{margin:14px 0 8px;font-size:14px}
+  .cr-puntos{font-size:13px;line-height:1.5;color:var(--tinta-suave)}
+  .cr-puntos b{color:var(--tinta)}
+  .cr-buzon{border:1px solid var(--linea);border-radius:12px;padding:14px 16px;margin-bottom:12px;background:var(--blanco)}
+  .cr-buzon .fila{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--tinta-suave);margin:6px 0 10px}
+  .cr-clave{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .cr-clave input{max-width:280px;margin:0}
   #pdetalle .msg,#mbox .msg{margin-bottom:6px}
   #pdetalle .msg .burb,#mbox .msg .burb{padding:8px 12px;font-size:14px;line-height:1.5;max-width:min(88%, 62ch)}
   #pdetalle .hora,#mbox .hora{margin-top:2px;font-size:10.5px}
@@ -1972,7 +2010,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-12 · la sesión se mantiene al recargar (correo apagado en producción)';
+const VERSION = '2026-11-16 · correo real en modo sombra (solo staging; correo apagado en producción)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -2672,8 +2710,10 @@ function correoAcceso(){
   coBadge();
 }
 function coBadge(){
-  const n = CO.cliente === 'oficinasya' ? coPorRevisar().length : 0;
-  const badge = $('#navcorreo'); if (badge){ badge.textContent = n; badge.hidden = !n; }
+  // Con datos reales (modo sombra) no hay nada que revisar ni enviar: sin número.
+  const n = CO.real ? 0 : CO.cliente === 'oficinasya' ? coPorRevisar().length : 0;
+  // `hidden` solo no basta: el estilo de .navn lo pisa y se veía un «0».
+  const badge = $('#navcorreo'); if (badge){ badge.textContent = n; badge.hidden = !n; badge.style.display = n ? '' : 'none'; }
   return n;
 }
 
@@ -3021,6 +3061,14 @@ function coFirmaHTML(buzon){
    Solo cambia la lista, las carpetas y las cifras: el correo abierto y lo
    que se esté escribiendo no se tocan. */
 function coRefrescar(manual){
+  // Datos reales: se vuelven a pedir y se repinta sin perder lo abierto.
+  if (CO.real){
+    coCargarReal().then(() => {
+      ULTIMA = Date.now(); pintarCuando();
+      if (VISTA === 'correo' && !escribiendo()) CO.real ? coPintarReal() : pintarCorreo();
+    });
+    return;
+  }
   CO.actualizado = Date.now();
   const nuevo = CO.pendientes.shift();
   if (nuevo){ nuevo.llegada = Date.now(); CO.correos.push(nuevo); }
@@ -3371,6 +3419,13 @@ function pintarCorreo(){
   if (VISTA !== 'correo') return;
   document.documentElement.style.setProperty('--cohdr', ($('header')?.offsetHeight || 63) + 'px');
   if (!CO.cliente) CO.cliente = esSimplia() ? 'oficinasya' : TENANT?.slug;
+  // Datos reales (modo sombra) si el cliente tiene un buzón conectado. La
+  // primera vez se piden y, mientras llegan, se ve la maqueta un instante.
+  if (CO.real && CO.real.slug === crSlug()) return coPintarReal();
+  if (CO.realPedidoPara !== crSlug()){
+    CO.realPedidoPara = crSlug();
+    coCargarReal().then(ok => { if (ok && VISTA === 'correo') coPintarReal(); });
+  }
   if (CO.tab === 'carpetas'){ CO.tab = 'ajustes'; CO.irA = 'co-sec-carpetas'; }
   const propio = CO.cliente === 'oficinasya';
   const n = coBadge();
@@ -3435,6 +3490,196 @@ function pintarCorreo(){
   CO.lectorDe = CO.abierto;
   if (CO.irA){ const destino = document.getElementById(CO.irA); CO.irA = null; destino?.scrollIntoView({ block:'start' }); }
   coEnlazar();
+}
+
+/* =====================================================================
+   CORREO REAL · MODO SOMBRA (16/11)
+   Si el cliente tiene un buzón conectado de verdad (mt_correo_panel_buzones,
+   SQL 78), la pestaña Correo enseña los datos reales EN SOLO LECTURA:
+   cada conversación con la respuesta que dio el equipo y la que habría dado
+   el asistente (que no envía nada), el veredicto de la comparación, el
+   resumen por tipo y lo que falta en la hoja. En Configuración, el estado
+   del buzón y el campo para guardar su contraseña (va directa a Vault con
+   mt_correo_guardar_clave, SQL 77; nunca se enseña).
+   Si no hay buzón real, o las funciones fallan, se queda la maqueta.
+   Solo staging y local: en producción correoPermitido() ya lo apaga.
+   ===================================================================== */
+CO.real = null;          // { slug, buzones, puede_editar, hilos, resumen, faltan }
+CO.realTab = 'conversaciones';
+CO.realFiltro = 'comercial';
+CO.realAbierto = null;
+const CR_SUBTIPO = { despacho_meses:'Despacho por meses', equipo:'Equipo (6 o más)', despacho_horas:'Despacho por horas',
+  puesto:'Puesto de coworking', sala:'Sala', oficina_virtual:'Oficina virtual', broker:'Broker', portal:'Portal',
+  generico:'Consulta', avisos:'Avisos', newsletter:'Boletines', proveedor:'Proveedor', empleo:'Empleo',
+  spam:'Spam', personal:'Personal o interno', facturas:'Facturas' };
+const CR_TIPO = { comercial:'Comercial', cliente_actual:'Cliente actual', no_comercial:'No comercial' };
+const CR_VER = { igual:['Igual que el equipo','vd'], mejor:['Mejor que el equipo','vd'], peor:['Peor que el equipo','am'],
+  equivocado:['Equivocado','rj'], sin_respuesta:['El equipo no contestó por correo','nt'] };
+const crSlug = () => esSimplia() ? (CO.cliente || 'oficinasya') : TENANT?.slug;
+const crFecha = f => f ? new Date(f).toLocaleString('es-ES', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+
+async function coCargarReal(){
+  const slug = crSlug();
+  try {
+    const [b, d] = await Promise.all([
+      supabase.rpc('mt_correo_panel_buzones', { p_slug: slug }),
+      supabase.rpc('mt_correo_panel', { p_slug: slug, p_desde: null })
+    ]);
+    if (b.error || d.error || !b.data?.buzones?.length){ CO.real = null; coBadge(); return false; }
+    CO.real = { slug, ...b.data, ...d.data };
+    coBadge();
+    return true;
+  } catch (e) { CO.real = null; return false; }
+}
+
+function crFiltrados(){
+  const hs = CO.real?.hilos || [];
+  const f = CO.realFiltro;
+  if (f === 'comercial') return hs.filter(h => h.tipo === 'comercial' && !h.a_persona);
+  if (f === 'persona') return hs.filter(h => h.a_persona);
+  if (f === 'sin') return hs.filter(h => h.comparacion?.veredicto === 'sin_respuesta');
+  if (f === 'otros') return hs.filter(h => h.tipo && h.tipo !== 'comercial');
+  if (f === 'pend') return hs.filter(h => !h.tipo);
+  return hs;
+}
+
+function crFila(h){
+  const prim = (h.mensajes || []).find(m => m.sentido === 'recibido') || (h.mensajes || [])[0] || {};
+  const v = CR_VER[h.comparacion?.veredicto];
+  return `<button class="cr-fila ${CO.realAbierto === h.id ? 'on' : ''}" data-cr="abrir" data-id="${esc(h.id)}">
+    <b>${esc(h.asunto || '(sin asunto)')}</b>
+    <small>${esc(prim.de || '')} · ${esc(crFecha(h.ultimo_en))}</small>
+    ${h.tipo ? `<span class="pill ${h.tipo === 'comercial' ? 'az' : 'nt'}">${esc(CR_SUBTIPO[h.subtipo] || CR_TIPO[h.tipo] || h.tipo)}</span>` : '<span class="pill nt">Sin clasificar</span>'}
+    ${h.a_persona ? '<span class="pill am">A una persona</span>' : ''}
+    ${v ? `<span class="pill ${v[1]}">${esc(v[0])}</span>` : h.borrador ? '<span class="pill nt">Con borrador</span>' : ''}
+  </button>`;
+}
+
+function crDetalle(h){
+  if (!h) return `<div class="vacio">Elige una conversación de la lista.</div>`;
+  const msgs = h.mensajes || [];
+  const bo = h.borrador, cp = h.comparacion;
+  const resp = cp?.respuesta_mensaje_id ? msgs.find(m => m.id === cp.respuesta_mensaje_id)
+             : bo ? msgs.find(m => m.sentido === 'enviado' && new Date(m.fecha) > new Date((msgs.find(x => x.id === bo.mensaje_id) || {}).fecha || 0)) : null;
+  const v = CR_VER[cp?.veredicto];
+  const puntos = cp?.puntos && typeof cp.puntos === 'object' ? Object.entries(cp.puntos) : [];
+  const PUNTO = { datos:'Datos y precios', siguiente_paso:'Siguiente paso', tono:'Tono', falto:'Lo que faltó' };
+  return `
+    <h3>${esc(h.asunto || '(sin asunto)')}</h3>
+    <div class="cr-motivo">${esc([CR_TIPO[h.tipo], CR_SUBTIPO[h.subtipo], h.motivo].filter(Boolean).join(' · '))}${h.buzon ? ` · ${esc(h.buzon)}` : ''}</div>
+    ${msgs.map(m => `<div class="cr-msg ${m.sentido === 'enviado' ? 'env' : ''}">
+        <div class="cr-de">${m.sentido === 'enviado' ? 'Enviado por el equipo' : 'Recibido'} · ${esc(m.de || '')} · ${esc(crFecha(m.fecha))}</div>
+        ${m.texto ? coParrafos(m.texto) : '<p class="cr-adj">(Sin texto guardado: no es un correo comercial o venía vacío.)</p>'}
+        ${(m.adjuntos || []).filter(a => !a.en_linea).length ? `<div class="cr-adj">Adjuntos: ${(m.adjuntos || []).filter(a => !a.en_linea).map(a => esc(a.nombre || a.tipo)).join(', ')}</div>` : ''}
+      </div>`).join('')}
+    ${bo ? `
+      <div class="cr-ver">${v ? `<span class="pill ${v[1]}">${esc(v[0])}</span>` : '<span class="pill nt">Aún sin comparar</span>'}
+        ${cp?.explicacion ? ` ${esc(cp.explicacion)}` : ''}</div>
+      ${puntos.length ? `<div class="cr-puntos">${puntos.map(([k, t]) => `<div><b>${esc(PUNTO[k] || k)}:</b> ${esc(typeof t === 'string' ? t : JSON.stringify(t))}</div>`).join('')}</div>` : ''}
+      <div class="cr-comp">
+        <div><h4>Respuesta del equipo</h4>${resp ? coParrafos(resp.texto || '') : '<p class="cr-adj">Todavía no hay respuesta del equipo por correo.</p>'}</div>
+        <div><h4>Lo que habría contestado el asistente <span class="pill nt">no se envió</span></h4>${coParrafos(bo.texto)}
+          ${(bo.faltan || []).length ? `<div class="cr-adj">Le faltaba: ${bo.faltan.map(esc).join(' · ')}</div>` : ''}</div>
+      </div>` : h.tipo === 'comercial' && !h.a_persona ? '<p class="cr-adj">El asistente todavía no ha escrito su borrador.</p>' : ''}`;
+}
+
+function crConversaciones(){
+  const r = CO.real;
+  const lista = crFiltrados();
+  if (CO.realAbierto && !lista.some(h => h.id === CO.realAbierto)) CO.realAbierto = null;
+  const abierto = (r.hilos || []).find(h => h.id === CO.realAbierto);
+  const FILTROS = [['comercial','Comerciales'], ['persona','A una persona'], ['sin','Sin respuesta'], ['otros','Otros'], ['pend','Sin clasificar'], ['todos','Todos']];
+  const pct = s => { const t = s.igual + s.mejor + s.peor + s.equivocado; return t ? Math.round((s.igual + s.mejor) * 100 / t) + ' % bien' : '—'; };
+  return `
+    ${(r.resumen || []).length ? `<div class="cr-res">${r.resumen.map(s => `<span class="co-chip" title="Igual ${s.igual} · Mejor ${s.mejor} · Peor ${s.peor} · Equivocado ${s.equivocado} · Sin respuesta ${s.sin_respuesta}">
+        ${esc(CR_SUBTIPO[s.subtipo] || s.subtipo)}: ${s.igual + s.mejor + s.peor + s.equivocado} comparados · ${pct(s)}</span>`).join('')}</div>` : ''}
+    ${(r.faltan || []).length ? `<div class="cr-falta">Falta en la hoja: ${r.faltan.slice(0, 12).map(f => `<span class="pill am">${esc(f.dato)}${f.veces > 1 ? ` ×${f.veces}` : ''}</span>`).join('')}</div>` : ''}
+    <div class="cr-cols">
+      <div class="cr-lista">
+        <div class="cr-filtros">${FILTROS.map(([k, t]) => `<button class="rg ${CO.realFiltro === k ? 'on' : ''}" data-cr="filtro" data-v="${k}">${t}</button>`).join('')}</div>
+        ${lista.length ? lista.map(crFila).join('') : '<div class="vacio" style="padding:16px">No hay conversaciones en este filtro.</div>'}
+      </div>
+      <div class="cr-det">${crDetalle(abierto)}</div>
+    </div>`;
+}
+
+function crConfiguracion(){
+  const r = CO.real;
+  const EST = { ok:['Leyendo','vd'], bloqueado:['Parado: contraseña rechazada','rj'], error:['Error al leer','am'] };
+  return (r.buzones || []).map(b => {
+    const e = EST[b.estado] || [b.estado, 'nt'];
+    return `<div class="cr-buzon">
+      <b>${esc(b.email)}</b> <span class="pill ${e[1]}">${esc(e[0])}</span> <span class="pill nt">${b.modo === 'sombra' ? 'Modo sombra: solo observa' : esc(b.modo)}</span>
+      <div class="fila">
+        <span>Contraseña: ${b.tiene_clave ? 'guardada' : 'falta'}</span>
+        <span>Última lectura: ${b.leido_en ? esc(crFecha(b.leido_en)) : 'todavía no'}</span>
+        <span>Carpetas: ${esc([...(b.carpetas_entrada || []), ...(b.carpetas_enviados || [])].join(', '))}</span>
+        ${b.ultimo_error ? `<span>Último error: ${esc(b.ultimo_error)}</span>` : ''}
+      </div>
+      ${r.puede_editar ? `<div class="cr-clave">
+          <label class="sr" for="crclave-${esc(b.id)}">Contraseña de ${esc(b.email)}</label>
+          <input id="crclave-${esc(b.id)}" type="password" autocomplete="new-password" placeholder="${b.tiene_clave ? 'Cambiar la contraseña' : 'Contraseña del buzón'}">
+          <button class="cbtn" data-cr="clave" data-id="${esc(b.id)}">Guardar contraseña</button>
+        </div>
+        <div class="cr-adj" style="margin-top:6px">Se guarda cifrada y no se vuelve a enseñar. Solo se usa para leer el buzón; el asistente no envía nada.</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function coPintarReal(){
+  const listaY = $('.cr-lista')?.scrollTop, detY = $('.cr-det')?.scrollTop, ventanaY = scrollY;
+  const tabs = [['conversaciones', 'Conversaciones'], ['ajustes', 'Configuración']];
+  $('#vista').innerHTML = `
+    <div class="correo co-real">
+      <div class="co-top">
+        <h2 class="tit">Correo</h2>
+        <div class="rangos co-tabs" role="tablist">
+          ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}</button>`).join('')}
+        </div>
+        <div class="co-ctrl">
+          ${esSimplia() ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
+            <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
+        </div>
+      </div>
+      <div class="cr-aviso">Modo sombra: el asistente lee vuestro correo y escribe la respuesta que daría, pero no envía nada ni toca vuestro buzón. Aquí se compara con lo que contestó el equipo.</div>
+      <div id="cocuerpo">${CO.realTab === 'ajustes' ? crConfiguracion() : crConversaciones()}</div>
+    </div>`;
+  if (listaY != null && $('.cr-lista')) $('.cr-lista').scrollTop = listaY;
+  if (detY != null && $('.cr-det') && CO.realPintado === CO.realAbierto) $('.cr-det').scrollTop = detY;
+  CO.realPintado = CO.realAbierto;
+  if (scrollY !== ventanaY) scrollTo(0, ventanaY);
+}
+
+// Clics y cambios de la vista real (un solo oyente, se pone una vez).
+if (!window.__crOyentes){
+  window.__crOyentes = true;
+  document.addEventListener('click', async e => {
+    const el = e.target.closest?.('[data-cr]');
+    if (!el || VISTA !== 'correo' || !CO.real) return;
+    const que = el.dataset.cr;
+    if (que === 'tab'){ CO.realTab = el.dataset.v; return coPintarReal(); }
+    if (que === 'filtro'){ CO.realFiltro = el.dataset.v; return coPintarReal(); }
+    if (que === 'abrir'){ CO.realAbierto = el.dataset.id; return coPintarReal(); }
+    if (que === 'clave'){
+      const inp = document.getElementById('crclave-' + el.dataset.id);
+      const clave = inp?.value || '';
+      if (!clave){ inp?.focus(); return coAviso('Escribe la contraseña del buzón.'); }
+      el.disabled = true;
+      const { error } = await supabase.rpc('mt_correo_guardar_clave', { p_buzon: el.dataset.id, p_clave: clave });
+      if (inp) inp.value = '';
+      el.disabled = false;
+      if (error) return coAviso('No se ha podido guardar: ' + (error.message || 'error'));
+      coAviso('Contraseña guardada. El asistente vuelve a leer el buzón en unos minutos.');
+      await coCargarReal();
+      return VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
+    }
+  });
+  document.addEventListener('change', async e => {
+    if (e.target?.dataset?.cr !== 'cliente' || VISTA !== 'correo') return;
+    CO.cliente = e.target.value; CO.realAbierto = null;
+    await coCargarReal();
+    pintarCorreo();
+  });
 }
 
 function coSinBuzones(){
