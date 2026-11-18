@@ -1976,6 +1976,40 @@
   .cr-clave input{max-width:280px;margin:0}
   /* Bandeja real con carpetas (16/11 noche) y «Mejoras». */
   .cr-hilo{display:grid;gap:12px;align-content:start;min-width:0}
+  /* 18/11: «Intervención equipo» y «vía idealista / formulario web». */
+  .co-msg.cr-equipo{background:var(--coral-fondo);border-color:var(--coral-fondo)}
+  .co-msg.cr-equipo .co-msgt{color:var(--coral-texto)}
+  .cr-eqlista{font-size:14px;line-height:1.6;color:var(--tinta)}
+  .cr-eqlista ul{margin:4px 0 0 18px}
+  .cr-equipo .co-para{margin:6px 0 0}
+  .co-carp .pt.eq{background:var(--coral, #e5684a)}
+  .cr-via{font-weight:500;color:var(--gris)}
+  .cr-acc{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--linea)}
+  /* 18/11 (pedido del usuario): más espacio para leer los correos. Título,
+     pestañas, cifras y «Modo sombra» en UNA línea; menos margen arriba y
+     cabecera del correo abierto más compacta. Solo la pestaña Correo real. */
+  main:has(.correo.co-real){padding-top:12px}
+  .correo.co-real{height:calc(100dvh - var(--cohdr, 63px) - 32px)}
+  .co-real .co-top{margin-bottom:10px;gap:8px 16px;flex-wrap:nowrap}
+  .co-real .co-top h2.tit{font-size:24px;line-height:1.1}
+  .co-real .co-top .co-tabs .rg{padding:6px 12px}
+  .co-real .cr-cifras{margin:0;flex-wrap:nowrap;gap:4px 16px;white-space:nowrap;min-width:0;overflow:hidden}
+  .co-real .cr-cifras b{font-size:14px}
+  .co-real .co-ctrl{flex:none}
+  .co-real .co-ej.cr-sombra{margin-left:0}
+  .co-real .co-lector{padding:16px 20px}
+  .co-real .co-dcab{padding-bottom:10px;margin-bottom:12px}
+  .co-real .co-dtit h3{font-size:18px;line-height:1.25}
+  .co-real .co-dde{margin-top:6px;line-height:1.45}
+  .co-real .co-dde .co-av.co-logo{width:30px;height:30px;font-size:12px}
+  .co-real .co-dcab .co-clasif{margin:6px 0 0;padding:0;background:none;border:0;font-size:12.5px;line-height:1.5;color:var(--tinta-suave)}
+  .co-real .co-par{gap:10px}
+  .co-real .co-msg{padding:12px 16px}
+  .co-real .cr-hilo{gap:10px}
+  @media(max-width:1280px){ .co-real .co-top{flex-wrap:wrap} .co-real .cr-cifras{order:3;width:100%} }
+  .cr-firma{margin-top:14px;padding-top:10px;border-top:1px dashed var(--linea);font-size:13px;line-height:1.5;color:var(--tinta-suave)}
+  .cr-firma span{font-size:12px;color:var(--gris)}
+  .cr-acc a.cbtn{text-decoration:none}
   .co-msg.cr-env{background:var(--fondo-hueco)}
   .co-msg.cr-cmp .cr-ver{margin:0 0 8px}
   .cr-cifbtn{font:inherit;font-size:13px;color:var(--gris);background:none;border:0;padding:0;cursor:pointer;text-align:left}
@@ -2099,7 +2133,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-18 · sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
+const VERSION = '2026-11-18e · más espacio para leer el correo; Abrir en idealista abre la conversación; firma con el aviso de IA; idealista: Copiar respuesta y Abrir en idealista; «Intervención equipo» y remitentes de la web e idealista; sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3738,8 +3772,63 @@ async function crCargarFotos(){
     }
   }
 }
-const crBorrador = t => coParrafos(t).replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi,
+/* Firma (18/11, pedido del usuario): el aviso de IA va en la firma, no en
+   el texto. El asistente ya no firma; la firma la pone el sistema al enviar
+   (la misma que nucleo.firmaCorreo de [MT] Correo). A las respuestas
+   antiguas se les quita su línea de IA y su «Equipo de …» del final. */
+const crEmpresa = () => CO_CLIENTES.find(k => k.slug === crSlug())?.nombre || TENANT?.nombre || 'la empresa';
+const crFirma = () => `Equipo de ${crEmpresa()}\nRespuesta preparada por el asistente de IA de ${crEmpresa()}`;
+function crCuerpo(t){
+  const lineas = String(t || '').split('\n').filter(l => !/(agente|asistente) de (la )?IA|\bIA de la empresa\b/i.test(l));
+  while (lineas.length && !lineas[lineas.length - 1].trim()) lineas.pop();
+  if (lineas.length && /^\s*(el\s+)?equipo de\b/i.test(lineas[lineas.length - 1])) lineas.pop();
+  return lineas.join('\n').trim();
+}
+const crBorrador = t => coParrafos(crCuerpo(t)).replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi,
   (_m, c) => `<span class="pill az" title="Al enviar, aquí va el enlace de reserva de visita de ese centro">Enlace para reservar la visita · ${c.replace(/-/g, ' ')}</span>`);
+const crFirmaHTML = () => { const [a, b] = crFirma().split('\n'); return `<div class="cr-firma" title="La firma la añade el sistema al enviar">${esc(a)}<br><span>${esc(b)}</span></div>`; };
+/* Idealista (18/11, decisión del usuario): se contesta desde el chat de
+   idealista, no por correo. El panel da «Copiar respuesta» (con el enlace
+   de reserva de verdad en vez de la marca [[VISITA:…]], de
+   mt_correo_panel_buzones.visitas, SQL 98) y «Abrir en idealista».
+   18/11 (la bandeja /tools/inbox daba error): «Abrir en idealista» abre la
+   conversación de ESA persona con el enlace «Responder desde idealista/tools»
+   del propio correo, que el flujo «[MT] Correo · Enlace» lee del buzón
+   (solo lectura, SQL 100; lo encuentra aunque el equipo lo haya borrado). */
+const N8N_ENLACE = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/enlace';
+async function crAbrirPortal(mensajeId){
+  // La pestaña se abre YA (si no, el navegador la bloquea) y luego se le pone la dirección.
+  const v = window.open('', '_blank');
+  try {
+    if (v) v.document.write('<p style="font:16px sans-serif;padding:24px">Abriendo la conversación en idealista…</p>');
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) throw new Error('Vuelve a entrar en el panel.');
+    const r = await fetch(`${N8N_ENLACE}?m=${encodeURIComponent(mensajeId)}`, { headers:{ 'Authorization':'Bearer ' + token } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !/^https:\/\/([a-z0-9-]+\.)*(idealista\.com|fotocasa\.es|habitaclia\.com|pisos\.com)\//i.test(j.url || '')) throw new Error(j.error || 'No se ha encontrado el enlace.');
+    if (v){ v.opener = null; v.location.replace(j.url); } else window.open(j.url, '_blank', 'noopener');
+  } catch (e) {
+    try { v?.close(); } catch {}
+    coAviso('No se ha podido abrir la conversación en idealista: ' + (e.message || 'error') + ' También se le puede contestar respondiendo a su correo.');
+  }
+}
+function crTextoCopiar(bo){
+  const vis = CO.real?.visitas || {};
+  return (crCuerpo(bo?.texto)
+    .replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi, (_m, c) => vis[String(c).trim().toLowerCase()] || '')
+    .replace(/\[\[[^\]]*\]\]/g, '')
+    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim()) + '\n\n' + crFirma();
+}
+async function crCopiar(texto){
+  try { await navigator.clipboard.writeText(texto); return true; }
+  catch (e) {
+    const t = document.createElement('textarea'); t.value = texto; t.setAttribute('readonly', '');
+    t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+    t.remove(); return ok;
+  }
+}
 
 async function coCargarReal(){
   const slug = crSlug();
@@ -3807,7 +3896,9 @@ const CR_CARPETAS = [
   { id:'enviados',   nombre:'Enviados por el equipo', que:'Conversaciones que empezó el equipo y en las que el cliente aún no ha contestado.' },
   { id:'sin',        nombre:'Sin clasificar', que:'Recién llegados: el asistente aún no los ha clasificado.' }
 ];
-const CR_ESPECIALES = { _prop:'Con respuesta propuesta', _todo:'Todos' };
+const CR_ESPECIALES = { _prop:'Con respuesta propuesta', _equipo:'Intervención equipo', _todo:'Todos' };
+// 18/11: lo que tiene que hacer el equipo (borrador.equipo, SQL 97).
+const crEquipo = h => (h.borrador?.equipo || []).filter(Boolean);
 function crCarpetaDe(h){
   if (!h.tipo) return 'sin';
   if (h.subtipo === 'saliente') return 'enviados';
@@ -3823,6 +3914,34 @@ function crRemite(de){
   return m ? { nombre: m[1].trim() || m[2].trim(), email: m[2].trim() } : { nombre: s || '(sin remitente)', email: s.includes('@') ? s : '' };
 }
 const crPrimero = h => (h.mensajes || []).find(m => m.sentido === 'recibido') || (h.mensajes || [])[0] || {};
+/* Quién escribe de verdad y a quién se contesta (18/11, pedido del usuario).
+   · Formulario de la web: llega de website@<dominio del buzón>; la persona
+     está en «Responder a».
+   · Portales (idealista…): llega del portal; «Responder a» es una dirección
+     de contacto del portal, distinta para cada persona, que le reenvía la
+     respuesta (el portal no da su correo real). El nombre sale del asunto
+     («Nuevo mensaje de Olga sobre tu inmueble…»).
+   Devuelve { nombre, email, via, responder, nota }. */
+const CR_PORTALES = [['idealista', 'idealista'], ['fotocasa', 'Fotocasa'], ['habitaclia', 'habitaclia'], ['pisos.com', 'pisos.com'], ['milanuncios', 'Milanuncios']];
+const crDominio = s => String(s || '').split('@')[1]?.toLowerCase().replace(/>.*$/, '') || '';
+const crMayus = s => String(s || '').replace(/(^|\s)(\p{L})/gu, (_, a, b) => a + b.toUpperCase());
+function crPersona(h){
+  const m = crPrimero(h), de = crRemite(m.de);
+  const ra = m.reply_to ? crRemite(m.reply_to) : null;
+  const otraDir = ra?.email && ra.email.toLowerCase() !== de.email.toLowerCase();
+  const portal = CR_PORTALES.find(([d]) => crDominio(de.email).includes(d));
+  if (portal){
+    const nom = (String(h.asunto || '').match(/mensaje de (.+?) sobre/i) || [])[1]
+      || (ra && ra.nombre !== ra.email ? ra.nombre : '') || 'Interesado';
+    return { nombre: crMayus(nom.trim()), email: '', via: portal[1], responder: otraDir ? ra.email : de.email,
+             nota: `dirección de contacto de ${portal[1]}: se lo reenvía a la persona` };
+  }
+  if (otraDir && crDominio(de.email) && crDominio(de.email) === crDominio(h.buzon)){
+    const delTexto = (String(m.texto || '').match(/^\s*(?:nombre(?: y apellidos)?|name)\s*[:\-]\s*(.+)$/im) || [])[1];
+    return { nombre: ra.nombre !== ra.email ? ra.nombre : (delTexto?.trim() || ra.email), email: ra.email, via: 'formulario web', responder: ra.email, nota: '' };
+  }
+  return { ...de, via: '', responder: otraDir ? ra.email : '', nota: '' };
+}
 function crHora(f){
   if (!f) return '';
   const d = new Date(f), hoy = new Date();
@@ -3834,13 +3953,14 @@ function crHora(f){
 function crEnCarpeta(id){
   const hs = CO.real?.hilos || [];
   if (id === '_prop') return hs.filter(h => h.borrador);
+  if (id === '_equipo') return hs.filter(h => crEquipo(h).length);
   if (id === '_todo') return hs;
   return hs.filter(h => crCarpetaDe(h) === id);
 }
 function crBuscar(lista){
   const q = coNorm(CO.realBusca || '').trim();
   if (!q) return lista;
-  return lista.filter(h => coNorm([h.asunto, h.motivo, ...(h.mensajes || []).flatMap(m => [m.de, m.texto])].join(' ')).includes(q));
+  return lista.filter(h => coNorm([h.asunto, h.motivo, crPersona(h).nombre, ...(h.mensajes || []).flatMap(m => [m.de, m.reply_to, m.texto])].join(' ')).includes(q));
 }
 // La lista: la de la carpeta o, si se busca, en todas.
 const crLista = () => crBuscar(CO.realBusca?.trim() ? (CO.real?.hilos || []) : crEnCarpeta(CO.realCarpeta));
@@ -3851,16 +3971,20 @@ function crCarpetas(){
       data-cr="carp" data-id="${id}" ${que ? `title="${esc(que)}"` : ''}><span class="pt ${pt}"></span><span class="co-cnomb">${esc(nombre)}</span><span class="cn">${n(id)}</span></button>`;
   return `
     ${boton('_prop', CR_ESPECIALES._prop, 'rev', 'Correos de clientes en los que el asistente ha preparado la respuesta que daría (no se envía).')}
+    ${boton('_equipo', CR_ESPECIALES._equipo, 'eq', 'El siguiente paso lo tiene que dar una persona del equipo (reservar, dar de alta, contrato…). Estas respuestas no se enviarían solas.')}
     ${boton('_todo', CR_ESPECIALES._todo, '', 'Todas las conversaciones de los últimos 3 meses.')}
     <div class="co-sepcarp"></div>
     ${CR_CARPETAS.filter(c => c.siempre || n(c.id)).map(c => boton(c.id, c.nombre, c.resp ? 'resp' : '', c.que)).join('')}`;
 }
 
 function crFila(h){
-  const p = crRemite(crPrimero(h).de);
+  const p = crPersona(h);
   const eti = [];
   // 16/11 noche: sin comparación con el equipo (el usuario la quitó; SQL 90).
-  if (h.borrador) eti.push('<span class="pill am">Respuesta propuesta</span>');
+  // 18/11: «Intervención equipo» en vez de «Respuesta propuesta» si el
+  // siguiente paso es de una persona.
+  if (crEquipo(h).length) eti.push('<span class="pill rj">Intervención equipo</span>');
+  else if (h.borrador) eti.push('<span class="pill am">Respuesta propuesta</span>');
   // 18/11: sin la etiqueta «Falta un dato» en la lista (pedido del usuario);
   // lo que falta se ve en «Mejoras» y dentro de la respuesta propuesta.
   // En «Todos» o al buscar, la carpeta (como en la maqueta). Máximo dos etiquetas: el asunto se tiene que leer.
@@ -3870,7 +3994,7 @@ function crFila(h){
       data-cr="abrir" data-id="${esc(h.id)}">
       <span class="co-av co-logo" aria-hidden="true"><span>${esc(p.nombre.charAt(0).toUpperCase() || '?')}</span></span>
       <div class="co-fcuerpo">
-        <div class="co-l1"><span class="co-de" title="${esc(p.email)}">${esc(p.nombre)}</span><span class="co-hora">${esc(crHora(h.ultimo_en))}</span></div>
+        <div class="co-l1"><span class="co-de" title="${esc(p.email || p.responder || '')}">${esc(p.nombre)}${p.via ? `<span class="cr-via"> · vía ${esc(p.via)}</span>` : ''}</span><span class="co-hora">${esc(crHora(h.ultimo_en))}</span></div>
         <div class="co-l2"><span class="co-asunto">${esc(h.asunto || '(sin asunto)')}</span>${eti.length ? `<span class="co-etis">${eti.join('')}</span>` : ''}</div>
       </div></div>`;
 }
@@ -3894,10 +4018,11 @@ function crPintarLista(){
 function crDetalle(h, enVentana){
   const msgs = h.mensajes || [];
   const bo = h.borrador;
-  const p = crRemite(crPrimero(h).de);
+  const p = crPersona(h);
   const carp = CR_CARPETAS.find(k => k.id === crCarpetaDe(h));
   const lado = !!bo && CO.vista === 'lado' && coLadoCabe(enVentana);
   const faltan = bo?.faltan || [];
+  const equipo = crEquipo(h);
   return `
     <div class="co-det ${lado ? 'co-lado' : ''}">
       <div class="co-dcab">
@@ -3911,8 +4036,9 @@ function crDetalle(h, enVentana){
         </div>
         <div class="co-dde">
           <span class="co-av co-logo" aria-hidden="true"><span>${esc(p.nombre.charAt(0).toUpperCase() || '?')}</span></span>
-          <div><b>${esc(p.nombre)}</b> ${p.email && p.email !== p.nombre ? `<span class="co-para">&lt;${esc(p.email)}&gt;</span>` : ''}<br>
-            <span class="co-para">Para ${esc(h.buzon || '')} · ${esc(crFecha(crPrimero(h).fecha || h.ultimo_en))}</span></div>
+          <div><b>${esc(p.nombre)}</b> ${p.email && p.email !== p.nombre ? `<span class="co-para">&lt;${esc(p.email)}&gt;</span>` : ''}${p.via ? ` <span class="pill nt">vía ${esc(p.via)}</span>` : ''}<br>
+            <span class="co-para">Para ${esc(h.buzon || '')} · ${esc(crFecha(crPrimero(h).fecha || h.ultimo_en))}</span>
+            ${p.responder ? `<br><span class="co-para">La respuesta irá a <b title="${esc(p.responder)}">${esc(p.nota ? 'la ' + p.nota : p.responder)}</b></span>` : ''}</div>
         </div>
         <div class="co-clasif"><div><b>${esc(carp?.nombre || 'Sin clasificar')}</b>${h.tipo === 'comercial' && CR_SUBTIPO[h.subtipo] ? ` · ${esc(CR_SUBTIPO[h.subtipo])}` : ''}${h.motivo ? ` · <span class="por">${esc(h.motivo)}</span>` : ''}</div></div>
       </div>
@@ -3926,12 +4052,24 @@ function crDetalle(h, enVentana){
           </section>`).join('')}
         </div>
         ${bo ? `<div class="cr-hilo">
+          ${equipo.length ? `<section class="co-msg cr-equipo" aria-label="Intervención equipo">
+            <div class="co-msgt">Intervención equipo</div>
+            <div class="cr-eqlista"><b>Lo tiene que hacer el equipo:</b>
+              ${equipo.length > 1 ? `<ul>${equipo.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ` ${esc(equipo[0])}.`}</div>
+            <p class="co-para">Esta respuesta no se enviaría sola: antes tiene que actuar alguien del equipo.</p>
+          </section>` : ''}
           <section class="co-msg co-msgresp" aria-label="Respuesta propuesta">
-            <div class="co-msgt">Respuesta propuesta <span class="co-msgq">no se envía · modo sombra</span></div>
+            <div class="co-msgt">Respuesta propuesta <span class="co-msgq">${equipo.length ? 'no se enviaría sola · modo sombra' : 'no se envía · modo sombra'}</span></div>
             ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}.
               <button class="co-editar" data-cr="irmejorar">Ver cómo añadirlo</button></div>` : ''}
             <div class="co-orig">${crBorrador(bo.texto)}</div>
+            ${crFirmaHTML()}
             ${crFotos(bo)}
+            ${p.via === 'idealista' ? `<div class="cr-acc">
+              <button class="cbtn" type="button" data-cr="copiar" data-id="${esc(h.id)}">Copiar respuesta</button>
+              <button class="cbtn sec" type="button" data-cr="abrirportal" data-m="${esc(crPrimero(h).id || '')}">Abrir en idealista</button>
+              <span class="co-para">Pégala en el chat de ${esc(p.nombre)} en idealista${(bo.fotos || []).length ? ' y adjunta allí las fotos' : ''}.</span>
+            </div>` : ''}
           </section>
         </div>` : h.tipo === 'comercial' && !h.a_persona ? '<p class="co-para">El asistente todavía no ha preparado su respuesta.</p>' : ''}
       </div>
@@ -4083,17 +4221,17 @@ function coPintarReal(){
         <div class="rangos co-tabs" role="tablist">
           ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}${k === 'mejorar' && pend ? ` <span class="navn">${pend}</span>` : ''}</button>`).join('')}
         </div>
+        ${enBandeja ? `<div class="co-cifras cr-cifras">
+          <span><b>${hoy}</b> hoy</span>
+          <span><b class="az">${crEnCarpeta('nuevos').length}</b> nuevos clientes</span>
+          <span><b>${crEnCarpeta('_prop').length}</b> con respuesta propuesta</span>
+        </div>` : ''}
         <div class="co-ctrl">
+          <span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>
           ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
             <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
         </div>
       </div>
-      ${enBandeja ? `<div class="co-cifras">
-        <span><b>${hoy}</b> han entrado hoy</span>
-        <span><b class="az">${crEnCarpeta('nuevos').length}</b> nuevos clientes</span>
-        <span><b>${crEnCarpeta('_prop').length}</b> con respuesta propuesta</span>
-        <span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>
-      </div>` : ''}
       <div id="cocuerpo" class="co-cuerpo">${enBandeja ? crBandeja() : CO.realTab === 'mejorar' ? crMejorar() : crConfiguracion()}</div>
     </div>`;
   if (misma){
@@ -4146,6 +4284,12 @@ if (!window.__crOyentes){
       $(`#cocuerpo .co-fila[data-id="${CSS.escape(el.dataset.id)}"]`)?.scrollIntoView({ block:'center' });
       if (!coLector()) crAbrirVentana(el.dataset.id);
       return;
+    }
+    if (que === 'abrirportal') return crAbrirPortal(el.dataset.m);
+    if (que === 'copiar'){
+      const h = (CO.real.hilos || []).find(x => x.id === el.dataset.id);
+      const ok = h?.borrador ? await crCopiar(crTextoCopiar(h.borrador)) : false;
+      return coAviso(ok ? 'Respuesta copiada. Ábrela en idealista y pégala en el chat de esa persona.' : 'No se ha podido copiar: selecciona el texto y cópialo a mano.');
     }
     if (que === 'irmejorar'){ if ($('#modal').style.display === 'block') cerrar(); CO.realTab = 'mejorar'; return coPintarReal(); }
     if (que === 'falta'){
