@@ -2007,6 +2007,36 @@
   .co-real .co-msg{padding:12px 16px}
   .co-real .cr-hilo{gap:10px}
   @media(max-width:1280px){ .co-real .co-top{flex-wrap:wrap} .co-real .cr-cifras{order:3;width:100%} }
+  /* 18/11: avisos de correo nuevo, visor de fotos, ayuda de atajos. */
+  .cr-avisos{position:fixed;right:16px;bottom:16px;z-index:60;display:grid;gap:8px;width:min(340px, calc(100vw - 32px))}
+  .cr-aviso{display:flex;align-items:flex-start;background:var(--blanco);border:1px solid var(--linea);border-left:4px solid var(--pulso);
+            border-radius:12px;box-shadow:0 12px 32px rgba(10,31,74,.16);animation:craviso .22s ease-out}
+  .cr-aviso.eq{border-left-color:var(--coral, #E8836B)}
+  .cr-aviso.sale{opacity:0;transform:translateY(8px);transition:opacity .2s ease, transform .2s ease}
+  .cr-aabrir{flex:1 1 auto;min-width:0;display:grid;gap:2px;text-align:left;padding:10px 12px;background:none;border:0;cursor:pointer;font:inherit}
+  .cr-acab{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--gris)}
+  .cr-aviso b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cr-aas{font-size:13px;color:var(--tinta-suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cr-acerrar{flex:none;background:none;border:0;font-size:18px;line-height:1;color:var(--gris);padding:8px 10px;cursor:pointer}
+  @keyframes craviso{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){ .cr-aviso{animation:none} .cr-aviso.sale{transition:none} }
+  .cr-visor{position:fixed;inset:0;z-index:70;background:rgba(8,14,28,.88);display:none;align-items:center;justify-content:center}
+  .cr-visor img{max-width:92vw;max-height:84vh;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.4);background:#fff}
+  .cr-visor button{position:absolute;background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:999px;width:44px;height:44px;font-size:28px;line-height:1;cursor:pointer}
+  .cr-visor button:hover{background:rgba(255,255,255,.26)}
+  .cr-vant{left:16px;top:50%;transform:translateY(-50%)} .cr-vsig{right:16px;top:50%;transform:translateY(-50%)}
+  .cr-vcerrar{top:16px;right:16px}
+  .cr-vpie{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:#fff;font-size:13px;opacity:.85}
+  .cr-fotos img[src]{cursor:zoom-in}
+  .cr-ayuda{width:26px;height:26px;border-radius:999px;border:1px solid var(--linea);background:var(--blanco);color:var(--gris);font-weight:700;font-size:13px;cursor:pointer}
+  .cr-ayuda:hover{color:var(--pulso);border-color:var(--azul-borde)}
+  .cr-atajos h3{font-size:18px;margin:0 0 12px}
+  .cr-atajos dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0;font-size:14px}
+  .cr-atajos dt{white-space:nowrap} .cr-atajos dd{margin:0;color:var(--tinta-suave)}
+  .cr-atajos kbd,.cr-adj kbd{font:12px/1 inherit;padding:3px 6px;border:1px solid var(--linea);border-bottom-width:2px;border-radius:6px;background:var(--fondo)}
+  .cr-prefs{display:grid;gap:6px;margin:8px 0}
+  .cr-prefs .co-interr{display:flex;gap:10px;align-items:flex-start}
+  .cr-prefs .co-interr small{display:block;font-size:12px;color:var(--gris);font-weight:400}
   .cr-firma{margin-top:14px;padding-top:10px;border-top:1px dashed var(--linea);font-size:13px;line-height:1.5;color:var(--tinta-suave)}
   .cr-firma span{font-size:12px;color:var(--gris)}
   .cr-acc a.cbtn{text-decoration:none}
@@ -2133,7 +2163,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-18e · más espacio para leer el correo; Abrir en idealista abre la conversación; firma con el aviso de IA; idealista: Copiar respuesta y Abrir en idealista; «Intervención equipo» y remitentes de la web e idealista; sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
+const VERSION = '2026-11-18f · avisos y sonidos de correo nuevo, marca de nuevo, atajos y visor de fotos; más espacio para leer el correo; Abrir en idealista abre la conversación; firma con el aviso de IA; idealista: Copiar respuesta y Abrir en idealista; «Intervención equipo» y remitentes de la web e idealista; sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3810,6 +3840,7 @@ async function crAbrirPortal(mensajeId){
     if (v){ v.opener = null; v.location.replace(j.url); } else window.open(j.url, '_blank', 'noopener');
   } catch (e) {
     try { v?.close(); } catch {}
+    crSonar('error');
     coAviso('No se ha podido abrir la conversación en idealista: ' + (e.message || 'error') + ' También se le puede contestar respondiendo a su correo.');
   }
 }
@@ -3830,6 +3861,13 @@ async function crCopiar(texto){
   }
 }
 
+// Sin los correos de los que no se guarda el texto (16/11 noche) ni los mensajes vacíos sin imágenes.
+function crLimpiar(hilos){
+  const conTexto = m => !!String(m.texto || '').trim();
+  return (hilos || [])
+    .map(h => ({ ...h, mensajes: (h.mensajes || []).filter(m => conTexto(m) || crImagenesDe(m).length) }))
+    .filter(h => h.mensajes.some(conTexto));
+}
 async function coCargarReal(){
   const slug = crSlug();
   try {
@@ -3846,10 +3884,8 @@ async function coCargarReal(){
     // 16/11 noche (pedido del usuario): fuera de la pantalla los correos de los
     // que no se guarda el texto (avisos, boletines, proveedores, spam, los que
     // empezó el equipo…). Solo se ocultan aquí: el buzón y Supabase no cambian.
-    const conTexto = m => !!String(m.texto || '').trim();
-    CO.real.hilos = (CO.real.hilos || [])
-      .map(h => ({ ...h, mensajes: (h.mensajes || []).filter(m => conTexto(m) || crImagenesDe(m).length) }))
-      .filter(h => h.mensajes.some(conTexto));
+    CO.real.hilos = crLimpiar(CO.real.hilos);
+    crVistoBase(slug);
     CO.realEstado = 'ok';
     coBadge();
     return true;
@@ -3990,7 +4026,7 @@ function crFila(h){
   // En «Todos» o al buscar, la carpeta (como en la maqueta). Máximo dos etiquetas: el asunto se tiene que leer.
   if ((CO.realCarpeta === '_todo' || CO.realBusca?.trim()) && eti.length < 2)
     eti.push(`<span class="pill nt">${esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>`);
-  return `<div class="co-fila ${CO.realAbierto === h.id && coLector() ? 'on' : ''}" tabindex="0" role="option" aria-selected="${CO.realAbierto === h.id}"
+  return `<div class="co-fila ${CO.realAbierto === h.id && coLector() ? 'on' : ''} ${crEsNuevo(h) ? 'nuevo' : ''}" tabindex="0" role="option" aria-selected="${CO.realAbierto === h.id}"
       data-cr="abrir" data-id="${esc(h.id)}">
       <span class="co-av co-logo" aria-hidden="true"><span>${esc(p.nombre.charAt(0).toUpperCase() || '?')}</span></span>
       <div class="co-fcuerpo">
@@ -4181,7 +4217,16 @@ function crTope(){
 function crConfiguracion(){
   const r = CO.real;
   const EST = { ok:['Leyendo','vd'], bloqueado:['Parado: contraseña rechazada','rj'], error:['Error al leer','am'] };
-  return crTope() + (r.buzones || []).map(b => {
+  // 18/11: sonidos y avisos (de cada persona, en este navegador).
+  const pref = (k, t, d) => `<label class="co-interr"><input type="checkbox" data-crpref="${k}" ${crPref(k) ? 'checked' : ''}><span>${t}<small>${d}</small></span></label>`;
+  const prefs = `<div class="cr-buzon"><b>Avisos y sonidos</b>
+      <div class="cr-prefs">
+        ${pref('avisos', 'Avisar de los correos nuevos', 'Una tarjeta abajo a la derecha, en cualquier pantalla del panel, cuando entra un correo de un cliente o hace falta la intervención del equipo.')}
+        ${pref('sonidos', 'Sonidos', 'Una campanilla con los correos nuevos y un sonido corto al copiar o al guardar.')}
+      </div>
+      <div class="cr-adj">Se guarda en este navegador. El panel mira si hay correos nuevos cada minuto. Pulsa <kbd>?</kbd> en la bandeja para ver los atajos de teclado.</div>
+    </div>`;
+  return prefs + crTope() + (r.buzones || []).map(b => {
     const e = EST[b.estado] || [b.estado, 'nt'];
     return `<div class="cr-buzon">
       <b>${esc(b.email)}</b> <span class="pill ${e[1]}">${esc(e[0])}</span> <span class="pill nt">${b.modo === 'sombra' ? 'Modo sombra: solo observa' : esc(b.modo)}</span>
@@ -4228,6 +4273,7 @@ function coPintarReal(){
         </div>` : ''}
         <div class="co-ctrl">
           <span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>
+          <button type="button" class="cr-ayuda" data-cr="atajos" title="Atajos de teclado (?)" aria-label="Atajos de teclado">?</button>
           ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
             <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
         </div>
@@ -4256,6 +4302,220 @@ function crAbrirVentana(id){
   crCargarFotos();
 }
 
+/* =====================================================================
+   COMODIDADES DEL CORREO (18/11, sacadas del correo de la Oficina y
+   adaptadas a un correo de solo lectura):
+     · sonidos cortos hechos en el navegador (sin archivos): campanilla al
+       llegar un correo de cliente, «hecho» y «error»;
+     · se pone al día solo cada minuto (y al volver a la pestaña) sin
+       perder el correo abierto, pidiendo solo lo de las últimas 3 horas;
+     · aviso en cualquier pantalla del panel cuando entra un correo de un
+       cliente o aparece una «Intervención equipo», y el número en el
+       título de la pestaña si no se está mirando;
+     · marca de «nuevo» en lo que aún no se ha abierto;
+     · atajos (?, /, ↑ ↓, Intro, Esc, V, C) y visor de fotos con ← →.
+   Sonidos y avisos se apagan en Correo › Configuración. Esas preferencias
+   y lo ya visto se guardan en este navegador (son comodidades de cada uno).
+   ===================================================================== */
+const crLeer = (k, def) => { try { const v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch { return def; } };
+const crGuardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const crPref = k => crLeer('cr-pref-' + k, true) !== false;
+
+// --- Sonidos (Web Audio). El navegador no deja sonar nada hasta el primer clic o tecla.
+let CR_AUDIO = null, CR_ULTIMO_SON = {};
+const crAudio = () => {
+  if (!CR_AUDIO){ const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; try { CR_AUDIO = new C(); } catch { return null; } }
+  if (CR_AUDIO.state === 'suspended') CR_AUDIO.resume().catch(() => {});
+  return CR_AUDIO;
+};
+['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, () => { if (crPref('sonidos')) crAudio(); }, { once:true, capture:true }));
+function crNota(c, { f, t = 0, d = 0.12, v = 0.1, tipo = 'sine' }){
+  const o = c.createOscillator(), g = c.createGain(), ini = c.currentTime + t;
+  o.type = tipo; o.frequency.setValueAtTime(f, ini);
+  g.gain.setValueAtTime(0.0001, ini); g.gain.exponentialRampToValueAtTime(v, ini + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, ini + d);
+  o.connect(g).connect(c.destination); o.start(ini); o.stop(ini + d + 0.02);
+}
+const CR_SONIDOS = {
+  correo: c => { crNota(c, { f:1046.5, d:0.35, v:0.07 }); crNota(c, { f:1568, d:0.5, v:0.06, t:0.11 }); },
+  hecho:  c => { crNota(c, { f:1318.5, d:0.22, v:0.07 }); crNota(c, { f:2637, d:0.18, v:0.02, t:0.01 }); },
+  error:  c => { crNota(c, { f:330, d:0.12, v:0.08, tipo:'triangle' }); crNota(c, { f:247, d:0.18, v:0.08, tipo:'triangle', t:0.12 }); }
+};
+function crSonar(n){
+  if (!crPref('sonidos') || !CR_SONIDOS[n]) return;
+  const ahora = Date.now(); if (CR_ULTIMO_SON[n] && ahora - CR_ULTIMO_SON[n] < 150) return; CR_ULTIMO_SON[n] = ahora;
+  const c = crAudio(); if (!c || c.state !== 'running') return;
+  try { CR_SONIDOS[n](c); } catch {}
+}
+
+// --- Lo ya visto: lo nuevo desde la primera vez que se entra en este navegador y que aún no se ha abierto.
+const CR_AVISAN = ['nuevos', 'persona', 'clientes', 'sin'];
+const crClaveVisto = () => 'cr-visto:' + (CO.real?.slug || crSlug());
+function crVistoBase(slug){ const k = 'cr-visto:' + slug; if (!crLeer(k, null)) crGuardar(k, { desde: new Date().toISOString(), ids: [] }); }
+function crEsNuevo(h){
+  const v = crLeer(crClaveVisto(), null);
+  return !!v && CR_AVISAN.includes(crCarpetaDe(h)) && new Date(h.ultimo_en || 0) > new Date(v.desde) && !v.ids.includes(h.id);
+}
+function crMarcarVisto(id){
+  const v = crLeer(crClaveVisto(), null); if (!v || !id || v.ids.includes(id)) return;
+  v.ids.push(id); if (v.ids.length > 500) v.ids = v.ids.slice(-500);
+  crGuardar(crClaveVisto(), v);
+}
+
+// --- Avisos en pantalla (tarjetas abajo a la derecha) y número en el título.
+const CR_TITULO = document.title;
+let CR_SIN_VER = 0;
+function crTitulo(){ document.title = CR_SIN_VER > 0 && document.visibilityState !== 'visible' ? `(${CR_SIN_VER}) ${CR_TITULO}` : CR_TITULO; }
+function crAvisar(lista){
+  if (!lista.length) return;
+  crSonar('correo');
+  if (document.visibilityState !== 'visible'){ CR_SIN_VER += lista.length; crTitulo(); }
+  if (!crPref('avisos')) return;
+  let zona = $('#cravisos');
+  if (!zona){ zona = document.createElement('div'); zona.id = 'cravisos'; zona.className = 'cr-avisos'; zona.setAttribute('role', 'status'); zona.setAttribute('aria-live', 'polite'); document.body.append(zona); }
+  const mas = zona.querySelector('.cr-aviso.mas'); let fuera = mas ? Number(mas.dataset.n) || 0 : 0; mas?.remove();
+  for (const { h, tipo } of lista){
+    const p = crPersona(h), el = document.createElement('div');
+    el.className = 'cr-aviso' + (tipo === 'equipo' ? ' eq' : '');
+    el.innerHTML = `<button type="button" class="cr-aabrir" data-crav="${esc(h.id)}">
+        <span class="cr-acab">${tipo === 'equipo' ? 'Intervención equipo' : 'Correo nuevo · ' + esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>
+        <b>${esc(p.nombre)}${p.via ? ` · vía ${esc(p.via)}` : ''}</b><span class="cr-aas">${esc(tipo === 'equipo' ? crEquipo(h)[0] : h.asunto || '(sin asunto)')}</span></button>
+      <button type="button" class="cr-acerrar" aria-label="Cerrar el aviso">×</button>`;
+    crSeVa(el); zona.prepend(el);
+  }
+  [...zona.querySelectorAll('.cr-aviso:not(.mas)')].slice(3).forEach(x => { x.remove(); fuera++; });
+  if (fuera){ const el = document.createElement('div'); el.className = 'cr-aviso mas'; el.dataset.n = fuera;
+    el.innerHTML = `<button type="button" class="cr-aabrir" data-crav=""><b>${fuera === 1 ? 'Y 1 correo nuevo más' : `Y ${fuera} correos nuevos más`}</b><span class="cr-aas">Ver la bandeja</span></button><button type="button" class="cr-acerrar" aria-label="Cerrar el aviso">×</button>`;
+    crSeVa(el); zona.append(el); }
+}
+function crSeVa(el){
+  const salir = () => { el.classList.add('sale'); setTimeout(() => el.remove(), 220); };
+  let t = setTimeout(salir, 8000);
+  el.addEventListener('mouseenter', () => clearTimeout(t));
+  el.addEventListener('mouseleave', () => { clearTimeout(t); t = setTimeout(salir, 4000); });
+  el.addEventListener('click', async e => {
+    if (e.target.closest('.cr-acerrar')) return salir();
+    const b = e.target.closest('[data-crav]'); if (!b) return;
+    salir();
+    CO.realTab = 'bandeja'; CO.realBusca = '';
+    if (b.dataset.crav){ CO.realCarpeta = '_todo'; CO.realAbierto = b.dataset.crav; crMarcarVisto(b.dataset.crav); } else CO.realCarpeta = 'nuevos';
+    if (VISTA !== 'correo') await irA('correo'); else coPintarReal();
+    if (b.dataset.crav && !coLector()) crAbrirVentana(b.dataset.crav);
+  });
+}
+
+// --- Ponerse al día solo: cada minuto, lo de las últimas 3 horas.
+let CR_SONDEANDO = false;
+const crFirmaHilo = h => [h.id, h.ultimo_en, (h.mensajes || []).length, h.borrador?.id || '', crEquipo(h).length, h.tipo || ''].join('|');
+async function crSondear(){
+  if (CR_SONDEANDO || !TENANT || !correoPermitido()) return;
+  const slug = crSlug();
+  CR_SONDEANDO = true;
+  try {
+    // Aún no se ha cargado (no se ha entrado en Correo): se carga una vez, sin avisar de lo que ya había.
+    if (!CO.real || CO.real.slug !== slug){
+      if (CO.realPedidoPara === slug && CO.realEstado === 'cargando') return;
+      CO.realPedidoPara = slug; CO.realEstado = 'cargando';
+      await coCargarReal();
+      if (VISTA === 'correo') pintarCorreo();
+      return;
+    }
+    const { data, error } = await supabase.rpc('mt_correo_panel', { p_slug: slug, p_desde: new Date(Date.now() - 3 * 3600e3).toISOString() });
+    if (error || !CO.real || CO.real.slug !== slug) return;
+    const porId = new Map(CO.real.hilos.map(h => [h.id, h]));
+    const avisos = []; let cambio = false;
+    for (const h of crLimpiar(data?.hilos)){
+      const viejo = porId.get(h.id);
+      if (viejo && crFirmaHilo(viejo) === crFirmaHilo(h)) continue;
+      cambio = true;
+      if (!viejo && CR_AVISAN.includes(crCarpetaDe(h))) avisos.push({ h, tipo:'nuevo' });
+      else if (viejo && !crEquipo(viejo).length && crEquipo(h).length) avisos.push({ h, tipo:'equipo' });
+      porId.set(h.id, h);
+    }
+    if (!cambio) return;
+    CO.real.hilos = [...porId.values()].sort((a, b) => new Date(b.ultimo_en || b.primer_recibido_en || 0) - new Date(a.ultimo_en || a.primer_recibido_en || 0));
+    if (VISTA === 'correo' && CO.realTab === 'bandeja' && !escribiendo() && $('#modal').style.display !== 'block') coPintarReal();
+    crAvisar(avisos);
+  } catch { /* la siguiente vuelta */ }
+  finally { CR_SONDEANDO = false; }
+}
+setInterval(crSondear, 60000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible'){ CR_SIN_VER = 0; crTitulo(); crSondear(); } });
+
+// --- Visor de fotos con ← → (las del correo y las que se adjuntarían).
+let CR_VISOR = null;
+function crVisor(imgs, i){
+  CR_VISOR = { imgs, i: (i + imgs.length) % imgs.length };
+  let v = $('#crvisor');
+  if (!v){ v = document.createElement('div'); v.id = 'crvisor'; v.className = 'cr-visor'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-label', 'Foto en grande'); document.body.append(v);
+    v.addEventListener('click', e => { const b = e.target.closest('[data-crvis]'); if (b){ crVisor(CR_VISOR.imgs, CR_VISOR.i + Number(b.dataset.crvis)); } else if (e.target === v || e.target.closest('.cr-vcerrar')) crCerrarVisor(); }); }
+  const { src, alt } = CR_VISOR.imgs[CR_VISOR.i];
+  v.innerHTML = `<img src="${src}" alt="${esc(alt || '')}">
+    ${imgs.length > 1 ? `<button type="button" class="cr-vant" data-crvis="-1" aria-label="Foto anterior">‹</button><button type="button" class="cr-vsig" data-crvis="1" aria-label="Foto siguiente">›</button>` : ''}
+    <div class="cr-vpie">${esc(alt || '')}${imgs.length > 1 ? ` · ${CR_VISOR.i + 1} de ${imgs.length}` : ''}</div>
+    <button type="button" class="cr-vcerrar" aria-label="Cerrar">×</button>`;
+  v.style.display = 'flex';
+}
+function crCerrarVisor(){ CR_VISOR = null; const v = $('#crvisor'); if (v) v.style.display = 'none'; }
+document.addEventListener('click', e => {
+  const img = e.target.closest?.('.co-real .cr-fotos img[src], #mbox .cr-fotos img[src]'); if (!img) return;
+  e.preventDefault();
+  const todas = [...img.closest('.cr-fotos').querySelectorAll('img[src]')];
+  crVisor(todas.map(x => ({ src: x.src, alt: x.alt })), todas.indexOf(img));
+}, true);
+
+// --- Ayuda de los atajos.
+function crAyudaAtajos(){
+  $('#mbox').innerHTML = `<div class="cr-atajos"><button class="cerrar" data-cr="cerrar" aria-label="Cerrar">×</button>
+    <h3>Atajos de teclado del correo</h3>
+    <dl>
+      <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Correo anterior o siguiente</dd>
+      <dt><kbd>Intro</kbd></dt><dd>Abrir el correo de la lista</dd>
+      <dt><kbd>/</kbd></dt><dd>Buscar</dd>
+      <dt><kbd>Esc</kbd></dt><dd>Quitar la búsqueda o cerrar</dd>
+      <dt><kbd>V</kbd></dt><dd>Respuesta debajo o al lado</dd>
+      <dt><kbd>C</kbd></dt><dd>Copiar la respuesta propuesta (con la firma)</dd>
+      <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>En el visor de fotos, la anterior o la siguiente</dd>
+      <dt><kbd>?</kbd></dt><dd>Esta ayuda</dd>
+    </dl></div>`;
+  $('#mbox').classList.remove('co-mboxancho');
+  $('#modal').style.display = 'block';
+}
+
+// --- Atajos del correo real (no actúan si se está escribiendo).
+document.addEventListener('keydown', e => {
+  if (CR_VISOR){
+    if (e.key === 'Escape'){ e.preventDefault(); e.stopImmediatePropagation(); crCerrarVisor(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ e.preventDefault(); e.stopImmediatePropagation(); crVisor(CR_VISOR.imgs, CR_VISOR.i + (e.key === 'ArrowRight' ? 1 : -1)); }
+    return;
+  }
+  if (VISTA !== 'correo' || !CO.real || CO.realTab !== 'bandeja' || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (escribiendo()){
+    if (e.key === 'Escape' && e.target?.id === 'crbusca'){ e.preventDefault(); if (CO.realBusca){ CO.realBusca = ''; e.target.value = ''; crPintarLista(); } else e.target.blur(); }
+    return;
+  }
+  const modal = $('#modal').style.display === 'block';
+  if (e.key === '?'){ e.preventDefault(); return crAyudaAtajos(); }
+  if (modal) return;
+  const h = (CO.real.hilos || []).find(x => x.id === CO.realAbierto);
+  if (e.key === '/'){ const b = $('#crbusca'); if (b){ e.preventDefault(); b.focus(); b.select(); } }
+  else if (e.key === 'Escape' && CO.realBusca){ e.preventDefault(); CO.realBusca = ''; coPintarReal(); }
+  else if ((e.key === 'v' || e.key === 'V') && h?.borrador){ e.preventDefault(); CO.vista = CO.vista === 'lado' ? 'arriba' : 'lado'; coGuardarVista(); coPintarReal(); }
+  else if ((e.key === 'c' || e.key === 'C') && h?.borrador){
+    e.preventDefault();
+    crCopiar(crTextoCopiar(h.borrador)).then(ok => { crSonar(ok ? 'hecho' : 'error'); coAviso(ok ? 'Respuesta copiada (con la firma).' : 'No se ha podido copiar.'); });
+  }
+  else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !e.target?.closest?.('.co-fila')){
+    // Sin el foco en la lista: se mueve desde el correo abierto.
+    const l = crLista(); if (!l.length) return;
+    e.preventDefault();
+    const i = l.findIndex(x => x.id === CO.realAbierto);
+    const sig = l[Math.max(0, Math.min(l.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))];
+    CO.realAbierto = sig.id; crMarcarVisto(sig.id);
+    if (coLector()){ coPintarReal(); $(`#cocuerpo .co-fila[data-id="${CSS.escape(sig.id)}"]`)?.scrollIntoView({ block:'nearest' }); }
+    else crAbrirVentana(sig.id);
+  }
+});
+
 // Clics y cambios de la vista real (un solo oyente, se pone una vez).
 if (!window.__crOyentes){
   window.__crOyentes = true;
@@ -4267,7 +4527,7 @@ if (!window.__crOyentes){
     if (que === 'carp'){ CO.realCarpeta = el.dataset.id; CO.realBusca = ''; CO.realAbierto = null; return coPintarReal(); }
     if (que === 'blimpiar'){ CO.realBusca = ''; return coPintarReal(); }
     if (que === 'abrir'){
-      CO.realAbierto = el.dataset.id;
+      CO.realAbierto = el.dataset.id; crMarcarVisto(el.dataset.id);
       if (!coLector()) return crAbrirVentana(el.dataset.id);
       return coPintarReal();
     }
@@ -4279,16 +4539,18 @@ if (!window.__crOyentes){
     }
     // Desde un dato que falta: abre ese correo en la bandeja (en la carpeta «Todos»).
     if (que === 'irhilo'){
-      CO.realTab = 'bandeja'; CO.realCarpeta = '_todo'; CO.realBusca = ''; CO.realAbierto = el.dataset.id;
+      CO.realTab = 'bandeja'; CO.realCarpeta = '_todo'; CO.realBusca = ''; CO.realAbierto = el.dataset.id; crMarcarVisto(el.dataset.id);
       coPintarReal();
       $(`#cocuerpo .co-fila[data-id="${CSS.escape(el.dataset.id)}"]`)?.scrollIntoView({ block:'center' });
       if (!coLector()) crAbrirVentana(el.dataset.id);
       return;
     }
     if (que === 'abrirportal') return crAbrirPortal(el.dataset.m);
+    if (que === 'atajos') return crAyudaAtajos();
     if (que === 'copiar'){
       const h = (CO.real.hilos || []).find(x => x.id === el.dataset.id);
       const ok = h?.borrador ? await crCopiar(crTextoCopiar(h.borrador)) : false;
+      crSonar(ok ? 'hecho' : 'error');
       return coAviso(ok ? 'Respuesta copiada. Ábrela en idealista y pégala en el chat de esa persona.' : 'No se ha podido copiar: selecciona el texto y cópialo a mano.');
     }
     if (que === 'irmejorar'){ if ($('#modal').style.display === 'block') cerrar(); CO.realTab = 'mejorar'; return coPintarReal(); }
@@ -4296,7 +4558,8 @@ if (!window.__crOyentes){
       el.disabled = true;
       const { error } = await supabase.rpc('mt_correo_falta_marcar', { p_slug: CO.real.slug, p_dato: el.dataset.dato, p_estado: el.dataset.v || null });
       el.disabled = false;
-      if (error) return coAviso('No se ha podido guardar: ' + (error.message || 'error'));
+      if (error){ crSonar('error'); return coAviso('No se ha podido guardar: ' + (error.message || 'error')); }
+      crSonar('hecho');
       coAviso(el.dataset.v === 'anadido' ? 'Marcado como añadido. Si el asistente lo vuelve a echar de menos, volverá a salir aquí.'
         : el.dataset.v === 'no_damos' ? 'Marcado: no lo dais. Ya no sale en la lista.' : 'Vuelve a la lista.');
       const r = await supabase.rpc('mt_correo_faltan', { p_slug: CO.real.slug });
@@ -4344,9 +4607,17 @@ if (!window.__crOyentes){
     const otra = e.key === 'ArrowDown' ? f.nextElementSibling : f.previousElementSibling;
     if (!otra?.matches?.('.co-fila')) return;
     const id = otra.dataset.id;
-    if (coLector()){ CO.realAbierto = id; coPintarReal(); $(`#cocuerpo .co-fila[data-id="${CSS.escape(id)}"]`)?.focus(); }
+    if (coLector()){ CO.realAbierto = id; crMarcarVisto(id); coPintarReal(); $(`#cocuerpo .co-fila[data-id="${CSS.escape(id)}"]`)?.focus(); }
     else otra.focus();
   }, true);
+  // Avisos y sonidos (Correo › Configuración).
+  document.addEventListener('change', e => {
+    const k = e.target?.dataset?.crpref; if (!k) return;
+    crGuardar('cr-pref-' + k, !!e.target.checked);
+    if (k === 'sonidos' && e.target.checked){ crAudio(); crSonar('hecho'); }
+    coAviso(k === 'avisos' ? (e.target.checked ? 'Avisos de correos nuevos encendidos.' : 'Avisos de correos nuevos apagados.')
+      : (e.target.checked ? 'Sonidos encendidos.' : 'Sonidos apagados.'));
+  });
   document.addEventListener('change', async e => {
     if (e.target?.dataset?.cr !== 'cliente' || VISTA !== 'correo') return;
     CO.cliente = e.target.value; CO.realAbierto = null; CO.real = null; CO.realPedidoPara = null;
@@ -5588,7 +5859,8 @@ function coEnlazar(){
   /* Atajos de la bandeja (no actúan si se está escribiendo o hay una ventana abierta):
      ↑ ↓ moverse · Mayús+↑↓ seleccionar · Ctrl/Cmd+A todos · Supr eliminar · E archivar · Esc quitar selección. */
   document.addEventListener('keydown', e => {
-    if (VISTA !== 'correo' || CO.tab !== 'bandeja' || escribiendo() || CO.visor || $('#modal').style.display === 'block') return;
+    // 18/11: con el correo real (CO.real) estos atajos de la maqueta no valen (movían correos de ejemplo).
+    if (CO.real || !CO_MAQUETA || VISTA !== 'correo' || CO.tab !== 'bandeja' || escribiendo() || CO.visor || $('#modal').style.display === 'block') return;
     const lista = coListaDatos().lista.map(c => c.id); if (!lista.length) return;
     const actual = CO.abierto != null && lista.includes(CO.abierto) ? CO.abierto : null;
     const objetivo = () => { const v = coVariosSel(); return v.length ? v : actual != null ? [actual] : []; };
@@ -5614,7 +5886,7 @@ function coEnlazar(){
   // Ctrl+Z / Cmd+Z: deshace lo último hecho con un correo. Si se está
   // escribiendo, es el deshacer normal del texto.
   document.addEventListener('keydown', e => {
-    if ((VISTA !== 'correo' && !(VISTA === 'embudo' && CO.embudoCanal === 'correo')) || CO.visor) return;
+    if (CO.real || !CO_MAQUETA || (VISTA !== 'correo' && !(VISTA === 'embudo' && CO.embudoCanal === 'correo')) || CO.visor) return;
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z' && !escribiendo()){
       e.preventDefault(); coDeshacer();
     }
