@@ -2099,7 +2099,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-16f · correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
+const VERSION = '2026-11-18 · sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3861,7 +3861,8 @@ function crFila(h){
   const eti = [];
   // 16/11 noche: sin comparación con el equipo (el usuario la quitó; SQL 90).
   if (h.borrador) eti.push('<span class="pill am">Respuesta propuesta</span>');
-  if ((h.borrador?.faltan || []).length) eti.push('<span class="pill rj">Falta un dato</span>');
+  // 18/11: sin la etiqueta «Falta un dato» en la lista (pedido del usuario);
+  // lo que falta se ve en «Mejoras» y dentro de la respuesta propuesta.
   // En «Todos» o al buscar, la carpeta (como en la maqueta). Máximo dos etiquetas: el asunto se tiene que leer.
   if ((CO.realCarpeta === '_todo' || CO.realBusca?.trim()) && eti.length < 2)
     eti.push(`<span class="pill nt">${esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>`);
