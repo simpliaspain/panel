@@ -3692,13 +3692,9 @@ function pintarCorreo(){
    ===================================================================== */
 CO.real = null;          // { slug, buzones, puede_editar, hilos, resumen, faltan, mejorar }
 CO.realTab = 'bandeja';
-CO.realCarpeta = '_prop';
+CO.realCarpeta = 'nuevos';
 CO.realBusca = '';
 CO.realAbierto = null;
-const CR_SUBTIPO = { despacho_meses:'Despacho por meses', equipo:'Equipo (6 o más)', despacho_horas:'Despacho por horas',
-  puesto:'Puesto de coworking', sala:'Sala', oficina_virtual:'Oficina virtual', broker:'Broker', portal:'Portal',
-  generico:'Consulta', avisos:'Avisos', newsletter:'Boletines', proveedor:'Proveedor', empleo:'Empleo',
-  spam:'Spam', personal:'Personal o interno', facturas:'Facturas' };
 const CR_TIPO = { comercial:'Comercial', cliente_actual:'Cliente actual', no_comercial:'No comercial' };
 const CR_VER = { igual:['Igual que el equipo','vd'], mejor:['Mejor que el equipo','vd'], peor:['Peor que el equipo','am'],
   equivocado:['Equivocado','rj'], sin_respuesta:['El equipo no contestó por correo','nt'] };
@@ -3917,11 +3913,13 @@ function coPintarSinBuzon(){
    asistente cada conversación (cada una va a una sola carpeta). No hay
    enviar, mover ni borrar: el modo sombra no toca el buzón. Lo que falta
    en la hoja va en su apartado («Mejoras»), no en la bandeja. */
+/* 18/11 noche (pedido del usuario): solo las carpetas por tema, siempre
+   visibles aunque estén vacías. Fuera «Con respuesta propuesta»,
+   «Intervención equipo», «Todos» y «A una persona»: lo que tiene que hacer
+   una persona va en su carpeta con la etiqueta «Para el equipo». */
 const CR_CARPETAS = [
-  { id:'nuevos',     nombre:'Nuevos clientes', siempre:true, resp:true,
+  { id:'nuevos',     nombre:'Nuevos clientes', resp:true,
     que:'Personas o empresas que preguntan por un despacho, puesto, sala, oficina virtual o domiciliación. El asistente prepara la respuesta que daría.' },
-  { id:'persona',    nombre:'A una persona', siempre:true,
-    que:'Lo que el asistente no contestaría solo: quejas, brokers, casos delicados o dudas que necesitan a alguien del equipo.' },
   { id:'clientes',   nombre:'Clientes actuales', que:'Quien ya trabaja en uno de vuestros centros.' },
   { id:'proveedor',  nombre:'Proveedores', que:'Proveedores, facturas y servicios.' },
   { id:'avisos',     nombre:'Avisos automáticos', que:'Avisos de bancos, plataformas y sistemas.' },
@@ -3932,13 +3930,14 @@ const CR_CARPETAS = [
   { id:'enviados',   nombre:'Enviados por el equipo', que:'Conversaciones que empezó el equipo y en las que el cliente aún no ha contestado.' },
   { id:'sin',        nombre:'Sin clasificar', que:'Recién llegados: el asistente aún no los ha clasificado.' }
 ];
-const CR_ESPECIALES = { _prop:'Con respuesta propuesta', _equipo:'Intervención equipo', _todo:'Todos' };
 // 18/11: lo que tiene que hacer el equipo (borrador.equipo, SQL 97).
 const crEquipo = h => (h.borrador?.equipo || []).filter(Boolean);
+// «Para el equipo»: el siguiente paso es de una persona (lo dice la respuesta
+// propuesta) o el asistente no lo contestaría solo (a_persona).
+const crParaEquipo = h => !!h.a_persona || crEquipo(h).length > 0;
 function crCarpetaDe(h){
   if (!h.tipo) return 'sin';
   if (h.subtipo === 'saliente') return 'enviados';
-  if (h.a_persona) return 'persona';
   if (h.tipo === 'comercial') return 'nuevos';
   if (h.tipo === 'cliente_actual') return 'clientes';
   return ['proveedor', 'avisos', 'newsletter', 'personal', 'spam'].includes(h.subtipo) ? h.subtipo
@@ -3986,13 +3985,7 @@ function crHora(f){
   if (d.toDateString() === ayer.toDateString()) return 'ayer';
   return d.toLocaleDateString('es-ES', { day:'numeric', month:'short' });
 }
-function crEnCarpeta(id){
-  const hs = CO.real?.hilos || [];
-  if (id === '_prop') return hs.filter(h => h.borrador);
-  if (id === '_equipo') return hs.filter(h => crEquipo(h).length);
-  if (id === '_todo') return hs;
-  return hs.filter(h => crCarpetaDe(h) === id);
-}
+const crEnCarpeta = id => (CO.real?.hilos || []).filter(h => crCarpetaDe(h) === id);
 function crBuscar(lista){
   const q = coNorm(CO.realBusca || '').trim();
   if (!q) return lista;
@@ -4001,30 +3994,21 @@ function crBuscar(lista){
 // La lista: la de la carpeta o, si se busca, en todas.
 const crLista = () => crBuscar(CO.realBusca?.trim() ? (CO.real?.hilos || []) : crEnCarpeta(CO.realCarpeta));
 
+// Todas las carpetas, siempre (también vacías). Sin descripciones al pasar el puntero.
 function crCarpetas(){
-  const n = id => crEnCarpeta(id).length;
-  const boton = (id, nombre, pt, que) => `<button class="co-carp ${id === '_prop' ? 'rev' : ''} ${CO.realCarpeta === id && !CO.realBusca?.trim() ? 'on' : ''}"
-      data-cr="carp" data-id="${id}" ${que ? `title="${esc(que)}"` : ''}><span class="pt ${pt}"></span><span class="co-cnomb">${esc(nombre)}</span><span class="cn">${n(id)}</span></button>`;
-  return `
-    ${boton('_prop', CR_ESPECIALES._prop, 'rev', 'Correos de clientes en los que el asistente ha preparado la respuesta que daría (no se envía).')}
-    ${boton('_equipo', CR_ESPECIALES._equipo, 'eq', 'El siguiente paso lo tiene que dar una persona del equipo (reservar, dar de alta, contrato…). Estas respuestas no se enviarían solas.')}
-    ${boton('_todo', CR_ESPECIALES._todo, '', 'Todas las conversaciones de los últimos 3 meses.')}
-    <div class="co-sepcarp"></div>
-    ${CR_CARPETAS.filter(c => c.siempre || n(c.id)).map(c => boton(c.id, c.nombre, c.resp ? 'resp' : '', c.que)).join('')}`;
+  return CR_CARPETAS.map((c, i) => { const on = CO.realCarpeta === c.id && !CO.realBusca?.trim();
+    return `<button class="co-carp ${on ? 'on' : ''}" data-cr="carp" data-id="${c.id}" ${on ? 'aria-current="true"' : ''}
+      ${i < 9 ? `aria-keyshortcuts="${i + 1}"` : ''}><span class="pt ${c.resp ? 'resp' : ''}"></span><span class="co-cnomb">${esc(c.nombre)}</span><span class="cn">${crEnCarpeta(c.id).length}</span></button>`; }).join('');
 }
 
 function crFila(h){
   const p = crPersona(h);
   const eti = [];
-  // 16/11 noche: sin comparación con el equipo (el usuario la quitó; SQL 90).
-  // 18/11: «Intervención equipo» en vez de «Respuesta propuesta» si el
-  // siguiente paso es de una persona.
-  if (crEquipo(h).length) eti.push('<span class="pill rj">Intervención equipo</span>');
-  else if (h.borrador) eti.push('<span class="pill am">Respuesta propuesta</span>');
-  // 18/11: sin la etiqueta «Falta un dato» en la lista (pedido del usuario);
-  // lo que falta se ve en «Mejoras» y dentro de la respuesta propuesta.
-  // En «Todos» o al buscar, la carpeta (como en la maqueta). Máximo dos etiquetas: el asunto se tiene que leer.
-  if ((CO.realCarpeta === '_todo' || CO.realBusca?.trim()) && eti.length < 2)
+  // 18/11 noche: una sola etiqueta de estado, «Para el equipo» (fuera
+  // «Respuesta propuesta»: casi todos los nuevos clientes la llevaban).
+  if (crParaEquipo(h)) eti.push('<span class="pill rj">Para el equipo</span>');
+  // Al buscar, la carpeta. Máximo dos etiquetas: el asunto se tiene que leer.
+  if (CO.realBusca?.trim() && eti.length < 2)
     eti.push(`<span class="pill nt">${esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>`);
   return `<div class="co-fila ${CO.realAbierto === h.id && coLector() ? 'on' : ''} ${crEsNuevo(h) ? 'nuevo' : ''}" tabindex="0" role="option" aria-selected="${CO.realAbierto === h.id}"
       data-cr="abrir" data-id="${esc(h.id)}">
@@ -4037,12 +4021,14 @@ function crFila(h){
 function crListaCab(){
   const buscando = !!CO.realBusca?.trim();
   const c = CR_CARPETAS.find(k => k.id === CO.realCarpeta);
-  const titulo = buscando ? 'Resultados' : CR_ESPECIALES[CO.realCarpeta] || c?.nombre || '';
-  return `<div class="co-lcab" title="${esc(buscando ? 'Busca en todas las carpetas.' : c?.que || '')}"><h3>${esc(titulo)}</h3><span class="co-para">${crLista().length}</span>
+  const titulo = buscando ? 'Resultados en todas las carpetas' : c?.nombre || '';
+  return `<div class="co-lcab"><h3>${esc(titulo)}</h3><span class="co-para">${crLista().length}</span>
     ${buscando ? '<button class="co-editar co-blimpiar" data-cr="blimpiar">Quitar búsqueda</button>' : ''}</div>`;
 }
-const crListaFilas = () => { const l = crLista(); return l.length ? l.map(crFila).join('')
-  : `<div class="vacio">${CO.realBusca?.trim() ? 'Nada coincide con la búsqueda.' : 'No hay correos aquí.'}</div>`; };
+const crListaFilas = () => { const l = crLista(); if (l.length) return l.map(crFila).join('');
+  if (CO.realBusca?.trim()) return '<div class="vacio">Nada coincide con la búsqueda.</div>';
+  const c = CR_CARPETAS.find(k => k.id === CO.realCarpeta);
+  return `<div class="vacio">No hay correos en «${esc(c?.nombre || '')}».${c?.que ? `<br><span class="co-para">Aquí van: ${esc(c.que.charAt(0).toLowerCase() + c.que.slice(1))}</span>` : ''}</div>`; };
 // Al escribir en el buscador se repinta solo la lista: no pierde el foco.
 function crPintarLista(){
   const cab = $('#cocuerpo .co-lcab'), filas = $('#cocuerpo .co-lscroll'); if (!cab || !filas) return;
@@ -4055,7 +4041,6 @@ function crDetalle(h, enVentana){
   const msgs = h.mensajes || [];
   const bo = h.borrador;
   const p = crPersona(h);
-  const carp = CR_CARPETAS.find(k => k.id === crCarpetaDe(h));
   const lado = !!bo && CO.vista === 'lado' && coLadoCabe(enVentana);
   const faltan = bo?.faltan || [];
   const equipo = crEquipo(h);
@@ -4076,7 +4061,6 @@ function crDetalle(h, enVentana){
             <span class="co-para">Para ${esc(h.buzon || '')} · ${esc(crFecha(crPrimero(h).fecha || h.ultimo_en))}</span>
             ${p.responder ? `<br><span class="co-para">La respuesta irá a <b title="${esc(p.responder)}">${esc(p.nota ? 'la ' + p.nota : p.responder)}</b></span>` : ''}</div>
         </div>
-        <div class="co-clasif"><div><b>${esc(carp?.nombre || 'Sin clasificar')}</b>${h.tipo === 'comercial' && CR_SUBTIPO[h.subtipo] ? ` · ${esc(CR_SUBTIPO[h.subtipo])}` : ''}${h.motivo ? ` · <span class="por">${esc(h.motivo)}</span>` : ''}</div></div>
       </div>
       <div class="co-par">
         <div class="cr-hilo">
@@ -4107,7 +4091,8 @@ function crDetalle(h, enVentana){
               <span class="co-para">Pégala en el chat de ${esc(p.nombre)} en idealista${(bo.fotos || []).length ? ' y adjunta allí las fotos' : ''}.</span>
             </div>` : ''}
           </section>
-        </div>` : h.tipo === 'comercial' && !h.a_persona ? '<p class="co-para">El asistente todavía no ha preparado su respuesta.</p>' : ''}
+        </div>` : h.a_persona ? '<p class="co-para cr-paraeq"><span class="pill rj">Para el equipo</span> El asistente no contestaría este correo solo: lo tiene que ver alguien del equipo.</p>'
+          : h.tipo === 'comercial' ? '<p class="co-para">El asistente todavía no ha preparado su respuesta.</p>' : ''}
       </div>
     </div>`;
 }
@@ -4269,7 +4254,7 @@ function coPintarReal(){
         ${enBandeja ? `<div class="co-cifras cr-cifras">
           <span><b>${hoy}</b> hoy</span>
           <span><b class="az">${crEnCarpeta('nuevos').length}</b> nuevos clientes</span>
-          <span><b>${crEnCarpeta('_prop').length}</b> con respuesta propuesta</span>
+          <span><b>${(CO.real.hilos || []).filter(crParaEquipo).length}</b> para el equipo</span>
         </div>` : ''}
         <div class="co-ctrl">
           <span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>
@@ -4348,12 +4333,13 @@ function crSonar(n){
 }
 
 // --- Lo ya visto: lo nuevo desde la primera vez que se entra en este navegador y que aún no se ha abierto.
-const CR_AVISAN = ['nuevos', 'persona', 'clientes', 'sin'];
+const CR_AVISAN = ['nuevos', 'clientes', 'sin'];
+const crAvisa = h => CR_AVISAN.includes(crCarpetaDe(h)) || !!h.a_persona;
 const crClaveVisto = () => 'cr-visto:' + (CO.real?.slug || crSlug());
 function crVistoBase(slug){ const k = 'cr-visto:' + slug; if (!crLeer(k, null)) crGuardar(k, { desde: new Date().toISOString(), ids: [] }); }
 function crEsNuevo(h){
   const v = crLeer(crClaveVisto(), null);
-  return !!v && CR_AVISAN.includes(crCarpetaDe(h)) && new Date(h.ultimo_en || 0) > new Date(v.desde) && !v.ids.includes(h.id);
+  return !!v && crAvisa(h) && new Date(h.ultimo_en || 0) > new Date(v.desde) && !v.ids.includes(h.id);
 }
 function crMarcarVisto(id){
   const v = crLeer(crClaveVisto(), null); if (!v || !id || v.ids.includes(id)) return;
@@ -4377,7 +4363,7 @@ function crAvisar(lista){
     const p = crPersona(h), el = document.createElement('div');
     el.className = 'cr-aviso' + (tipo === 'equipo' ? ' eq' : '');
     el.innerHTML = `<button type="button" class="cr-aabrir" data-crav="${esc(h.id)}">
-        <span class="cr-acab">${tipo === 'equipo' ? 'Intervención equipo' : 'Correo nuevo · ' + esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>
+        <span class="cr-acab">${tipo === 'equipo' ? 'Para el equipo' :'Correo nuevo · ' + esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>
         <b>${esc(p.nombre)}${p.via ? ` · vía ${esc(p.via)}` : ''}</b><span class="cr-aas">${esc(tipo === 'equipo' ? crEquipo(h)[0] : h.asunto || '(sin asunto)')}</span></button>
       <button type="button" class="cr-acerrar" aria-label="Cerrar el aviso">×</button>`;
     crSeVa(el); zona.prepend(el);
@@ -4397,7 +4383,8 @@ function crSeVa(el){
     const b = e.target.closest('[data-crav]'); if (!b) return;
     salir();
     CO.realTab = 'bandeja'; CO.realBusca = '';
-    if (b.dataset.crav){ CO.realCarpeta = '_todo'; CO.realAbierto = b.dataset.crav; crMarcarVisto(b.dataset.crav); } else CO.realCarpeta = 'nuevos';
+    const hv = (CO.real?.hilos || []).find(x => x.id === b.dataset.crav);
+    if (hv){ CO.realCarpeta = crCarpetaDe(hv); CO.realAbierto = hv.id; crMarcarVisto(hv.id); } else CO.realCarpeta = 'nuevos';
     if (VISTA !== 'correo') await irA('correo'); else coPintarReal();
     if (b.dataset.crav && !coLector()) crAbrirVentana(b.dataset.crav);
   });
@@ -4427,7 +4414,7 @@ async function crSondear(){
       const viejo = porId.get(h.id);
       if (viejo && crFirmaHilo(viejo) === crFirmaHilo(h)) continue;
       cambio = true;
-      if (!viejo && CR_AVISAN.includes(crCarpetaDe(h))) avisos.push({ h, tipo:'nuevo' });
+      if (!viejo && crAvisa(h)) avisos.push({ h, tipo:'nuevo' });
       else if (viejo && !crEquipo(viejo).length && crEquipo(h).length) avisos.push({ h, tipo:'equipo' });
       porId.set(h.id, h);
     }
@@ -4539,7 +4526,8 @@ if (!window.__crOyentes){
     }
     // Desde un dato que falta: abre ese correo en la bandeja (en la carpeta «Todos»).
     if (que === 'irhilo'){
-      CO.realTab = 'bandeja'; CO.realCarpeta = '_todo'; CO.realBusca = ''; CO.realAbierto = el.dataset.id; crMarcarVisto(el.dataset.id);
+      { const hv = (CO.real?.hilos || []).find(x => x.id === el.dataset.id); CO.realCarpeta = hv ? crCarpetaDe(hv) : 'nuevos'; }
+      CO.realTab = 'bandeja'; CO.realBusca = ''; CO.realAbierto = el.dataset.id; crMarcarVisto(el.dataset.id);
       coPintarReal();
       $(`#cocuerpo .co-fila[data-id="${CSS.escape(el.dataset.id)}"]`)?.scrollIntoView({ block:'center' });
       if (!coLector()) crAbrirVentana(el.dataset.id);
