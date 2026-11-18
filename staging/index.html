@@ -1472,6 +1472,21 @@
   .co-bandeja.cr-sincarps{grid-template-columns:minmax(300px,420px) minmax(0,1fr)}
   .co-bandeja.cr-sincarps.co-ladov{grid-template-columns:minmax(260px,340px) minmax(0,1fr)}
   .cr-ideal .cr-sub{font-size:13px;color:var(--tinta-suave);margin:0}
+  /* Correo (azul) e Idealista (ámbar) se distinguen a primera vista: icono en
+     el título, color del menú, borde de arriba de los paneles y fila abierta. */
+  .cr-idtit{display:flex;align-items:center;gap:10px}
+  .cr-idico{width:34px;height:34px;border-radius:10px;display:inline-grid;place-items:center;flex:none;background:#FEF3C7;color:#B45309}
+  .cr-idico.cr-coico{background:#E5EFFE;color:var(--pulso)}
+  nav button[data-v="idealista"].on{color:#B45309;border-bottom-color:#F59E0B}
+  .cr-ideal .co-bandeja > .panel{border-top:3px solid #F59E0B}
+  .cr-ideal .co-fila.on{background:#FFFBEB;box-shadow:inset 3px 0 0 #F59E0B}
+  .cr-ideal .co-av{background:#FEF3C7;color:#B45309}
+  .cr-ideal .co-bwrap:focus-within{box-shadow:0 0 0 2px #F59E0B}
+  /* Respondido: en la cabecera del mensaje, a la derecha. */
+  .cr-idestado{margin-left:auto;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .cr-resp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .cr-cestado{display:flex;margin:10px 0 0}
+  .co-real .co-fila .pill.vd{opacity:.9}
   /* Idealista: quién, qué pregunta y la respuesta; el aviso completo, plegado. */
   .cr-idet{max-width:860px}
   .cr-idcab{padding-bottom:14px;border-bottom:1px solid var(--linea);margin-bottom:16px}
@@ -2177,7 +2192,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-18h · Idealista centrado en la pregunta, el anuncio y la respuesta';
+const VERSION = '2026-11-18i · Idealista con aspecto propio y sin firma; marcar como respondido (SQL 107)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3856,12 +3871,32 @@ async function crAbrirPortal(mensajeId){
     coAviso('No se ha podido abrir la conversación en idealista: ' + (e.message || 'error') + ' También se le puede contestar respondiendo a su correo.');
   }
 }
-function crTextoCopiar(bo){
+// 18/11 noche: en idealista sin firma (se pega en su chat, no es un correo).
+function crTextoCopiar(bo, conFirma = true){
   const vis = CO.real?.visitas || {};
-  return (crCuerpo(bo?.texto)
+  const texto = crCuerpo(bo?.texto)
     .replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi, (_m, c) => vis[String(c).trim().toLowerCase()] || '')
     .replace(/\[\[[^\]]*\]\]/g, '')
-    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim()) + '\n\n' + crFirma();
+    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  return conFirma ? texto + '\n\n' + crFirma() : texto;
+}
+/* ¿Ya ha respondido el equipo? (18/11 noche)
+   · A mano, con el botón «Marcar como respondido» (SQL 107): lo de idealista
+     se contesta en su chat y no pasa por el buzón.
+   · Solo: si después del último correo de la persona hay uno del equipo en Enviados. */
+function crRespondido(h){
+  if (h.respondido) return { como:'mano', en: h.respondido.en, quien: h.respondido.quien || '' };
+  const ms = h.mensajes || [];
+  const ult = ms.filter(m => m.sentido === 'recibido').pop();
+  const env = ms.filter(m => m.sentido === 'enviado' && (!ult || new Date(m.fecha) >= new Date(ult.fecha))).pop();
+  return env ? { como:'correo', en: env.fecha, quien: crRemite(env.de).nombre } : null;
+}
+function crRespondidoHTML(h){
+  const r = crRespondido(h);
+  if (!r) return `<button class="cbtn sec cr-bresp" type="button" data-cr="respondido" data-id="${esc(h.id)}" data-v="1">Marcar como respondido</button>`;
+  const quien = r.como === 'correo' ? 'por correo' : r.quien ? `por ${esc(r.quien.split('@')[0])}` : '';
+  return `<span class="cr-resp"><span class="pill vd">Respondido</span> <span class="co-para">${quien ? quien + ' · ' : ''}${esc(crFecha(r.en))}</span>
+    ${r.como === 'mano' ? `<button class="co-editar" type="button" data-cr="respondido" data-id="${esc(h.id)}" data-v="">Deshacer</button>` : ''}</span>`;
 }
 async function crCopiar(texto){
   try { await navigator.clipboard.writeText(texto); return true; }
@@ -4029,7 +4064,9 @@ function crFila(h){
   const eti = [];
   // 18/11 noche: una sola etiqueta de estado, «Para el equipo» (fuera
   // «Respuesta propuesta»: casi todos los nuevos clientes la llevaban).
-  if (crParaEquipo(h)) eti.push('<span class="pill rj">Para el equipo</span>');
+  // Respondido manda: si ya se contestó, no hace falta avisar de nada más.
+  if (crRespondido(h)) eti.push('<span class="pill vd">Respondido</span>');
+  else if (crParaEquipo(h)) eti.push('<span class="pill rj">Para el equipo</span>');
   // Al buscar, la carpeta. Máximo dos etiquetas: el asunto se tiene que leer.
   if (CO.realBusca?.trim() && !crEnIdealista() && eti.length < 2)
     eti.push(`<span class="pill nt">${esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>`);
@@ -4086,6 +4123,9 @@ function crIdealistaDatos(h){
   const precio = ((t.match(/C[oó]digo del anuncio:[^\n]*\n\s*([\d.]+(?:,\d+)?\s*€)/i) || [])[1] || '').trim();
   return (h._ideal = { tel, pregunta: corta || pregunta, entera: !!pregunta, texto: t, ref, anuncio, precio });
 }
+// Iconos de los títulos: Correo (sobre, azul) e Idealista (casa, ámbar), para saber dónde se está.
+const CR_ICO_SOBRE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>';
+const CR_ICO_CASA = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>';
 function crDetalleIdealista(h, enVentana){
   const bo = h.borrador, p = crPersona(h), d = crIdealistaDatos(h);
   const faltan = bo?.faltan || [], equipo = crEquipo(h), m = crPrimero(h);
@@ -4101,6 +4141,7 @@ function crDetalleIdealista(h, enVentana){
         <div class="cr-iddatos">
           ${d.ref || d.anuncio ? `<span class="cr-idanun"><b>${esc(d.ref || 'Anuncio')}</b>${d.anuncio ? ` · ${esc(d.anuncio)}` : ''}${d.precio ? ` · ${esc(d.precio)}` : ''}</span>` : ''}
           ${d.tel ? `<a class="cr-idtel" href="${esc(telHref)}">Llamar al ${esc(d.tel)}</a>` : ''}
+          <span class="cr-idestado">${crRespondidoHTML(h)}</span>
         </div>
       </div>
       <section class="cr-idpreg" aria-label="Lo que pregunta">
@@ -4117,7 +4158,6 @@ function crDetalleIdealista(h, enVentana){
         ${equipo.length ? `<div class="co-alerta cr-ideq"><b>Para el equipo:</b> ${equipo.map(esc).join(' · ')}. Esta respuesta no se enviaría sola.</div>` : ''}
         ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}. ${crFaltaEnlaces(faltan)}</div>` : ''}
         <div class="co-orig">${crBorrador(bo.texto)}</div>
-        ${crFirmaHTML()}
         ${crFotos(bo)}
         ${(bo.fotos || []).length ? '<p class="co-para">Las fotos no se copian: adjúntalas en el chat de idealista.</p>' : ''}
       </section>` : `<p class="co-para">${h.a_persona ? '<span class="pill rj">Para el equipo</span> El asistente no contestaría este mensaje solo.' : 'El asistente todavía no ha preparado su respuesta.'}</p>`}
@@ -4150,6 +4190,7 @@ function crDetalle(h, enVentana){
             <span class="co-para">Para ${esc(h.buzon || '')} · ${esc(crFecha(crPrimero(h).fecha || h.ultimo_en))}</span>
             ${p.responder ? `<br><span class="co-para">La respuesta irá a <b title="${esc(p.responder)}">${esc(p.nota ? 'la ' + p.nota : p.responder)}</b></span>` : ''}</div>
         </div>
+        ${h.tipo === 'comercial' || h.tipo === 'cliente_actual' ? `<div class="cr-idestado cr-cestado">${crRespondidoHTML(h)}</div>` : ''}
       </div>
       <div class="co-par">
         <div class="cr-hilo">
@@ -4306,8 +4347,7 @@ function crPintarIdealista(){
   $('#vista').innerHTML = `
     <div class="correo co-real co-bandeja-v cr-ideal">
       <div class="co-top">
-        <div><h2 class="tit">Idealista</h2>
-          <p class="cr-sub">La respuesta que daría el asistente a cada mensaje. Se copia y se pega en el chat de idealista.</p></div>
+        <h2 class="tit cr-idtit"><span class="cr-idico" aria-hidden="true">${CR_ICO_CASA}</span>Idealista</h2>
         <div class="co-ctrl">
           <button type="button" class="cr-ayuda" data-cr="atajos" title="Atajos de teclado (?)" aria-label="Atajos de teclado">?</button>
           ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
@@ -4341,7 +4381,7 @@ function coPintarReal(){
   $('#vista').innerHTML = `
     <div class="correo co-real ${enBandeja ? 'co-bandeja-v' : ''}">
       <div class="co-top">
-        <h2 class="tit">Correo</h2>
+        <h2 class="tit cr-idtit"><span class="cr-idico cr-coico" aria-hidden="true">${CR_ICO_SOBRE}</span>Correo</h2>
         <div class="rangos co-tabs" role="tablist">
           ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}</button>`).join('')}
         </div>
@@ -4593,7 +4633,8 @@ document.addEventListener('keydown', e => {
   else if ((e.key === 'v' || e.key === 'V') && h?.borrador){ e.preventDefault(); CO.vista = CO.vista === 'lado' ? 'arriba' : 'lado'; coGuardarVista(); coPintarReal(); }
   else if ((e.key === 'c' || e.key === 'C') && h?.borrador){
     e.preventDefault();
-    crCopiar(crTextoCopiar(h.borrador)).then(ok => { crSonar(ok ? 'hecho' : 'error'); coAviso(ok ? 'Respuesta copiada (con la firma).' : 'No se ha podido copiar.'); });
+    const firma = !crEsIdealista(h);
+    crCopiar(crTextoCopiar(h.borrador, firma)).then(ok => { crSonar(ok ? 'hecho' : 'error'); coAviso(ok ? (firma ? 'Respuesta copiada (con la firma).' : 'Respuesta copiada.') : 'No se ha podido copiar.'); });
   }
   else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !e.target?.closest?.('.co-fila')){
     // Sin el foco en la lista: se mueve desde el correo abierto.
@@ -4641,9 +4682,23 @@ if (!window.__crOyentes){
     if (que === 'atajos') return crAyudaAtajos();
     if (que === 'copiar'){
       const h = (CO.real.hilos || []).find(x => x.id === el.dataset.id);
-      const ok = h?.borrador ? await crCopiar(crTextoCopiar(h.borrador)) : false;
+      const ok = h?.borrador ? await crCopiar(crTextoCopiar(h.borrador, !crEsIdealista(h))) : false;
       crSonar(ok ? 'hecho' : 'error');
-      return coAviso(ok ? 'Respuesta copiada. Ábrela en idealista y pégala en el chat de esa persona.' : 'No se ha podido copiar: selecciona el texto y cópialo a mano.');
+      return coAviso(ok ? 'Respuesta copiada. Pégala en el chat de idealista y, cuando la envíes, márcala como respondida.' : 'No se ha podido copiar: selecciona el texto y cópialo a mano.');
+    }
+    // 18/11 noche: marcar o desmarcar como respondido (SQL 107). Lo ve todo el equipo.
+    if (que === 'respondido'){
+      const h = (CO.real.hilos || []).find(x => x.id === el.dataset.id); if (!h) return;
+      const si = el.dataset.v === '1';
+      el.disabled = true;
+      const { error } = await supabase.rpc('mt_correo_marcar_respondido', { p_slug: CO.real.slug, p_hilo: h.id, p_respondido: si });
+      el.disabled = false;
+      if (error){ crSonar('error'); return coAviso('No se ha podido guardar: ' + (error.message || 'error')); }
+      h.respondido = si ? { en: new Date().toISOString(), quien: USUARIO_EMAIL } : null;
+      crSonar('hecho');
+      coAviso(si ? 'Marcado como respondido.' : 'Vuelve a estar sin responder.');
+      if ($('#modal').style.display === 'block' && $('#mbox .co-det')) crAbrirVentana(h.id);
+      return coPintarReal();
     }
     if (que === 'tope'){
       const tope = Math.round(Number($('#crtope')?.value));
