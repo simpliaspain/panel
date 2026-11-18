@@ -1985,7 +1985,7 @@
   .cr-buzon .fila{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--tinta-suave);margin:6px 0 10px}
   .cr-clave{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .cr-clave input{max-width:280px;margin:0}
-  /* Bandeja real con carpetas (16/11 noche) y «Mejoras». */
+  /* Bandeja real con carpetas (16/11 noche). */
   .cr-hilo{display:grid;gap:12px;align-content:start;min-width:0}
   /* 18/11: «Intervención equipo» y «vía idealista / formulario web». */
   .co-msg.cr-equipo{background:var(--coral-fondo);border-color:var(--coral-fondo)}
@@ -2013,7 +2013,7 @@
   .co-real .co-dtit h3{font-size:18px;line-height:1.25}
   .co-real .co-dde{margin-top:6px;line-height:1.45}
   .co-real .co-dde .co-av.co-logo{width:30px;height:30px;font-size:12px}
-  .co-real .co-dcab .co-clasif{margin:6px 0 0;padding:0;background:none;border:0;font-size:12.5px;line-height:1.5;color:var(--tinta-suave)}
+
   .co-real .co-par{gap:10px}
   .co-real .co-msg{padding:12px 16px}
   .co-real .cr-hilo{gap:10px}
@@ -2058,32 +2058,12 @@
   .cr-cifbtn b{font-size:15px;color:var(--verde-oscuro);margin-right:4px}
   .co-ej.cr-sombra{background:#E5EFFE;color:var(--azul-texto);cursor:help}
   .co-real .co-fila{cursor:pointer}
-  .cr-mej h3{font-size:17px;margin:0 0 6px;display:flex;align-items:center;gap:8px}
-  .cr-mej > .co-para{margin:0 0 14px}
-  .cr-mcab{display:flex;gap:12px 24px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
-  .cr-mcab > div:first-child{flex:1 1 420px}
-  .cr-mcab .co-para{line-height:1.6;max-width:72ch;margin:0}
-  .cr-mhoja{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-  .cr-mhoja .cbtn{text-decoration:none}
-  .cr-fitem{border:1px solid var(--linea);border-radius:12px;padding:14px 16px;margin-bottom:10px;background:var(--blanco)}
-  .cr-fitem.vuelve{border-color:var(--coral-fondo)}
-  .cr-fdato{font-size:15px;font-weight:700;line-height:1.4;margin-bottom:4px}
-  .cr-fdato::first-letter{text-transform:uppercase}
-  .cr-fmeta{font-size:12px;color:var(--gris);margin-bottom:8px}
-  .cr-fdonde{font-size:13px;line-height:1.6;color:var(--tinta-suave);margin-bottom:10px}
-  .cr-facc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .cr-facc a.cbtn{text-decoration:none}
-  .cr-fder{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
-  .cr-fhechos{margin-top:12px;font-size:13px;color:var(--tinta-suave)}
-  .cr-fhechos summary{cursor:pointer;font-weight:600}
-  .cr-fhechos ul{margin:8px 0 0 18px;display:grid;gap:4px}
   .cr-tscroll{overflow-x:auto}
   .cr-tabla{width:100%;border-collapse:collapse;font-size:13px}
   .cr-tabla th,.cr-tabla td{padding:8px 10px;border-bottom:1px solid var(--linea);text-align:right;white-space:nowrap}
   .cr-tabla th:first-child,.cr-tabla td:first-child{text-align:left}
   .cr-tabla th{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.05em}
   .cr-tabla tfoot td{font-weight:700;border-bottom:0}
-  @media(max-width:640px){ .cr-fder{margin-left:0} }
   #pdetalle .msg,#mbox .msg{margin-bottom:6px}
   #pdetalle .msg .burb,#mbox .msg .burb{padding:8px 12px;font-size:14px;line-height:1.5;max-width:min(88%, 62ch)}
   #pdetalle .hora,#mbox .hora{margin-top:2px;font-size:10.5px}
@@ -2175,7 +2155,8 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-18f · avisos y sonidos de correo nuevo, marca de nuevo, atajos y visor de fotos; más espacio para leer el correo; Abrir en idealista abre la conversación; firma con el aviso de IA; idealista: Copiar respuesta y Abrir en idealista; «Intervención equipo» y remitentes de la web e idealista; sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
+// Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
+const VERSION = '2026-11-18g · correo con carpetas por tema, apartado Idealista y sin Mejoras';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3700,8 +3681,8 @@ function pintarCorreo(){
    del buzón y el campo para guardar su contraseña (va directa a Vault con
    mt_correo_guardar_clave, SQL 77; nunca se enseña).
    16/11 noche: la bandeja tiene la forma de la maqueta (carpetas, lista
-   con buscador y el correo a la derecha), y lo que falta en la hoja va en
-   «Mejoras» (SQL 87).
+   con buscador y el correo a la derecha). 18/11 noche: sin «Mejoras»; lo
+   que falta en la hoja sale dentro de cada respuesta (mt_correo_faltan, SQL 87).
    En producción solo lo ven las empresas de CO_EMPRESAS_CON_ACCESO.
    ===================================================================== */
 CO.real = null;          // { slug, buzones, puede_editar, hilos, resumen, faltan, mejorar }
@@ -3925,8 +3906,7 @@ function coPintarSinBuzon(){
    Pedido del usuario: «que se vea como en staging aunque no se puedan
    enviar mails», con sus carpetas. Las carpetas salen de cómo clasifica el
    asistente cada conversación (cada una va a una sola carpeta). No hay
-   enviar, mover ni borrar: el modo sombra no toca el buzón. Lo que falta
-   en la hoja va en su apartado («Mejoras»), no en la bandeja. */
+   enviar, mover ni borrar: el modo sombra no toca el buzón. */
 /* 18/11 noche (pedido del usuario): solo las carpetas por tema, siempre
    visibles aunque estén vacías. Fuera «Con respuesta propuesta»,
    «Intervención equipo», «Todos» y «A una persona»: lo que tiene que hacer
