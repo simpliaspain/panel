@@ -4101,7 +4101,7 @@ function crDetalle(h, enVentana){
           <section class="co-msg co-msgresp" aria-label="Respuesta propuesta">
             <div class="co-msgt">Respuesta propuesta <span class="co-msgq">${equipo.length ? 'no se enviaría sola · modo sombra' : 'no se envía · modo sombra'}</span></div>
             ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}.
-              <button class="co-editar" data-cr="irmejorar">Ver cómo añadirlo</button></div>` : ''}
+              ${crFaltaEnlaces(faltan)}</div>` : ''}
             <div class="co-orig">${crBorrador(bo.texto)}</div>
             ${crFirmaHTML()}
             ${crFotos(bo)}
@@ -4138,12 +4138,10 @@ function crBandeja(){
     </div>`;
 }
 
-/* ---------- Mejoras: lo que falta en la hoja y cómo va ----------
-   Decisión del usuario (16/11): «guiado a la hoja». Cada dato que le faltó
-   al asistente, cuántas veces, en qué correos, en qué pestaña de la hoja
-   va y cómo rellenarlo; «Ya lo he añadido» o «No lo damos» lo quitan de la
-   lista (mt_correo_falta_marcar, SQL 87). La pestaña es una suposición por
-   palabras: por eso los botones abren cualquiera de las tres. */
+/* ---------- Lo que le falta al asistente en la hoja ----------
+   18/11 noche: fuera la pestaña «Mejoras» (decisión del usuario, opción A).
+   Lo que falta sale dentro de la respuesta propuesta, con un enlace a la
+   pestaña de la hoja donde va. La pestaña es una suposición por palabras. */
 const CR_PESTANAS = {
   centros:  { nombre:'Centros', como:'Una fila por centro: busca el centro y rellena su columna (horario, m², servicios, salas…) o escríbelo en «notas».' },
   tarifas:  { nombre:'Tarifas', como:'Una fila por servicio: «servicio», «precio» y «ámbito» (el centro o «todos»); las condiciones (fianza, permanencia, descuentos…) en «notas».' },
@@ -4162,45 +4160,10 @@ function crUrlPestana(clave){
   const p = (hoja.pestanas || []).find(x => x.clave === clave);
   return hoja.url + (p ? '#gid=' + encodeURIComponent(p.gid) : '');
 }
-function crItemFalta(f, info){
-  const pest = crPestanaDe(f.dato), P = CR_PESTANAS[pest];
-  const hilos = (f.hilos || []).map(id => (CO.real.hilos || []).find(h => h.id === id)).filter(Boolean);
-  const url = P ? crUrlPestana(pest) : '';
-  const marcar = info.puede_marcar;
-  return `<div class="cr-fitem ${f.estado === 'vuelve' ? 'vuelve' : ''}">
-    <div class="cr-fdato">${esc(f.dato)}</div>
-    <div class="cr-fmeta">${f.veces === 1 ? 'Lo echó de menos 1 vez' : `Lo echó de menos ${f.veces} veces`}${f.ultimo_en ? ` · la última, ${esc(crFecha(f.ultimo_en))}` : ''}
-      ${f.estado === 'vuelve' ? ' · <span class="pill rj">Lo marcasteis como añadido, pero lo ha vuelto a echar de menos</span>' : ''}</div>
-    <div class="cr-fdonde">${P ? `<b>Dónde va:</b> pestaña «${esc(P.nombre)}» de vuestra hoja. ${esc(P.como)}`
-      : `<b>Disponibilidad:</b> cambia cada día, así que no va en la hoja. Si preferís que el asistente no la dé por correo, pulsa «No lo damos».`}</div>
-    <div class="cr-facc">
-      ${url ? `<a class="cbtn" href="${esc(url)}" target="_blank" rel="noopener">Abrir «${esc(P.nombre)}»</a>` : ''}
-      ${hilos.slice(0, 3).map((h, i) => `<button class="co-editar" data-cr="irhilo" data-id="${esc(h.id)}">${hilos.length > 1 ? `Ver el correo ${i + 1}` : 'Ver el correo'}</button>`).join('')}
-      ${marcar ? `<span class="cr-fder"><button class="cbtn sec" data-cr="falta" data-v="anadido" data-dato="${esc(f.dato)}">Ya lo he añadido</button>
-        <button class="cbtn sec" data-cr="falta" data-v="no_damos" data-dato="${esc(f.dato)}">No lo damos</button></span>` : ''}
-    </div></div>`;
-}
-function crMejorar(){
-  const info = CO.real.mejorar || { datos:[] };
-  const ds = info.datos || [];
-  const pend = ds.filter(f => !f.estado || f.estado === 'vuelve');
-  const hechos = ds.filter(f => f.estado === 'anadido'), nodamos = ds.filter(f => f.estado === 'no_damos');
-  const deshacer = f => `<li>${esc(f.dato)}${info.puede_marcar ? ` <button class="co-editar" data-cr="falta" data-v="" data-dato="${esc(f.dato)}">Deshacer</button>` : ''}</li>`;
-  const pestBotones = info.hoja?.url ? Object.entries(CR_PESTANAS).map(([k, P]) =>
-    `<a class="cbtn sec" href="${esc(crUrlPestana(k))}" target="_blank" rel="noopener">${esc(P.nombre)}</a>`).join('') : '';
-  return `
-    <div class="panel cr-mej">
-      <div class="cr-mcab">
-        <div><h3>Lo que le falta al asistente${pend.length ? ` <span class="pill am">${pend.length}</span>` : ''}</h3>
-          <p class="co-para">Cuando un cliente pregunta algo que no está en vuestra hoja, el asistente no se lo inventa: lo apunta aquí.
-            Añadidlo a la hoja y en unos 10 minutos lo sabrán el asistente de correo y Laura (WhatsApp); si tenéis prisa, usad el menú de publicar de la propia hoja.</p></div>
-        ${pestBotones ? `<div class="cr-mhoja"><span class="co-para">Abrir la hoja:</span> ${pestBotones}</div>` : ''}
-      </div>
-      ${!info.puede_marcar && esSimplia() ? '<p class="co-para">Para marcar datos como añadidos, abre el candado de arriba.</p>' : ''}
-      ${pend.length ? pend.map(f => crItemFalta(f, info)).join('') : '<div class="vacio">No falta nada: todo lo que han preguntado está en la hoja.</div>'}
-      ${hechos.length ? `<details class="cr-fhechos"><summary>Ya añadidos (${hechos.length})</summary><ul>${hechos.map(deshacer).join('')}</ul></details>` : ''}
-      ${nodamos.length ? `<details class="cr-fhechos"><summary>No lo damos (${nodamos.length})</summary><ul>${nodamos.map(deshacer).join('')}</ul></details>` : ''}
-    </div>`;
+// Dentro de la respuesta: un enlace por pestaña de la hoja donde va lo que falta.
+function crFaltaEnlaces(faltan){
+  const pest = [...new Set(faltan.map(crPestanaDe))].filter(k => CR_PESTANAS[k] && crUrlPestana(k));
+  return pest.map(k => `<a class="co-editar" href="${esc(crUrlPestana(k))}" target="_blank" rel="noopener noreferrer">Añadirlo en «${esc(CR_PESTANAS[k].nombre)}»</a>`).join(' ');
 }
 
 function crTope(){
@@ -4296,7 +4259,7 @@ function crPintarIdealista(){
 
 function coPintarReal(){
   if (crEnIdealista()) return crPintarIdealista();
-  if (!['bandeja', 'mejorar', 'ajustes'].includes(CO.realTab)) CO.realTab = 'bandeja';
+  if (!['bandeja', 'ajustes'].includes(CO.realTab)) CO.realTab = 'bandeja';
   const enBandeja = CO.realTab === 'bandeja';
   // La pantalla no se mueve al repintar: listas y correo abierto vuelven a donde estaban.
   const misma = CO.realPintadoTab === CO.realTab;
@@ -4305,14 +4268,13 @@ function coPintarReal(){
   const ventanaY = scrollY;
   const hs = crHilos();
   const hoy = hs.filter(h => h.primer_recibido_en && new Date(h.primer_recibido_en).toDateString() === new Date().toDateString()).length;
-  const pend = (CO.real.mejorar?.datos || []).filter(f => !f.estado || f.estado === 'vuelve').length;
-  const tabs = [['bandeja', 'Bandeja'], ['mejorar', 'Mejoras'], ['ajustes', 'Configuración']];
+  const tabs = [['bandeja', 'Bandeja'], ['ajustes', 'Configuración']];
   $('#vista').innerHTML = `
     <div class="correo co-real ${enBandeja ? 'co-bandeja-v' : ''}">
       <div class="co-top">
         <h2 class="tit">Correo</h2>
         <div class="rangos co-tabs" role="tablist">
-          ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}${k === 'mejorar' && pend ? ` <span class="navn">${pend}</span>` : ''}</button>`).join('')}
+          ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}</button>`).join('')}
         </div>
         ${enBandeja ? `<div class="co-cifras cr-cifras">
           <span><b>${hoy}</b> hoy</span>
@@ -4326,7 +4288,7 @@ function coPintarReal(){
             <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
         </div>
       </div>
-      <div id="cocuerpo" class="co-cuerpo">${enBandeja ? crBandeja() : CO.realTab === 'mejorar' ? crMejorar() : crConfiguracion()}</div>
+      <div id="cocuerpo" class="co-cuerpo">${enBandeja ? crBandeja() : crConfiguracion()}</div>
     </div>`;
   if (misma){
     for (const [k, y] of Object.entries(sitio)){
@@ -4605,19 +4567,6 @@ if (!window.__crOyentes){
       const ok = h?.borrador ? await crCopiar(crTextoCopiar(h.borrador)) : false;
       crSonar(ok ? 'hecho' : 'error');
       return coAviso(ok ? 'Respuesta copiada. Ábrela en idealista y pégala en el chat de esa persona.' : 'No se ha podido copiar: selecciona el texto y cópialo a mano.');
-    }
-    if (que === 'irmejorar'){ if ($('#modal').style.display === 'block') cerrar(); CO.realTab = 'mejorar'; return coPintarReal(); }
-    if (que === 'falta'){
-      el.disabled = true;
-      const { error } = await supabase.rpc('mt_correo_falta_marcar', { p_slug: CO.real.slug, p_dato: el.dataset.dato, p_estado: el.dataset.v || null });
-      el.disabled = false;
-      if (error){ crSonar('error'); return coAviso('No se ha podido guardar: ' + (error.message || 'error')); }
-      crSonar('hecho');
-      coAviso(el.dataset.v === 'anadido' ? 'Marcado como añadido. Si el asistente lo vuelve a echar de menos, volverá a salir aquí.'
-        : el.dataset.v === 'no_damos' ? 'Marcado: no lo dais. Ya no sale en la lista.' : 'Vuelve a la lista.');
-      const r = await supabase.rpc('mt_correo_faltan', { p_slug: CO.real.slug });
-      if (!r.error && CO.real) CO.real.mejorar = r.data;
-      return VISTA === 'correo' && CO.real ? coPintarReal() : null;
     }
     if (que === 'tope'){
       const tope = Math.round(Number($('#crtope')?.value));
