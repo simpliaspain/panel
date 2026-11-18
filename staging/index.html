@@ -1985,6 +1985,8 @@
   .co-carp .pt.eq{background:var(--coral, #e5684a)}
   .cr-via{font-weight:500;color:var(--gris)}
   .cr-acc{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--linea)}
+  .cr-firma{margin-top:14px;padding-top:10px;border-top:1px dashed var(--linea);font-size:13px;line-height:1.5;color:var(--tinta-suave)}
+  .cr-firma span{font-size:12px;color:var(--gris)}
   .cr-acc a.cbtn{text-decoration:none}
   .co-msg.cr-env{background:var(--fondo-hueco)}
   .co-msg.cr-cmp .cr-ver{margin:0 0 8px}
@@ -2109,7 +2111,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-18c · idealista: Copiar respuesta y Abrir en idealista; «Intervención equipo» y remitentes de la web e idealista; sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
+const VERSION = '2026-11-18d · firma con el aviso de IA; idealista: Copiar respuesta y Abrir en idealista; «Intervención equipo» y remitentes de la web e idealista; sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3748,8 +3750,21 @@ async function crCargarFotos(){
     }
   }
 }
-const crBorrador = t => coParrafos(t).replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi,
+/* Firma (18/11, pedido del usuario): el aviso de IA va en la firma, no en
+   el texto. El asistente ya no firma; la firma la pone el sistema al enviar
+   (la misma que nucleo.firmaCorreo de [MT] Correo). A las respuestas
+   antiguas se les quita su línea de IA y su «Equipo de …» del final. */
+const crEmpresa = () => CO_CLIENTES.find(k => k.slug === crSlug())?.nombre || TENANT?.nombre || 'la empresa';
+const crFirma = () => `Equipo de ${crEmpresa()}\nRespuesta preparada por el asistente de IA de ${crEmpresa()}`;
+function crCuerpo(t){
+  const lineas = String(t || '').split('\n').filter(l => !/(agente|asistente) de (la )?IA|\bIA de la empresa\b/i.test(l));
+  while (lineas.length && !lineas[lineas.length - 1].trim()) lineas.pop();
+  if (lineas.length && /^\s*(el\s+)?equipo de\b/i.test(lineas[lineas.length - 1])) lineas.pop();
+  return lineas.join('\n').trim();
+}
+const crBorrador = t => coParrafos(crCuerpo(t)).replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi,
   (_m, c) => `<span class="pill az" title="Al enviar, aquí va el enlace de reserva de visita de ese centro">Enlace para reservar la visita · ${c.replace(/-/g, ' ')}</span>`);
+const crFirmaHTML = () => { const [a, b] = crFirma().split('\n'); return `<div class="cr-firma" title="La firma la añade el sistema al enviar">${esc(a)}<br><span>${esc(b)}</span></div>`; };
 /* Idealista (18/11, decisión del usuario): se contesta desde el chat de
    idealista, no por correo. El panel da «Copiar respuesta» (con el enlace
    de reserva de verdad en vez de la marca [[VISITA:…]], de
@@ -3758,10 +3773,10 @@ const crBorrador = t => coParrafos(t).replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\
 const CR_IDEALISTA_INBOX = 'https://www.idealista.com/tools/inbox';
 function crTextoCopiar(bo){
   const vis = CO.real?.visitas || {};
-  return String(bo?.texto || '')
+  return (crCuerpo(bo?.texto)
     .replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi, (_m, c) => vis[String(c).trim().toLowerCase()] || '')
     .replace(/\[\[[^\]]*\]\]/g, '')
-    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim()) + '\n\n' + crFirma();
 }
 async function crCopiar(texto){
   try { await navigator.clipboard.writeText(texto); return true; }
@@ -4006,6 +4021,7 @@ function crDetalle(h, enVentana){
             ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}.
               <button class="co-editar" data-cr="irmejorar">Ver cómo añadirlo</button></div>` : ''}
             <div class="co-orig">${crBorrador(bo.texto)}</div>
+            ${crFirmaHTML()}
             ${crFotos(bo)}
             ${p.via === 'idealista' ? `<div class="cr-acc">
               <button class="cbtn" type="button" data-cr="copiar" data-id="${esc(h.id)}">Copiar respuesta</button>
