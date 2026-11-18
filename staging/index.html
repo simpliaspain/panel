@@ -1472,6 +1472,27 @@
   .co-bandeja.cr-sincarps{grid-template-columns:minmax(300px,420px) minmax(0,1fr)}
   .co-bandeja.cr-sincarps.co-ladov{grid-template-columns:minmax(260px,340px) minmax(0,1fr)}
   .cr-ideal .cr-sub{font-size:13px;color:var(--tinta-suave);margin:0}
+  /* Idealista: quién, qué pregunta y la respuesta; el aviso completo, plegado. */
+  .cr-idet{max-width:860px}
+  .cr-idcab{padding-bottom:14px;border-bottom:1px solid var(--linea);margin-bottom:16px}
+  .cr-idquien{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .cr-idquien h3{font-size:22px;margin:0;text-transform:capitalize}
+  .cr-idquien .cerrar{margin-left:auto}
+  .cr-iddatos{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;margin-top:8px;font-size:14px}
+  .cr-idanun{color:var(--tinta-suave)}
+  .cr-idanun b{color:var(--tinta)}
+  .cr-idtel{font-weight:600;color:var(--pulso);text-decoration:none}
+  .cr-idtel:hover{text-decoration:underline}
+  .cr-idpreg{background:var(--fondo, #F4F7FB);border-radius:12px;padding:14px 18px;margin-bottom:16px}
+  .cr-idtexto{font-size:17px;line-height:1.55}
+  .cr-idtexto p{margin:0 0 6px}
+  .cr-idresp{border:1px solid var(--linea);border-radius:12px;padding:14px 18px}
+  .cr-idacc{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .cr-idacc .co-msgt{margin:0 auto 0 0}
+  .cr-ideq{margin-bottom:10px}
+  .cr-idorig{margin-top:16px;font-size:13px;color:var(--tinta-suave)}
+  .cr-idorig summary{cursor:pointer;font-weight:600}
+  .cr-idorig .co-orig{margin-top:8px}
   /* Accesibilidad (18/11 noche): con el teclado siempre se ve dónde está el foco. */
   .co-real .co-carp:focus-visible,.co-real .co-fila:focus-visible,.co-real .co-editar:focus-visible,
   .co-real .cbtn:focus-visible,.co-real .co-vbtn:focus-visible,.co-real .cr-ayuda:focus-visible{outline:2px solid var(--pulso);outline-offset:-2px}
@@ -2156,7 +2177,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-18g · correo con carpetas por tema, apartado Idealista y sin Mejoras';
+const VERSION = '2026-11-18h · Idealista centrado en la pregunta, el anuncio y la respuesta';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -4012,9 +4033,10 @@ function crFila(h){
   // Al buscar, la carpeta. Máximo dos etiquetas: el asunto se tiene que leer.
   if (CO.realBusca?.trim() && !crEnIdealista() && eti.length < 2)
     eti.push(`<span class="pill nt">${esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>`);
-  // En Idealista sobra «vía idealista» y el asunto largo del aviso: solo la referencia del anuncio.
-  const ideal = crEnIdealista(), ref = ideal && (String(h.asunto || '').match(/referencia\s*:?\s*([\w-]+)/i) || [])[1];
-  const asunto = ideal ? (ref ? `Anuncio ${ref}` : 'Mensaje en idealista') : h.asunto || '(sin asunto)';
+  // En Idealista: lo que pregunta la persona y la referencia del anuncio (no el asunto del aviso).
+  const ideal = crEnIdealista(), di = ideal ? crIdealistaDatos(h) : null;
+  if (di?.ref) eti.push(`<span class="pill nt" title="${esc(di.anuncio)}">${esc(di.ref)}</span>`);
+  const asunto = ideal ? ((di.pregunta || di.texto).replace(/\s+/g, ' ').trim().slice(0, 200) || 'Mensaje en idealista') : h.asunto || '(sin asunto)';
   return `<div class="co-fila ${CO.realAbierto === h.id && coLector() ? 'on' : ''} ${crEsNuevo(h) ? 'nuevo' : ''}" tabindex="0" role="option" aria-selected="${CO.realAbierto === h.id}"
       data-cr="abrir" data-id="${esc(h.id)}">
       <span class="co-av co-logo" aria-hidden="true"><span>${esc(p.nombre.charAt(0).toUpperCase() || '?')}</span></span>
@@ -4043,7 +4065,68 @@ function crPintarLista(){
   document.querySelectorAll('#cocuerpo .co-carp').forEach(b => b.classList.toggle('on', !CO.realBusca?.trim() && b.dataset.id === CO.realCarpeta));
 }
 
+/* ---------- Idealista: lo importante de cada mensaje (18/11 noche) ----------
+   El aviso de idealista trae siempre la misma plantilla: el nombre, el
+   teléfono («notDefaulter > tenantGuarantee --> 600 …»), una dirección de
+   contacto de idealista, la pregunta, «Responder desde idealista/tools»,
+   el anuncio (título, «Ref. XX», código y precio) y consejos de idealista.
+   Aquí se saca solo lo útil; si la plantilla cambia, sale el texto entero. */
+function crIdealistaDatos(h){
+  if (h._ideal) return h._ideal;
+  const t = String(crPrimero(h).texto || '').replace(/\r/g, ''), as = String(h.asunto || '');
+  const tel = ((t.match(/-->\s*(\+?[\d][\d ]{6,}\d)/) || [])[1] || '').trim();
+  let pregunta = '';
+  const a = t.search(/@contacts\.idealista\.com/i), b = t.search(/Responder desde idealista/i);
+  if (a >= 0 && b > a) pregunta = t.slice(t.indexOf('\n', a) + 1, b).trim();
+  // Fuera el «Un saludo» final: no aporta nada en la lista.
+  const corta = pregunta.replace(/\n?\s*(un saludo|saludos|gracias)[.!\s]*$/i, '').trim();
+  const ref = (as.match(/ref(?:erencia)?\s*:\s*([A-Z0-9-]+)/i) || t.match(/\bRef\.\s*([A-Z0-9-]+)/i) || [])[1] || '';
+  let anuncio = ((as.match(/ref(?:erencia)?\s*:\s*[A-Z0-9-]+\s*,\s*(.+)$/i) || t.match(/\n([^\n]+)\n\s*Ref\./) || [])[1] || '').trim();
+  anuncio = anuncio.replace(/^oficina(?: con espacios compartidos)? en\s+/i, '');
+  const precio = ((t.match(/C[oó]digo del anuncio:[^\n]*\n\s*([\d.]+(?:,\d+)?\s*€)/i) || [])[1] || '').trim();
+  return (h._ideal = { tel, pregunta: corta || pregunta, entera: !!pregunta, texto: t, ref, anuncio, precio });
+}
+function crDetalleIdealista(h, enVentana){
+  const bo = h.borrador, p = crPersona(h), d = crIdealistaDatos(h);
+  const faltan = bo?.faltan || [], equipo = crEquipo(h), m = crPrimero(h);
+  const telHref = d.tel ? 'tel:+34' + d.tel.replace(/\D/g, '').replace(/^34(?=\d{9}$)/, '') : '';
+  return `
+    <div class="co-det cr-idet">
+      <div class="cr-idcab">
+        <div class="cr-idquien">
+          <h3>${esc(p.nombre)}</h3>
+          <span class="co-para">${esc(crFecha(m.fecha || h.ultimo_en))}</span>
+          ${enVentana ? '<button class="cerrar" data-cr="cerrar" aria-label="Cerrar">×</button>' : ''}
+        </div>
+        <div class="cr-iddatos">
+          ${d.ref || d.anuncio ? `<span class="cr-idanun"><b>${esc(d.ref || 'Anuncio')}</b>${d.anuncio ? ` · ${esc(d.anuncio)}` : ''}${d.precio ? ` · ${esc(d.precio)}` : ''}</span>` : ''}
+          ${d.tel ? `<a class="cr-idtel" href="${esc(telHref)}">Llamar al ${esc(d.tel)}</a>` : ''}
+        </div>
+      </div>
+      <section class="cr-idpreg" aria-label="Lo que pregunta">
+        <div class="co-msgt">Pregunta</div>
+        <div class="cr-idtexto">${coParrafos(d.entera ? d.pregunta : d.texto)}</div>
+        ${crAdjuntosMsg(m)}
+      </section>
+      ${bo ? `<section class="cr-idresp" aria-label="Respuesta propuesta">
+        <div class="cr-idacc">
+          <div class="co-msgt">Respuesta propuesta <span class="co-msgq">no se envía · modo sombra</span></div>
+          <button class="cbtn" type="button" data-cr="copiar" data-id="${esc(h.id)}">Copiar respuesta</button>
+          <button class="cbtn sec" type="button" data-cr="abrirportal" data-m="${esc(m.id || '')}">Abrir en idealista</button>
+        </div>
+        ${equipo.length ? `<div class="co-alerta cr-ideq"><b>Para el equipo:</b> ${equipo.map(esc).join(' · ')}. Esta respuesta no se enviaría sola.</div>` : ''}
+        ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}. ${crFaltaEnlaces(faltan)}</div>` : ''}
+        <div class="co-orig">${crBorrador(bo.texto)}</div>
+        ${crFirmaHTML()}
+        ${crFotos(bo)}
+        ${(bo.fotos || []).length ? '<p class="co-para">Las fotos no se copian: adjúntalas en el chat de idealista.</p>' : ''}
+      </section>` : `<p class="co-para">${h.a_persona ? '<span class="pill rj">Para el equipo</span> El asistente no contestaría este mensaje solo.' : 'El asistente todavía no ha preparado su respuesta.'}</p>`}
+      ${d.entera ? `<details class="cr-idorig"><summary>Ver el aviso completo de idealista</summary><div class="co-orig">${coParrafos(d.texto)}</div></details>` : ''}
+    </div>`;
+}
+
 function crDetalle(h, enVentana){
+  if (crEnIdealista()) return crDetalleIdealista(h, enVentana);
   const msgs = h.mensajes || [];
   const bo = h.borrador;
   const p = crPersona(h);
@@ -4110,7 +4193,7 @@ function crBandeja(){
   const abierto = (CO.real.hilos || []).find(h => h.id === CO.realAbierto);
   const ideal = crEnIdealista(), ph = ideal ? 'Buscar en idealista' : 'Buscar en el correo';
   return `
-    <div class="co-bandeja ${ideal ? 'cr-sincarps' : ''} ${CO.vista === 'lado' && abierto?.borrador ? 'co-ladov' : ''}">
+    <div class="co-bandeja ${ideal ? 'cr-sincarps' : ''} ${!ideal && CO.vista === 'lado' && abierto?.borrador ? 'co-ladov' : ''}">
       ${ideal ? '' : `<div class="panel co-carps" role="navigation" aria-label="Carpetas">${crCarpetas()}</div>`}
       <div class="panel co-lista">
         <div class="co-lbusca"><div class="co-bwrap">
