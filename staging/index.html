@@ -1472,6 +1472,12 @@
   .co-bandeja.cr-sincarps{grid-template-columns:minmax(300px,420px) minmax(0,1fr)}
   .co-bandeja.cr-sincarps.co-ladov{grid-template-columns:minmax(260px,340px) minmax(0,1fr)}
   .cr-ideal .cr-sub{font-size:13px;color:var(--tinta-suave);margin:0}
+  /* Accesibilidad (18/11 noche): con el teclado siempre se ve dónde está el foco. */
+  .co-real .co-carp:focus-visible,.co-real .co-fila:focus-visible,.co-real .co-editar:focus-visible,
+  .co-real .cbtn:focus-visible,.co-real .co-vbtn:focus-visible,.co-real .cr-ayuda:focus-visible{outline:2px solid var(--pulso);outline-offset:-2px}
+  .co-real .co-bwrap:focus-within{box-shadow:0 0 0 2px var(--pulso)}
+  /* Móvil: la tira de carpetas, de una línea (se estiraba hasta 130 px de alto). */
+  @media(max-width:820px){ .co-real .co-bandeja{align-content:start} .co-real .co-bandeja > .co-carps{align-self:start;align-items:center} }
   @media(max-width:1099px){ .co-bandeja.cr-sincarps,.co-bandeja.cr-sincarps.co-ladov{grid-template-columns:minmax(0,1fr)} }
   .co-cnomb{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35;overflow-wrap:anywhere}
 
@@ -4132,7 +4138,7 @@ function crBandeja(){
           <input id="crbusca" type="search" value="${esc(CO.realBusca || '')}" placeholder="${ph}" aria-label="${ph}" autocomplete="off" spellcheck="false" data-cr="busca">
         </div></div>
         ${crListaCab()}
-        <div class="co-lscroll">${crListaFilas()}</div>
+        <div class="co-lscroll" role="listbox" aria-label="${ideal ? 'Mensajes de idealista' : 'Correos'}">${crListaFilas()}</div>
       </div>
       <div class="panel co-lector" aria-live="polite">${abierto ? crDetalle(abierto, false) : '<div class="vacio">Elige un correo para verlo aquí.</div>'}</div>
     </div>`;
@@ -4485,6 +4491,8 @@ function crAyudaAtajos(){
       <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Correo anterior o siguiente</dd>
       <dt><kbd>Intro</kbd></dt><dd>Abrir el correo de la lista</dd>
       <dt><kbd>/</kbd></dt><dd>Buscar</dd>
+      <dt><kbd>1</kbd> … <kbd>9</kbd></dt><dd>Ir a una carpeta (en Correo, por orden)</dd>
+      <dt><kbd>I</kbd></dt><dd>Pasar de Correo a Idealista y volver</dd>
       <dt><kbd>Esc</kbd></dt><dd>Quitar la búsqueda o cerrar</dd>
       <dt><kbd>V</kbd></dt><dd>Respuesta debajo o al lado</dd>
       <dt><kbd>C</kbd></dt><dd>Copiar la respuesta propuesta (con la firma)</dd>
@@ -4512,6 +4520,12 @@ document.addEventListener('keydown', e => {
   if (modal) return;
   const h = (CO.real.hilos || []).find(x => x.id === CO.realAbierto);
   if (e.key === '/'){ const b = $('#crbusca'); if (b){ e.preventDefault(); b.focus(); b.select(); } }
+  // 18/11 noche: 1 a 9 abren las carpetas (en Correo); «I» pasa de Correo a Idealista y vuelve.
+  else if (/^[1-9]$/.test(e.key) && !crEnIdealista() && CR_CARPETAS[e.key - 1]){
+    e.preventDefault(); CO.realCarpeta = CR_CARPETAS[e.key - 1].id; CO.realBusca = ''; CO.realAbierto = null; coPintarReal();
+    $(`#cocuerpo .co-carp[data-id="${CO.realCarpeta}"]`)?.focus();
+  }
+  else if (e.key === 'i' || e.key === 'I'){ e.preventDefault(); irA(crEnIdealista() ? 'correo' : 'idealista'); }
   else if (e.key === 'Escape' && CO.realBusca){ e.preventDefault(); CO.realBusca = ''; coPintarReal(); }
   else if ((e.key === 'v' || e.key === 'V') && h?.borrador){ e.preventDefault(); CO.vista = CO.vista === 'lado' ? 'arriba' : 'lado'; coGuardarVista(); coPintarReal(); }
   else if ((e.key === 'c' || e.key === 'C') && h?.borrador){
