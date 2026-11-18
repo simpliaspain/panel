@@ -1985,6 +1985,28 @@
   .co-carp .pt.eq{background:var(--coral, #e5684a)}
   .cr-via{font-weight:500;color:var(--gris)}
   .cr-acc{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--linea)}
+  /* 18/11 (pedido del usuario): más espacio para leer los correos. Título,
+     pestañas, cifras y «Modo sombra» en UNA línea; menos margen arriba y
+     cabecera del correo abierto más compacta. Solo la pestaña Correo real. */
+  main:has(.correo.co-real){padding-top:12px}
+  .correo.co-real{height:calc(100dvh - var(--cohdr, 63px) - 32px)}
+  .co-real .co-top{margin-bottom:10px;gap:8px 16px;flex-wrap:nowrap}
+  .co-real .co-top h2.tit{font-size:24px;line-height:1.1}
+  .co-real .co-top .co-tabs .rg{padding:6px 12px}
+  .co-real .cr-cifras{margin:0;flex-wrap:nowrap;gap:4px 16px;white-space:nowrap;min-width:0;overflow:hidden}
+  .co-real .cr-cifras b{font-size:14px}
+  .co-real .co-ctrl{flex:none}
+  .co-real .co-ej.cr-sombra{margin-left:0}
+  .co-real .co-lector{padding:16px 20px}
+  .co-real .co-dcab{padding-bottom:10px;margin-bottom:12px}
+  .co-real .co-dtit h3{font-size:18px;line-height:1.25}
+  .co-real .co-dde{margin-top:6px;line-height:1.45}
+  .co-real .co-dde .co-av.co-logo{width:30px;height:30px;font-size:12px}
+  .co-real .co-dcab .co-clasif{margin:6px 0 0;padding:0;background:none;border:0;font-size:12.5px;line-height:1.5;color:var(--tinta-suave)}
+  .co-real .co-par{gap:10px}
+  .co-real .co-msg{padding:12px 16px}
+  .co-real .cr-hilo{gap:10px}
+  @media(max-width:1280px){ .co-real .co-top{flex-wrap:wrap} .co-real .cr-cifras{order:3;width:100%} }
   .cr-firma{margin-top:14px;padding-top:10px;border-top:1px dashed var(--linea);font-size:13px;line-height:1.5;color:var(--tinta-suave)}
   .cr-firma span{font-size:12px;color:var(--gris)}
   .cr-acc a.cbtn{text-decoration:none}
@@ -2111,7 +2133,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-18d · firma con el aviso de IA; idealista: Copiar respuesta y Abrir en idealista; «Intervención equipo» y remitentes de la web e idealista; sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
+const VERSION = '2026-11-18e · más espacio para leer el correo; Abrir en idealista abre la conversación; firma con el aviso de IA; idealista: Copiar respuesta y Abrir en idealista; «Intervención equipo» y remitentes de la web e idealista; sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3768,9 +3790,29 @@ const crFirmaHTML = () => { const [a, b] = crFirma().split('\n'); return `<div c
 /* Idealista (18/11, decisión del usuario): se contesta desde el chat de
    idealista, no por correo. El panel da «Copiar respuesta» (con el enlace
    de reserva de verdad en vez de la marca [[VISITA:…]], de
-   mt_correo_panel_buzones.visitas, SQL 98) y «Abrir en idealista» (la
-   bandeja de idealista/tools: el correo no trae el enlace a la conversación). */
-const CR_IDEALISTA_INBOX = 'https://www.idealista.com/tools/inbox';
+   mt_correo_panel_buzones.visitas, SQL 98) y «Abrir en idealista».
+   18/11 (la bandeja /tools/inbox daba error): «Abrir en idealista» abre la
+   conversación de ESA persona con el enlace «Responder desde idealista/tools»
+   del propio correo, que el flujo «[MT] Correo · Enlace» lee del buzón
+   (solo lectura, SQL 100; lo encuentra aunque el equipo lo haya borrado). */
+const N8N_ENLACE = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/enlace';
+async function crAbrirPortal(mensajeId){
+  // La pestaña se abre YA (si no, el navegador la bloquea) y luego se le pone la dirección.
+  const v = window.open('', '_blank');
+  try {
+    if (v) v.document.write('<p style="font:16px sans-serif;padding:24px">Abriendo la conversación en idealista…</p>');
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) throw new Error('Vuelve a entrar en el panel.');
+    const r = await fetch(`${N8N_ENLACE}?m=${encodeURIComponent(mensajeId)}`, { headers:{ 'Authorization':'Bearer ' + token } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !/^https:\/\/([a-z0-9-]+\.)*(idealista\.com|fotocasa\.es|habitaclia\.com|pisos\.com)\//i.test(j.url || '')) throw new Error(j.error || 'No se ha encontrado el enlace.');
+    if (v){ v.opener = null; v.location.replace(j.url); } else window.open(j.url, '_blank', 'noopener');
+  } catch (e) {
+    try { v?.close(); } catch {}
+    coAviso('No se ha podido abrir la conversación en idealista: ' + (e.message || 'error') + ' También se le puede contestar respondiendo a su correo.');
+  }
+}
 function crTextoCopiar(bo){
   const vis = CO.real?.visitas || {};
   return (crCuerpo(bo?.texto)
@@ -4025,7 +4067,7 @@ function crDetalle(h, enVentana){
             ${crFotos(bo)}
             ${p.via === 'idealista' ? `<div class="cr-acc">
               <button class="cbtn" type="button" data-cr="copiar" data-id="${esc(h.id)}">Copiar respuesta</button>
-              <a class="cbtn sec" href="${CR_IDEALISTA_INBOX}" target="_blank" rel="noopener">Abrir en idealista</a>
+              <button class="cbtn sec" type="button" data-cr="abrirportal" data-m="${esc(crPrimero(h).id || '')}">Abrir en idealista</button>
               <span class="co-para">Pégala en el chat de ${esc(p.nombre)} en idealista${(bo.fotos || []).length ? ' y adjunta allí las fotos' : ''}.</span>
             </div>` : ''}
           </section>
@@ -4179,17 +4221,17 @@ function coPintarReal(){
         <div class="rangos co-tabs" role="tablist">
           ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}${k === 'mejorar' && pend ? ` <span class="navn">${pend}</span>` : ''}</button>`).join('')}
         </div>
+        ${enBandeja ? `<div class="co-cifras cr-cifras">
+          <span><b>${hoy}</b> hoy</span>
+          <span><b class="az">${crEnCarpeta('nuevos').length}</b> nuevos clientes</span>
+          <span><b>${crEnCarpeta('_prop').length}</b> con respuesta propuesta</span>
+        </div>` : ''}
         <div class="co-ctrl">
+          <span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>
           ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
             <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
         </div>
       </div>
-      ${enBandeja ? `<div class="co-cifras">
-        <span><b>${hoy}</b> han entrado hoy</span>
-        <span><b class="az">${crEnCarpeta('nuevos').length}</b> nuevos clientes</span>
-        <span><b>${crEnCarpeta('_prop').length}</b> con respuesta propuesta</span>
-        <span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>
-      </div>` : ''}
       <div id="cocuerpo" class="co-cuerpo">${enBandeja ? crBandeja() : CO.realTab === 'mejorar' ? crMejorar() : crConfiguracion()}</div>
     </div>`;
   if (misma){
@@ -4243,6 +4285,7 @@ if (!window.__crOyentes){
       if (!coLector()) crAbrirVentana(el.dataset.id);
       return;
     }
+    if (que === 'abrirportal') return crAbrirPortal(el.dataset.m);
     if (que === 'copiar'){
       const h = (CO.real.hilos || []).find(x => x.id === el.dataset.id);
       const ok = h?.borrador ? await crCopiar(crTextoCopiar(h.borrador)) : false;
