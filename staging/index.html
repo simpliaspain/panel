@@ -1468,6 +1468,11 @@
   .co-bandeja.co-ladov{grid-template-columns:256px minmax(260px,320px) minmax(0,1fr)}
   .co-carps{overflow-x:hidden}
   .co-carp{min-width:0}
+  /* 18/11 noche · Idealista: lista y correo, sin columna de carpetas. */
+  .co-bandeja.cr-sincarps{grid-template-columns:minmax(300px,420px) minmax(0,1fr)}
+  .co-bandeja.cr-sincarps.co-ladov{grid-template-columns:minmax(260px,340px) minmax(0,1fr)}
+  .cr-ideal .cr-sub{font-size:13px;color:var(--tinta-suave);margin:0}
+  @media(max-width:1099px){ .co-bandeja.cr-sincarps,.co-bandeja.cr-sincarps.co-ladov{grid-template-columns:minmax(0,1fr)} }
   .co-cnomb{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35;overflow-wrap:anywhere}
 
   /* Correo abierto: cabecera, y el correo y la respuesta cada uno en su caja. */
@@ -2118,6 +2123,7 @@
       <button class="on" data-v="latido">Latido</button>
       <button data-v="convs">Conversaciones</button>
       <button data-v="correo" hidden>Correo <span class="navn" id="navcorreo" hidden></span></button>
+      <button data-v="idealista" hidden>Idealista</button>
       <button data-v="embudo">Embudo</button>
       <button data-v="agenda">Agenda</button>
       <button data-v="ajustes">Configuración</button>
@@ -2565,7 +2571,10 @@ function irA(v){
   if (v === 'convs')  return pintarConvs();
   if (v === 'embudo') return CO.embudoCanal === 'correo' && correoPermitido() && CO_MAQUETA ? pintarEmbudoCorreo() : pintarEmbudo();
   if (v === 'agenda') return pintarAgenda();
+  // Al pasar de Correo a Idealista (o al revés) la búsqueda empieza de cero.
+  if ((v === 'correo' || v === 'idealista') && CO.realVista !== v){ CO.realBusca = ''; CO.realVista = v; }
   if (v === 'correo' && correoPermitido()) return pintarCorreo();
+  if (v === 'idealista' && correoPermitido()) return pintarIdealista();
   if (v === 'cuentas') return pintarCuentas();
   return pintarAjustes();
 }
@@ -2884,8 +2893,7 @@ CO.usuarios = {
 };
 CO.avisos = ['roberto@oficinasya.es'];
 function correoAcceso(){
-  const b = document.querySelector('nav button[data-v="correo"]');
-  if (b) b.hidden = !correoPermitido();
+  for (const v of ['correo', 'idealista']){ const b = document.querySelector(`nav button[data-v="${v}"]`); if (b) b.hidden = !correoPermitido(); }
   CO.cliente = esSimplia() ? (CO.cliente || 'oficinasya') : TENANT?.slug;
   coLeerVista();
   coBadge();
@@ -3246,7 +3254,7 @@ function coRefrescar(manual){
   if (CO.real){
     coCargarReal().then(() => {
       ULTIMA = Date.now(); pintarCuando();
-      if (VISTA === 'correo' && !escribiendo()) CO.real ? coPintarReal() : pintarCorreo();
+      if (crVistaReal() && !escribiendo()) CO.real ? coPintarReal() : crEnIdealista() ? pintarIdealista() : pintarCorreo();
     });
     return;
   }
@@ -3985,14 +3993,22 @@ function crHora(f){
   if (d.toDateString() === ayer.toDateString()) return 'ayer';
   return d.toLocaleDateString('es-ES', { day:'numeric', month:'short' });
 }
-const crEnCarpeta = id => (CO.real?.hilos || []).filter(h => crCarpetaDe(h) === id);
+/* 18/11 noche · Idealista en su propio apartado (pedido del usuario): sus
+   correos salen allí y no en Correo. Los dos usan los mismos datos. */
+const crEsIdealista = h => crPersona(h).via === 'idealista';
+const crEnIdealista = () => VISTA === 'idealista';
+const crVistaReal = () => VISTA === 'correo' || VISTA === 'idealista';
+// En la lista de correos (no en Configuración): Correo › Bandeja o Idealista.
+const crEnLista = () => crEnIdealista() || (VISTA === 'correo' && CO.realTab === 'bandeja');
+const crHilos = () => (CO.real?.hilos || []).filter(h => crEsIdealista(h) === crEnIdealista());
+const crEnCarpeta = id => (CO.real?.hilos || []).filter(h => !crEsIdealista(h) && crCarpetaDe(h) === id);
 function crBuscar(lista){
   const q = coNorm(CO.realBusca || '').trim();
   if (!q) return lista;
   return lista.filter(h => coNorm([h.asunto, h.motivo, crPersona(h).nombre, ...(h.mensajes || []).flatMap(m => [m.de, m.reply_to, m.texto])].join(' ')).includes(q));
 }
 // La lista: la de la carpeta o, si se busca, en todas.
-const crLista = () => crBuscar(CO.realBusca?.trim() ? (CO.real?.hilos || []) : crEnCarpeta(CO.realCarpeta));
+const crLista = () => crBuscar(CO.realBusca?.trim() || crEnIdealista() ? crHilos() : crEnCarpeta(CO.realCarpeta));
 
 // Todas las carpetas, siempre (también vacías). Sin descripciones al pasar el puntero.
 function crCarpetas(){
@@ -4008,25 +4024,29 @@ function crFila(h){
   // «Respuesta propuesta»: casi todos los nuevos clientes la llevaban).
   if (crParaEquipo(h)) eti.push('<span class="pill rj">Para el equipo</span>');
   // Al buscar, la carpeta. Máximo dos etiquetas: el asunto se tiene que leer.
-  if (CO.realBusca?.trim() && eti.length < 2)
+  if (CO.realBusca?.trim() && !crEnIdealista() && eti.length < 2)
     eti.push(`<span class="pill nt">${esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>`);
+  // En Idealista sobra «vía idealista» y el asunto largo del aviso: solo la referencia del anuncio.
+  const ideal = crEnIdealista(), ref = ideal && (String(h.asunto || '').match(/referencia\s*:?\s*([\w-]+)/i) || [])[1];
+  const asunto = ideal ? (ref ? `Anuncio ${ref}` : 'Mensaje en idealista') : h.asunto || '(sin asunto)';
   return `<div class="co-fila ${CO.realAbierto === h.id && coLector() ? 'on' : ''} ${crEsNuevo(h) ? 'nuevo' : ''}" tabindex="0" role="option" aria-selected="${CO.realAbierto === h.id}"
       data-cr="abrir" data-id="${esc(h.id)}">
       <span class="co-av co-logo" aria-hidden="true"><span>${esc(p.nombre.charAt(0).toUpperCase() || '?')}</span></span>
       <div class="co-fcuerpo">
-        <div class="co-l1"><span class="co-de" title="${esc(p.email || p.responder || '')}">${esc(p.nombre)}${p.via ? `<span class="cr-via"> · vía ${esc(p.via)}</span>` : ''}</span><span class="co-hora">${esc(crHora(h.ultimo_en))}</span></div>
-        <div class="co-l2"><span class="co-asunto">${esc(h.asunto || '(sin asunto)')}</span>${eti.length ? `<span class="co-etis">${eti.join('')}</span>` : ''}</div>
+        <div class="co-l1"><span class="co-de" title="${esc(p.email || p.responder || '')}">${esc(p.nombre)}${p.via && !ideal ? `<span class="cr-via"> · vía ${esc(p.via)}</span>` : ''}</span><span class="co-hora">${esc(crHora(h.ultimo_en))}</span></div>
+        <div class="co-l2"><span class="co-asunto">${esc(asunto)}</span>${eti.length ? `<span class="co-etis">${eti.join('')}</span>` : ''}</div>
       </div></div>`;
 }
 function crListaCab(){
   const buscando = !!CO.realBusca?.trim();
   const c = CR_CARPETAS.find(k => k.id === CO.realCarpeta);
-  const titulo = buscando ? 'Resultados en todas las carpetas' : c?.nombre || '';
+  const titulo = crEnIdealista() ? (buscando ? 'Resultados' : 'Mensajes') : buscando ? 'Resultados en todas las carpetas' : c?.nombre || '';
   return `<div class="co-lcab"><h3>${esc(titulo)}</h3><span class="co-para">${crLista().length}</span>
     ${buscando ? '<button class="co-editar co-blimpiar" data-cr="blimpiar">Quitar búsqueda</button>' : ''}</div>`;
 }
 const crListaFilas = () => { const l = crLista(); if (l.length) return l.map(crFila).join('');
   if (CO.realBusca?.trim()) return '<div class="vacio">Nada coincide con la búsqueda.</div>';
+  if (crEnIdealista()) return '<div class="vacio">Todavía no hay mensajes de idealista.</div>';
   const c = CR_CARPETAS.find(k => k.id === CO.realCarpeta);
   return `<div class="vacio">No hay correos en «${esc(c?.nombre || '')}».${c?.que ? `<br><span class="co-para">Aquí van: ${esc(c.que.charAt(0).toLowerCase() + c.que.slice(1))}</span>` : ''}</div>`; };
 // Al escribir en el buscador se repinta solo la lista: no pierde el foco.
@@ -4102,13 +4122,14 @@ function crBandeja(){
   // En el ordenador siempre hay uno abierto a la derecha.
   if (coLector() && !lista.some(h => h.id === CO.realAbierto)) CO.realAbierto = lista[0]?.id ?? null;
   const abierto = (CO.real.hilos || []).find(h => h.id === CO.realAbierto);
+  const ideal = crEnIdealista(), ph = ideal ? 'Buscar en idealista' : 'Buscar en el correo';
   return `
-    <div class="co-bandeja ${CO.vista === 'lado' && abierto?.borrador ? 'co-ladov' : ''}">
-      <div class="panel co-carps" role="list" aria-label="Carpetas">${crCarpetas()}</div>
+    <div class="co-bandeja ${ideal ? 'cr-sincarps' : ''} ${CO.vista === 'lado' && abierto?.borrador ? 'co-ladov' : ''}">
+      ${ideal ? '' : `<div class="panel co-carps" role="navigation" aria-label="Carpetas">${crCarpetas()}</div>`}
       <div class="panel co-lista">
         <div class="co-lbusca"><div class="co-bwrap">
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <input id="crbusca" type="search" value="${esc(CO.realBusca || '')}" placeholder="Buscar en el correo" aria-label="Buscar en el correo" autocomplete="off" spellcheck="false" data-cr="busca">
+          <input id="crbusca" type="search" value="${esc(CO.realBusca || '')}" placeholder="${ph}" aria-label="${ph}" autocomplete="off" spellcheck="false" data-cr="busca">
         </div></div>
         ${crListaCab()}
         <div class="co-lscroll">${crListaFilas()}</div>
@@ -4232,7 +4253,49 @@ function crConfiguracion(){
   }).join('');
 }
 
+// Idealista: los mismos datos que Correo; si aún no están, se piden.
+function pintarIdealista(){
+  if (VISTA !== 'idealista') return;
+  document.documentElement.style.setProperty('--cohdr', ($('header')?.offsetHeight || 63) + 'px');
+  if (!CO.cliente) CO.cliente = esSimplia() ? 'oficinasya' : TENANT?.slug;
+  if (CO.real && CO.real.slug === crSlug()) return coPintarReal();
+  const aviso = t => { $('#vista').innerHTML = `<div class="correo co-real cr-ideal"><div class="co-top"><h2 class="tit">Idealista</h2></div><div class="panel"><div class="vacio">${t}</div></div></div>`; };
+  aviso(CO.realEstado === 'error' ? '<strong>No se ha podido cargar.</strong><br>Vuelve a entrar en la pestaña en un momento.' : 'Cargando…');
+  if (CO.realPedidoPara === crSlug() && CO.realEstado === 'cargando') return;
+  CO.realPedidoPara = crSlug(); CO.realEstado = 'cargando';
+  coCargarReal().then(ok => { if (VISTA !== 'idealista') return; ok ? coPintarReal()
+    : aviso(CO.realEstado === 'error' ? '<strong>No se ha podido cargar.</strong><br>Vuelve a entrar en la pestaña en un momento.'
+      : 'Esta empresa aún no tiene un buzón de correo conectado. Cuando lo esté, aquí saldrán los mensajes de idealista.'); });
+}
+function crPintarIdealista(){
+  const misma = CO.realPintadoTab === 'idealista', sitio = {};
+  if (misma) for (const s of ['.co-lscroll', '.co-lector']){ const el = $(s); if (el) sitio[s] = el.scrollTop; }
+  const ventanaY = scrollY;
+  $('#vista').innerHTML = `
+    <div class="correo co-real co-bandeja-v cr-ideal">
+      <div class="co-top">
+        <div><h2 class="tit">Idealista</h2>
+          <p class="cr-sub">La respuesta que daría el asistente a cada mensaje. Se copia y se pega en el chat de idealista.</p></div>
+        <div class="co-ctrl">
+          <button type="button" class="cr-ayuda" data-cr="atajos" title="Atajos de teclado (?)" aria-label="Atajos de teclado">?</button>
+          ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
+            <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
+        </div>
+      </div>
+      <div id="cocuerpo" class="co-cuerpo">${crBandeja()}</div>
+    </div>`;
+  if (misma) for (const [k, y] of Object.entries(sitio)){
+    if (k === '.co-lector' && CO.realPintado !== CO.realAbierto) continue;
+    const el = $(k); if (el) el.scrollTop = y;
+  }
+  if (scrollY !== ventanaY) scrollTo(0, ventanaY);
+  CO.realPintado = CO.realAbierto;
+  CO.realPintadoTab = 'idealista';
+  crCargarFotos();
+}
+
 function coPintarReal(){
+  if (crEnIdealista()) return crPintarIdealista();
   if (!['bandeja', 'mejorar', 'ajustes'].includes(CO.realTab)) CO.realTab = 'bandeja';
   const enBandeja = CO.realTab === 'bandeja';
   // La pantalla no se mueve al repintar: listas y correo abierto vuelven a donde estaban.
@@ -4240,7 +4303,7 @@ function coPintarReal(){
   const sitio = {};
   if (misma) for (const s of ['#cocuerpo', '.co-lscroll', '.co-carps', '.co-lector']){ const el = $(s); if (el) sitio[s] = el.scrollTop; }
   const ventanaY = scrollY;
-  const hs = CO.real.hilos || [];
+  const hs = crHilos();
   const hoy = hs.filter(h => h.primer_recibido_en && new Date(h.primer_recibido_en).toDateString() === new Date().toDateString()).length;
   const pend = (CO.real.mejorar?.datos || []).filter(f => !f.estado || f.estado === 'vuelve').length;
   const tabs = [['bandeja', 'Bandeja'], ['mejorar', 'Mejoras'], ['ajustes', 'Configuración']];
@@ -4254,7 +4317,7 @@ function coPintarReal(){
         ${enBandeja ? `<div class="co-cifras cr-cifras">
           <span><b>${hoy}</b> hoy</span>
           <span><b class="az">${crEnCarpeta('nuevos').length}</b> nuevos clientes</span>
-          <span><b>${(CO.real.hilos || []).filter(crParaEquipo).length}</b> para el equipo</span>
+          <span><b>${hs.filter(crParaEquipo).length}</b> para el equipo</span>
         </div>` : ''}
         <div class="co-ctrl">
           <span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>
@@ -4385,7 +4448,9 @@ function crSeVa(el){
     CO.realTab = 'bandeja'; CO.realBusca = '';
     const hv = (CO.real?.hilos || []).find(x => x.id === b.dataset.crav);
     if (hv){ CO.realCarpeta = crCarpetaDe(hv); CO.realAbierto = hv.id; crMarcarVisto(hv.id); } else CO.realCarpeta = 'nuevos';
-    if (VISTA !== 'correo') await irA('correo'); else coPintarReal();
+    // Los de idealista se abren en su apartado.
+    const destino = hv && crEsIdealista(hv) ? 'idealista' : 'correo';
+    if (VISTA !== destino) await irA(destino); else coPintarReal();
     if (b.dataset.crav && !coLector()) crAbrirVentana(b.dataset.crav);
   });
 }
@@ -4403,7 +4468,7 @@ async function crSondear(){
       if (CO.realPedidoPara === slug && CO.realEstado === 'cargando') return;
       CO.realPedidoPara = slug; CO.realEstado = 'cargando';
       await coCargarReal();
-      if (VISTA === 'correo') pintarCorreo();
+      if (VISTA === 'correo') pintarCorreo(); else if (VISTA === 'idealista') pintarIdealista();
       return;
     }
     const { data, error } = await supabase.rpc('mt_correo_panel', { p_slug: slug, p_desde: new Date(Date.now() - 3 * 3600e3).toISOString() });
@@ -4420,7 +4485,7 @@ async function crSondear(){
     }
     if (!cambio) return;
     CO.real.hilos = [...porId.values()].sort((a, b) => new Date(b.ultimo_en || b.primer_recibido_en || 0) - new Date(a.ultimo_en || a.primer_recibido_en || 0));
-    if (VISTA === 'correo' && CO.realTab === 'bandeja' && !escribiendo() && $('#modal').style.display !== 'block') coPintarReal();
+    if (crEnLista() && !escribiendo() && $('#modal').style.display !== 'block') coPintarReal();
     crAvisar(avisos);
   } catch { /* la siguiente vuelta */ }
   finally { CR_SONDEANDO = false; }
@@ -4475,7 +4540,7 @@ document.addEventListener('keydown', e => {
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ e.preventDefault(); e.stopImmediatePropagation(); crVisor(CR_VISOR.imgs, CR_VISOR.i + (e.key === 'ArrowRight' ? 1 : -1)); }
     return;
   }
-  if (VISTA !== 'correo' || !CO.real || CO.realTab !== 'bandeja' || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (!crEnLista() || !CO.real || e.ctrlKey || e.metaKey || e.altKey) return;
   if (escribiendo()){
     if (e.key === 'Escape' && e.target?.id === 'crbusca'){ e.preventDefault(); if (CO.realBusca){ CO.realBusca = ''; e.target.value = ''; crPintarLista(); } else e.target.blur(); }
     return;
@@ -4508,7 +4573,7 @@ if (!window.__crOyentes){
   window.__crOyentes = true;
   document.addEventListener('click', async e => {
     const el = e.target.closest?.('[data-cr]');
-    if (!el || VISTA !== 'correo' || !CO.real) return;
+    if (!el || !crVistaReal() || !CO.real) return;
     const que = el.dataset.cr;
     if (que === 'tab'){ CO.realTab = el.dataset.v; return coPintarReal(); }
     if (que === 'carp'){ CO.realCarpeta = el.dataset.id; CO.realBusca = ''; CO.realAbierto = null; return coPintarReal(); }
@@ -4581,14 +4646,14 @@ if (!window.__crOyentes){
   });
   // Buscador: repinta solo la lista, sin perder el foco.
   document.addEventListener('input', e => {
-    if (e.target?.dataset?.cr !== 'busca' || VISTA !== 'correo' || !CO.real) return;
+    if (e.target?.dataset?.cr !== 'busca' || !crVistaReal() || !CO.real) return;
     CO.realBusca = e.target.value;
     crPintarLista();
   });
   // Teclado en la lista: Intro abre; ↑ y ↓ pasan al anterior o al siguiente.
   document.addEventListener('keydown', e => {
     const f = e.target?.closest?.('.co-real .co-fila[data-cr="abrir"]');
-    if (!f || VISTA !== 'correo' || !CO.real) return;
+    if (!f || !crVistaReal() || !CO.real) return;
     if (e.key === 'Enter'){ e.preventDefault(); f.click(); return; }
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     e.preventDefault(); e.stopPropagation();
@@ -4607,9 +4672,9 @@ if (!window.__crOyentes){
       : (e.target.checked ? 'Sonidos encendidos.' : 'Sonidos apagados.'));
   });
   document.addEventListener('change', async e => {
-    if (e.target?.dataset?.cr !== 'cliente' || VISTA !== 'correo') return;
+    if (e.target?.dataset?.cr !== 'cliente' || !crVistaReal()) return;
     CO.cliente = e.target.value; CO.realAbierto = null; CO.real = null; CO.realPedidoPara = null;
-    pintarCorreo();
+    crEnIdealista() ? pintarIdealista() : pintarCorreo();
   });
 }
 
