@@ -1984,6 +1984,8 @@
   .cr-equipo .co-para{margin:6px 0 0}
   .co-carp .pt.eq{background:var(--coral, #e5684a)}
   .cr-via{font-weight:500;color:var(--gris)}
+  .cr-acc{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--linea)}
+  .cr-acc a.cbtn{text-decoration:none}
   .co-msg.cr-env{background:var(--fondo-hueco)}
   .co-msg.cr-cmp .cr-ver{margin:0 0 8px}
   .cr-cifbtn{font:inherit;font-size:13px;color:var(--gris);background:none;border:0;padding:0;cursor:pointer;text-align:left}
@@ -2107,7 +2109,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-18b · «Intervención equipo» y remitentes de la web e idealista; sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
+const VERSION = '2026-11-18c · idealista: Copiar respuesta y Abrir en idealista; «Intervención equipo» y remitentes de la web e idealista; sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3748,6 +3750,28 @@ async function crCargarFotos(){
 }
 const crBorrador = t => coParrafos(t).replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi,
   (_m, c) => `<span class="pill az" title="Al enviar, aquí va el enlace de reserva de visita de ese centro">Enlace para reservar la visita · ${c.replace(/-/g, ' ')}</span>`);
+/* Idealista (18/11, decisión del usuario): se contesta desde el chat de
+   idealista, no por correo. El panel da «Copiar respuesta» (con el enlace
+   de reserva de verdad en vez de la marca [[VISITA:…]], de
+   mt_correo_panel_buzones.visitas, SQL 98) y «Abrir en idealista» (la
+   bandeja de idealista/tools: el correo no trae el enlace a la conversación). */
+const CR_IDEALISTA_INBOX = 'https://www.idealista.com/tools/inbox';
+function crTextoCopiar(bo){
+  const vis = CO.real?.visitas || {};
+  return String(bo?.texto || '')
+    .replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi, (_m, c) => vis[String(c).trim().toLowerCase()] || '')
+    .replace(/\[\[[^\]]*\]\]/g, '')
+    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+async function crCopiar(texto){
+  try { await navigator.clipboard.writeText(texto); return true; }
+  catch (e) {
+    const t = document.createElement('textarea'); t.value = texto; t.setAttribute('readonly', '');
+    t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+    t.remove(); return ok;
+  }
+}
 
 async function coCargarReal(){
   const slug = crSlug();
@@ -3983,6 +4007,11 @@ function crDetalle(h, enVentana){
               <button class="co-editar" data-cr="irmejorar">Ver cómo añadirlo</button></div>` : ''}
             <div class="co-orig">${crBorrador(bo.texto)}</div>
             ${crFotos(bo)}
+            ${p.via === 'idealista' ? `<div class="cr-acc">
+              <button class="cbtn" type="button" data-cr="copiar" data-id="${esc(h.id)}">Copiar respuesta</button>
+              <a class="cbtn sec" href="${CR_IDEALISTA_INBOX}" target="_blank" rel="noopener">Abrir en idealista</a>
+              <span class="co-para">Pégala en el chat de ${esc(p.nombre)} en idealista${(bo.fotos || []).length ? ' y adjunta allí las fotos' : ''}.</span>
+            </div>` : ''}
           </section>
         </div>` : h.tipo === 'comercial' && !h.a_persona ? '<p class="co-para">El asistente todavía no ha preparado su respuesta.</p>' : ''}
       </div>
@@ -4197,6 +4226,11 @@ if (!window.__crOyentes){
       $(`#cocuerpo .co-fila[data-id="${CSS.escape(el.dataset.id)}"]`)?.scrollIntoView({ block:'center' });
       if (!coLector()) crAbrirVentana(el.dataset.id);
       return;
+    }
+    if (que === 'copiar'){
+      const h = (CO.real.hilos || []).find(x => x.id === el.dataset.id);
+      const ok = h?.borrador ? await crCopiar(crTextoCopiar(h.borrador)) : false;
+      return coAviso(ok ? 'Respuesta copiada. Ábrela en idealista y pégala en el chat de esa persona.' : 'No se ha podido copiar: selecciona el texto y cópialo a mano.');
     }
     if (que === 'irmejorar'){ if ($('#modal').style.display === 'block') cerrar(); CO.realTab = 'mejorar'; return coPintarReal(); }
     if (que === 'falta'){
