@@ -2190,7 +2190,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-20a · «WhatsApp» en vez de «Conversaciones», cabecera compacta; Idealista sin naranja';
+const VERSION = '2026-11-20b · todos los correos en sus carpetas; el texto de los no comerciales se lee del buzón al abrirlos';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3803,6 +3803,7 @@ async function crCargarAdjuntos(){
 
 async function crCargarFotos(){
   crCargarAdjuntos();
+  crCargarTextos();
   const imgs = [...document.querySelectorAll('img[data-crfoto]:not([src])')];
   if (!imgs.length) return;
   const { data } = await supabase.auth.getSession();
@@ -3906,12 +3907,40 @@ async function crCopiar(texto){
   }
 }
 
-// Sin los correos de los que no se guarda el texto (16/11 noche) ni los mensajes vacíos sin imágenes.
-function crLimpiar(hilos){
-  const conTexto = m => !!String(m.texto || '').trim();
-  return (hilos || [])
-    .map(h => ({ ...h, mensajes: (h.mensajes || []).filter(m => conTexto(m) || crImagenesDe(m).length) }))
-    .filter(h => h.mensajes.some(conTexto));
+/* 20/11 (decisión del usuario, «leer del buzón»): salen TODOS los correos.
+   El texto de los no comerciales no se guarda: al abrirlos se pide a
+   «[MT] Correo · Texto», que lo lee del buzón del cliente (solo lectura) y
+   lo guarda 7 días en Redis. Antes (16/11) se ocultaban. */
+const crLimpiar = hilos => (hilos || []).filter(h => (h.mensajes || []).length);
+const CR_TEXTOS = new Map();   // mensaje → { texto } | { error } | null (pidiéndose)
+const N8N_TEXTO = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/texto';
+const crTextoDe = m => (m.texto != null && String(m.texto).trim()) ? m.texto : CR_TEXTOS.get(m.id)?.texto;
+function crTextoMsg(m){
+  const t = crTextoDe(m);
+  if (t != null && String(t).trim()) return `<div class="co-orig">${coParrafos(t)}</div>`;
+  const e = CR_TEXTOS.get(m.id);
+  if (e?.texto === '') return crImagenesDe(m).length ? '' : '<div class="co-orig co-para">(Este correo no trae texto.)</div>';
+  if (e?.error) return `<div class="co-orig co-para">No se ha podido leer el texto del buzón: ${esc(e.error)}</div>`;
+  return `<div class="co-orig co-para cr-txtcarga" data-crtxt="${esc(m.id)}" aria-busy="true">Leyendo el correo del buzón…</div>`;
+}
+// Pide al buzón los textos que faltan en lo que está en pantalla (uno a uno).
+async function crCargarTextos(){
+  const pend = [...new Set([...document.querySelectorAll('[data-crtxt]')].map(x => x.dataset.crtxt))].filter(id => !CR_TEXTOS.has(id));
+  if (!pend.length) return;
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+  if (!token) return;
+  for (const id of pend){
+    CR_TEXTOS.set(id, null);
+    try {
+      const r = await fetch(`${N8N_TEXTO}?m=${encodeURIComponent(id)}`, { headers:{ 'Authorization':'Bearer ' + token } });
+      const j = await r.json().catch(() => ({}));
+      CR_TEXTOS.set(id, r.ok && typeof j.texto === 'string' ? { texto: j.texto } : { error: j.error || 'error ' + r.status });
+    } catch (e) { CR_TEXTOS.set(id, { error: 'sin conexión' }); }
+    const m = (CO.real?.hilos || []).flatMap(h => h.mensajes || []).find(x => x.id === id);
+    document.querySelectorAll(`[data-crtxt="${CSS.escape(id)}"]`).forEach(el => {
+      const t = document.createElement('div'); t.innerHTML = crTextoMsg(m || { id }); el.replaceWith(...t.childNodes); });
+  }
 }
 async function coCargarReal(){
   const slug = crSlug();
@@ -4045,7 +4074,7 @@ const crEnCarpeta = id => (CO.real?.hilos || []).filter(h => !crEsIdealista(h) &
 function crBuscar(lista){
   const q = coNorm(CO.realBusca || '').trim();
   if (!q) return lista;
-  return lista.filter(h => coNorm([h.asunto, h.motivo, crPersona(h).nombre, ...(h.mensajes || []).flatMap(m => [m.de, m.reply_to, m.texto])].join(' ')).includes(q));
+  return lista.filter(h => coNorm([h.asunto, h.motivo, crPersona(h).nombre, ...(h.mensajes || []).flatMap(m => [m.de, m.reply_to, crTextoDe(m)])].join(' ')).includes(q));
 }
 // La lista: la de la carpeta o, si se busca, en todas.
 const crLista = () => crBuscar(CO.realBusca?.trim() || crEnIdealista() ? crHilos() : crEnCarpeta(CO.realCarpeta));
@@ -4195,7 +4224,7 @@ function crDetalle(h, enVentana){
           ${msgs.map(m => `<section class="co-msg ${m.sentido === 'enviado' ? 'cr-env' : ''}" aria-label="${m.sentido === 'enviado' ? 'Respuesta del equipo' : 'Correo recibido'}">
             ${msgs.length > 1 || m.sentido === 'enviado' ? `<div class="co-msgt">${m.sentido === 'enviado' ? 'Respondió el equipo' : 'Recibido'}
               <span class="co-msgq">${esc(crRemite(m.de).nombre)} · ${esc(crFecha(m.fecha))}</span></div>` : ''}
-            ${m.texto ? `<div class="co-orig">${coParrafos(m.texto)}</div>` : ''}
+            ${crTextoMsg(m)}
             ${crAdjuntosMsg(m)}
           </section>`).join('')}
         </div>
