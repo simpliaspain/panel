@@ -1475,13 +1475,8 @@
   /* Correo (azul) e Idealista (ámbar) se distinguen a primera vista: icono en
      el título, color del menú, borde de arriba de los paneles y fila abierta. */
   .cr-idtit{display:flex;align-items:center;gap:10px}
-  .cr-idico{width:34px;height:34px;border-radius:10px;display:inline-grid;place-items:center;flex:none;background:#FEF3C7;color:#B45309}
-  .cr-idico.cr-coico{background:#E5EFFE;color:var(--pulso)}
-  nav button[data-v="idealista"].on{color:#B45309;border-bottom-color:#F59E0B}
-  .cr-ideal .co-bandeja > .panel{border-top:3px solid #F59E0B}
-  .cr-ideal .co-fila.on{background:#FFFBEB;box-shadow:inset 3px 0 0 #F59E0B}
-  .cr-ideal .co-av{background:#FEF3C7;color:#B45309}
-  .cr-ideal .co-bwrap:focus-within{box-shadow:0 0 0 2px #F59E0B}
+  /* 20/11 (pedido del usuario): sin rayas ni detalles naranjas; solo el icono distingue una de otra. */
+  .cr-idico{width:34px;height:34px;border-radius:10px;display:inline-grid;place-items:center;flex:none;background:#E5EFFE;color:var(--pulso)}
   /* Respondido: en la cabecera del mensaje, a la derecha. */
   .cr-idestado{margin-left:auto;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
   .cr-resp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -1905,6 +1900,9 @@
      (foto, nombre y teléfono), las acciones de vez en cuando en «Más»,
      burbujas algo más compactas y la columna del chat más alta. */
   h2.convs-tit{margin-bottom:16px}
+  /* 20/11: la cabecera de WhatsApp, igual de compacta que la de Correo e Idealista. */
+  main:has(.convs-tit){padding-top:12px}
+  h2.tit.convs-tit{font-size:24px;line-height:1.1;margin:0 0 10px}
   .fbtn{display:inline-flex;align-items:center;gap:6px;background:var(--fondo);color:var(--tinta-suave);
         font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px}
   .fbtn:hover{color:var(--tinta)}
@@ -2143,7 +2141,7 @@
     <div class="marca">Simplia<span>Spain</span></div>
     <nav>
       <button class="on" data-v="latido">Latido</button>
-      <button data-v="convs">Conversaciones</button>
+      <button data-v="convs">WhatsApp</button>
       <button data-v="correo" hidden>Correo <span class="navn" id="navcorreo" hidden></span></button>
       <button data-v="idealista" hidden>Idealista</button>
       <button data-v="embudo">Embudo</button>
@@ -2192,7 +2190,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-18i · Idealista con aspecto propio y sin firma; marcar como respondido (SQL 107)';
+const VERSION = '2026-11-20a · «WhatsApp» en vez de «Conversaciones», cabecera compacta; Idealista sin naranja';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -5614,7 +5612,7 @@ function embDetalle(l){
     <!-- Desde el Embudo no se envía nada: se va a Correo, a Conversaciones o a la Agenda. -->
     <div class="co-acc emb-accesos">
       ${l.correoId ? `<button class="btn corto" data-co="eircorreo" data-id="${l.id}">${l.etapa === 'toca' ? 'Ver el seguimiento en Correo' : l.etapa === 'contesto' ? 'Responder en Correo' : 'Abrir en Correo'}</button>` : ''}
-      ${l.userRef ? `<button class="cbtn" data-co="econvs" data-id="${l.id}">Ver en Conversaciones</button>` : ''}
+      ${l.userRef ? `<button class="cbtn" data-co="econvs" data-id="${l.id}">Ver en WhatsApp</button>` : ''}
       ${l.visitaEn ? `<button class="cbtn" data-co="eagenda" data-id="${l.id}">Ver en la Agenda</button>` : ''}
     </div>
   </div>`;
@@ -7833,7 +7831,7 @@ async function pintarConvs(silencioso){
   ULTIMA = Date.now(); pintarCuando();
 
   if (error){
-    pintaEn(`<h2 class="tit">Conversaciones</h2><div class="panel">
+    pintaEn(`<h2 class="tit convs-tit">WhatsApp</h2><div class="panel">
       <div class="vacio">No se han podido cargar.<br>${esc(mensajeError(error))}</div>
     </div>`, silencioso);
     return;
@@ -7843,7 +7841,7 @@ async function pintarConvs(silencioso){
   if (turno !== TURNO_CONVS || VISTA !== 'convs') return;
 
   pintaEn(`
-    <h2 class="tit convs-tit">Conversaciones</h2>
+    <h2 class="tit convs-tit">WhatsApp</h2>
     <div class="convs2">
       <div class="panel" id="pconvs"></div>
       <div id="pdetalle" class="panel vacio-det">
