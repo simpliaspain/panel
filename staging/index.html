@@ -2136,72 +2136,65 @@
     clip:rect(0 0 0 0);white-space:nowrap;border:0}
   .vcab{min-height:0}
 
-  /* ---------- 20/11 · Actividad reciente por persona ---------- */
-  .act .cabpanel{margin-bottom:8px}
-  .act-grupo{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gris);margin:12px 0 6px;display:flex;gap:6px;align-items:center}
-  .act-grupo.eq{color:var(--rojo-texto, #B4372A)}
-  .act-lista{list-style:none;margin:0;padding:0;display:grid;gap:2px}
-  .act-lista li{display:flex;gap:12px;align-items:flex-start;padding:10px 10px;border-radius:12px;cursor:pointer}
-  .act-lista li:hover{background:var(--fondo)}
-  .act-lista li:focus-visible{outline:2px solid var(--pulso);outline-offset:-2px}
-  .act-lista li.act-eq{background:#FDF1EE}
-  .act-ini{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;
-           background:#E5EFFE;color:var(--pulso)}
-  .act-eq .act-ini{background:#F9DCD5;color:#B4372A}
-  .act-cuerpo{min-width:0;flex:1;display:grid;gap:3px}
-  .act-cab{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:14px}
-  .act-hora{margin-left:auto;font-size:11px;color:var(--gris);white-space:nowrap}
-  .act-txt{font-size:13px;color:var(--tinta-suave, #4a5568);line-height:1.45;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-  .act-ia{color:var(--gris);font-weight:600}
+  .feed .fcanal{color:var(--gris);font-weight:600}
+  .wa-orden{width:auto;display:inline-flex;margin-top:6px}
 
   /* ---------- 20/11 · Embudo en tablero ---------- */
-  .emb-barra{gap:8px 12px}
-  .emb-barra .rangos{width:auto}
+  /* Filtros en tres grupos con su nombre: Vista, Canal y Periodo. */
+  .emb-filtros{display:flex;align-items:flex-end;gap:12px 28px;flex-wrap:wrap;margin-bottom:16px}
+  .emb-grupo{display:grid;gap:4px}
+  .emb-get{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gris)}
+  .emb-grupo .rangos{width:auto;margin:0}
+  .emb-ebusca{margin-left:auto}
   .emb-n{font-size:11px;font-weight:700;color:var(--gris);margin-left:2px}
   .rg.on .emb-n{color:inherit;opacity:.8}
-  .emb-lcab{margin-bottom:12px}
-  .emb-arriba{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;margin-bottom:16px}
-  .emb-arriba .panel{margin:0}
-  .emb-hoy h3,.emb-num h3{margin-bottom:10px}
-  .emb-hoylista{display:grid;gap:8px}
-  .emb-hoyfila{display:flex;align-items:center;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;
-               padding:10px 12px;border:1px solid var(--linea);border-radius:12px;background:var(--fondo)}
-  .emb-hoytxt{display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap;min-width:0;font-size:14px}
-  .emb-hoytxt > span:last-child{flex-basis:100%;color:var(--tinta-suave, var(--gris));font-size:13px}
-  .emb-hoyacc{display:flex;gap:6px;flex-wrap:wrap}
-  .emb-hoyacc .cbtn.pri{background:var(--pulso);color:#fff;border-color:var(--pulso)}
-  .et-paso{display:grid;grid-template-columns:130px 1fr 48px 56px;align-items:center;gap:10px;padding:5px 0;font-size:13px}
-  .et-pt{color:var(--tinta-suave, var(--gris))}
-  .et-paso b{text-align:right;font-size:15px}
-  .et-pp{font-size:12px;color:var(--gris);text-align:right;white-space:nowrap}
-  .et-pbarra{height:8px;border-radius:99px;background:var(--fondo);overflow:hidden}
-  .et-pbarra span{display:block;height:100%;border-radius:99px;background:var(--pulso)}
-  .emb-busca{margin-bottom:12px}
+  /* El embudo en números: una franja de cinco casillas. */
+  .emb-num{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:0;margin-bottom:12px;overflow:hidden}
+  .et-paso{display:grid;gap:2px;padding:14px 16px;border-left:1px solid var(--linea);min-width:0}
+  .et-paso:first-child{border-left:0}
+  .et-paso b{font-size:24px;line-height:1.1}
+  .et-pt{font-size:13px;color:var(--tinta-suave, #4a5568)}
+  .et-pp{font-size:12px;color:var(--gris)}
+  .emb-ayuda{font-size:12px;color:var(--gris);margin:0 0 10px}
   .emb-cols{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:12px;overflow-x:auto;padding-bottom:8px}
-  .emb-col{background:var(--fondo);border:1px solid var(--linea);border-radius:14px;padding:10px;min-width:0;display:flex;flex-direction:column}
+  .emb-col{background:var(--fondo);border:1px solid var(--linea);border-radius:14px;padding:10px;min-width:0;display:flex;flex-direction:column;transition:border-color .15s, background .15s}
+  .emb-col.encima{border-color:var(--pulso);background:#EEF5FF}
   .emb-ccab{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 10px;font-size:13px}
   .emb-col-reservada .emb-ccab b{color:var(--verde-oscuro)}
-  .emb-tarjetas{display:grid;gap:8px;align-content:start}
+  .emb-tarjetas{display:grid;gap:8px;align-content:start;min-height:40px}
   .emb-tarjeta{display:grid;gap:4px;text-align:left;width:100%;background:var(--blanco);border:1px solid var(--linea);
-               border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;color:inherit}
+               border-radius:10px;padding:10px 12px;cursor:grab;color:inherit}
   .emb-tarjeta:hover{border-color:var(--pulso)}
   .emb-tarjeta:focus-visible{outline:2px solid var(--pulso);outline-offset:1px}
+  .emb-tarjeta.arrastra{opacity:.45}
   .emb-tnom{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .emb-tque{font-size:12px;color:var(--gris);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .emb-tpie{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .emb-thace{margin-left:auto;font-size:11px;color:var(--gris);white-space:nowrap}
+  .emb-mover{font:inherit;font-size:11px;font-weight:600;color:var(--pulso);background:none;border:1px solid var(--linea);
+             border-radius:8px;padding:2px 8px;cursor:pointer}
+  .emb-mover:hover{background:#EEF5FF;border-color:var(--pulso)}
   .emb-vacia{font-size:12px;color:var(--gris);margin:4px}
+  .emb-menu{position:fixed;z-index:80;min-width:190px;background:var(--blanco);border:1px solid var(--linea);border-radius:12px;
+            box-shadow:0 12px 32px rgba(10,31,74,.16);padding:6px;display:grid}
+  .emb-mtit{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gris);padding:6px 10px 4px}
+  .emb-menu button{font:inherit;font-size:14px;text-align:left;background:none;border:0;border-radius:8px;padding:8px 10px;cursor:pointer;color:inherit}
+  .emb-menu button:hover,.emb-menu button:focus-visible{background:var(--fondo);outline:none}
+  .emb-menu .emb-msolo{color:var(--gris);border-top:1px solid var(--linea);border-radius:0 0 8px 8px;margin-top:4px}
   .pill.emb-c-whatsapp{background:var(--verde-tenue);color:var(--verde-oscuro)}
   .pill.emb-c-correo{background:#E5EFFE;color:var(--azul-texto)}
   .pill.emb-c-idealista{background:var(--ambar-tenue);color:var(--ambar-texto)}
   @media(max-width:1000px){
-    .emb-arriba{grid-template-columns:1fr}
     .emb-cols{grid-template-columns:repeat(5,minmax(230px,80vw));scroll-snap-type:x mandatory}
     .emb-col{scroll-snap-align:start}
+    .emb-ebusca{margin-left:0;width:100%}
   }
-  @media(max-width:600px){
-    .emb-barra .rangos{width:100%;overflow-x:auto}
-    .et-paso{grid-template-columns:110px 1fr 40px 48px;gap:8px}
+  @media(max-width:700px){
+    .emb-num{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .et-paso:nth-child(4){border-left:0}
+    .et-paso:nth-child(n+4){border-top:1px solid var(--linea)}
+    .emb-grupo, .emb-grupo .rangos{width:100%}
+    .emb-grupo .rangos{overflow-x:auto}
   }
 </style>
 </head>
@@ -2286,7 +2279,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-20d · sin títulos de página, Embudo en tablero, Actividad reciente por persona, Configuración › WhatsApp';
+const VERSION = '2026-11-20e · Últimas conversaciones abajo como antes, Embudo con tarjetas que se mueven y filtros por grupos, orden de WhatsApp con botones';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -2439,7 +2432,7 @@ window.addEventListener('unhandledrejection', e => {
 const ESPERA_MAX = 18000;   // 20/11: el refresco pasa a 20 s
 const ESCRITURAS = new Set(['mt_apuntar_toque','mt_deshacer_evento','mt_editar_evento',
   'mt_guardar_lead','mt_mover_lead','mt_guardar_ajustes','mt_pausar','mt_reanudar',
-  'mt_excluir','mt_incluir','mt_guardar_parametros']);
+  'mt_excluir','mt_incluir','mt_guardar_parametros','mt_embudo_marcar']);
 // La librería no lanza cuando falla la red: devuelve status 0 y un
 // mensaje del navegador («Load failed» en el iPhone, «Failed to fetch»
 // en Chrome, «NetworkError» en Firefox).
@@ -6736,7 +6729,7 @@ async function datos(rango = RANGO){
 const LECTURAS_LATIDO = {
   convs:'las conversaciones', resumen:'el recuento de mensajes',
   porHora:'el cardiograma', lat:'el tiempo de respuesta',
-  reciente:'la actividad reciente', lugares:'servicios y zonas',
+  reciente:'las últimas conversaciones', lugares:'servicios y zonas',
   patron:'cuándo escriben', numeros:'tus números'
 };
 
@@ -6991,8 +6984,6 @@ function pintarLatidoCon(d, silencioso){
       ${tiempo}
     </div>
 
-    ${F.has('reciente') && !ACT_PERS ? sinDato('Actividad reciente') : seguro('Actividad reciente', () => bloqueActividad(d))}
-
     <div class="panel">
       <div class="cabpanel">
         <div>
@@ -7019,7 +7010,10 @@ function pintarLatidoCon(d, silencioso){
 
     ${F.has('patron') ? sinDato('Cuándo escriben') : seguro('Cuándo escriben', () => bloquePatron(d))}
 
-    ${F.has('lugares') ? sinDato('Mapa de demanda') : seguro('Mapa de demanda', () => bloqueMapa(d))}`, silencioso);
+    <div class="rejilla2">
+      ${F.has('lugares') ? sinDato('Mapa de demanda') : seguro('Mapa de demanda', () => bloqueMapa(d))}
+      ${F.has('reciente') && !ACT_PERS ? sinDato('Últimas conversaciones') : seguro('Últimas conversaciones', () => bloqueActividad(d))}
+    </div>`, silencioso);
 
   tramo('Mapa', () => {
     const hueco = document.getElementById('lmapa');
@@ -7049,14 +7043,14 @@ function pintarLatidoCon(d, silencioso){
 
   tramo('Actividad reciente', () => {
     // desde la actividad reciente se abre la conversación completa
-    document.querySelectorAll('.feed li[data-ir], .act-lista li[data-ir]').forEach(li => {
+    document.querySelectorAll('.feed li[data-ir]:not([data-acthilo])').forEach(li => {
       li.addEventListener('click', () => abrir(li.dataset.ir));
       li.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); abrir(li.dataset.ir); }
       });
     });
     // Correo e idealista: se abre ese correo en su pestaña.
-    document.querySelectorAll('.act-lista li[data-acthilo]').forEach(li => {
+    document.querySelectorAll('.feed li[data-acthilo]').forEach(li => {
       const ir = () => embAbrir('c' + li.dataset.acthilo);
       li.addEventListener('click', ir);
       li.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ir(); } });
@@ -7174,18 +7168,17 @@ function enlazarPlegables(){
 // a mano en mt_actividad. Doce líneas que empiezan todas igual no
 // dicen nada; con el nombre se reconoce la conversación de un
 // vistazo.
-/* ---------- Actividad reciente (20/11, pedido del usuario) ----------
-   Antes: los 12 últimos mensajes, casi siempre de una sola conversación.
-   Ahora: una fila por persona, de WhatsApp, correo e idealista juntos, con
-   su última frase y lo que pasó. Lo que necesita a alguien del equipo va
-   arriba y marcado. Al pulsar, se abre donde corresponda. */
-const ACT_MAX = 10;
+/* ---------- Últimas conversaciones (antes «Actividad reciente») ----------
+   20/11 noche (pedido del usuario): el diseño de siempre, abajo del todo
+   del Latido. Lo único que cambia: una fila por persona (su última frase)
+   en vez de los 12 últimos mensajes, que casi siempre eran de una sola
+   conversación; y entran también correo e idealista. */
+const ACT_MAX = 12;
 function actFilas(d){
   const filas = [];
-  // WhatsApp: mt_actividad_personas (SQL 111) o, si no ha llegado, lo de
-  // antes agrupado por persona.
   let wa = ACT_PERS;
   if (!wa){
+    // Sin SQL 111: lo de antes, agrupado por persona.
     const vistos = new Map();
     for (const m of d.reciente || []){
       if (!m.user_ref) continue;
@@ -7193,72 +7186,43 @@ function actFilas(d){
       if (!v) vistos.set(m.user_ref, { user_ref:m.user_ref, nombre:m.nombre, telefono:m.telefono, ultima:m.cuando, texto:m.contenido, papel:m.papel });
       else if (v.papel !== 'human' && m.papel === 'human'){ v.texto = m.contenido; v.papel = 'human'; }
     }
-    wa = [...vistos.values()].map(v => {
-      const c = (CONTACTOS || []).find(x => x.user_ref === v.user_ref) || {};
-      return { ...v, cita:c.cita, friccion:c.friccion, contacto:c.contacto, sin_respuesta:c.sin_respuesta };
-    });
+    wa = [...vistos.values()];
   }
-  for (const p of wa){
-    const que = p.atencion_en ? { t:'Pidió hablar con alguien', c:'rj', eq:true, por:p.atencion_motivo }
-      : p.friccion ? { t:'Tuvo un problema', c:'rj', eq:true }
-      : p.cita && new Date(p.cita) >= Date.now() ? { t:'Visita el ' + fechaCorta(p.cita), c:'vd' }
-      : p.contacto ? { t:'Dejó sus datos', c:'az' }
-      : p.sin_respuesta ? { t:'Sin respuesta', c:'am' } : null;
+  for (const p of wa)
     filas.push({ canal:'whatsapp', ir:p.user_ref, nombre:p.nombre || '', id:p.telefono || p.user_ref,
-      cuando:p.ultima, texto:p.texto || '', ia:p.papel !== 'human', que });
-  }
-  // Correo e idealista: lo que ya ha cargado el panel (clientes nuevos,
-  // clientes actuales, sin clasificar y lo que va a una persona).
+                 cuando:p.ultima, texto:p.texto || '', ia:p.papel !== 'human' });
   if (CO.real && CO.real.slug === crSlug()){
     for (const h of CO.real.hilos || []){
       if (!crAvisa(h) || crCarpetaDe(h) === 'enviados') continue;
       if (embDias(h.ultimo_en || h.primer_recibido_en) > 14) continue;
       const p = crPersona(h), ms = h.mensajes || [];
       const rec = [...ms].reverse().find(m => m.sentido === 'recibido') || ms[ms.length - 1] || {};
-      const eq = crParaEquipo(h);
-      const que = eq ? { t:'Necesita a alguien del equipo', c:'rj', eq:true, por:crEquipo(h)[0] || h.motivo }
-        : h.respondido ? { t:'Respondido', c:'nt' }
-        : h.borrador ? { t:'Respuesta preparada', c:'az' }
-        : crCarpetaDe(h) === 'nuevos' ? { t:'Cliente nuevo', c:'az' } : null;
       filas.push({ canal: crEsIdealista(h) ? 'idealista' : 'correo', hilo:h.id, nombre:p.nombre || '', id:p.email || '',
-        cuando:h.ultimo_en || h.primer_recibido_en, texto: rec.texto || h.motivo || h.asunto || '', ia:false, que });
+                   cuando:h.ultimo_en || h.primer_recibido_en, texto: rec.texto || h.motivo || h.asunto || '', ia:false });
     }
   }
-  filas.sort((a, b) => new Date(b.cuando || 0) - new Date(a.cuando || 0));
-  const equipo = filas.filter(f => f.que?.eq && embDias(f.cuando) <= 7);
-  const resto = filas.filter(f => !equipo.includes(f)).slice(0, Math.max(ACT_MAX - equipo.length, 5));
-  return { equipo, resto };
-}
-
-function filaActividad(f){
-  const t = limpiaMensaje(f.texto);
-  const corto = [...t].slice(0, 120).join('') + ([...t].length > 120 ? '…' : '');
-  const quien = f.nombre ? `<bdi>${esc(f.nombre)}</bdi>` : `<span class="mono">${esc(f.id || 'Sin nombre')}</span>`;
-  const attr = f.canal === 'whatsapp' ? `data-ir="${esc(f.ir)}"` : `data-acthilo="${esc(f.hilo)}"`;
-  return `<li ${attr} tabindex="0" role="button" class="${f.que?.eq ? 'act-eq' : ''}">
-    <span class="act-ini" aria-hidden="true">${esc((f.nombre || f.id || '?').trim().charAt(0).toUpperCase())}</span>
-    <span class="act-cuerpo">
-      <span class="act-cab"><b>${quien}</b>
-        <span class="pill emb-c-${f.canal}">${EMB_CANALES[f.canal]}</span>
-        ${f.que ? `<span class="pill ${f.que.c}"${f.que.por ? ` title="${esc(f.que.por)}"` : ''}>${esc(f.que.t)}</span>` : ''}
-        <span class="act-hora mono" title="${f.cuando ? esc(fecha(f.cuando)) : ''}">${f.cuando ? esc(desdeEntonces(f.cuando).txt) : ''}</span></span>
-      <span class="act-txt">${f.ia ? '<span class="act-ia">Asistente:</span> ' : ''}${esc(corto) || '<i>Sin texto</i>'}</span>
-    </span>
-  </li>`;
+  return filas.sort((a, b) => new Date(b.cuando || 0) - new Date(a.cuando || 0)).slice(0, ACT_MAX);
 }
 
 function bloqueActividad(d){
-  const { equipo, resto } = actFilas(d);
-  if (!equipo.length && !resto.length) return '';
-  return `<div class="panel act">
-    <div class="cabpanel"><div>
-      <h3>Actividad reciente</h3>
-      <p class="ph">Una fila por persona, de todos los canales. Pulsa para abrir la conversación.</p>
-    </div></div>
-    ${equipo.length ? `<div class="act-grupo eq">Necesitan a alguien del equipo <span class="mono">${equipo.length}</span></div>
-      <ul class="act-lista">${equipo.map(filaActividad).join('')}</ul>` : ''}
-    ${resto.length ? `${equipo.length ? '<div class="act-grupo">Lo último</div>' : ''}
-      <ul class="act-lista">${resto.map(filaActividad).join('')}</ul>` : ''}
+  const filas = actFilas(d);
+  if (!filas.length) return '';
+  return `<div class="panel">
+    <h3>Últimas conversaciones</h3>
+    <p class="ph">La última frase de cada persona, de la más reciente a la más antigua.</p>
+    <ul class="feed">
+      ${filas.map(f => {
+        const t = limpiaMensaje(f.texto);
+        const quien = f.nombre ? `<bdi>${esc(primerNombre(f.nombre))}</bdi>` : 'Cliente';
+        const pista = [f.nombre || f.id, f.canal !== 'whatsapp' ? EMB_CANALES[f.canal] : 'WhatsApp'].filter(Boolean).join(' · ');
+        const attr = f.canal === 'whatsapp' ? `data-ir="${esc(f.ir)}"` : `data-ir="" data-acthilo="${esc(f.hilo)}"`;
+        return `<li ${attr} tabindex="0" role="button">
+          <span class="fh mono" title="${f.cuando ? esc(fecha(f.cuando)) : ''}">${cuandoCorto(f.cuando)}</span>
+          <span class="fq" title="${esc(pista)}">${quien}</span>
+          <span class="ft">${f.canal !== 'whatsapp' ? `<span class="fcanal">${EMB_CANALES[f.canal]} · </span>` : ''}${f.ia ? '<span class="fcanal">Asistente: </span>' : ''}${esc([...t].slice(0, 90).join(''))}${[...t].length > 90 ? '…' : ''}</span>
+        </li>`;
+      }).join('')}
+    </ul>
   </div>`;
 }
 
@@ -8740,10 +8704,10 @@ async function pintarAjustes(silencioso){
     ${ver('whatsapp') ? `<div class="panel">
       <h3>Cómo se ve la pestaña WhatsApp</h3>
       <p class="ph">Se guarda en este navegador: cada persona del equipo lo deja a su gusto.</p>
-      <label for="waorden">Orden de la lista al entrar</label>
-      <select id="waorden" style="max-width:280px">
-        ${Object.entries(ORDENES).map(([k, o]) => `<option value="${k}" ${waPref('orden', 'reciente') === k ? 'selected' : ''}>${esc(o.etq)}</option>`).join('')}
-      </select>
+      <label id="waordenet">Orden de la lista al entrar</label>
+      <div class="rangos wa-orden" role="radiogroup" aria-labelledby="waordenet">
+        ${Object.entries(ORDENES).map(([k, o]) => `<button type="button" class="rg ${waPref('orden', 'reciente') === k ? 'on' : ''}" role="radio" aria-checked="${waPref('orden', 'reciente') === k}" data-waorden="${k}">${esc(o.etq)}</button>`).join('')}
+      </div>
       <div class="cr-prefs" style="margin-top:16px">
         <label class="co-interr"><input type="checkbox" data-wapref="abrir" ${waPref('abrir', true) ? 'checked' : ''}><span>Abrir la conversación más reciente al entrar<small>En el ordenador, la primera de la lista se abre sola a la derecha.</small></span></label>
         <label class="co-interr"><input type="checkbox" data-wapref="filtros" ${FILTROS_ABIERTOS ? 'checked' : ''}><span>Enseñar los filtros abiertos<small>Interés, Con cita, Sin respuesta… a la vista, sin pulsar «Filtros».</small></span></label>
@@ -8754,10 +8718,12 @@ async function pintarAjustes(silencioso){
     </div>`;
 
   // Preferencias de WhatsApp: se aplican al momento.
-  $('#waorden')?.addEventListener('change', e => {
-    waGuardar('orden', e.target.value); ORDEN = e.target.value;
+  document.querySelectorAll('[data-waorden]').forEach(b => b.addEventListener('click', () => {
+    waGuardar('orden', b.dataset.waorden); ORDEN = b.dataset.waorden;
+    document.querySelectorAll('[data-waorden]').forEach(x => {
+      x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b); });
     $('#msgwa').textContent = 'Guardado.';
-  });
+  }));
   document.querySelectorAll('[data-wapref]').forEach(c => c.addEventListener('change', () => {
     const k = c.dataset.wapref;
     if (k === 'filtros'){ FILTROS_ABIERTOS = c.checked; try { localStorage.setItem('convs_filtros', c.checked ? '1' : '0'); } catch {} }
@@ -9704,37 +9670,47 @@ function ordenLeads(a, b){
 
    El embudo de antes era una lista que había que trabajar a mano y nadie
    lo hacía (125 personas en OficinasYA, ninguna con una llamada, nota o
-   próxima acción apuntada). El tablero se mueve SOLO con lo que ya sabe
-   el sistema: quién dejó sus datos, quién tiene visita en Cal.com y
-   quién ya la hizo. Junta WhatsApp, correo e idealista.
+   próxima acción apuntada). El tablero coloca SOLO a cada persona con lo
+   que ya sabe el sistema (quién dejó sus datos, quién tiene visita en
+   Cal.com y quién ya la hizo) y junta WhatsApp, correo e idealista:
 
      Preguntó → Dio sus datos → Visita reservada → Visitó → Cerrado
 
-   Arriba, «Hoy toca» (como mucho 5 personas, con su botón) y el embudo
-   en números. Cerrar (cliente o perdido) se hace en la ficha, como antes.
+   20/11 noche: sin «Hoy toca»; el comercial puede mover a cualquiera
+   (arrastrando la tarjeta o con «Mover»), por ejemplo si le ha contactado
+   por otro sitio. Lo movido se guarda para todo el equipo (SQL 112,
+   mt_embudo_marcas) y manda sobre lo automático, salvo que después llegue
+   una visita futura. En WhatsApp también se cambia la etapa del lead
+   (mt_mover_lead), que queda en el historial de su ficha.
    ============================================================ */
 let EMB_MODO = (() => { try { return localStorage.getItem('emb_modo') === 'lista' ? 'lista' : 'tablero'; } catch { return 'tablero'; } })();
-let EMB_CITAS = [], EMB_CANAL = 'todos', EMB_PERIODO = 30, EMB_BUSCA = '', EMB_EXP = {};
+let EMB_CITAS = [], EMB_MARCAS = new Map(), EMB_CANAL = 'todos', EMB_PERIODO = 30, EMB_BUSCA = '', EMB_EXP = {};
 const EMB_COLS = [
   ['pregunto',  'Preguntó',         'Escribió y aún no ha dejado sus datos.'],
   ['datos',     'Dio sus datos',    'Dejó su correo o concretó lo que busca.'],
   ['reservada', 'Visita reservada', 'Tiene una visita en la agenda.'],
   ['visito',    'Visitó',           'Ya vino a ver el centro.'],
-  ['cerrado',   'Cerrado',          'Cliente o perdido (se marca en la ficha).']
+  ['cerrado',   'Cerrado',          'Cliente o perdido.']
 ];
+const EMB_NIVEL = { pregunto:0, datos:1, reservada:2, visito:3 };
+// Columna del tablero → etapa de mt_embudo (WhatsApp).
+const EMB_A_ETAPA = { pregunto:'entrada', datos:'cualificado', reservada:'visita_agendada', visito:'visita_hecha', ganado:'ganado', perdido:'perdido' };
+const EMB_DESTINOS = [['pregunto', 'Preguntó'], ['datos', 'Dio sus datos'], ['reservada', 'Visita reservada'],
+                      ['visito', 'Visitó'], ['ganado', 'Cliente'], ['perdido', 'Perdido']];
 const EMB_CANALES = { whatsapp:'WhatsApp', correo:'Correo', idealista:'Idealista' };
 const EMB_POR_COL = 8;
 
 function embModoBotones(){
   const esp = ESPERA ? esperando().length : 0;
-  return `<div class="rangos emb-modo" role="tablist" aria-label="Cómo verlo">
-    <button class="rg ${EMB_MODO === 'tablero' ? 'on' : ''}" data-embmodo="tablero" role="tab" aria-selected="${EMB_MODO === 'tablero'}">Tablero</button>
-    <button class="rg ${EMB_MODO === 'lista' ? 'on' : ''}" data-embmodo="lista" role="tab" aria-selected="${EMB_MODO === 'lista'}">Lista${esp ? ` · en espera ${nf.format(esp)}` : ''}</button>
-  </div>`;
+  return `<div class="emb-grupo"><span class="emb-get">Vista</span>
+    <div class="rangos" role="tablist" aria-label="Vista">
+      <button class="rg ${EMB_MODO === 'tablero' ? 'on' : ''}" data-embmodo="tablero" role="tab" aria-selected="${EMB_MODO === 'tablero'}">Tablero</button>
+      <button class="rg ${EMB_MODO === 'lista' ? 'on' : ''}" data-embmodo="lista" role="tab" aria-selected="${EMB_MODO === 'lista'}">Lista${esp ? ` · en espera ${nf.format(esp)}` : ''}</button>
+    </div></div>`;
 }
 
 // El correo comercial (Nuevos clientes) también entra. Si aún no se ha
-// cargado en esta sesión, se pide una vez y el tablero se repinta.
+// cargado en esta sesión, se pide una vez y se repinta lo que se vea.
 function embCargarCorreo(){
   if (!TENANT || !correoPermitido()) return;
   if (CO.real && CO.real.slug === crSlug()) return;
@@ -9744,6 +9720,9 @@ function embCargarCorreo(){
     if (VISTA === 'embudo' && $('#emb-tablero')) pintarTablero();
     else if (VISTA === 'latido' && !LATIDO_EN_VUELO) pintarLatido(true);
   });
+}
+function embPonerMarcas(r){
+  if (r && !r.error && Array.isArray(r.data)) EMB_MARCAS = new Map(r.data.map(m => [m.clave, m]));
 }
 
 // Citas por persona: por user_ref (WhatsApp) y por correo.
@@ -9761,6 +9740,20 @@ function embIndiceCitas(){
 const embDias = d => (Date.now() - new Date(d || 0)) / 864e5;
 const embEnPeriodo = p => !EMB_PERIODO || p.fut || embDias(p.ultima) <= EMB_PERIODO;
 const embDelCanal = p => EMB_CANAL === 'todos' || p.canal === EMB_CANAL;
+const embClave = k => k[0] + ':' + k.slice(1);
+
+// Dónde va cada uno: lo movido a mano manda (una visita futura lo sube a
+// «Visita reservada»); si no, lo que dicen los datos.
+function embColocar(p, autoNivel, cerradoAuto){
+  const m = EMB_MARCAS.get(embClave(p.k));
+  p.marcado = !!m;
+  if (m && (m.etapa === 'ganado' || m.etapa === 'perdido')){ p.cerrado = m.etapa; }
+  else if (m){ p.cerrado = null; autoNivel = Math.max(EMB_NIVEL[m.etapa] ?? 0, p.fut ? 2 : 0); }
+  else p.cerrado = cerradoAuto;
+  p.nivel = p.cerrado === 'ganado' ? 4 : autoNivel;
+  p.col = p.cerrado ? 'cerrado' : EMB_COLS[autoNivel][0];
+  return p;
+}
 
 // Todas las personas del embudo, de los tres canales, con su columna.
 function embPersonas(){
@@ -9775,108 +9768,72 @@ function embPersonas(){
     const ts = [...(ix.get(l.user_ref) || []), ...(ix.get(String(l.email || '').toLowerCase().trim()) || [])];
     if (l.cita) ts.push(new Date(l.cita).getTime());
     const { fut, pas } = citas(ts);
-    const nivel = nivelDe(fut, pas, l.etapa, l.etapa === 'cualificado' || correoValido(l.email));
-    const cerrado = ['ganado', 'perdido'].includes(l.etapa) ? l.etapa : null;
-    out.push({ k:'w' + l.id, canal:'whatsapp', lead:l, nombre:l.nombre || '', tel:l.telefono || l.user_ref || '',
+    const p = { k:'w' + l.id, canal:'whatsapp', lead:l, nombre:l.nombre || '', tel:l.telefono || l.user_ref || '',
       email:l.email || '', que:[l.servicio, l.ubicacion].filter(Boolean).join(', '),
-      ultima:l.ultima || l.ultimo_cuando || l.primera, fut, pas, cerrado,
-      nivel: cerrado === 'ganado' ? 4 : nivel, col: cerrado ? 'cerrado' : EMB_COLS[nivel][0] });
+      ultima:l.ultima || l.ultimo_cuando || l.primera, fut, pas };
+    out.push(embColocar(p, nivelDe(fut, pas, l.etapa, l.etapa === 'cualificado' || correoValido(l.email)),
+      ['ganado', 'perdido'].includes(l.etapa) ? l.etapa : null));
   }
   for (const h of (CO.real && CO.real.slug === crSlug() ? CO.real.hilos || [] : [])){
     if (crCarpetaDe(h) !== 'nuevos') continue;
-    const p = crPersona(h), canal = crEsIdealista(h) ? 'idealista' : 'correo';
-    const { fut, pas } = citas(ix.get(String(p.email || '').toLowerCase().trim()) || []);
-    const nivel = nivelDe(fut, pas, null, canal === 'correo' && correoValido(p.email));
-    const ms = h.mensajes || [], ult = ms[ms.length - 1];
-    out.push({ k:'c' + h.id, canal, hilo:h.id, nombre:p.nombre || '', tel:'', email:p.email || '',
-      que: h.motivo || h.asunto || '', ultima: h.ultimo_en || h.primer_recibido_en, fut, pas, cerrado:null,
-      sinResponder: !h.respondido && ult?.sentido === 'recibido', nivel, col: EMB_COLS[nivel][0] });
+    const pr = crPersona(h), canal = crEsIdealista(h) ? 'idealista' : 'correo';
+    const { fut, pas } = citas(ix.get(String(pr.email || '').toLowerCase().trim()) || []);
+    const p = { k:'c' + h.id, canal, hilo:h.id, nombre:pr.nombre || '', tel:'', email:pr.email || '',
+      que: h.motivo || h.asunto || '', ultima: h.ultimo_en || h.primer_recibido_en, fut, pas };
+    out.push(embColocar(p, nivelDe(fut, pas, null, canal === 'correo' && correoValido(pr.email)), null));
   }
   return out;
-}
-
-// «Hoy toca»: como mucho 5, lo más urgente primero.
-function embHoyToca(todas){
-  const ahora = Date.now(), hoy = hoyMadrid(), c = [];
-  const hora = t => new Date(t).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
-  for (const p of todas){
-    if (p.cerrado) continue;
-    const l = p.lead;
-    const prox = l?.proxima_fecha ? String(l.proxima_fecha).slice(0, 10) : '';
-    if (prox && prox <= hoy)
-      c.push({ p, peso:0, por: prox < hoy ? `Lo apuntasteis para el ${fechaCorta(l.proxima_fecha)}` : 'Lo apuntasteis para hoy' });
-    else if (p.fut && p.fut - ahora < 2 * 864e5)
-      c.push({ p, peso:1, por:`Visita el ${new Date(p.fut).toLocaleDateString('es-ES', { weekday:'long' })} a las ${hora(p.fut)}: confirmarla` });
-    else if (p.sinResponder && embDias(p.ultima) < 3)
-      c.push({ p, peso:2, por: p.canal === 'idealista' ? 'Escribió por idealista y está sin contestar' : 'Escribió por correo y está sin contestar' });
-    else if (l && Number(l.toques) === 0 && correoValido(l.email) && p.nivel < 2 && embDias(p.ultima) < 14)
-      c.push({ p, peso:3, por:'Dejó su correo y nadie le ha escrito' });
-    else if (l && p.nivel === 1 && !p.fut && embDias(p.ultima) >= 1 && embDias(p.ultima) < 7)
-      c.push({ p, peso:4, por:'Le interesa y no ha reservado visita' });
-  }
-  return c.sort((a, b) => a.peso - b.peso || new Date(b.p.ultima || 0) - new Date(a.p.ultima || 0)).slice(0, 5);
 }
 
 const embNombre = p => p.nombre ? `<bdi>${esc(p.nombre)}</bdi>` : `<span class="mono">${esc(p.tel || p.email || 'Sin nombre')}</span>`;
 const embCanalPill = p => `<span class="pill emb-c-${p.canal}">${EMB_CANALES[p.canal]}</span>`;
 
-function embAcciones(p){
-  if (p.canal !== 'whatsapp')
-    return `<button type="button" class="cbtn pri" data-embir="${esc(p.k)}">${p.canal === 'idealista' ? 'Abrir en Idealista' : 'Abrir el correo'}</button>`;
-  const m = telefonoE164(p.tel);
-  return `${m ? `<a class="cbtn pri" href="tel:${esc(m)}">Llamar</a>
-    <a class="cbtn" href="https://wa.me/${esc(m.slice(1))}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ''}
-    <button type="button" class="cbtn" data-embir="${esc(p.k)}">Ficha</button>`;
-}
-
 function pintarTablero(){
   const caja = $('#emb-tablero'); if (!caja) return;
   const todas = embPersonas();
-  const toca = embHoyToca(todas);
   const enPeriodo = todas.filter(embEnPeriodo);
   const lista = enPeriodo.filter(embDelCanal);
   const n = lista.length, al = k => lista.filter(p => p.nivel >= k).length;
   const ganados = lista.filter(p => p.cerrado === 'ganado').length;
   const pct = x => n ? Math.round(x / n * 100) + ' %' : '—';
-  const pasos = [['Preguntaron', n, EMB_PERIODO ? `últimos ${EMB_PERIODO} días` : 'desde el inicio'],
+  const pasos = [['Preguntaron', n, EMB_PERIODO ? `en ${EMB_PERIODO} días` : 'desde el inicio'],
                  ['Dieron sus datos', al(1), pct(al(1))], ['Reservaron visita', al(2), pct(al(2))],
                  ['Visitaron', al(3), pct(al(3))], ['Clientes', ganados, pct(ganados)]];
   const cuenta = c => enPeriodo.filter(p => c === 'todos' || p.canal === c).length;
   const canales = ['todos', 'whatsapp', ...(correoPermitido() ? ['correo', 'idealista'] : [])];
 
   caja.innerHTML = `
-    <div class="vcab emb-barra">
+    <div class="emb-filtros">
       ${embModoBotones()}
-      <div class="rangos" role="group" aria-label="Canal">
-        ${canales.map(c => `<button class="rg ${EMB_CANAL === c ? 'on' : ''}" data-embcan="${c}">${c === 'todos' ? 'Todos' : EMB_CANALES[c]} <span class="emb-n">${nf.format(cuenta(c))}</span></button>`).join('')}
-      </div>
-      <div class="rangos" role="group" aria-label="Periodo">
-        ${[[7, '7 días'], [30, '30 días'], [90, '90 días'], [0, 'Todo']].map(([d, t]) => `<button class="rg ${EMB_PERIODO === d ? 'on' : ''}" data-embper="${d}">${t}</button>`).join('')}
-      </div>
+      <div class="emb-grupo"><span class="emb-get">Canal</span>
+        <div class="rangos" role="group" aria-label="Canal">
+          ${canales.map(c => `<button class="rg ${EMB_CANAL === c ? 'on' : ''}" data-embcan="${c}">${c === 'todos' ? 'Todos' : EMB_CANALES[c]} <span class="emb-n">${nf.format(cuenta(c))}</span></button>`).join('')}
+        </div></div>
+      <div class="emb-grupo"><span class="emb-get">Periodo</span>
+        <div class="rangos" role="group" aria-label="Periodo">
+          ${[[7, '7 días'], [30, '30 días'], [90, '90 días'], [0, 'Todo']].map(([d, t]) => `<button class="rg ${EMB_PERIODO === d ? 'on' : ''}" data-embper="${d}">${t}</button>`).join('')}
+        </div></div>
+      <input id="ebusca" class="busca emb-ebusca" type="search" placeholder="Buscar por nombre, teléfono o correo" autocomplete="off" value="${esc(EMB_BUSCA)}" aria-label="Buscar en el embudo">
     </div>
 
-    <div class="emb-arriba">
-      <div class="panel emb-hoy">
-        <h3>Hoy toca</h3>
-        ${toca.length ? `<div class="emb-hoylista">${toca.map(({ p, por }) => `
-          <div class="emb-hoyfila">
-            <div class="emb-hoytxt"><b>${embNombre(p)}</b> ${embCanalPill(p)}<span>${esc(por)}</span></div>
-            <div class="emb-hoyacc">${embAcciones(p)}</div>
-          </div>`).join('')}</div>`
-        : '<p class="ph" style="margin:0">Nada pendiente: no hay visitas en las próximas 48 horas ni nadie esperando respuesta.</p>'}
-      </div>
-      <div class="panel emb-num" aria-label="El embudo en números">
-        <h3>El embudo en números</h3>
-        ${pasos.map(([t, v, p], i) => `<div class="et-paso">
-          <span class="et-pt">${t}</span>
-          <span class="et-pbarra"><span style="width:${n ? Math.max(2, Math.round(v / n * 100)) : 0}%"></span></span>
-          <b>${nf.format(v)}</b><span class="et-pp">${p}</span></div>`).join('')}
-      </div>
+    <div class="panel emb-num" aria-label="El embudo en números">
+      ${pasos.map(([t, v, p]) => `<div class="et-paso"><b>${nf.format(v)}</b><span class="et-pt">${t}</span><span class="et-pp">${p}</span></div>`).join('')}
     </div>
 
-    <div class="emb-busca"><input id="ebusca" class="busca" type="search" placeholder="Buscar por nombre, teléfono o correo" autocomplete="off" value="${esc(EMB_BUSCA)}" aria-label="Buscar en el embudo"></div>
+    <p class="emb-ayuda">Cada persona se coloca sola. Si la habéis contactado por otro sitio, arrastra su tarjeta a otra columna o pulsa «Mover».</p>
     <div id="emb-cols" class="emb-cols"></div>`;
   embPintarCols(lista);
+}
+
+function embTarjeta(p, k){
+  const hora = t => new Date(t).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+  return `<div class="emb-tarjeta" draggable="true" data-embk="${esc(p.k)}" tabindex="0" role="button" aria-label="${esc(p.nombre || p.tel || p.email || 'Sin nombre')}">
+    <span class="emb-tnom">${embNombre(p)}</span>
+    <span class="emb-tque">${esc(p.que || 'Sin concretar qué busca')}</span>
+    <span class="emb-tpie">${embCanalPill(p)}${p.cerrado ? `<span class="pill ${p.cerrado === 'ganado' ? 'vd' : 'nt'}">${p.cerrado === 'ganado' ? 'Cliente' : 'Perdido'}</span>` : ''}
+      <span class="emb-thace">${k === 'reservada' && p.fut ? esc(fechaCorta(new Date(p.fut).toISOString())) + ' · ' + hora(p.fut) : p.ultima ? esc(desdeEntonces(p.ultima).txt) : ''}</span>
+      <button type="button" class="emb-mover" data-embmover="${esc(p.k)}" aria-haspopup="menu" title="Mover a otra columna">Mover</button></span>
+  </div>`;
 }
 
 function embPintarCols(lista){
@@ -9886,20 +9843,14 @@ function embPintarCols(lista){
   const q = norm(EMB_BUSCA.trim()), num = EMB_BUSCA.replace(/[^0-9]/g, '');
   const l = q ? lista.filter(p => norm(p.nombre).includes(q) || norm(p.email).includes(q) || norm(p.que).includes(q)
     || (num.length >= 3 && String(p.tel).includes(num))) : lista;
-  const hora = t => new Date(t).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
   cont.innerHTML = EMB_COLS.map(([k, t, ayuda]) => {
     const dentro = l.filter(p => p.col === k).sort((a, b) =>
       k === 'reservada' ? (a.fut || 0) - (b.fut || 0) : new Date(b.ultima || 0) - new Date(a.ultima || 0));
     const vistos = EMB_EXP[k] ? dentro : dentro.slice(0, EMB_POR_COL);
-    return `<section class="emb-col emb-col-${k}" aria-label="${t}">
+    return `<section class="emb-col emb-col-${k}" data-embcol="${k}" aria-label="${t}">
       <div class="emb-ccab" title="${esc(ayuda)}"><b>${t}</b><span class="emb-n">${nf.format(dentro.length)}</span></div>
       <div class="emb-tarjetas">
-        ${vistos.map(p => `<button type="button" class="emb-tarjeta" data-embir="${esc(p.k)}">
-          <span class="emb-tnom">${embNombre(p)}</span>
-          <span class="emb-tque">${esc(p.que || 'Sin concretar qué busca')}</span>
-          <span class="emb-tpie">${embCanalPill(p)}${p.cerrado ? `<span class="pill ${p.cerrado === 'ganado' ? 'vd' : 'nt'}">${p.cerrado === 'ganado' ? 'Cliente' : 'Perdido'}</span>` : ''}
-            <span class="emb-thace">${k === 'reservada' && p.fut ? esc(fechaCorta(new Date(p.fut).toISOString())) + ' · ' + hora(p.fut) : p.ultima ? esc(desdeEntonces(p.ultima).txt) : ''}</span></span>
-        </button>`).join('') || '<p class="emb-vacia">Nadie</p>'}
+        ${vistos.map(p => embTarjeta(p, k)).join('') || '<p class="emb-vacia">Nadie</p>'}
         ${dentro.length > vistos.length ? `<button type="button" class="lmas" data-embmas="${k}">Ver ${dentro.length - vistos.length} más</button>` : ''}
       </div>
     </section>`;
@@ -9915,21 +9866,106 @@ async function embAbrir(k){
   if (!coLector()) crAbrirVentana(h.id);
 }
 
+// Mover a mano. destino: pregunto | datos | reservada | visito | ganado | perdido | null (colocar solo).
+async function embMover(k, destino){
+  const clave = embClave(k), antes = EMB_MARCAS.get(clave);
+  if (destino) EMB_MARCAS.set(clave, { clave, etapa:destino, cuando:new Date().toISOString() });
+  else EMB_MARCAS.delete(clave);
+  embCerrarMenu();
+  pintarTablero();
+  const r = await supabase.rpc('mt_embudo_marcar', { p_clave: clave, p_etapa: destino });
+  let error = r?.error;
+  if (!error && destino && k.startsWith('w')){
+    const l = LEADS.find(x => x.id === Number(k.slice(1)));
+    if (l && l.etapa !== EMB_A_ETAPA[destino]){
+      const m = await supabase.rpc('mt_mover_lead', { p_id: l.id, p_etapa: EMB_A_ETAPA[destino], p_nota: 'Movido en el tablero' });
+      if (!m?.error) l.etapa = EMB_A_ETAPA[destino];
+    }
+  }
+  if (error){
+    if (antes) EMB_MARCAS.set(clave, antes); else EMB_MARCAS.delete(clave);
+    pintarTablero();
+    return coAviso('No se ha podido mover: ' + (mensajeError(error) || 'error'));
+  }
+  const nombre = EMB_DESTINOS.find(([d]) => d === destino)?.[1];
+  coAviso(destino ? `Movido a «${nombre}».` : 'Vuelve a colocarse solo.');
+  anunciar(destino ? `Movido a ${nombre}` : 'Vuelve a colocarse solo');
+}
+
+function embCerrarMenu(){ $('#embmenu')?.remove(); }
+function embAbrirMenu(boton, k, solo){
+  embCerrarMenu();
+  const p = embPersonas().find(x => x.k === k); if (!p) return;
+  const actual = p.cerrado || p.col;
+  const ops = EMB_DESTINOS.filter(([d]) => d !== actual && (!solo || solo.includes(d)));
+  const m = document.createElement('div');
+  m.id = 'embmenu'; m.className = 'emb-menu'; m.setAttribute('role', 'menu');
+  m.innerHTML = `<div class="emb-mtit">Mover a</div>
+    ${ops.map(([d, t]) => `<button type="button" role="menuitem" data-embdest="${d}" data-embk="${esc(k)}">${t}</button>`).join('')}`;
+  document.body.append(m);
+  const r = boton.getBoundingClientRect(), w = m.offsetWidth, hgt = m.offsetHeight;
+  m.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w)) + 'px';
+  m.style.top = (r.bottom + hgt + 8 > innerHeight ? Math.max(8, r.top - hgt - 4) : r.bottom + 4) + 'px';
+  m.querySelector('button')?.focus();
+}
+
 // Un solo oyente para todo el tablero (se pone una vez).
 document.addEventListener('click', e => {
-  if (VISTA !== 'embudo') return;
+  if (VISTA !== 'embudo'){ embCerrarMenu(); return; }
+  const dest = e.target.closest?.('[data-embdest]');
+  if (dest) return embMover(dest.dataset.embk, dest.dataset.embdest || null);
+  if (!e.target.closest?.('#embmenu')) embCerrarMenu();
   const m = e.target.closest?.('[data-embmodo]');
   if (m){ EMB_MODO = m.dataset.embmodo; try { localStorage.setItem('emb_modo', EMB_MODO); } catch {} return pintarEmbudo(true); }
   if (!e.target.closest?.('#emb-tablero')) return;
+  const mv = e.target.closest('[data-embmover]'); if (mv){ e.stopPropagation(); return embAbrirMenu(mv, mv.dataset.embmover); }
   const c = e.target.closest('[data-embcan]'); if (c){ EMB_CANAL = c.dataset.embcan; EMB_EXP = {}; return pintarTablero(); }
   const p = e.target.closest('[data-embper]'); if (p){ EMB_PERIODO = Number(p.dataset.embper); EMB_EXP = {}; return pintarTablero(); }
   const mas = e.target.closest('[data-embmas]'); if (mas){ EMB_EXP[mas.dataset.embmas] = true; return embPintarCols(); }
-  const ir = e.target.closest('[data-embir]'); if (ir) embAbrir(ir.dataset.embir);
+  const t = e.target.closest('[data-embk]'); if (t) embAbrir(t.dataset.embk);
 });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#embmenu')){ embCerrarMenu(); return; }
+  const t = e.target?.closest?.('.emb-tarjeta[data-embk]');
+  if (t && e.target === t && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); embAbrir(t.dataset.embk); }
+});
+document.addEventListener('scroll', embCerrarMenu, true);
 document.addEventListener('input', e => {
   if (e.target?.id !== 'ebusca' || VISTA !== 'embudo') return;
   EMB_BUSCA = e.target.value;
   embPintarCols();
+});
+// Arrastrar una tarjeta a otra columna (en el ordenador).
+let EMB_ARRASTRA = null;
+document.addEventListener('dragstart', e => {
+  const t = e.target?.closest?.('.emb-tarjeta[data-embk]'); if (!t) return;
+  EMB_ARRASTRA = t.dataset.embk; t.classList.add('arrastra');
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', EMB_ARRASTRA); } catch {}
+});
+document.addEventListener('dragend', e => {
+  e.target?.closest?.('.emb-tarjeta')?.classList.remove('arrastra');
+  document.querySelectorAll('.emb-col.encima').forEach(x => x.classList.remove('encima'));
+  EMB_ARRASTRA = null;
+});
+document.addEventListener('dragover', e => {
+  const col = e.target?.closest?.('.emb-col[data-embcol]'); if (!col || !EMB_ARRASTRA) return;
+  e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.emb-col.encima').forEach(x => x !== col && x.classList.remove('encima'));
+  col.classList.add('encima');
+});
+document.addEventListener('drop', e => {
+  const col = e.target?.closest?.('.emb-col[data-embcol]'); if (!col || !EMB_ARRASTRA) return;
+  e.preventDefault();
+  const k = EMB_ARRASTRA, destino = col.dataset.embcol;
+  col.classList.remove('encima');
+  const p = embPersonas().find(x => x.k === k); if (!p) return;
+  if (destino === 'cerrado'){
+    // Cerrado son dos: se pregunta cuál, encima de la columna.
+    if (p.col === 'cerrado') return;
+    return embAbrirMenu(col.querySelector('.emb-ccab'), k, ['ganado', 'perdido']);
+  }
+  if (destino !== p.col || p.cerrado) embMover(k, destino);
 });
 
 let TURNO_EMB = 0, EMBUDO_EN_VUELO = 0;
@@ -9948,14 +9984,15 @@ async function pintarEmbudo(silencioso){
     // muestra lo que ya hay: una lista algo vieja es mejor que una
     // pantalla en blanco.
     await supabase.rpc('mt_sincronizar').catch(() => {});
-    let e, ci;
-    [a, b, e, ci] = await Promise.all([
+    let e, ci, mk;
+    [a, b, e, ci, mk] = await Promise.all([
       supabase.rpc('mt_mis_leads'),
       supabase.rpc('mt_embudo_resumen'),
       supabase.rpc('mt_mi_lista_espera'),
-      supabase.rpc('mt_mis_citas')
+      supabase.rpc('mt_mis_citas'),
+      supabase.rpc('mt_embudo_marcas_leer')
     ]);
-    if (turno === TURNO_EMB){ aplicaEspera(e); if (ci && !ci.error) EMB_CITAS = ci.data || []; }
+    if (turno === TURNO_EMB){ aplicaEspera(e); if (ci && !ci.error) EMB_CITAS = ci.data || []; embPonerMarcas(mk); }
   } finally { EMBUDO_EN_VUELO--; }
   // Si mientras tanto se ha pedido otra carga o se ha cambiado de
   // pestaña, no se pinta encima.
@@ -9991,7 +10028,7 @@ async function pintarEmbudo(silencioso){
 
   pintaEn(`
     ${embudoCabecera()}
-    <div class="vcab emb-lcab">${embModoBotones()}</div>
+    <div class="emb-filtros emb-lcab">${embModoBotones()}</div>
 
     ${cuentasEtapa()}
 
@@ -10111,18 +10148,20 @@ async function refrescarEmbudoVista(){
 // con la ficha abierta vacía el fondo un instante, la página se
 // encoge y el modal salta.
 async function refrescarEmbudo(){
-  const [a, b, e, ci] = await Promise.all([
+  const [a, b, e, ci, mk] = await Promise.all([
     supabase.rpc('mt_mis_leads'),
     supabase.rpc('mt_embudo_resumen'),
     supabase.rpc('mt_mi_lista_espera'),
-    supabase.rpc('mt_mis_citas')
+    supabase.rpc('mt_mis_citas'),
+    supabase.rpc('mt_embudo_marcas_leer')
   ]);
+  embPonerMarcas(mk);
   if (a.data) LEADS = a.data;
   if (b.data) EMBUDO = b.data;
   if (ci && !ci.error) EMB_CITAS = ci.data || [];
   aplicaEspera(e);
   // El tablero, si es lo que se ve (no mientras se escribe en el buscador).
-  if ($('#emb-tablero') && !escribiendo()) pintarTablero();
+  if ($('#emb-tablero') && !escribiendo() && !$('#embmenu') && !EMB_ARRASTRA) pintarTablero();
 
   const c = document.querySelector('.fcuentas');
   if (c) c.outerHTML = cuentasEtapa();
