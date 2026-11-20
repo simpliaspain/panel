@@ -2105,6 +2105,30 @@
   @media(min-width:1001px){
     #pdetalle{max-height:calc(100vh - 168px)}
   }
+
+  /* ---------- 20/11 · una sola cabecera para todas las pestañas ----------
+     Pedido del usuario: Latido, WhatsApp, Correo, Idealista, Embudo, Agenda y
+     Configuración con el título en el mismo sitio, del mismo tamaño, sin
+     iconos ni subtítulos. Antes: Latido, Embudo y Agenda a 32 px con
+     subtítulo; WhatsApp a 24 px más arriba; Correo e Idealista con icono;
+     Configuración centrada en 860 px. Va al final para mandar sobre todo lo
+     anterior. */
+  main, main:has(.convs-tit), main:has(.correo.co-real){padding-top:16px}
+  h2.tit, h2.tit.convs-tit, .co-real .co-top h2.tit{
+    font-size:24px;line-height:1.15;letter-spacing:-.02em;margin:0 0 14px}
+  h2.tit em{font-style:normal;color:inherit}
+  .co-top h2.tit, .emb-cab h2.tit, .vcab h2.tit{margin:0}
+  .co-top, .co-real .co-top, .emb-cab, .vcab{margin-bottom:14px;min-height:34px}
+  .vcab{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap}
+  .vcab .rangos{margin:0}
+  .correo, .emb-correo{height:calc(100dvh - var(--cohdr, 63px) - 36px)}
+  .correo.co-real{height:calc(100dvh - var(--cohdr, 63px) - 36px)}
+  .ajustes{max-width:none;margin:0}
+  .ajustes .panel, .aj-correo{max-width:860px}
+  .aj-correo > .vacio{background:var(--blanco);border:1px solid var(--linea);border-radius:16px}
+  @media(max-width:420px){
+    h2.tit, h2.tit.convs-tit, .co-real .co-top h2.tit{font-size:21px}
+  }
 </style>
 </head>
 <body>
@@ -2149,10 +2173,8 @@
       <button data-v="ajustes">Configuración</button>
     </nav>
     <div class="hend">
-      <button class="refr" id="refrescar" title="Actualizar datos">
-        <span class="ricon" aria-hidden="true">⟳</span>
-        <span class="rtxt" id="rcuando">—</span>
-      </button>
+      <!-- 20/11: sin botón de actualizar ni «hace X»: el panel se pone al
+           día solo (ver autoRefresco) sin recargar la página. -->
       <div class="vivo"><span class="dot on"></span><span id="cliente">—</span></div>
       <button class="salir" id="salir">Salir</button>
     </div>
@@ -2190,7 +2212,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-20b · todos los correos en sus carpetas; el texto de los no comerciales se lee del buzón al abrirlos';
+const VERSION = '2026-11-20c · cabeceras iguales, se actualiza solo, Configuración por apartados, Agenda con fechas';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -2556,10 +2578,25 @@ function tic30(){
   if (VISTA === 'agenda') return pintarAgenda(true);
 }
 
+// 20/11 (pedido del usuario): sin botón de actualizar. Cada 20 segundos la
+// pantalla que se está viendo se pone al día por dentro, sin recargar ni
+// perder lo abierto ni el sitio. El correo y los mensajes de idealista
+// miran cada 30 s (crSondear). Al volver a la pestaña o a la ventana, en
+// el momento.
+const CADA_MS = 20000;
 function autoRefresco(){
   clearInterval(TIMER);
-  TIMER = setInterval(tic30, 30000);
+  TIMER = setInterval(tic30, CADA_MS);
 }
+let VUELTA_T = 0;
+function alVolver(){
+  if (document.hidden || !TENANT) return;
+  if (Date.now() - VUELTA_T < 5000) return;   // focus y visibilitychange llegan juntos
+  VUELTA_T = Date.now();
+  tic30();
+}
+document.addEventListener('visibilitychange', alVolver);
+window.addEventListener('focus', alVolver);
 
 $('#salir').addEventListener('click', async () => {
   clearInterval(TIMER);
@@ -4330,7 +4367,7 @@ function crConfiguracion(){
         ${pref('avisos', 'Avisar de los correos nuevos', 'Una tarjeta abajo a la derecha, en cualquier pantalla del panel, cuando entra un correo de un cliente o hace falta la intervención del equipo.')}
         ${pref('sonidos', 'Sonidos', 'Una campanilla con los correos nuevos y un sonido corto al copiar o al guardar.')}
       </div>
-      <div class="cr-adj">Se guarda en este navegador. El panel mira si hay correos nuevos cada minuto. Pulsa <kbd>?</kbd> en la bandeja para ver los atajos de teclado.</div>
+      <div class="cr-adj">Se guarda en este navegador. El panel mira si hay correos nuevos cada 30 segundos. Pulsa <kbd>?</kbd> en la bandeja para ver los atajos de teclado.</div>
     </div>`;
   return prefs + crTope() + (r.buzones || []).map(b => {
     const e = EST[b.estado] || [b.estado, 'nt'];
@@ -4374,7 +4411,7 @@ function crPintarIdealista(){
   $('#vista').innerHTML = `
     <div class="correo co-real co-bandeja-v cr-ideal">
       <div class="co-top">
-        <h2 class="tit cr-idtit"><span class="cr-idico" aria-hidden="true">${CR_ICO_CASA}</span>Idealista</h2>
+        <h2 class="tit">Idealista</h2>
         <div class="co-ctrl">
           <button type="button" class="cr-ayuda" data-cr="atajos" title="Atajos de teclado (?)" aria-label="Atajos de teclado">?</button>
           ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
@@ -4395,8 +4432,10 @@ function crPintarIdealista(){
 
 function coPintarReal(){
   if (crEnIdealista()) return crPintarIdealista();
-  if (!['bandeja', 'ajustes'].includes(CO.realTab)) CO.realTab = 'bandeja';
-  const enBandeja = CO.realTab === 'bandeja';
+  // 20/11: sin pestaña «Configuración» dentro de Correo; sus ajustes están
+  // en Configuración › Correo.
+  CO.realTab = 'bandeja';
+  const enBandeja = true;
   // La pantalla no se mueve al repintar: listas y correo abierto vuelven a donde estaban.
   const misma = CO.realPintadoTab === CO.realTab;
   const sitio = {};
@@ -4404,14 +4443,10 @@ function coPintarReal(){
   const ventanaY = scrollY;
   const hs = crHilos();
   const hoy = hs.filter(h => h.primer_recibido_en && new Date(h.primer_recibido_en).toDateString() === new Date().toDateString()).length;
-  const tabs = [['bandeja', 'Bandeja'], ['ajustes', 'Configuración']];
   $('#vista').innerHTML = `
     <div class="correo co-real ${enBandeja ? 'co-bandeja-v' : ''}">
       <div class="co-top">
-        <h2 class="tit cr-idtit"><span class="cr-idico cr-coico" aria-hidden="true">${CR_ICO_SOBRE}</span>Correo</h2>
-        <div class="rangos co-tabs" role="tablist">
-          ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}</button>`).join('')}
-        </div>
+        <h2 class="tit">Correo</h2>
         ${enBandeja ? `<div class="co-cifras cr-cifras">
           <span><b>${hoy}</b> hoy</span>
           <span><b class="az">${crEnCarpeta('nuevos').length}</b> nuevos clientes</span>
@@ -4513,6 +4548,8 @@ const CR_TITULO = document.title;
 let CR_SIN_VER = 0;
 function crTitulo(){ document.title = CR_SIN_VER > 0 && document.visibilityState !== 'visible' ? `(${CR_SIN_VER}) ${CR_TITULO}` : CR_TITULO; }
 function crAvisar(lista){
+  // 20/11: los de idealista avisan solo si está encendido en Configuración › Idealista.
+  lista = lista.filter(x => !crEsIdealista(x.h) || crPref('idealista'));
   if (!lista.length) return;
   crSonar('correo');
   if (document.visibilityState !== 'visible'){ CR_SIN_VER += lista.length; crTitulo(); }
@@ -4553,7 +4590,7 @@ function crSeVa(el){
   });
 }
 
-// --- Ponerse al día solo: cada minuto, lo de las últimas 3 horas.
+// --- Ponerse al día solo: cada 30 segundos, lo de las últimas 3 horas.
 let CR_SONDEANDO = false;
 const crFirmaHilo = h => [h.id, h.ultimo_en, (h.mensajes || []).length, h.borrador?.id || '', crEquipo(h).length, h.tipo || ''].join('|');
 async function crSondear(){
@@ -4588,7 +4625,7 @@ async function crSondear(){
   } catch { /* la siguiente vuelta */ }
   finally { CR_SONDEANDO = false; }
 }
-setInterval(crSondear, 60000);
+setInterval(crSondear, 30000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible'){ CR_SIN_VER = 0; crTitulo(); crSondear(); } });
 
 // --- Visor de fotos con ← → (las del correo y las que se adjuntarían).
@@ -4680,7 +4717,7 @@ if (!window.__crOyentes){
   window.__crOyentes = true;
   document.addEventListener('click', async e => {
     const el = e.target.closest?.('[data-cr]');
-    if (!el || !crVistaReal() || !CO.real) return;
+    if (!el || !(crVistaReal() || VISTA === 'ajustes') || !CO.real) return;
     const que = el.dataset.cr;
     if (que === 'tab'){ CO.realTab = el.dataset.v; return coPintarReal(); }
     if (que === 'carp'){ CO.realCarpeta = el.dataset.id; CO.realBusca = ''; CO.realAbierto = null; return coPintarReal(); }
@@ -4736,7 +4773,7 @@ if (!window.__crOyentes){
       if (error) return coAviso('No se ha podido cambiar: ' + (error.message || 'error'));
       coAviso(`Tope cambiado a ${tope} al día. Si ya se había avisado hoy, volverá a avisar al llegar al 80 % del nuevo tope.`);
       await coCargarReal();
-      return VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
+      return VISTA === 'ajustes' ? pintarAjustes(true) : VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
     }
     if (que === 'clave'){
       const inp = document.getElementById('crclave-' + el.dataset.id);
@@ -4749,7 +4786,7 @@ if (!window.__crOyentes){
       if (error) return coAviso('No se ha podido guardar: ' + (error.message || 'error'));
       coAviso('Contraseña guardada. El asistente vuelve a leer el buzón en unos minutos.');
       await coCargarReal();
-      return VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
+      return VISTA === 'ajustes' ? pintarAjustes(true) : VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
     }
   });
   // Buscador: repinta solo la lista, sin perder el foco.
@@ -4776,7 +4813,8 @@ if (!window.__crOyentes){
     const k = e.target?.dataset?.crpref; if (!k) return;
     crGuardar('cr-pref-' + k, !!e.target.checked);
     if (k === 'sonidos' && e.target.checked){ crAudio(); crSonar('hecho'); }
-    coAviso(k === 'avisos' ? (e.target.checked ? 'Avisos de correos nuevos encendidos.' : 'Avisos de correos nuevos apagados.')
+    coAviso(k === 'idealista' ? (e.target.checked ? 'Avisos de idealista encendidos.' : 'Avisos de idealista apagados.')
+      : k === 'avisos' ? (e.target.checked ? 'Avisos de correos nuevos encendidos.' : 'Avisos de correos nuevos apagados.')
       : (e.target.checked ? 'Sonidos encendidos.' : 'Sonidos apagados.'));
   });
   document.addEventListener('change', async e => {
@@ -6407,10 +6445,8 @@ async function arrancar(){
   if (A.tratamiento) CFG.tratamiento = A.tratamiento;
   // Fuera de arrancar(): al cambiar de cliente se vuelve a llamar
   // y el oyente se duplicaría, disparando dos cargas por clic.
-  if (!$('#refrescar').dataset.listo){
-    $('#refrescar').addEventListener('click', refrescar);
-    $('#refrescar').dataset.listo = '1';
-  }
+  // 20/11: ya no hay botón de actualizar; refrescar() se queda para quien
+  // lo llame desde el código (cambiar de rango, reintentar…).
   // La Agenda se muestra siempre. Una pestaña vacía que explica
   // qué aparecerá ahí vale más que una pestaña ausente: el cliente
   // no puede echar de menos lo que no sabe que existe, y agendar
@@ -6750,10 +6786,10 @@ let LATIDO_EN_VUELO = 0;
 function pintarSinLatido(motivo){
   LATIDO_PINTADO = false;
   $('#vista').innerHTML = `
-    <h2 class="tit">El <em>latido</em></h2>
+    <h2 class="tit">Latido</h2>
     <div class="panel"><div class="vacio">
       <strong>No se ha podido cargar el Latido.</strong><br>
-      ${esc(motivo)}<br>Se vuelve a intentar solo cada 30 segundos.
+      ${esc(motivo)}<br>Se vuelve a intentar solo cada 20 segundos.
       <div style="margin-top:16px">
         <button class="btn corto" id="lreint" type="button">Reintentar ahora</button>
       </div>
@@ -6863,13 +6899,12 @@ function pintarLatidoCon(d, silencioso){
     viejos.length ? `Sin actualizar: ${enLista(viejos)} (se ve lo último que llegó).` : ''
   ].filter(Boolean);
   const aviso = partes.length ? `<div class="lfalta" role="status">
-      <span>${esc(partes.join(' '))} Se vuelve a pedir solo cada 30 segundos.</span>
+      <span>${esc(partes.join(' '))} Se vuelve a pedir solo cada 20 segundos.</span>
       <button type="button" id="lreint">Reintentar ahora</button>
     </div>` : '';
 
   pintaEn(`
-    <h2 class="tit">El <em>latido</em></h2>
-    <p class="sub">Cada conversación que atiende la IA con tus clientes, registrada según entra.</p>
+    <h2 class="tit">Latido</h2>
     ${aviso}
 
     <div class="kpis">
@@ -8213,7 +8248,25 @@ async function pintarAgenda(silencioso){
     return;
   }
 
-  const citas = conCorreo ? [...(data || []).map(c => ({ ...c, canal:'whatsapp' })), ...coCitasCorreo()] : (data || []);
+  // 20/11: mt_mis_citas devuelve «inicio» y «centro», y aquí se leía
+  // «cuando» y «ubicacion»: todas las citas caían en «Sin fecha» y
+  // «Próximas» y «Ya celebradas» salían a 0. Además Cal.com manda dos
+  // filas para una misma visita (pedida y creada, o creada y
+  // reprogramada): se deja una por persona, centro y hora.
+  const unicas = new Map();
+  for (const c0 of (data || [])){
+    const c = { ...c0,
+      cuando: c0.cuando ?? c0.inicio ?? null,
+      ubicacion: c0.ubicacion ?? [c0.centro, c0.direccion].filter(Boolean).join(' · '),
+      estado: c0.estado ?? (/CANCEL|REJECT/i.test(c0.evento || '') ? 'cancelada' : null) };
+    const k = [c.user_ref || c.telefono || c.email || c.nombre, c.centro || '', c.cuando || ''].join('|');
+    const ya = unicas.get(k);
+    // Si alguna de sus filas dice que se canceló, cuenta como cancelada.
+    if (!ya) unicas.set(k, c);
+    else if (c.estado === 'cancelada') ya.estado = 'cancelada';
+  }
+  const deBase = [...unicas.values()];
+  const citas = conCorreo ? [...deBase.map(c => ({ ...c, canal:'whatsapp' })), ...coCitasCorreo()] : deBase;
   const ahora = Date.now();
   const vivas = citas.filter(c => c.estado !== 'cancelada');
   const canceladas = citas.filter(c => c.estado === 'cancelada');
@@ -8226,7 +8279,6 @@ async function pintarAgenda(silencioso){
 
   pintaEn(`
     <h2 class="tit">Agenda</h2>
-    <p class="sub">${conCorreo ? 'Las visitas de WhatsApp y de correo, juntas.' : 'Las citas que ha agendado el asistente.'}</p>
 
     ${conCorreo ? coResumenCanales(resumenWa) : ''}
 
@@ -8322,6 +8374,7 @@ function descargarICS(c){
 }
 
 /* ---------- vista: configuración ---------- */
+let AJ_TAB = 'general';
 async function pintarAjustes(silencioso){
   if (!silencioso) $('#vista').innerHTML = esqueleto();
 
@@ -8362,46 +8415,48 @@ async function pintarAjustes(silencioso){
     dias:   (CFG.horario?.dias ?? [1,2,3,4,5]).map(Number)
   };
 
-  // La base devuelve los canales en bruto ("prueba, whatsapp_evolution").
-  // El cliente no sabe qué es Evolution, y "prueba" es nuestro
-  // probador: ni es un canal suyo ni debería verlo.
-  const CANALES = { whatsapp_evolution:'WhatsApp', whatsapp_cloud:'WhatsApp',
-                    voz_retell:'Teléfono', web:'Web' };
-  const canal = String(r.canal || '').split(',').map(x => x.trim())
-    .filter(x => x && x !== 'prueba')
-    .map(x => CANALES[x] || x)
-    .filter((x,i,v) => v.indexOf(x) === i)
-    .join(', ') || '—';
-  const alta = r.alta ? new Date(r.alta).toLocaleDateString('es-ES',
-    { day:'2-digit', month:'long', year:'numeric' }) : '—';
-  const desde = r.primer_registro ? new Date(r.primer_registro).toLocaleDateString('es-ES',
-    { day:'2-digit', month:'long', year:'numeric' }) : '—';
+  // 20/11 (pedido del usuario): Configuración por apartados, uno por canal,
+  // y solo lo que se puede cambiar. Fuera el bloque «Servicio» (cifras de
+  // solo lectura: ya están en el Latido) y «Tratamiento de datos» (texto
+  // legal, no un ajuste). Lo de Correo sale de la pestaña Correo y viene
+  // aquí; Idealista tiene su aviso propio.
+  const conCorreo = correoPermitido();
+  const pestanas = [['general', 'General'], ['whatsapp', 'WhatsApp'],
+    ...(conCorreo ? [['correo', 'Correo'], ['idealista', 'Idealista']] : [])];
+  if (!pestanas.some(([k]) => k === AJ_TAB)) AJ_TAB = 'general';
+  const ver = k => AJ_TAB === k;
+  const correoListo = conCorreo && CO.real && CO.real.slug === crSlug();
+  if (conCorreo && (ver('correo') || ver('idealista')) && !correoListo
+      && !(CO.realPedidoPara === crSlug() && CO.realEstado === 'cargando')){
+    CO.realPedidoPara = crSlug(); CO.realEstado = 'cargando';
+    coCargarReal().then(() => { if (VISTA === 'ajustes') pintarAjustes(true); });
+  }
+  const prefAj = (k, t, d) => `<label class="co-interr"><input type="checkbox" data-crpref="${k}" ${crPref(k) ? 'checked' : ''}><span>${t}<small>${d}</small></span></label>`;
 
   $('#vista').innerHTML = `
     <div class="ajustes">
-    <h2 class="tit">Configuración</h2>
-    <p class="sub">Datos de tu servicio y preferencias.</p>
-
-    <div class="panel">
-      <h3>Servicio</h3>
-      <p class="ph">Solo lectura.</p>
-      <dl class="ficha">
-        <dt>Cliente</dt><dd>${esc(r.cliente || '—')}</dd>
-        <dt>Canal</dt><dd>${esc(canal)}</dd>
-        <dt>Alta del servicio</dt><dd>${alta}</dd>
-        <dt>Registro con fecha desde</dt><dd>${desde}</dd>
-        <dt>Conversaciones</dt><dd class="num">${nf.format(r.conversaciones)}</dd>
-        <dt>Personas atendidas</dt><dd class="num">${nf.format(r.contactos)}</dd>
-        <dt>Usuarios con acceso</dt><dd class="num">${nf.format(r.usuarios)}</dd>
-        <dt>Ubicaciones monitorizadas</dt><dd class="num">${nf.format(r.ubicaciones || 0)}</dd>
-        <dt>Servicios monitorizados</dt><dd class="num">${nf.format(r.servicios || 0)}</dd>
-        <dt>El asistente responde</dt><dd>Siempre, las 24 horas, todos los días</dd>
-        ${r.sector ? `<dt>Sector</dt><dd>${esc(r.sector)}</dd>` : ''}
-      </dl>
+    <div class="vcab"><h2 class="tit">Configuración</h2>
+      <div class="rangos" role="tablist" aria-label="Apartado">
+        ${pestanas.map(([k, t]) => `<button class="rg ${ver(k) ? 'on' : ''}" role="tab" aria-selected="${ver(k)}" data-aj="${k}">${t}</button>`).join('')}
+      </div>
     </div>
 
+    ${ver('correo') ? `<div class="co-real aj-correo">${correoListo ? crConfiguracion()
+        : `<div class="vacio">${CO.realEstado === 'error' ? 'No se ha podido cargar. Vuelve a entrar en este apartado en un momento.'
+          : CO.realEstado === 'cargando' ? 'Cargando…' : 'Esta empresa aún no tiene un buzón de correo conectado.'}</div>`}</div>` : ''}
+
+    ${ver('idealista') ? `<div class="panel">
+      <h3>Avisos de idealista</h3>
+      <p class="ph">Los mensajes de idealista llegan al buzón de correo y salen en su pestaña.</p>
+      <div class="cr-prefs">
+        ${prefAj('idealista', 'Avisar de los mensajes nuevos de idealista', 'Una tarjeta abajo a la derecha, en cualquier pantalla del panel, cuando alguien escribe por idealista. Si lo apagas, siguen saliendo en la pestaña Idealista, sin aviso.')}
+      </div>
+      <p class="hint">Se guarda en este navegador. Los sonidos se encienden o apagan en Correo.</p>
+    </div>` : ''}
+
+    ${ver('general') ? `
     <div class="panel">
-      <h3>Tus preferencias</h3>
+      <h3>Avisos del servicio</h3>
       <p class="ph">A qué direcciones te avisamos de cambios en el servicio.</p>
 
       ${puedeEsc ? `
@@ -8462,8 +8517,9 @@ async function pintarAjustes(silencioso){
           <dt>Franja de referencia</dt><dd>${esc(horarioTexto())}</dd>
         </dl>
         <p class="hint">Si no es correcta, pídenoslo y la cambiamos.</p>`}
-    </div>
+    </div>` : ''}
 
+    ${ver('whatsapp') ? `
     <div class="panel" id="parametros">
       <h3>Parámetros de cálculo</h3>
       <p class="ph">Con ellos se calcula «Tus números» en el Latido. Son datos de
@@ -8524,20 +8580,13 @@ async function pintarAjustes(silencioso){
         </a>`).join('')}
       </div>
     </div>` : ''}
-
-    ${CFG.tratamiento && CFG.tratamiento.length ? `<div class="panel">
-      <h3>Tratamiento de datos</h3>
-      <p class="ph">Qué se guarda de cada conversación y para qué.</p>
-      <dl class="ficha">
-        ${CFG.tratamiento.map(x =>
-          `<dt>${esc(x.t)}</dt><dd>${esc(x.d)}</dd>`).join('')}
-      </dl>
-      <p class="aviso" style="margin:16px 0 0">
-        Para ejercer derechos de acceso, rectificación o supresión sobre un
-        contacto concreto, escríbenos y lo tramitamos.
-      </p>
-    </div>` : ''}
+    ` : ''}
     </div>`;
+
+  // Cambiar de apartado: se repinta sin volver a pedir nada al servidor
+  // más que lo de siempre, y sin esqueleto.
+  document.querySelectorAll('[data-aj]').forEach(b =>
+    b.addEventListener('click', () => { AJ_TAB = b.dataset.aj; pintarAjustes(true); }));
 
   // Dos guardados separados: el email es del cliente y los
   // parámetros de cálculo son de SimpliaSpain. Un solo botón
@@ -9507,7 +9556,6 @@ async function pintarEmbudo(silencioso){
 
   if (!LEADS.length && !(ESPERA || []).length){
     pintaEn(`${embudoCabecera()}
-      <p class="sub corta">Quien ha escrito a tu asistente, ordenado por lo que hay que hacer primero.</p>
       <div class="panel"><div class="vacio">
         <strong>Nadie ha escrito aún.</strong><br>
         Quien escriba al asistente entra aquí solo, sin hacer nada.</div></div>`, silencioso);
@@ -9518,8 +9566,6 @@ async function pintarEmbudo(silencioso){
 
   pintaEn(`
     ${embudoCabecera()}
-    <p class="sub corta">Quien ha escrito a tu asistente, ordenado por lo que hay
-       que hacer primero.</p>
 
     ${cuentasEtapa()}
 
