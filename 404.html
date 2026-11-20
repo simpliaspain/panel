@@ -2105,6 +2105,97 @@
   @media(min-width:1001px){
     #pdetalle{max-height:calc(100vh - 168px)}
   }
+
+  /* ---------- 20/11 · una sola cabecera para todas las pestañas ----------
+     Pedido del usuario: Latido, WhatsApp, Correo, Idealista, Embudo, Agenda y
+     Configuración con el título en el mismo sitio, del mismo tamaño, sin
+     iconos ni subtítulos. Antes: Latido, Embudo y Agenda a 32 px con
+     subtítulo; WhatsApp a 24 px más arriba; Correo e Idealista con icono;
+     Configuración centrada en 860 px. Va al final para mandar sobre todo lo
+     anterior. */
+  main, main:has(.convs-tit), main:has(.correo.co-real){padding-top:16px}
+  h2.tit, h2.tit.convs-tit, .co-real .co-top h2.tit{
+    font-size:24px;line-height:1.15;letter-spacing:-.02em;margin:0 0 14px}
+  h2.tit em{font-style:normal;color:inherit}
+  .co-top h2.tit, .emb-cab h2.tit, .vcab h2.tit{margin:0}
+  .co-top, .co-real .co-top, .emb-cab, .vcab{margin-bottom:14px;min-height:34px}
+  .vcab{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap}
+  .vcab .rangos{margin:0}
+  .correo, .emb-correo{height:calc(100dvh - var(--cohdr, 63px) - 36px)}
+  .correo.co-real{height:calc(100dvh - var(--cohdr, 63px) - 36px)}
+  .ajustes{max-width:none;margin:0}
+  .ajustes .panel, .aj-correo{max-width:860px}
+  .aj-correo > .vacio{background:var(--blanco);border:1px solid var(--linea);border-radius:16px}
+  @media(max-width:420px){
+    h2.tit, h2.tit.convs-tit, .co-real .co-top h2.tit{font-size:21px}
+  }
+  /* 20/11 (2.º pedido): sin título en la página. La pestaña de arriba ya
+     dice dónde se está; el título queda solo para lectores de pantalla. */
+  h2.tit, h2.tit.convs-tit, .co-real .co-top h2.tit{
+    position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+    clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .vcab{min-height:0}
+
+  .feed .fcanal{color:var(--gris);font-weight:600}
+  .wa-orden{width:auto;display:inline-flex;margin-top:6px}
+
+  /* ---------- 20/11 · Embudo en tablero ---------- */
+  /* Filtros en tres grupos con su nombre: Vista, Canal y Periodo. */
+  .emb-filtros{display:flex;align-items:flex-end;gap:12px 28px;flex-wrap:wrap;margin-bottom:16px}
+  .emb-grupo{display:grid;gap:4px}
+  .emb-get{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gris)}
+  .emb-grupo .rangos{width:auto;margin:0}
+  .emb-ebusca{margin-left:auto}
+  .emb-n{font-size:11px;font-weight:700;color:var(--gris);margin-left:2px}
+  .rg.on .emb-n{color:inherit;opacity:.8}
+  /* El embudo en números: una franja de cinco casillas. */
+  .emb-num{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:0;margin-bottom:12px;overflow:hidden}
+  .et-paso{display:grid;gap:2px;padding:14px 16px;border-left:1px solid var(--linea);min-width:0}
+  .et-paso:first-child{border-left:0}
+  .et-paso b{font-size:24px;line-height:1.1}
+  .et-pt{font-size:13px;color:var(--tinta-suave, #4a5568)}
+  .et-pp{font-size:12px;color:var(--gris)}
+  .emb-ayuda{font-size:12px;color:var(--gris);margin:0 0 10px}
+  .emb-cols{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:12px;overflow-x:auto;padding-bottom:8px}
+  .emb-col{background:var(--fondo);border:1px solid var(--linea);border-radius:14px;padding:10px;min-width:0;display:flex;flex-direction:column;transition:border-color .15s, background .15s}
+  .emb-col.encima{border-color:var(--pulso);background:#EEF5FF}
+  .emb-ccab{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 10px;font-size:13px}
+  .emb-col-reservada .emb-ccab b{color:var(--verde-oscuro)}
+  .emb-tarjetas{display:grid;gap:8px;align-content:start;min-height:40px}
+  .emb-tarjeta{display:grid;gap:4px;text-align:left;width:100%;background:var(--blanco);border:1px solid var(--linea);
+               border-radius:10px;padding:10px 12px;cursor:grab;color:inherit}
+  .emb-tarjeta:hover{border-color:var(--pulso)}
+  .emb-tarjeta:focus-visible{outline:2px solid var(--pulso);outline-offset:1px}
+  .emb-tarjeta.arrastra{opacity:.45}
+  .emb-tnom{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .emb-tque{font-size:12px;color:var(--gris);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .emb-tpie{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .emb-thace{margin-left:auto;font-size:11px;color:var(--gris);white-space:nowrap}
+  .emb-mover{font:inherit;font-size:11px;font-weight:600;color:var(--pulso);background:none;border:1px solid var(--linea);
+             border-radius:8px;padding:2px 8px;cursor:pointer}
+  .emb-mover:hover{background:#EEF5FF;border-color:var(--pulso)}
+  .emb-vacia{font-size:12px;color:var(--gris);margin:4px}
+  .emb-menu{position:fixed;z-index:80;min-width:190px;background:var(--blanco);border:1px solid var(--linea);border-radius:12px;
+            box-shadow:0 12px 32px rgba(10,31,74,.16);padding:6px;display:grid}
+  .emb-mtit{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gris);padding:6px 10px 4px}
+  .emb-menu button{font:inherit;font-size:14px;text-align:left;background:none;border:0;border-radius:8px;padding:8px 10px;cursor:pointer;color:inherit}
+  .emb-menu button:hover,.emb-menu button:focus-visible{background:var(--fondo);outline:none}
+  .emb-menu .emb-msolo{color:var(--gris);border-top:1px solid var(--linea);border-radius:0 0 8px 8px;margin-top:4px}
+  .pill.emb-c-whatsapp{background:var(--verde-tenue);color:var(--verde-oscuro)}
+  .pill.emb-c-correo{background:#E5EFFE;color:var(--azul-texto)}
+  .pill.emb-c-idealista{background:var(--ambar-tenue);color:var(--ambar-texto)}
+  @media(max-width:1000px){
+    .emb-cols{grid-template-columns:repeat(5,minmax(230px,80vw));scroll-snap-type:x mandatory}
+    .emb-col{scroll-snap-align:start}
+    .emb-ebusca{margin-left:0;width:100%}
+  }
+  @media(max-width:700px){
+    .emb-num{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .et-paso:nth-child(4){border-left:0}
+    .et-paso:nth-child(n+4){border-top:1px solid var(--linea)}
+    .emb-grupo, .emb-grupo .rangos{width:100%}
+    .emb-grupo .rangos{overflow-x:auto}
+  }
 </style>
 </head>
 <body>
@@ -2149,10 +2240,8 @@
       <button data-v="ajustes">Configuración</button>
     </nav>
     <div class="hend">
-      <button class="refr" id="refrescar" title="Actualizar datos">
-        <span class="ricon" aria-hidden="true">⟳</span>
-        <span class="rtxt" id="rcuando">—</span>
-      </button>
+      <!-- 20/11: sin botón de actualizar ni «hace X»: el panel se pone al
+           día solo (ver autoRefresco) sin recargar la página. -->
       <div class="vivo"><span class="dot on"></span><span id="cliente">—</span></div>
       <button class="salir" id="salir">Salir</button>
     </div>
@@ -2190,7 +2279,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-20b · todos los correos en sus carpetas; el texto de los no comerciales se lee del buzón al abrirlos';
+const VERSION = '2026-11-20e · Últimas conversaciones abajo como antes, Embudo con tarjetas que se mueven y filtros por grupos, orden de WhatsApp con botones';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -2340,10 +2429,10 @@ window.addEventListener('unhandledrejection', e => {
 // carga dura como mucho ESPERA_MAX y termina antes del siguiente.
 // mt_registrar_incidencia no va en ESCRITURAS: repetirla solo suma
 // `veces`, y sin tiempo máximo se acumularían envíos colgados.
-const ESPERA_MAX = 20000;
+const ESPERA_MAX = 18000;   // 20/11: el refresco pasa a 20 s
 const ESCRITURAS = new Set(['mt_apuntar_toque','mt_deshacer_evento','mt_editar_evento',
   'mt_guardar_lead','mt_mover_lead','mt_guardar_ajustes','mt_pausar','mt_reanudar',
-  'mt_excluir','mt_incluir','mt_guardar_parametros']);
+  'mt_excluir','mt_incluir','mt_guardar_parametros','mt_embudo_marcar']);
 // La librería no lanza cuando falla la red: devuelve status 0 y un
 // mensaje del navegador («Load failed» en el iPhone, «Failed to fetch»
 // en Chrome, «NetworkError» en Firefox).
@@ -2556,10 +2645,25 @@ function tic30(){
   if (VISTA === 'agenda') return pintarAgenda(true);
 }
 
+// 20/11 (pedido del usuario): sin botón de actualizar. Cada 20 segundos la
+// pantalla que se está viendo se pone al día por dentro, sin recargar ni
+// perder lo abierto ni el sitio. El correo y los mensajes de idealista
+// miran cada 30 s (crSondear). Al volver a la pestaña o a la ventana, en
+// el momento.
+const CADA_MS = 20000;
 function autoRefresco(){
   clearInterval(TIMER);
-  TIMER = setInterval(tic30, 30000);
+  TIMER = setInterval(tic30, CADA_MS);
 }
+let VUELTA_T = 0;
+function alVolver(){
+  if (document.hidden || !TENANT) return;
+  if (Date.now() - VUELTA_T < 5000) return;   // focus y visibilitychange llegan juntos
+  VUELTA_T = Date.now();
+  tic30();
+}
+document.addEventListener('visibilitychange', alVolver);
+window.addEventListener('focus', alVolver);
 
 $('#salir').addEventListener('click', async () => {
   clearInterval(TIMER);
@@ -4330,7 +4434,7 @@ function crConfiguracion(){
         ${pref('avisos', 'Avisar de los correos nuevos', 'Una tarjeta abajo a la derecha, en cualquier pantalla del panel, cuando entra un correo de un cliente o hace falta la intervención del equipo.')}
         ${pref('sonidos', 'Sonidos', 'Una campanilla con los correos nuevos y un sonido corto al copiar o al guardar.')}
       </div>
-      <div class="cr-adj">Se guarda en este navegador. El panel mira si hay correos nuevos cada minuto. Pulsa <kbd>?</kbd> en la bandeja para ver los atajos de teclado.</div>
+      <div class="cr-adj">Se guarda en este navegador. El panel mira si hay correos nuevos cada 30 segundos. Pulsa <kbd>?</kbd> en la bandeja para ver los atajos de teclado.</div>
     </div>`;
   return prefs + crTope() + (r.buzones || []).map(b => {
     const e = EST[b.estado] || [b.estado, 'nt'];
@@ -4373,14 +4477,13 @@ function crPintarIdealista(){
   const ventanaY = scrollY;
   $('#vista').innerHTML = `
     <div class="correo co-real co-bandeja-v cr-ideal">
-      <div class="co-top">
-        <h2 class="tit cr-idtit"><span class="cr-idico" aria-hidden="true">${CR_ICO_CASA}</span>Idealista</h2>
+      <h2 class="tit">Idealista</h2>
+      ${esSimplia() && !OP.activo ? `<div class="co-top">
         <div class="co-ctrl">
-          <button type="button" class="cr-ayuda" data-cr="atajos" title="Atajos de teclado (?)" aria-label="Atajos de teclado">?</button>
-          ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
-            <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
+          <label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
+            <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>
         </div>
-      </div>
+      </div>` : ''}
       <div id="cocuerpo" class="co-cuerpo">${crBandeja()}</div>
     </div>`;
   if (misma) for (const [k, y] of Object.entries(sitio)){
@@ -4395,8 +4498,10 @@ function crPintarIdealista(){
 
 function coPintarReal(){
   if (crEnIdealista()) return crPintarIdealista();
-  if (!['bandeja', 'ajustes'].includes(CO.realTab)) CO.realTab = 'bandeja';
-  const enBandeja = CO.realTab === 'bandeja';
+  // 20/11: sin pestaña «Configuración» dentro de Correo; sus ajustes están
+  // en Configuración › Correo.
+  CO.realTab = 'bandeja';
+  const enBandeja = true;
   // La pantalla no se mueve al repintar: listas y correo abierto vuelven a donde estaban.
   const misma = CO.realPintadoTab === CO.realTab;
   const sitio = {};
@@ -4404,14 +4509,10 @@ function coPintarReal(){
   const ventanaY = scrollY;
   const hs = crHilos();
   const hoy = hs.filter(h => h.primer_recibido_en && new Date(h.primer_recibido_en).toDateString() === new Date().toDateString()).length;
-  const tabs = [['bandeja', 'Bandeja'], ['ajustes', 'Configuración']];
   $('#vista').innerHTML = `
     <div class="correo co-real ${enBandeja ? 'co-bandeja-v' : ''}">
       <div class="co-top">
-        <h2 class="tit cr-idtit"><span class="cr-idico cr-coico" aria-hidden="true">${CR_ICO_SOBRE}</span>Correo</h2>
-        <div class="rangos co-tabs" role="tablist">
-          ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}</button>`).join('')}
-        </div>
+        <h2 class="tit">Correo</h2>
         ${enBandeja ? `<div class="co-cifras cr-cifras">
           <span><b>${hoy}</b> hoy</span>
           <span><b class="az">${crEnCarpeta('nuevos').length}</b> nuevos clientes</span>
@@ -4513,6 +4614,8 @@ const CR_TITULO = document.title;
 let CR_SIN_VER = 0;
 function crTitulo(){ document.title = CR_SIN_VER > 0 && document.visibilityState !== 'visible' ? `(${CR_SIN_VER}) ${CR_TITULO}` : CR_TITULO; }
 function crAvisar(lista){
+  // 20/11: los de idealista avisan solo si está encendido en Configuración › Idealista.
+  lista = lista.filter(x => !crEsIdealista(x.h) || crPref('idealista'));
   if (!lista.length) return;
   crSonar('correo');
   if (document.visibilityState !== 'visible'){ CR_SIN_VER += lista.length; crTitulo(); }
@@ -4553,7 +4656,7 @@ function crSeVa(el){
   });
 }
 
-// --- Ponerse al día solo: cada minuto, lo de las últimas 3 horas.
+// --- Ponerse al día solo: cada 30 segundos, lo de las últimas 3 horas.
 let CR_SONDEANDO = false;
 const crFirmaHilo = h => [h.id, h.ultimo_en, (h.mensajes || []).length, h.borrador?.id || '', crEquipo(h).length, h.tipo || ''].join('|');
 async function crSondear(){
@@ -4588,7 +4691,7 @@ async function crSondear(){
   } catch { /* la siguiente vuelta */ }
   finally { CR_SONDEANDO = false; }
 }
-setInterval(crSondear, 60000);
+setInterval(crSondear, 30000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible'){ CR_SIN_VER = 0; crTitulo(); crSondear(); } });
 
 // --- Visor de fotos con ← → (las del correo y las que se adjuntarían).
@@ -4680,7 +4783,7 @@ if (!window.__crOyentes){
   window.__crOyentes = true;
   document.addEventListener('click', async e => {
     const el = e.target.closest?.('[data-cr]');
-    if (!el || !crVistaReal() || !CO.real) return;
+    if (!el || !(crVistaReal() || VISTA === 'ajustes') || !CO.real) return;
     const que = el.dataset.cr;
     if (que === 'tab'){ CO.realTab = el.dataset.v; return coPintarReal(); }
     if (que === 'carp'){ CO.realCarpeta = el.dataset.id; CO.realBusca = ''; CO.realAbierto = null; return coPintarReal(); }
@@ -4736,7 +4839,7 @@ if (!window.__crOyentes){
       if (error) return coAviso('No se ha podido cambiar: ' + (error.message || 'error'));
       coAviso(`Tope cambiado a ${tope} al día. Si ya se había avisado hoy, volverá a avisar al llegar al 80 % del nuevo tope.`);
       await coCargarReal();
-      return VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
+      return VISTA === 'ajustes' ? pintarAjustes(true) : VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
     }
     if (que === 'clave'){
       const inp = document.getElementById('crclave-' + el.dataset.id);
@@ -4749,7 +4852,7 @@ if (!window.__crOyentes){
       if (error) return coAviso('No se ha podido guardar: ' + (error.message || 'error'));
       coAviso('Contraseña guardada. El asistente vuelve a leer el buzón en unos minutos.');
       await coCargarReal();
-      return VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
+      return VISTA === 'ajustes' ? pintarAjustes(true) : VISTA === 'correo' && CO.real ? coPintarReal() : pintarCorreo();
     }
   });
   // Buscador: repinta solo la lista, sin perder el foco.
@@ -4776,7 +4879,8 @@ if (!window.__crOyentes){
     const k = e.target?.dataset?.crpref; if (!k) return;
     crGuardar('cr-pref-' + k, !!e.target.checked);
     if (k === 'sonidos' && e.target.checked){ crAudio(); crSonar('hecho'); }
-    coAviso(k === 'avisos' ? (e.target.checked ? 'Avisos de correos nuevos encendidos.' : 'Avisos de correos nuevos apagados.')
+    coAviso(k === 'idealista' ? (e.target.checked ? 'Avisos de idealista encendidos.' : 'Avisos de idealista apagados.')
+      : k === 'avisos' ? (e.target.checked ? 'Avisos de correos nuevos encendidos.' : 'Avisos de correos nuevos apagados.')
       : (e.target.checked ? 'Sonidos encendidos.' : 'Sonidos apagados.'));
   });
   document.addEventListener('change', async e => {
@@ -6407,10 +6511,8 @@ async function arrancar(){
   if (A.tratamiento) CFG.tratamiento = A.tratamiento;
   // Fuera de arrancar(): al cambiar de cliente se vuelve a llamar
   // y el oyente se duplicaría, disparando dos cargas por clic.
-  if (!$('#refrescar').dataset.listo){
-    $('#refrescar').addEventListener('click', refrescar);
-    $('#refrescar').dataset.listo = '1';
-  }
+  // 20/11: ya no hay botón de actualizar; refrescar() se queda para quien
+  // lo llame desde el código (cambiar de rango, reintentar…).
   // La Agenda se muestra siempre. Una pestaña vacía que explica
   // qué aparecerá ahí vale más que una pestaña ausente: el cliente
   // no puede echar de menos lo que no sabe que existe, y agendar
@@ -6515,6 +6617,7 @@ async function refrescar(){
    La clave lleva el rango en las tres lecturas que dependen de él: el
    recuento de 24 horas no vale para «7 días». Se vacía al entrar. */
 let LATIDO_CACHE = new Map();
+let ACT_PERS = null;   // mt_actividad_personas (SQL 111); null = no ha llegado
 const DEPENDE_RANGO = new Set(['resumen', 'porHora', 'lat']);
 
 async function datos(rango = RANGO){
@@ -6533,7 +6636,7 @@ async function datos(rango = RANGO){
   // el panel abierto (lo normal en una demostración) salía como un
   // número de WhatsApp y con «Llamar» roto. Si fallan, se queda la
   // lista que había.
-  const [cts, convs, resumen, porHora, lat, reciente, lugares, patron, numeros] = await Promise.all([
+  const [cts, convs, resumen, porHora, lat, reciente, lugares, patron, numeros, pers] = await Promise.all([
     supabase.rpc('mt_mis_contactos'),
     supabase.rpc('mt_conversaciones_lista', { p_limite: 1000 }),
     supabase.rpc('mt_resumen',    { p_horas: rango }),
@@ -6543,12 +6646,16 @@ async function datos(rango = RANGO){
     // enseñaba 0,0 s porque promediaba el hueco entre dos filas que
     // n8n escribe en la misma operación.
     supabase.rpc('mt_tiempo_respuesta', { p_horas: rango }),
-    supabase.rpc('mt_actividad',  { p_limite: 12 }),
+    supabase.rpc('mt_actividad',  { p_limite: 60 }),
     supabase.rpc('mt_demanda'),
     supabase.rpc('mt_patron_horario'),
-    supabase.rpc('mt_mis_numeros')
+    supabase.rpc('mt_mis_numeros'),
+    // 20/11: Actividad reciente por persona (SQL 111). Si falla, se usa
+    // la de antes (mt_actividad), agrupada aquí.
+    supabase.rpc('mt_actividad_personas', { p_limite: 40 })
   ]);
   if (cts && !cts.error && Array.isArray(cts.data)) CONTACTOS = cts.data;
+  if (pers && !pers.error && Array.isArray(pers.data)) ACT_PERS = pers.data;
 
   // QUÉ HA FALLADO, Y NO UNA LISTA VACÍA. Una lectura que falla daba
   // `data: null`, se convertía en [] y el Latido enseñaba ceros: «0
@@ -6622,7 +6729,7 @@ async function datos(rango = RANGO){
 const LECTURAS_LATIDO = {
   convs:'las conversaciones', resumen:'el recuento de mensajes',
   porHora:'el cardiograma', lat:'el tiempo de respuesta',
-  reciente:'la actividad reciente', lugares:'servicios y zonas',
+  reciente:'las últimas conversaciones', lugares:'servicios y zonas',
   patron:'cuándo escriben', numeros:'tus números'
 };
 
@@ -6750,10 +6857,10 @@ let LATIDO_EN_VUELO = 0;
 function pintarSinLatido(motivo){
   LATIDO_PINTADO = false;
   $('#vista').innerHTML = `
-    <h2 class="tit">El <em>latido</em></h2>
+    <h2 class="tit">Latido</h2>
     <div class="panel"><div class="vacio">
       <strong>No se ha podido cargar el Latido.</strong><br>
-      ${esc(motivo)}<br>Se vuelve a intentar solo cada 30 segundos.
+      ${esc(motivo)}<br>Se vuelve a intentar solo cada 20 segundos.
       <div style="margin-top:16px">
         <button class="btn corto" id="lreint" type="button">Reintentar ahora</button>
       </div>
@@ -6793,6 +6900,7 @@ async function pintarLatido(silencioso, forzar){
   try {
     pintarLatidoCon(d, silencioso);
     LATIDO_PINTADO = true;
+    embCargarCorreo();   // la Actividad reciente junta también correo e idealista
   } catch (e){
     // No debería llegar aquí: cada bloque va aislado. Si llega, se dice.
     console.error('Latido · no se ha podido pintar:', e);
@@ -6863,13 +6971,12 @@ function pintarLatidoCon(d, silencioso){
     viejos.length ? `Sin actualizar: ${enLista(viejos)} (se ve lo último que llegó).` : ''
   ].filter(Boolean);
   const aviso = partes.length ? `<div class="lfalta" role="status">
-      <span>${esc(partes.join(' '))} Se vuelve a pedir solo cada 30 segundos.</span>
+      <span>${esc(partes.join(' '))} Se vuelve a pedir solo cada 20 segundos.</span>
       <button type="button" id="lreint">Reintentar ahora</button>
     </div>` : '';
 
   pintaEn(`
-    <h2 class="tit">El <em>latido</em></h2>
-    <p class="sub">Cada conversación que atiende la IA con tus clientes, registrada según entra.</p>
+    <h2 class="tit">Latido</h2>
     ${aviso}
 
     <div class="kpis">
@@ -6905,7 +7012,7 @@ function pintarLatidoCon(d, silencioso){
 
     <div class="rejilla2">
       ${F.has('lugares') ? sinDato('Mapa de demanda') : seguro('Mapa de demanda', () => bloqueMapa(d))}
-      ${F.has('reciente') ? sinDato('Actividad reciente') : seguro('Actividad reciente', () => bloqueActividad(d))}
+      ${F.has('reciente') && !ACT_PERS ? sinDato('Últimas conversaciones') : seguro('Últimas conversaciones', () => bloqueActividad(d))}
     </div>`, silencioso);
 
   tramo('Mapa', () => {
@@ -6936,11 +7043,17 @@ function pintarLatidoCon(d, silencioso){
 
   tramo('Actividad reciente', () => {
     // desde la actividad reciente se abre la conversación completa
-    document.querySelectorAll('.feed li[data-ir]').forEach(li => {
+    document.querySelectorAll('.feed li[data-ir]:not([data-acthilo])').forEach(li => {
       li.addEventListener('click', () => abrir(li.dataset.ir));
       li.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); abrir(li.dataset.ir); }
       });
+    });
+    // Correo e idealista: se abre ese correo en su pestaña.
+    document.querySelectorAll('.feed li[data-acthilo]').forEach(li => {
+      const ir = () => embAbrir('c' + li.dataset.acthilo);
+      li.addEventListener('click', ir);
+      li.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); ir(); } });
     });
   });
 
@@ -7055,27 +7168,58 @@ function enlazarPlegables(){
 // a mano en mt_actividad. Doce líneas que empiezan todas igual no
 // dicen nada; con el nombre se reconoce la conversación de un
 // vistazo.
+/* ---------- Últimas conversaciones (antes «Actividad reciente») ----------
+   20/11 noche (pedido del usuario): el diseño de siempre, abajo del todo
+   del Latido. Lo único que cambia: una fila por persona (su última frase)
+   en vez de los 12 últimos mensajes, que casi siempre eran de una sola
+   conversación; y entran también correo e idealista. */
+const ACT_MAX = 12;
+function actFilas(d){
+  const filas = [];
+  let wa = ACT_PERS;
+  if (!wa){
+    // Sin SQL 111: lo de antes, agrupado por persona.
+    const vistos = new Map();
+    for (const m of d.reciente || []){
+      if (!m.user_ref) continue;
+      const v = vistos.get(m.user_ref);
+      if (!v) vistos.set(m.user_ref, { user_ref:m.user_ref, nombre:m.nombre, telefono:m.telefono, ultima:m.cuando, texto:m.contenido, papel:m.papel });
+      else if (v.papel !== 'human' && m.papel === 'human'){ v.texto = m.contenido; v.papel = 'human'; }
+    }
+    wa = [...vistos.values()];
+  }
+  for (const p of wa)
+    filas.push({ canal:'whatsapp', ir:p.user_ref, nombre:p.nombre || '', id:p.telefono || p.user_ref,
+                 cuando:p.ultima, texto:p.texto || '', ia:p.papel !== 'human' });
+  if (CO.real && CO.real.slug === crSlug()){
+    for (const h of CO.real.hilos || []){
+      if (!crAvisa(h) || crCarpetaDe(h) === 'enviados') continue;
+      if (embDias(h.ultimo_en || h.primer_recibido_en) > 14) continue;
+      const p = crPersona(h), ms = h.mensajes || [];
+      const rec = [...ms].reverse().find(m => m.sentido === 'recibido') || ms[ms.length - 1] || {};
+      filas.push({ canal: crEsIdealista(h) ? 'idealista' : 'correo', hilo:h.id, nombre:p.nombre || '', id:p.email || '',
+                   cuando:h.ultimo_en || h.primer_recibido_en, texto: rec.texto || h.motivo || h.asunto || '', ia:false });
+    }
+  }
+  return filas.sort((a, b) => new Date(b.cuando || 0) - new Date(a.cuando || 0)).slice(0, ACT_MAX);
+}
+
 function bloqueActividad(d){
-  if (!d.reciente || !d.reciente.length) return '';
+  const filas = actFilas(d);
+  if (!filas.length) return '';
   return `<div class="panel">
-    <h3>Actividad reciente</h3>
-    <p class="ph">Últimos mensajes, del más nuevo al más antiguo.</p>
+    <h3>Últimas conversaciones</h3>
+    <p class="ph">La última frase de cada persona, de la más reciente a la más antigua.</p>
     <ul class="feed">
-      ${d.reciente.map(m => {
-        const ref = m.user_ref || null;
-        const t = limpiaMensaje(m.contenido);
-        // "Cliente" se queda solo para cuando de verdad no hay
-        // nombre: el número entero no cabe en la columna, y la fila
-        // se abre con un clic para ver quién es.
-        const ia    = m.papel !== 'human';
-        const quien = ia ? 'IA'
-          : (m.nombre ? `<bdi>${esc(primerNombre(m.nombre))}</bdi>` : 'Cliente');
-        const pista = ia ? 'Respuesta del asistente'
-          : (m.nombre || m.telefono || ref || 'Cliente');
-        return `<li${ref ? ` data-ir="${esc(ref)}" tabindex="0" role="button"` : ''}>
-          <span class="fh mono" title="${m.cuando ? esc(fecha(m.cuando)) : ''}">${cuandoCorto(m.cuando)}</span>
-          <span class="fq${ia ? ' ia' : ''}" title="${esc(pista)}">${quien}</span>
-          <span class="ft">${esc([...t].slice(0, 90).join(''))}${[...t].length > 90 ? '\u2026' : ''}</span>
+      ${filas.map(f => {
+        const t = limpiaMensaje(f.texto);
+        const quien = f.nombre ? `<bdi>${esc(primerNombre(f.nombre))}</bdi>` : 'Cliente';
+        const pista = [f.nombre || f.id, f.canal !== 'whatsapp' ? EMB_CANALES[f.canal] : 'WhatsApp'].filter(Boolean).join(' · ');
+        const attr = f.canal === 'whatsapp' ? `data-ir="${esc(f.ir)}"` : `data-ir="" data-acthilo="${esc(f.hilo)}"`;
+        return `<li ${attr} tabindex="0" role="button">
+          <span class="fh mono" title="${f.cuando ? esc(fecha(f.cuando)) : ''}">${cuandoCorto(f.cuando)}</span>
+          <span class="fq" title="${esc(pista)}">${quien}</span>
+          <span class="ft">${f.canal !== 'whatsapp' ? `<span class="fcanal">${EMB_CANALES[f.canal]} · </span>` : ''}${f.ia ? '<span class="fcanal">Asistente: </span>' : ''}${esc([...t].slice(0, 90).join(''))}${[...t].length > 90 ? '…' : ''}</span>
         </li>`;
       }).join('')}
     </ul>
@@ -7814,14 +7958,21 @@ let CONTACTOS = [], ABIERTO = null;
 let FILTRO = new Set();
 // Ordenar importa más de lo que parece: con 26 personas se navega
 // a ojo, con 300 no. Por defecto, quien escribió más recientemente.
-let ORDEN = 'reciente';
+// 20/11: preferencias de la pestaña WhatsApp (Configuración › WhatsApp),
+// por persona y en este navegador.
+function waPref(k, porDefecto){
+  try { const v = localStorage.getItem('wa_pref_' + k); return v === null ? porDefecto : JSON.parse(v); }
+  catch { return porDefecto; }
+}
+function waGuardar(k, v){ try { localStorage.setItem('wa_pref_' + k, JSON.stringify(v)); } catch {} }
+let ORDEN = waPref('orden', 'reciente');
 const ORDENES = {
   reciente: { etq:'Más reciente', fn:(a,b) => new Date(b.ultima) - new Date(a.ultima) },
   mensajes: { etq:'Más mensajes', fn:(a,b) => Number(b.mensajes) - Number(a.mensajes) },
   nombre:   { etq:'Por nombre',   fn:(a,b) =>
       (a.nombre || '\uffff').localeCompare(b.nombre || '\uffff', 'es') }
 };
-const ordena = l => [...l].sort(ORDENES[ORDEN].fn);
+const ordena = l => [...l].sort((ORDENES[ORDEN] || ORDENES.reciente).fn);
 const SENALES = {
   interes:       { etq: 'Interés',       campo: c => c.interes,        pill: 'az' },
   contacto:      { etq: 'Con contacto',  campo: c => c.contacto,       pill: 'nt' },
@@ -7890,6 +8041,10 @@ async function pintarConvs(silencioso){
     const visible = [...document.querySelectorAll('.pers[data-c]')]
       .some(el => el.dataset.c === ABIERTO);
     if (visible) abrir(ABIERTO);
+  } else if (!ABIERTO && !silencioso && window.innerWidth > 1000 && waPref('abrir', true)){
+    // Configuración › WhatsApp: la primera de la lista se abre sola.
+    const primera = document.querySelector('.pers[data-c]');
+    if (primera) abrir(primera.dataset.c);
   }
 }
 
@@ -8171,7 +8326,7 @@ const filaC = c => {
       <div class="pdat">${c.nombre
         ? `<span class="mono">${marca(c.telefono || c.user_ref)}</span>`
         : (c.email ? marca(c.email) : '')}</div>
-      ${senales ? `<div class="pmarcas">${senales}</div>` : ''}
+      ${senales && waPref('marcas', true) ? `<div class="pmarcas">${senales}</div>` : ''}
     </div>
     <div class="pact">
       <div class="pcuando${act.frio ? ' frio' : ''}">${esc(act.txt)}</div>
@@ -8213,7 +8368,25 @@ async function pintarAgenda(silencioso){
     return;
   }
 
-  const citas = conCorreo ? [...(data || []).map(c => ({ ...c, canal:'whatsapp' })), ...coCitasCorreo()] : (data || []);
+  // 20/11: mt_mis_citas devuelve «inicio» y «centro», y aquí se leía
+  // «cuando» y «ubicacion»: todas las citas caían en «Sin fecha» y
+  // «Próximas» y «Ya celebradas» salían a 0. Además Cal.com manda dos
+  // filas para una misma visita (pedida y creada, o creada y
+  // reprogramada): se deja una por persona, centro y hora.
+  const unicas = new Map();
+  for (const c0 of (data || [])){
+    const c = { ...c0,
+      cuando: c0.cuando ?? c0.inicio ?? null,
+      ubicacion: c0.ubicacion ?? [c0.centro, c0.direccion].filter(Boolean).join(' · '),
+      estado: c0.estado ?? (/CANCEL|REJECT/i.test(c0.evento || '') ? 'cancelada' : null) };
+    const k = [c.user_ref || c.telefono || c.email || c.nombre, c.centro || '', c.cuando || ''].join('|');
+    const ya = unicas.get(k);
+    // Si alguna de sus filas dice que se canceló, cuenta como cancelada.
+    if (!ya) unicas.set(k, c);
+    else if (c.estado === 'cancelada') ya.estado = 'cancelada';
+  }
+  const deBase = [...unicas.values()];
+  const citas = conCorreo ? [...deBase.map(c => ({ ...c, canal:'whatsapp' })), ...coCitasCorreo()] : deBase;
   const ahora = Date.now();
   const vivas = citas.filter(c => c.estado !== 'cancelada');
   const canceladas = citas.filter(c => c.estado === 'cancelada');
@@ -8226,7 +8399,6 @@ async function pintarAgenda(silencioso){
 
   pintaEn(`
     <h2 class="tit">Agenda</h2>
-    <p class="sub">${conCorreo ? 'Las visitas de WhatsApp y de correo, juntas.' : 'Las citas que ha agendado el asistente.'}</p>
 
     ${conCorreo ? coResumenCanales(resumenWa) : ''}
 
@@ -8322,6 +8494,7 @@ function descargarICS(c){
 }
 
 /* ---------- vista: configuración ---------- */
+let AJ_TAB = 'general';
 async function pintarAjustes(silencioso){
   if (!silencioso) $('#vista').innerHTML = esqueleto();
 
@@ -8362,46 +8535,48 @@ async function pintarAjustes(silencioso){
     dias:   (CFG.horario?.dias ?? [1,2,3,4,5]).map(Number)
   };
 
-  // La base devuelve los canales en bruto ("prueba, whatsapp_evolution").
-  // El cliente no sabe qué es Evolution, y "prueba" es nuestro
-  // probador: ni es un canal suyo ni debería verlo.
-  const CANALES = { whatsapp_evolution:'WhatsApp', whatsapp_cloud:'WhatsApp',
-                    voz_retell:'Teléfono', web:'Web' };
-  const canal = String(r.canal || '').split(',').map(x => x.trim())
-    .filter(x => x && x !== 'prueba')
-    .map(x => CANALES[x] || x)
-    .filter((x,i,v) => v.indexOf(x) === i)
-    .join(', ') || '—';
-  const alta = r.alta ? new Date(r.alta).toLocaleDateString('es-ES',
-    { day:'2-digit', month:'long', year:'numeric' }) : '—';
-  const desde = r.primer_registro ? new Date(r.primer_registro).toLocaleDateString('es-ES',
-    { day:'2-digit', month:'long', year:'numeric' }) : '—';
+  // 20/11 (pedido del usuario): Configuración por apartados, uno por canal,
+  // y solo lo que se puede cambiar. Fuera el bloque «Servicio» (cifras de
+  // solo lectura: ya están en el Latido) y «Tratamiento de datos» (texto
+  // legal, no un ajuste). Lo de Correo sale de la pestaña Correo y viene
+  // aquí; Idealista tiene su aviso propio.
+  const conCorreo = correoPermitido();
+  const pestanas = [['general', 'General'], ['whatsapp', 'WhatsApp'],
+    ...(conCorreo ? [['correo', 'Correo'], ['idealista', 'Idealista']] : [])];
+  if (!pestanas.some(([k]) => k === AJ_TAB)) AJ_TAB = 'general';
+  const ver = k => AJ_TAB === k;
+  const correoListo = conCorreo && CO.real && CO.real.slug === crSlug();
+  if (conCorreo && (ver('correo') || ver('idealista')) && !correoListo
+      && !(CO.realPedidoPara === crSlug() && CO.realEstado === 'cargando')){
+    CO.realPedidoPara = crSlug(); CO.realEstado = 'cargando';
+    coCargarReal().then(() => { if (VISTA === 'ajustes') pintarAjustes(true); });
+  }
+  const prefAj = (k, t, d) => `<label class="co-interr"><input type="checkbox" data-crpref="${k}" ${crPref(k) ? 'checked' : ''}><span>${t}<small>${d}</small></span></label>`;
 
   $('#vista').innerHTML = `
     <div class="ajustes">
-    <h2 class="tit">Configuración</h2>
-    <p class="sub">Datos de tu servicio y preferencias.</p>
-
-    <div class="panel">
-      <h3>Servicio</h3>
-      <p class="ph">Solo lectura.</p>
-      <dl class="ficha">
-        <dt>Cliente</dt><dd>${esc(r.cliente || '—')}</dd>
-        <dt>Canal</dt><dd>${esc(canal)}</dd>
-        <dt>Alta del servicio</dt><dd>${alta}</dd>
-        <dt>Registro con fecha desde</dt><dd>${desde}</dd>
-        <dt>Conversaciones</dt><dd class="num">${nf.format(r.conversaciones)}</dd>
-        <dt>Personas atendidas</dt><dd class="num">${nf.format(r.contactos)}</dd>
-        <dt>Usuarios con acceso</dt><dd class="num">${nf.format(r.usuarios)}</dd>
-        <dt>Ubicaciones monitorizadas</dt><dd class="num">${nf.format(r.ubicaciones || 0)}</dd>
-        <dt>Servicios monitorizados</dt><dd class="num">${nf.format(r.servicios || 0)}</dd>
-        <dt>El asistente responde</dt><dd>Siempre, las 24 horas, todos los días</dd>
-        ${r.sector ? `<dt>Sector</dt><dd>${esc(r.sector)}</dd>` : ''}
-      </dl>
+    <div class="vcab"><h2 class="tit">Configuración</h2>
+      <div class="rangos" role="tablist" aria-label="Apartado">
+        ${pestanas.map(([k, t]) => `<button class="rg ${ver(k) ? 'on' : ''}" role="tab" aria-selected="${ver(k)}" data-aj="${k}">${t}</button>`).join('')}
+      </div>
     </div>
 
+    ${ver('correo') ? `<div class="co-real aj-correo">${correoListo ? crConfiguracion()
+        : `<div class="vacio">${CO.realEstado === 'error' ? 'No se ha podido cargar. Vuelve a entrar en este apartado en un momento.'
+          : CO.realEstado === 'cargando' ? 'Cargando…' : 'Esta empresa aún no tiene un buzón de correo conectado.'}</div>`}</div>` : ''}
+
+    ${ver('idealista') ? `<div class="panel">
+      <h3>Avisos de idealista</h3>
+      <p class="ph">Los mensajes de idealista llegan al buzón de correo y salen en su pestaña.</p>
+      <div class="cr-prefs">
+        ${prefAj('idealista', 'Avisar de los mensajes nuevos de idealista', 'Una tarjeta abajo a la derecha, en cualquier pantalla del panel, cuando alguien escribe por idealista. Si lo apagas, siguen saliendo en la pestaña Idealista, sin aviso.')}
+      </div>
+      <p class="hint">Se guarda en este navegador. Los sonidos se encienden o apagan en Correo.</p>
+    </div>` : ''}
+
+    ${ver('general') ? `
     <div class="panel">
-      <h3>Tus preferencias</h3>
+      <h3>Avisos del servicio</h3>
       <p class="ph">A qué direcciones te avisamos de cambios en el servicio.</p>
 
       ${puedeEsc ? `
@@ -8524,20 +8699,42 @@ async function pintarAjustes(silencioso){
         </a>`).join('')}
       </div>
     </div>` : ''}
+    ` : ''}
 
-    ${CFG.tratamiento && CFG.tratamiento.length ? `<div class="panel">
-      <h3>Tratamiento de datos</h3>
-      <p class="ph">Qué se guarda de cada conversación y para qué.</p>
-      <dl class="ficha">
-        ${CFG.tratamiento.map(x =>
-          `<dt>${esc(x.t)}</dt><dd>${esc(x.d)}</dd>`).join('')}
-      </dl>
-      <p class="aviso" style="margin:16px 0 0">
-        Para ejercer derechos de acceso, rectificación o supresión sobre un
-        contacto concreto, escríbenos y lo tramitamos.
-      </p>
+    ${ver('whatsapp') ? `<div class="panel">
+      <h3>Cómo se ve la pestaña WhatsApp</h3>
+      <p class="ph">Se guarda en este navegador: cada persona del equipo lo deja a su gusto.</p>
+      <label id="waordenet">Orden de la lista al entrar</label>
+      <div class="rangos wa-orden" role="radiogroup" aria-labelledby="waordenet">
+        ${Object.entries(ORDENES).map(([k, o]) => `<button type="button" class="rg ${waPref('orden', 'reciente') === k ? 'on' : ''}" role="radio" aria-checked="${waPref('orden', 'reciente') === k}" data-waorden="${k}">${esc(o.etq)}</button>`).join('')}
+      </div>
+      <div class="cr-prefs" style="margin-top:16px">
+        <label class="co-interr"><input type="checkbox" data-wapref="abrir" ${waPref('abrir', true) ? 'checked' : ''}><span>Abrir la conversación más reciente al entrar<small>En el ordenador, la primera de la lista se abre sola a la derecha.</small></span></label>
+        <label class="co-interr"><input type="checkbox" data-wapref="filtros" ${FILTROS_ABIERTOS ? 'checked' : ''}><span>Enseñar los filtros abiertos<small>Interés, Con cita, Sin respuesta… a la vista, sin pulsar «Filtros».</small></span></label>
+        <label class="co-interr"><input type="checkbox" data-wapref="marcas" ${waPref('marcas', true) ? 'checked' : ''}><span>Enseñar las marcas en la lista<small>Las etiquetas de colores (Interés, Cita, Sin respuesta…) debajo de cada nombre.</small></span></label>
+      </div>
+      <span id="msgwa" class="msg-ok" role="status" aria-live="polite"></span>
     </div>` : ''}
     </div>`;
+
+  // Preferencias de WhatsApp: se aplican al momento.
+  document.querySelectorAll('[data-waorden]').forEach(b => b.addEventListener('click', () => {
+    waGuardar('orden', b.dataset.waorden); ORDEN = b.dataset.waorden;
+    document.querySelectorAll('[data-waorden]').forEach(x => {
+      x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b); });
+    $('#msgwa').textContent = 'Guardado.';
+  }));
+  document.querySelectorAll('[data-wapref]').forEach(c => c.addEventListener('change', () => {
+    const k = c.dataset.wapref;
+    if (k === 'filtros'){ FILTROS_ABIERTOS = c.checked; try { localStorage.setItem('convs_filtros', c.checked ? '1' : '0'); } catch {} }
+    else waGuardar(k, c.checked);
+    $('#msgwa').textContent = 'Guardado.';
+  }));
+
+  // Cambiar de apartado: se repinta sin volver a pedir nada al servidor
+  // más que lo de siempre, y sin esqueleto.
+  document.querySelectorAll('[data-aj]').forEach(b =>
+    b.addEventListener('click', () => { AJ_TAB = b.dataset.aj; pintarAjustes(true); }));
 
   // Dos guardados separados: el email es del cliente y los
   // parámetros de cálculo son de SimpliaSpain. Un solo botón
@@ -9292,7 +9489,7 @@ function pintarDetalle(caja, contact, msgs, html){
     if (!l) return;
     // Si la columna aún no está (otra carga más nueva la está pintando),
     // se deja apuntada y esa carga la abre al terminar, en su sitio.
-    if (window.innerWidth > 1000 && !$('#pficha')){ LABIERTO = l.id; return; }
+    if (window.innerWidth > 1000 && !$('#pficha') && !$('#emb-tablero')){ LABIERTO = l.id; return; }
     abrirLead(l.id);
   });
 
@@ -9468,6 +9665,309 @@ function ordenLeads(a, b){
   return new Date(b.ultima || 0) - new Date(a.ultima || 0);
 }
 
+/* ============================================================
+   EMBUDO · TABLERO (20/11, pedido del usuario)
+
+   El embudo de antes era una lista que había que trabajar a mano y nadie
+   lo hacía (125 personas en OficinasYA, ninguna con una llamada, nota o
+   próxima acción apuntada). El tablero coloca SOLO a cada persona con lo
+   que ya sabe el sistema (quién dejó sus datos, quién tiene visita en
+   Cal.com y quién ya la hizo) y junta WhatsApp, correo e idealista:
+
+     Preguntó → Dio sus datos → Visita reservada → Visitó → Cerrado
+
+   20/11 noche: sin «Hoy toca»; el comercial puede mover a cualquiera
+   (arrastrando la tarjeta o con «Mover»), por ejemplo si le ha contactado
+   por otro sitio. Lo movido se guarda para todo el equipo (SQL 112,
+   mt_embudo_marcas) y manda sobre lo automático, salvo que después llegue
+   una visita futura. En WhatsApp también se cambia la etapa del lead
+   (mt_mover_lead), que queda en el historial de su ficha.
+   ============================================================ */
+let EMB_MODO = (() => { try { return localStorage.getItem('emb_modo') === 'lista' ? 'lista' : 'tablero'; } catch { return 'tablero'; } })();
+let EMB_CITAS = [], EMB_MARCAS = new Map(), EMB_CANAL = 'todos', EMB_PERIODO = 30, EMB_BUSCA = '', EMB_EXP = {};
+const EMB_COLS = [
+  ['pregunto',  'Preguntó',         'Escribió y aún no ha dejado sus datos.'],
+  ['datos',     'Dio sus datos',    'Dejó su correo o concretó lo que busca.'],
+  ['reservada', 'Visita reservada', 'Tiene una visita en la agenda.'],
+  ['visito',    'Visitó',           'Ya vino a ver el centro.'],
+  ['cerrado',   'Cerrado',          'Cliente o perdido.']
+];
+const EMB_NIVEL = { pregunto:0, datos:1, reservada:2, visito:3 };
+// Columna del tablero → etapa de mt_embudo (WhatsApp).
+const EMB_A_ETAPA = { pregunto:'entrada', datos:'cualificado', reservada:'visita_agendada', visito:'visita_hecha', ganado:'ganado', perdido:'perdido' };
+const EMB_DESTINOS = [['pregunto', 'Preguntó'], ['datos', 'Dio sus datos'], ['reservada', 'Visita reservada'],
+                      ['visito', 'Visitó'], ['ganado', 'Cliente'], ['perdido', 'Perdido']];
+const EMB_CANALES = { whatsapp:'WhatsApp', correo:'Correo', idealista:'Idealista' };
+const EMB_POR_COL = 8;
+
+function embModoBotones(){
+  const esp = ESPERA ? esperando().length : 0;
+  return `<div class="emb-grupo"><span class="emb-get">Vista</span>
+    <div class="rangos" role="tablist" aria-label="Vista">
+      <button class="rg ${EMB_MODO === 'tablero' ? 'on' : ''}" data-embmodo="tablero" role="tab" aria-selected="${EMB_MODO === 'tablero'}">Tablero</button>
+      <button class="rg ${EMB_MODO === 'lista' ? 'on' : ''}" data-embmodo="lista" role="tab" aria-selected="${EMB_MODO === 'lista'}">Lista${esp ? ` · en espera ${nf.format(esp)}` : ''}</button>
+    </div></div>`;
+}
+
+// El correo comercial (Nuevos clientes) también entra. Si aún no se ha
+// cargado en esta sesión, se pide una vez y se repinta lo que se vea.
+function embCargarCorreo(){
+  if (!TENANT || !correoPermitido()) return;
+  if (CO.real && CO.real.slug === crSlug()) return;
+  if (CO.realPedidoPara === crSlug() && CO.realEstado === 'cargando') return;
+  CO.realPedidoPara = crSlug(); CO.realEstado = 'cargando';
+  coCargarReal().then(() => {
+    if (VISTA === 'embudo' && $('#emb-tablero')) pintarTablero();
+    else if (VISTA === 'latido' && !LATIDO_EN_VUELO) pintarLatido(true);
+  });
+}
+function embPonerMarcas(r){
+  if (r && !r.error && Array.isArray(r.data)) EMB_MARCAS = new Map(r.data.map(m => [m.clave, m]));
+}
+
+// Citas por persona: por user_ref (WhatsApp) y por correo.
+function embIndiceCitas(){
+  const ix = new Map();
+  const pon = (k, t) => { if (!k) return; const l = ix.get(k) || []; l.push(t); ix.set(k, l); };
+  for (const c of EMB_CITAS){
+    if (/CANCEL|REJECT/i.test(c.evento || '') || !c.inicio) continue;
+    const t = new Date(c.inicio).getTime();
+    pon(c.user_ref, t); pon(String(c.email || '').toLowerCase().trim(), t);
+  }
+  return ix;
+}
+
+const embDias = d => (Date.now() - new Date(d || 0)) / 864e5;
+const embEnPeriodo = p => !EMB_PERIODO || p.fut || embDias(p.ultima) <= EMB_PERIODO;
+const embDelCanal = p => EMB_CANAL === 'todos' || p.canal === EMB_CANAL;
+const embClave = k => k[0] + ':' + k.slice(1);
+
+// Dónde va cada uno: lo movido a mano manda (una visita futura lo sube a
+// «Visita reservada»); si no, lo que dicen los datos.
+function embColocar(p, autoNivel, cerradoAuto){
+  const m = EMB_MARCAS.get(embClave(p.k));
+  p.marcado = !!m;
+  if (m && (m.etapa === 'ganado' || m.etapa === 'perdido')){ p.cerrado = m.etapa; }
+  else if (m){ p.cerrado = null; autoNivel = Math.max(EMB_NIVEL[m.etapa] ?? 0, p.fut ? 2 : 0); }
+  else p.cerrado = cerradoAuto;
+  p.nivel = p.cerrado === 'ganado' ? 4 : autoNivel;
+  p.col = p.cerrado ? 'cerrado' : EMB_COLS[autoNivel][0];
+  return p;
+}
+
+// Todas las personas del embudo, de los tres canales, con su columna.
+function embPersonas(){
+  const ahora = Date.now(), ix = embIndiceCitas(), out = [];
+  const nivelDe = (fut, pas, et, datos) =>
+    fut ? 2 : (pas || ['visita_hecha', 'propuesta'].includes(et)) ? 3
+    : et === 'visita_agendada' ? 2 : datos ? 1 : 0;
+  const citas = ts => ({
+    fut: ts.filter(t => t >= ahora).sort((x, y) => x - y)[0] || null,
+    pas: ts.filter(t => t < ahora).sort((x, y) => y - x)[0] || null });
+  for (const l of LEADS){
+    const ts = [...(ix.get(l.user_ref) || []), ...(ix.get(String(l.email || '').toLowerCase().trim()) || [])];
+    if (l.cita) ts.push(new Date(l.cita).getTime());
+    const { fut, pas } = citas(ts);
+    const p = { k:'w' + l.id, canal:'whatsapp', lead:l, nombre:l.nombre || '', tel:l.telefono || l.user_ref || '',
+      email:l.email || '', que:[l.servicio, l.ubicacion].filter(Boolean).join(', '),
+      ultima:l.ultima || l.ultimo_cuando || l.primera, fut, pas };
+    out.push(embColocar(p, nivelDe(fut, pas, l.etapa, l.etapa === 'cualificado' || correoValido(l.email)),
+      ['ganado', 'perdido'].includes(l.etapa) ? l.etapa : null));
+  }
+  for (const h of (CO.real && CO.real.slug === crSlug() ? CO.real.hilos || [] : [])){
+    if (crCarpetaDe(h) !== 'nuevos') continue;
+    const pr = crPersona(h), canal = crEsIdealista(h) ? 'idealista' : 'correo';
+    const { fut, pas } = citas(ix.get(String(pr.email || '').toLowerCase().trim()) || []);
+    const p = { k:'c' + h.id, canal, hilo:h.id, nombre:pr.nombre || '', tel:'', email:pr.email || '',
+      que: h.motivo || h.asunto || '', ultima: h.ultimo_en || h.primer_recibido_en, fut, pas };
+    out.push(embColocar(p, nivelDe(fut, pas, null, canal === 'correo' && correoValido(pr.email)), null));
+  }
+  return out;
+}
+
+const embNombre = p => p.nombre ? `<bdi>${esc(p.nombre)}</bdi>` : `<span class="mono">${esc(p.tel || p.email || 'Sin nombre')}</span>`;
+const embCanalPill = p => `<span class="pill emb-c-${p.canal}">${EMB_CANALES[p.canal]}</span>`;
+
+function pintarTablero(){
+  const caja = $('#emb-tablero'); if (!caja) return;
+  const todas = embPersonas();
+  const enPeriodo = todas.filter(embEnPeriodo);
+  const lista = enPeriodo.filter(embDelCanal);
+  const n = lista.length, al = k => lista.filter(p => p.nivel >= k).length;
+  const ganados = lista.filter(p => p.cerrado === 'ganado').length;
+  const pct = x => n ? Math.round(x / n * 100) + ' %' : '—';
+  const pasos = [['Preguntaron', n, EMB_PERIODO ? `en ${EMB_PERIODO} días` : 'desde el inicio'],
+                 ['Dieron sus datos', al(1), pct(al(1))], ['Reservaron visita', al(2), pct(al(2))],
+                 ['Visitaron', al(3), pct(al(3))], ['Clientes', ganados, pct(ganados)]];
+  const cuenta = c => enPeriodo.filter(p => c === 'todos' || p.canal === c).length;
+  const canales = ['todos', 'whatsapp', ...(correoPermitido() ? ['correo', 'idealista'] : [])];
+
+  caja.innerHTML = `
+    <div class="emb-filtros">
+      ${embModoBotones()}
+      <div class="emb-grupo"><span class="emb-get">Canal</span>
+        <div class="rangos" role="group" aria-label="Canal">
+          ${canales.map(c => `<button class="rg ${EMB_CANAL === c ? 'on' : ''}" data-embcan="${c}">${c === 'todos' ? 'Todos' : EMB_CANALES[c]} <span class="emb-n">${nf.format(cuenta(c))}</span></button>`).join('')}
+        </div></div>
+      <div class="emb-grupo"><span class="emb-get">Periodo</span>
+        <div class="rangos" role="group" aria-label="Periodo">
+          ${[[7, '7 días'], [30, '30 días'], [90, '90 días'], [0, 'Todo']].map(([d, t]) => `<button class="rg ${EMB_PERIODO === d ? 'on' : ''}" data-embper="${d}">${t}</button>`).join('')}
+        </div></div>
+      <input id="ebusca" class="busca emb-ebusca" type="search" placeholder="Buscar por nombre, teléfono o correo" autocomplete="off" value="${esc(EMB_BUSCA)}" aria-label="Buscar en el embudo">
+    </div>
+
+    <div class="panel emb-num" aria-label="El embudo en números">
+      ${pasos.map(([t, v, p]) => `<div class="et-paso"><b>${nf.format(v)}</b><span class="et-pt">${t}</span><span class="et-pp">${p}</span></div>`).join('')}
+    </div>
+
+    <p class="emb-ayuda">Cada persona se coloca sola. Si la habéis contactado por otro sitio, arrastra su tarjeta a otra columna o pulsa «Mover».</p>
+    <div id="emb-cols" class="emb-cols"></div>`;
+  embPintarCols(lista);
+}
+
+function embTarjeta(p, k){
+  const hora = t => new Date(t).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+  return `<div class="emb-tarjeta" draggable="true" data-embk="${esc(p.k)}" tabindex="0" role="button" aria-label="${esc(p.nombre || p.tel || p.email || 'Sin nombre')}">
+    <span class="emb-tnom">${embNombre(p)}</span>
+    <span class="emb-tque">${esc(p.que || 'Sin concretar qué busca')}</span>
+    <span class="emb-tpie">${embCanalPill(p)}${p.cerrado ? `<span class="pill ${p.cerrado === 'ganado' ? 'vd' : 'nt'}">${p.cerrado === 'ganado' ? 'Cliente' : 'Perdido'}</span>` : ''}
+      <span class="emb-thace">${k === 'reservada' && p.fut ? esc(fechaCorta(new Date(p.fut).toISOString())) + ' · ' + hora(p.fut) : p.ultima ? esc(desdeEntonces(p.ultima).txt) : ''}</span>
+      <button type="button" class="emb-mover" data-embmover="${esc(p.k)}" aria-haspopup="menu" title="Mover a otra columna">Mover</button></span>
+  </div>`;
+}
+
+function embPintarCols(lista){
+  const cont = $('#emb-cols'); if (!cont) return;
+  if (!lista) lista = embPersonas().filter(p => embEnPeriodo(p) && embDelCanal(p));
+  const norm = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const q = norm(EMB_BUSCA.trim()), num = EMB_BUSCA.replace(/[^0-9]/g, '');
+  const l = q ? lista.filter(p => norm(p.nombre).includes(q) || norm(p.email).includes(q) || norm(p.que).includes(q)
+    || (num.length >= 3 && String(p.tel).includes(num))) : lista;
+  cont.innerHTML = EMB_COLS.map(([k, t, ayuda]) => {
+    const dentro = l.filter(p => p.col === k).sort((a, b) =>
+      k === 'reservada' ? (a.fut || 0) - (b.fut || 0) : new Date(b.ultima || 0) - new Date(a.ultima || 0));
+    const vistos = EMB_EXP[k] ? dentro : dentro.slice(0, EMB_POR_COL);
+    return `<section class="emb-col emb-col-${k}" data-embcol="${k}" aria-label="${t}">
+      <div class="emb-ccab" title="${esc(ayuda)}"><b>${t}</b><span class="emb-n">${nf.format(dentro.length)}</span></div>
+      <div class="emb-tarjetas">
+        ${vistos.map(p => embTarjeta(p, k)).join('') || '<p class="emb-vacia">Nadie</p>'}
+        ${dentro.length > vistos.length ? `<button type="button" class="lmas" data-embmas="${k}">Ver ${dentro.length - vistos.length} más</button>` : ''}
+      </div>
+    </section>`;
+  }).join('');
+}
+
+// Abrir a alguien: la ficha de siempre (WhatsApp) o su correo.
+async function embAbrir(k){
+  if (k.startsWith('w')) return abrirLead(Number(k.slice(1)));
+  const id = k.slice(1), h = (CO.real?.hilos || []).find(x => x.id === id); if (!h) return;
+  CO.realTab = 'bandeja'; CO.realBusca = ''; CO.realCarpeta = crCarpetaDe(h); CO.realAbierto = h.id; crMarcarVisto(h.id);
+  await irA(crEsIdealista(h) ? 'idealista' : 'correo');
+  if (!coLector()) crAbrirVentana(h.id);
+}
+
+// Mover a mano. destino: pregunto | datos | reservada | visito | ganado | perdido | null (colocar solo).
+async function embMover(k, destino){
+  const clave = embClave(k), antes = EMB_MARCAS.get(clave);
+  if (destino) EMB_MARCAS.set(clave, { clave, etapa:destino, cuando:new Date().toISOString() });
+  else EMB_MARCAS.delete(clave);
+  embCerrarMenu();
+  pintarTablero();
+  const r = await supabase.rpc('mt_embudo_marcar', { p_clave: clave, p_etapa: destino });
+  let error = r?.error;
+  if (!error && destino && k.startsWith('w')){
+    const l = LEADS.find(x => x.id === Number(k.slice(1)));
+    if (l && l.etapa !== EMB_A_ETAPA[destino]){
+      const m = await supabase.rpc('mt_mover_lead', { p_id: l.id, p_etapa: EMB_A_ETAPA[destino], p_nota: 'Movido en el tablero' });
+      if (!m?.error) l.etapa = EMB_A_ETAPA[destino];
+    }
+  }
+  if (error){
+    if (antes) EMB_MARCAS.set(clave, antes); else EMB_MARCAS.delete(clave);
+    pintarTablero();
+    return coAviso('No se ha podido mover: ' + (mensajeError(error) || 'error'));
+  }
+  const nombre = EMB_DESTINOS.find(([d]) => d === destino)?.[1];
+  coAviso(destino ? `Movido a «${nombre}».` : 'Vuelve a colocarse solo.');
+  anunciar(destino ? `Movido a ${nombre}` : 'Vuelve a colocarse solo');
+}
+
+function embCerrarMenu(){ $('#embmenu')?.remove(); }
+function embAbrirMenu(boton, k, solo){
+  embCerrarMenu();
+  const p = embPersonas().find(x => x.k === k); if (!p) return;
+  const actual = p.cerrado || p.col;
+  const ops = EMB_DESTINOS.filter(([d]) => d !== actual && (!solo || solo.includes(d)));
+  const m = document.createElement('div');
+  m.id = 'embmenu'; m.className = 'emb-menu'; m.setAttribute('role', 'menu');
+  m.innerHTML = `<div class="emb-mtit">Mover a</div>
+    ${ops.map(([d, t]) => `<button type="button" role="menuitem" data-embdest="${d}" data-embk="${esc(k)}">${t}</button>`).join('')}`;
+  document.body.append(m);
+  const r = boton.getBoundingClientRect(), w = m.offsetWidth, hgt = m.offsetHeight;
+  m.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w)) + 'px';
+  m.style.top = (r.bottom + hgt + 8 > innerHeight ? Math.max(8, r.top - hgt - 4) : r.bottom + 4) + 'px';
+  m.querySelector('button')?.focus();
+}
+
+// Un solo oyente para todo el tablero (se pone una vez).
+document.addEventListener('click', e => {
+  if (VISTA !== 'embudo'){ embCerrarMenu(); return; }
+  const dest = e.target.closest?.('[data-embdest]');
+  if (dest) return embMover(dest.dataset.embk, dest.dataset.embdest || null);
+  if (!e.target.closest?.('#embmenu')) embCerrarMenu();
+  const m = e.target.closest?.('[data-embmodo]');
+  if (m){ EMB_MODO = m.dataset.embmodo; try { localStorage.setItem('emb_modo', EMB_MODO); } catch {} return pintarEmbudo(true); }
+  if (!e.target.closest?.('#emb-tablero')) return;
+  const mv = e.target.closest('[data-embmover]'); if (mv){ e.stopPropagation(); return embAbrirMenu(mv, mv.dataset.embmover); }
+  const c = e.target.closest('[data-embcan]'); if (c){ EMB_CANAL = c.dataset.embcan; EMB_EXP = {}; return pintarTablero(); }
+  const p = e.target.closest('[data-embper]'); if (p){ EMB_PERIODO = Number(p.dataset.embper); EMB_EXP = {}; return pintarTablero(); }
+  const mas = e.target.closest('[data-embmas]'); if (mas){ EMB_EXP[mas.dataset.embmas] = true; return embPintarCols(); }
+  const t = e.target.closest('[data-embk]'); if (t) embAbrir(t.dataset.embk);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#embmenu')){ embCerrarMenu(); return; }
+  const t = e.target?.closest?.('.emb-tarjeta[data-embk]');
+  if (t && e.target === t && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); embAbrir(t.dataset.embk); }
+});
+document.addEventListener('scroll', embCerrarMenu, true);
+document.addEventListener('input', e => {
+  if (e.target?.id !== 'ebusca' || VISTA !== 'embudo') return;
+  EMB_BUSCA = e.target.value;
+  embPintarCols();
+});
+// Arrastrar una tarjeta a otra columna (en el ordenador).
+let EMB_ARRASTRA = null;
+document.addEventListener('dragstart', e => {
+  const t = e.target?.closest?.('.emb-tarjeta[data-embk]'); if (!t) return;
+  EMB_ARRASTRA = t.dataset.embk; t.classList.add('arrastra');
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', EMB_ARRASTRA); } catch {}
+});
+document.addEventListener('dragend', e => {
+  e.target?.closest?.('.emb-tarjeta')?.classList.remove('arrastra');
+  document.querySelectorAll('.emb-col.encima').forEach(x => x.classList.remove('encima'));
+  EMB_ARRASTRA = null;
+});
+document.addEventListener('dragover', e => {
+  const col = e.target?.closest?.('.emb-col[data-embcol]'); if (!col || !EMB_ARRASTRA) return;
+  e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.emb-col.encima').forEach(x => x !== col && x.classList.remove('encima'));
+  col.classList.add('encima');
+});
+document.addEventListener('drop', e => {
+  const col = e.target?.closest?.('.emb-col[data-embcol]'); if (!col || !EMB_ARRASTRA) return;
+  e.preventDefault();
+  const k = EMB_ARRASTRA, destino = col.dataset.embcol;
+  col.classList.remove('encima');
+  const p = embPersonas().find(x => x.k === k); if (!p) return;
+  if (destino === 'cerrado'){
+    // Cerrado son dos: se pregunta cuál, encima de la columna.
+    if (p.col === 'cerrado') return;
+    return embAbrirMenu(col.querySelector('.emb-ccab'), k, ['ganado', 'perdido']);
+  }
+  if (destino !== p.col || p.cerrado) embMover(k, destino);
+});
+
 let TURNO_EMB = 0, EMBUDO_EN_VUELO = 0;
 async function pintarEmbudo(silencioso){
   const turno = ++TURNO_EMB;
@@ -9484,13 +9984,15 @@ async function pintarEmbudo(silencioso){
     // muestra lo que ya hay: una lista algo vieja es mejor que una
     // pantalla en blanco.
     await supabase.rpc('mt_sincronizar').catch(() => {});
-    let e;
-    [a, b, e] = await Promise.all([
+    let e, ci, mk;
+    [a, b, e, ci, mk] = await Promise.all([
       supabase.rpc('mt_mis_leads'),
       supabase.rpc('mt_embudo_resumen'),
-      supabase.rpc('mt_mi_lista_espera')
+      supabase.rpc('mt_mi_lista_espera'),
+      supabase.rpc('mt_mis_citas'),
+      supabase.rpc('mt_embudo_marcas_leer')
     ]);
-    if (turno === TURNO_EMB) aplicaEspera(e);
+    if (turno === TURNO_EMB){ aplicaEspera(e); if (ci && !ci.error) EMB_CITAS = ci.data || []; embPonerMarcas(mk); }
   } finally { EMBUDO_EN_VUELO--; }
   // Si mientras tanto se ha pedido otra carga o se ha cambiado de
   // pestaña, no se pinta encima.
@@ -9505,9 +10007,17 @@ async function pintarEmbudo(silencioso){
   LEADS = a.data || []; EMBUDO = b.data || [];
   if (LFILTRO === 'espera' && ESPERA === null) LFILTRO = 'activos';
 
+  // 20/11: el tablero es la vista normal; la lista de antes se queda
+  // como alternativa (tiene la lista de espera).
+  if (EMB_MODO === 'tablero'){
+    pintaEn(`${embudoCabecera()}<div id="emb-tablero" class="emb-tablero"></div>`, silencioso);
+    pintarTablero();
+    embCargarCorreo();
+    return;
+  }
+
   if (!LEADS.length && !(ESPERA || []).length){
     pintaEn(`${embudoCabecera()}
-      <p class="sub corta">Quien ha escrito a tu asistente, ordenado por lo que hay que hacer primero.</p>
       <div class="panel"><div class="vacio">
         <strong>Nadie ha escrito aún.</strong><br>
         Quien escriba al asistente entra aquí solo, sin hacer nada.</div></div>`, silencioso);
@@ -9518,8 +10028,7 @@ async function pintarEmbudo(silencioso){
 
   pintaEn(`
     ${embudoCabecera()}
-    <p class="sub corta">Quien ha escrito a tu asistente, ordenado por lo que hay
-       que hacer primero.</p>
+    <div class="emb-filtros emb-lcab">${embModoBotones()}</div>
 
     ${cuentasEtapa()}
 
@@ -9625,11 +10134,11 @@ async function refrescarEmbudoVista(){
   if (REFRESCO_EMB) return;
   REFRESCO_EMB = true;
   try {
-    if (!$('#lista-leads')) return EMBUDO_EN_VUELO ? undefined : pintarEmbudo(true);
+    if (!$('#lista-leads') && !$('#emb-tablero')) return EMBUDO_EN_VUELO ? undefined : pintarEmbudo(true);
     // Sincronizar primero, como al entrar: es lo que hace aparecer a
     // quien acaba de escribir por primera vez.
     await supabase.rpc('mt_sincronizar').catch(() => {});
-    if (VISTA !== 'embudo' || !$('#lista-leads')) return;
+    if (VISTA !== 'embudo' || (!$('#lista-leads') && !$('#emb-tablero'))) return;
     await refrescarEmbudo();
     ULTIMA = Date.now(); pintarCuando();
   } finally { REFRESCO_EMB = false; }
@@ -9639,14 +10148,20 @@ async function refrescarEmbudoVista(){
 // con la ficha abierta vacía el fondo un instante, la página se
 // encoge y el modal salta.
 async function refrescarEmbudo(){
-  const [a, b, e] = await Promise.all([
+  const [a, b, e, ci, mk] = await Promise.all([
     supabase.rpc('mt_mis_leads'),
     supabase.rpc('mt_embudo_resumen'),
-    supabase.rpc('mt_mi_lista_espera')
+    supabase.rpc('mt_mi_lista_espera'),
+    supabase.rpc('mt_mis_citas'),
+    supabase.rpc('mt_embudo_marcas_leer')
   ]);
+  embPonerMarcas(mk);
   if (a.data) LEADS = a.data;
   if (b.data) EMBUDO = b.data;
+  if (ci && !ci.error) EMB_CITAS = ci.data || [];
   aplicaEspera(e);
+  // El tablero, si es lo que se ve (no mientras se escribe en el buscador).
+  if ($('#emb-tablero') && !escribiendo() && !$('#embmenu') && !EMB_ARRASTRA) pintarTablero();
 
   const c = document.querySelector('.fcuentas');
   if (c) c.outerHTML = cuentasEtapa();
