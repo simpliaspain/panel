@@ -1468,6 +1468,48 @@
   .co-bandeja.co-ladov{grid-template-columns:256px minmax(260px,320px) minmax(0,1fr)}
   .co-carps{overflow-x:hidden}
   .co-carp{min-width:0}
+  /* 18/11 noche · Idealista: lista y correo, sin columna de carpetas. */
+  .co-bandeja.cr-sincarps{grid-template-columns:minmax(300px,420px) minmax(0,1fr)}
+  .co-bandeja.cr-sincarps.co-ladov{grid-template-columns:minmax(260px,340px) minmax(0,1fr)}
+  .cr-ideal .cr-sub{font-size:13px;color:var(--tinta-suave);margin:0}
+  /* Correo (azul) e Idealista (ámbar) se distinguen a primera vista: icono en
+     el título, color del menú, borde de arriba de los paneles y fila abierta. */
+  .cr-idtit{display:flex;align-items:center;gap:10px}
+  /* 20/11 (pedido del usuario): sin rayas ni detalles naranjas; solo el icono distingue una de otra. */
+  .cr-idico{width:34px;height:34px;border-radius:10px;display:inline-grid;place-items:center;flex:none;background:#E5EFFE;color:var(--pulso)}
+  /* Respondido: en la cabecera del mensaje, a la derecha. */
+  .cr-idestado{margin-left:auto;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .cr-resp{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .cr-cestado{display:flex;margin:10px 0 0}
+  .co-real .co-fila .pill.vd{opacity:.9}
+  /* Idealista: quién, qué pregunta y la respuesta; el aviso completo, plegado. */
+  .cr-idet{max-width:860px}
+  .cr-idcab{padding-bottom:14px;border-bottom:1px solid var(--linea);margin-bottom:16px}
+  .cr-idquien{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .cr-idquien h3{font-size:22px;margin:0;text-transform:capitalize}
+  .cr-idquien .cerrar{margin-left:auto}
+  .cr-iddatos{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;margin-top:8px;font-size:14px}
+  .cr-idanun{color:var(--tinta-suave)}
+  .cr-idanun b{color:var(--tinta)}
+  .cr-idtel{font-weight:600;color:var(--pulso);text-decoration:none}
+  .cr-idtel:hover{text-decoration:underline}
+  .cr-idpreg{background:var(--fondo, #F4F7FB);border-radius:12px;padding:14px 18px;margin-bottom:16px}
+  .cr-idtexto{font-size:17px;line-height:1.55}
+  .cr-idtexto p{margin:0 0 6px}
+  .cr-idresp{border:1px solid var(--linea);border-radius:12px;padding:14px 18px}
+  .cr-idacc{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .cr-idacc .co-msgt{margin:0 auto 0 0}
+  .cr-ideq{margin-bottom:10px}
+  .cr-idorig{margin-top:16px;font-size:13px;color:var(--tinta-suave)}
+  .cr-idorig summary{cursor:pointer;font-weight:600}
+  .cr-idorig .co-orig{margin-top:8px}
+  /* Accesibilidad (18/11 noche): con el teclado siempre se ve dónde está el foco. */
+  .co-real .co-carp:focus-visible,.co-real .co-fila:focus-visible,.co-real .co-editar:focus-visible,
+  .co-real .cbtn:focus-visible,.co-real .co-vbtn:focus-visible,.co-real .cr-ayuda:focus-visible{outline:2px solid var(--pulso);outline-offset:-2px}
+  .co-real .co-bwrap:focus-within{box-shadow:0 0 0 2px var(--pulso)}
+  /* Móvil: la tira de carpetas, de una línea (se estiraba hasta 130 px de alto). */
+  @media(max-width:820px){ .co-real .co-bandeja{align-content:start} .co-real .co-bandeja > .co-carps{align-self:start;align-items:center} }
+  @media(max-width:1099px){ .co-bandeja.cr-sincarps,.co-bandeja.cr-sincarps.co-ladov{grid-template-columns:minmax(0,1fr)} }
   .co-cnomb{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35;overflow-wrap:anywhere}
 
   /* Correo abierto: cabecera, y el correo y la respuesta cada uno en su caja. */
@@ -1858,6 +1900,9 @@
      (foto, nombre y teléfono), las acciones de vez en cuando en «Más»,
      burbujas algo más compactas y la columna del chat más alta. */
   h2.convs-tit{margin-bottom:16px}
+  /* 20/11: la cabecera de WhatsApp, igual de compacta que la de Correo e Idealista. */
+  main:has(.convs-tit){padding-top:12px}
+  h2.tit.convs-tit{font-size:24px;line-height:1.1;margin:0 0 10px}
   .fbtn{display:inline-flex;align-items:center;gap:6px;background:var(--fondo);color:var(--tinta-suave);
         font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px}
   .fbtn:hover{color:var(--tinta)}
@@ -1974,7 +2019,7 @@
   .cr-buzon .fila{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--tinta-suave);margin:6px 0 10px}
   .cr-clave{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .cr-clave input{max-width:280px;margin:0}
-  /* Bandeja real con carpetas (16/11 noche) y «Mejoras». */
+  /* Bandeja real con carpetas (16/11 noche). */
   .cr-hilo{display:grid;gap:12px;align-content:start;min-width:0}
   /* 18/11: «Intervención equipo» y «vía idealista / formulario web». */
   .co-msg.cr-equipo{background:var(--coral-fondo);border-color:var(--coral-fondo)}
@@ -2002,7 +2047,7 @@
   .co-real .co-dtit h3{font-size:18px;line-height:1.25}
   .co-real .co-dde{margin-top:6px;line-height:1.45}
   .co-real .co-dde .co-av.co-logo{width:30px;height:30px;font-size:12px}
-  .co-real .co-dcab .co-clasif{margin:6px 0 0;padding:0;background:none;border:0;font-size:12.5px;line-height:1.5;color:var(--tinta-suave)}
+
   .co-real .co-par{gap:10px}
   .co-real .co-msg{padding:12px 16px}
   .co-real .cr-hilo{gap:10px}
@@ -2047,32 +2092,12 @@
   .cr-cifbtn b{font-size:15px;color:var(--verde-oscuro);margin-right:4px}
   .co-ej.cr-sombra{background:#E5EFFE;color:var(--azul-texto);cursor:help}
   .co-real .co-fila{cursor:pointer}
-  .cr-mej h3{font-size:17px;margin:0 0 6px;display:flex;align-items:center;gap:8px}
-  .cr-mej > .co-para{margin:0 0 14px}
-  .cr-mcab{display:flex;gap:12px 24px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
-  .cr-mcab > div:first-child{flex:1 1 420px}
-  .cr-mcab .co-para{line-height:1.6;max-width:72ch;margin:0}
-  .cr-mhoja{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-  .cr-mhoja .cbtn{text-decoration:none}
-  .cr-fitem{border:1px solid var(--linea);border-radius:12px;padding:14px 16px;margin-bottom:10px;background:var(--blanco)}
-  .cr-fitem.vuelve{border-color:var(--coral-fondo)}
-  .cr-fdato{font-size:15px;font-weight:700;line-height:1.4;margin-bottom:4px}
-  .cr-fdato::first-letter{text-transform:uppercase}
-  .cr-fmeta{font-size:12px;color:var(--gris);margin-bottom:8px}
-  .cr-fdonde{font-size:13px;line-height:1.6;color:var(--tinta-suave);margin-bottom:10px}
-  .cr-facc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .cr-facc a.cbtn{text-decoration:none}
-  .cr-fder{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
-  .cr-fhechos{margin-top:12px;font-size:13px;color:var(--tinta-suave)}
-  .cr-fhechos summary{cursor:pointer;font-weight:600}
-  .cr-fhechos ul{margin:8px 0 0 18px;display:grid;gap:4px}
   .cr-tscroll{overflow-x:auto}
   .cr-tabla{width:100%;border-collapse:collapse;font-size:13px}
   .cr-tabla th,.cr-tabla td{padding:8px 10px;border-bottom:1px solid var(--linea);text-align:right;white-space:nowrap}
   .cr-tabla th:first-child,.cr-tabla td:first-child{text-align:left}
   .cr-tabla th{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.05em}
   .cr-tabla tfoot td{font-weight:700;border-bottom:0}
-  @media(max-width:640px){ .cr-fder{margin-left:0} }
   #pdetalle .msg,#mbox .msg{margin-bottom:6px}
   #pdetalle .msg .burb,#mbox .msg .burb{padding:8px 12px;font-size:14px;line-height:1.5;max-width:min(88%, 62ch)}
   #pdetalle .hora,#mbox .hora{margin-top:2px;font-size:10.5px}
@@ -2116,8 +2141,9 @@
     <div class="marca">Simplia<span>Spain</span></div>
     <nav>
       <button class="on" data-v="latido">Latido</button>
-      <button data-v="convs">Conversaciones</button>
+      <button data-v="convs">WhatsApp</button>
       <button data-v="correo" hidden>Correo <span class="navn" id="navcorreo" hidden></span></button>
+      <button data-v="idealista" hidden>Idealista</button>
       <button data-v="embudo">Embudo</button>
       <button data-v="agenda">Agenda</button>
       <button data-v="ajustes">Configuración</button>
@@ -2163,7 +2189,8 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // staging y en la consola. GitHub Pages guarda los archivos en caché
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
-const VERSION = '2026-11-18f · avisos y sonidos de correo nuevo, marca de nuevo, atajos y visor de fotos; más espacio para leer el correo; Abrir en idealista abre la conversación; firma con el aviso de IA; idealista: Copiar respuesta y Abrir en idealista; «Intervención equipo» y remitentes de la web e idealista; sin la etiqueta «Falta un dato»; correo con carpetas como la maqueta (sin los correos sin texto), fotos de los correos y «Mejoras» (lo que falta en la hoja), sin comparar con el equipo; en producción para OficinasYA (modo sombra)';
+// Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
+const VERSION = '2026-11-20a · «WhatsApp» en vez de «Conversaciones», cabecera compacta; Idealista sin naranja';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -2565,7 +2592,10 @@ function irA(v){
   if (v === 'convs')  return pintarConvs();
   if (v === 'embudo') return CO.embudoCanal === 'correo' && correoPermitido() && CO_MAQUETA ? pintarEmbudoCorreo() : pintarEmbudo();
   if (v === 'agenda') return pintarAgenda();
+  // Al pasar de Correo a Idealista (o al revés) la búsqueda empieza de cero.
+  if ((v === 'correo' || v === 'idealista') && CO.realVista !== v){ CO.realBusca = ''; CO.realVista = v; }
   if (v === 'correo' && correoPermitido()) return pintarCorreo();
+  if (v === 'idealista' && correoPermitido()) return pintarIdealista();
   if (v === 'cuentas') return pintarCuentas();
   return pintarAjustes();
 }
@@ -2884,8 +2914,7 @@ CO.usuarios = {
 };
 CO.avisos = ['roberto@oficinasya.es'];
 function correoAcceso(){
-  const b = document.querySelector('nav button[data-v="correo"]');
-  if (b) b.hidden = !correoPermitido();
+  for (const v of ['correo', 'idealista']){ const b = document.querySelector(`nav button[data-v="${v}"]`); if (b) b.hidden = !correoPermitido(); }
   CO.cliente = esSimplia() ? (CO.cliente || 'oficinasya') : TENANT?.slug;
   coLeerVista();
   coBadge();
@@ -3246,7 +3275,7 @@ function coRefrescar(manual){
   if (CO.real){
     coCargarReal().then(() => {
       ULTIMA = Date.now(); pintarCuando();
-      if (VISTA === 'correo' && !escribiendo()) CO.real ? coPintarReal() : pintarCorreo();
+      if (crVistaReal() && !escribiendo()) CO.real ? coPintarReal() : crEnIdealista() ? pintarIdealista() : pintarCorreo();
     });
     return;
   }
@@ -3686,19 +3715,15 @@ function pintarCorreo(){
    del buzón y el campo para guardar su contraseña (va directa a Vault con
    mt_correo_guardar_clave, SQL 77; nunca se enseña).
    16/11 noche: la bandeja tiene la forma de la maqueta (carpetas, lista
-   con buscador y el correo a la derecha), y lo que falta en la hoja va en
-   «Mejoras» (SQL 87).
+   con buscador y el correo a la derecha). 18/11 noche: sin «Mejoras»; lo
+   que falta en la hoja sale dentro de cada respuesta (mt_correo_faltan, SQL 87).
    En producción solo lo ven las empresas de CO_EMPRESAS_CON_ACCESO.
    ===================================================================== */
 CO.real = null;          // { slug, buzones, puede_editar, hilos, resumen, faltan, mejorar }
 CO.realTab = 'bandeja';
-CO.realCarpeta = '_prop';
+CO.realCarpeta = 'nuevos';
 CO.realBusca = '';
 CO.realAbierto = null;
-const CR_SUBTIPO = { despacho_meses:'Despacho por meses', equipo:'Equipo (6 o más)', despacho_horas:'Despacho por horas',
-  puesto:'Puesto de coworking', sala:'Sala', oficina_virtual:'Oficina virtual', broker:'Broker', portal:'Portal',
-  generico:'Consulta', avisos:'Avisos', newsletter:'Boletines', proveedor:'Proveedor', empleo:'Empleo',
-  spam:'Spam', personal:'Personal o interno', facturas:'Facturas' };
 const CR_TIPO = { comercial:'Comercial', cliente_actual:'Cliente actual', no_comercial:'No comercial' };
 const CR_VER = { igual:['Igual que el equipo','vd'], mejor:['Mejor que el equipo','vd'], peor:['Peor que el equipo','am'],
   equivocado:['Equivocado','rj'], sin_respuesta:['El equipo no contestó por correo','nt'] };
@@ -3844,12 +3869,32 @@ async function crAbrirPortal(mensajeId){
     coAviso('No se ha podido abrir la conversación en idealista: ' + (e.message || 'error') + ' También se le puede contestar respondiendo a su correo.');
   }
 }
-function crTextoCopiar(bo){
+// 18/11 noche: en idealista sin firma (se pega en su chat, no es un correo).
+function crTextoCopiar(bo, conFirma = true){
   const vis = CO.real?.visitas || {};
-  return (crCuerpo(bo?.texto)
+  const texto = crCuerpo(bo?.texto)
     .replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi, (_m, c) => vis[String(c).trim().toLowerCase()] || '')
     .replace(/\[\[[^\]]*\]\]/g, '')
-    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim()) + '\n\n' + crFirma();
+    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  return conFirma ? texto + '\n\n' + crFirma() : texto;
+}
+/* ¿Ya ha respondido el equipo? (18/11 noche)
+   · A mano, con el botón «Marcar como respondido» (SQL 107): lo de idealista
+     se contesta en su chat y no pasa por el buzón.
+   · Solo: si después del último correo de la persona hay uno del equipo en Enviados. */
+function crRespondido(h){
+  if (h.respondido) return { como:'mano', en: h.respondido.en, quien: h.respondido.quien || '' };
+  const ms = h.mensajes || [];
+  const ult = ms.filter(m => m.sentido === 'recibido').pop();
+  const env = ms.filter(m => m.sentido === 'enviado' && (!ult || new Date(m.fecha) >= new Date(ult.fecha))).pop();
+  return env ? { como:'correo', en: env.fecha, quien: crRemite(env.de).nombre } : null;
+}
+function crRespondidoHTML(h){
+  const r = crRespondido(h);
+  if (!r) return `<button class="cbtn sec cr-bresp" type="button" data-cr="respondido" data-id="${esc(h.id)}" data-v="1">Marcar como respondido</button>`;
+  const quien = r.como === 'correo' ? 'por correo' : r.quien ? `por ${esc(r.quien.split('@')[0])}` : '';
+  return `<span class="cr-resp"><span class="pill vd">Respondido</span> <span class="co-para">${quien ? quien + ' · ' : ''}${esc(crFecha(r.en))}</span>
+    ${r.como === 'mano' ? `<button class="co-editar" type="button" data-cr="respondido" data-id="${esc(h.id)}" data-v="">Deshacer</button>` : ''}</span>`;
 }
 async function crCopiar(texto){
   try { await navigator.clipboard.writeText(texto); return true; }
@@ -3915,13 +3960,14 @@ function coPintarSinBuzon(){
    Pedido del usuario: «que se vea como en staging aunque no se puedan
    enviar mails», con sus carpetas. Las carpetas salen de cómo clasifica el
    asistente cada conversación (cada una va a una sola carpeta). No hay
-   enviar, mover ni borrar: el modo sombra no toca el buzón. Lo que falta
-   en la hoja va en su apartado («Mejoras»), no en la bandeja. */
+   enviar, mover ni borrar: el modo sombra no toca el buzón. */
+/* 18/11 noche (pedido del usuario): solo las carpetas por tema, siempre
+   visibles aunque estén vacías. Fuera «Con respuesta propuesta»,
+   «Intervención equipo», «Todos» y «A una persona»: lo que tiene que hacer
+   una persona va en su carpeta con la etiqueta «Para el equipo». */
 const CR_CARPETAS = [
-  { id:'nuevos',     nombre:'Nuevos clientes', siempre:true, resp:true,
+  { id:'nuevos',     nombre:'Nuevos clientes', resp:true,
     que:'Personas o empresas que preguntan por un despacho, puesto, sala, oficina virtual o domiciliación. El asistente prepara la respuesta que daría.' },
-  { id:'persona',    nombre:'A una persona', siempre:true,
-    que:'Lo que el asistente no contestaría solo: quejas, brokers, casos delicados o dudas que necesitan a alguien del equipo.' },
   { id:'clientes',   nombre:'Clientes actuales', que:'Quien ya trabaja en uno de vuestros centros.' },
   { id:'proveedor',  nombre:'Proveedores', que:'Proveedores, facturas y servicios.' },
   { id:'avisos',     nombre:'Avisos automáticos', que:'Avisos de bancos, plataformas y sistemas.' },
@@ -3932,13 +3978,14 @@ const CR_CARPETAS = [
   { id:'enviados',   nombre:'Enviados por el equipo', que:'Conversaciones que empezó el equipo y en las que el cliente aún no ha contestado.' },
   { id:'sin',        nombre:'Sin clasificar', que:'Recién llegados: el asistente aún no los ha clasificado.' }
 ];
-const CR_ESPECIALES = { _prop:'Con respuesta propuesta', _equipo:'Intervención equipo', _todo:'Todos' };
 // 18/11: lo que tiene que hacer el equipo (borrador.equipo, SQL 97).
 const crEquipo = h => (h.borrador?.equipo || []).filter(Boolean);
+// «Para el equipo»: el siguiente paso es de una persona (lo dice la respuesta
+// propuesta) o el asistente no lo contestaría solo (a_persona).
+const crParaEquipo = h => !!h.a_persona || crEquipo(h).length > 0;
 function crCarpetaDe(h){
   if (!h.tipo) return 'sin';
   if (h.subtipo === 'saliente') return 'enviados';
-  if (h.a_persona) return 'persona';
   if (h.tipo === 'comercial') return 'nuevos';
   if (h.tipo === 'cliente_actual') return 'clientes';
   return ['proveedor', 'avisos', 'newsletter', 'personal', 'spam'].includes(h.subtipo) ? h.subtipo
@@ -3986,63 +4033,65 @@ function crHora(f){
   if (d.toDateString() === ayer.toDateString()) return 'ayer';
   return d.toLocaleDateString('es-ES', { day:'numeric', month:'short' });
 }
-function crEnCarpeta(id){
-  const hs = CO.real?.hilos || [];
-  if (id === '_prop') return hs.filter(h => h.borrador);
-  if (id === '_equipo') return hs.filter(h => crEquipo(h).length);
-  if (id === '_todo') return hs;
-  return hs.filter(h => crCarpetaDe(h) === id);
-}
+/* 18/11 noche · Idealista en su propio apartado (pedido del usuario): sus
+   correos salen allí y no en Correo. Los dos usan los mismos datos. */
+const crEsIdealista = h => crPersona(h).via === 'idealista';
+const crEnIdealista = () => VISTA === 'idealista';
+const crVistaReal = () => VISTA === 'correo' || VISTA === 'idealista';
+// En la lista de correos (no en Configuración): Correo › Bandeja o Idealista.
+const crEnLista = () => crEnIdealista() || (VISTA === 'correo' && CO.realTab === 'bandeja');
+const crHilos = () => (CO.real?.hilos || []).filter(h => crEsIdealista(h) === crEnIdealista());
+const crEnCarpeta = id => (CO.real?.hilos || []).filter(h => !crEsIdealista(h) && crCarpetaDe(h) === id);
 function crBuscar(lista){
   const q = coNorm(CO.realBusca || '').trim();
   if (!q) return lista;
   return lista.filter(h => coNorm([h.asunto, h.motivo, crPersona(h).nombre, ...(h.mensajes || []).flatMap(m => [m.de, m.reply_to, m.texto])].join(' ')).includes(q));
 }
 // La lista: la de la carpeta o, si se busca, en todas.
-const crLista = () => crBuscar(CO.realBusca?.trim() ? (CO.real?.hilos || []) : crEnCarpeta(CO.realCarpeta));
+const crLista = () => crBuscar(CO.realBusca?.trim() || crEnIdealista() ? crHilos() : crEnCarpeta(CO.realCarpeta));
 
+// Todas las carpetas, siempre (también vacías). Sin descripciones al pasar el puntero.
 function crCarpetas(){
-  const n = id => crEnCarpeta(id).length;
-  const boton = (id, nombre, pt, que) => `<button class="co-carp ${id === '_prop' ? 'rev' : ''} ${CO.realCarpeta === id && !CO.realBusca?.trim() ? 'on' : ''}"
-      data-cr="carp" data-id="${id}" ${que ? `title="${esc(que)}"` : ''}><span class="pt ${pt}"></span><span class="co-cnomb">${esc(nombre)}</span><span class="cn">${n(id)}</span></button>`;
-  return `
-    ${boton('_prop', CR_ESPECIALES._prop, 'rev', 'Correos de clientes en los que el asistente ha preparado la respuesta que daría (no se envía).')}
-    ${boton('_equipo', CR_ESPECIALES._equipo, 'eq', 'El siguiente paso lo tiene que dar una persona del equipo (reservar, dar de alta, contrato…). Estas respuestas no se enviarían solas.')}
-    ${boton('_todo', CR_ESPECIALES._todo, '', 'Todas las conversaciones de los últimos 3 meses.')}
-    <div class="co-sepcarp"></div>
-    ${CR_CARPETAS.filter(c => c.siempre || n(c.id)).map(c => boton(c.id, c.nombre, c.resp ? 'resp' : '', c.que)).join('')}`;
+  return CR_CARPETAS.map((c, i) => { const on = CO.realCarpeta === c.id && !CO.realBusca?.trim();
+    return `<button class="co-carp ${on ? 'on' : ''}" data-cr="carp" data-id="${c.id}" ${on ? 'aria-current="true"' : ''}
+      ${i < 9 ? `aria-keyshortcuts="${i + 1}"` : ''}><span class="pt ${c.resp ? 'resp' : ''}"></span><span class="co-cnomb">${esc(c.nombre)}</span><span class="cn">${crEnCarpeta(c.id).length}</span></button>`; }).join('');
 }
 
 function crFila(h){
   const p = crPersona(h);
   const eti = [];
-  // 16/11 noche: sin comparación con el equipo (el usuario la quitó; SQL 90).
-  // 18/11: «Intervención equipo» en vez de «Respuesta propuesta» si el
-  // siguiente paso es de una persona.
-  if (crEquipo(h).length) eti.push('<span class="pill rj">Intervención equipo</span>');
-  else if (h.borrador) eti.push('<span class="pill am">Respuesta propuesta</span>');
-  // 18/11: sin la etiqueta «Falta un dato» en la lista (pedido del usuario);
-  // lo que falta se ve en «Mejoras» y dentro de la respuesta propuesta.
-  // En «Todos» o al buscar, la carpeta (como en la maqueta). Máximo dos etiquetas: el asunto se tiene que leer.
-  if ((CO.realCarpeta === '_todo' || CO.realBusca?.trim()) && eti.length < 2)
+  // 18/11 noche: una sola etiqueta de estado, «Para el equipo» (fuera
+  // «Respuesta propuesta»: casi todos los nuevos clientes la llevaban).
+  // Respondido manda: si ya se contestó, no hace falta avisar de nada más.
+  if (crRespondido(h)) eti.push('<span class="pill vd">Respondido</span>');
+  else if (crParaEquipo(h)) eti.push('<span class="pill rj">Para el equipo</span>');
+  // Al buscar, la carpeta. Máximo dos etiquetas: el asunto se tiene que leer.
+  if (CO.realBusca?.trim() && !crEnIdealista() && eti.length < 2)
     eti.push(`<span class="pill nt">${esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>`);
+  // En Idealista: lo que pregunta la persona y la referencia del anuncio (no el asunto del aviso).
+  const ideal = crEnIdealista(), di = ideal ? crIdealistaDatos(h) : null;
+  if (di?.ref) eti.push(`<span class="pill nt" title="${esc(di.anuncio)}">${esc(di.ref)}</span>`);
+  const asunto = ideal ? ((di.pregunta || di.texto).replace(/\s+/g, ' ').trim().slice(0, 200) || 'Mensaje en idealista') : h.asunto || '(sin asunto)';
   return `<div class="co-fila ${CO.realAbierto === h.id && coLector() ? 'on' : ''} ${crEsNuevo(h) ? 'nuevo' : ''}" tabindex="0" role="option" aria-selected="${CO.realAbierto === h.id}"
       data-cr="abrir" data-id="${esc(h.id)}">
       <span class="co-av co-logo" aria-hidden="true"><span>${esc(p.nombre.charAt(0).toUpperCase() || '?')}</span></span>
       <div class="co-fcuerpo">
-        <div class="co-l1"><span class="co-de" title="${esc(p.email || p.responder || '')}">${esc(p.nombre)}${p.via ? `<span class="cr-via"> · vía ${esc(p.via)}</span>` : ''}</span><span class="co-hora">${esc(crHora(h.ultimo_en))}</span></div>
-        <div class="co-l2"><span class="co-asunto">${esc(h.asunto || '(sin asunto)')}</span>${eti.length ? `<span class="co-etis">${eti.join('')}</span>` : ''}</div>
+        <div class="co-l1"><span class="co-de" title="${esc(p.email || p.responder || '')}">${esc(p.nombre)}${p.via && !ideal ? `<span class="cr-via"> · vía ${esc(p.via)}</span>` : ''}</span><span class="co-hora">${esc(crHora(h.ultimo_en))}</span></div>
+        <div class="co-l2"><span class="co-asunto">${esc(asunto)}</span>${eti.length ? `<span class="co-etis">${eti.join('')}</span>` : ''}</div>
       </div></div>`;
 }
 function crListaCab(){
   const buscando = !!CO.realBusca?.trim();
   const c = CR_CARPETAS.find(k => k.id === CO.realCarpeta);
-  const titulo = buscando ? 'Resultados' : CR_ESPECIALES[CO.realCarpeta] || c?.nombre || '';
-  return `<div class="co-lcab" title="${esc(buscando ? 'Busca en todas las carpetas.' : c?.que || '')}"><h3>${esc(titulo)}</h3><span class="co-para">${crLista().length}</span>
+  const titulo = crEnIdealista() ? (buscando ? 'Resultados' : 'Mensajes') : buscando ? 'Resultados en todas las carpetas' : c?.nombre || '';
+  return `<div class="co-lcab"><h3>${esc(titulo)}</h3><span class="co-para">${crLista().length}</span>
     ${buscando ? '<button class="co-editar co-blimpiar" data-cr="blimpiar">Quitar búsqueda</button>' : ''}</div>`;
 }
-const crListaFilas = () => { const l = crLista(); return l.length ? l.map(crFila).join('')
-  : `<div class="vacio">${CO.realBusca?.trim() ? 'Nada coincide con la búsqueda.' : 'No hay correos aquí.'}</div>`; };
+const crListaFilas = () => { const l = crLista(); if (l.length) return l.map(crFila).join('');
+  if (CO.realBusca?.trim()) return '<div class="vacio">Nada coincide con la búsqueda.</div>';
+  if (crEnIdealista()) return '<div class="vacio">Todavía no hay mensajes de idealista.</div>';
+  const c = CR_CARPETAS.find(k => k.id === CO.realCarpeta);
+  return `<div class="vacio">No hay correos en «${esc(c?.nombre || '')}».${c?.que ? `<br><span class="co-para">Aquí van: ${esc(c.que.charAt(0).toLowerCase() + c.que.slice(1))}</span>` : ''}</div>`; };
 // Al escribir en el buscador se repinta solo la lista: no pierde el foco.
 function crPintarLista(){
   const cab = $('#cocuerpo .co-lcab'), filas = $('#cocuerpo .co-lscroll'); if (!cab || !filas) return;
@@ -4051,11 +4100,74 @@ function crPintarLista(){
   document.querySelectorAll('#cocuerpo .co-carp').forEach(b => b.classList.toggle('on', !CO.realBusca?.trim() && b.dataset.id === CO.realCarpeta));
 }
 
+/* ---------- Idealista: lo importante de cada mensaje (18/11 noche) ----------
+   El aviso de idealista trae siempre la misma plantilla: el nombre, el
+   teléfono («notDefaulter > tenantGuarantee --> 600 …»), una dirección de
+   contacto de idealista, la pregunta, «Responder desde idealista/tools»,
+   el anuncio (título, «Ref. XX», código y precio) y consejos de idealista.
+   Aquí se saca solo lo útil; si la plantilla cambia, sale el texto entero. */
+function crIdealistaDatos(h){
+  if (h._ideal) return h._ideal;
+  const t = String(crPrimero(h).texto || '').replace(/\r/g, ''), as = String(h.asunto || '');
+  const tel = ((t.match(/-->\s*(\+?[\d][\d ]{6,}\d)/) || [])[1] || '').trim();
+  let pregunta = '';
+  const a = t.search(/@contacts\.idealista\.com/i), b = t.search(/Responder desde idealista/i);
+  if (a >= 0 && b > a) pregunta = t.slice(t.indexOf('\n', a) + 1, b).trim();
+  // Fuera el «Un saludo» final: no aporta nada en la lista.
+  const corta = pregunta.replace(/\n?\s*(un saludo|saludos|gracias)[.!\s]*$/i, '').trim();
+  const ref = (as.match(/ref(?:erencia)?\s*:\s*([A-Z0-9-]+)/i) || t.match(/\bRef\.\s*([A-Z0-9-]+)/i) || [])[1] || '';
+  let anuncio = ((as.match(/ref(?:erencia)?\s*:\s*[A-Z0-9-]+\s*,\s*(.+)$/i) || t.match(/\n([^\n]+)\n\s*Ref\./) || [])[1] || '').trim();
+  anuncio = anuncio.replace(/^oficina(?: con espacios compartidos)? en\s+/i, '');
+  const precio = ((t.match(/C[oó]digo del anuncio:[^\n]*\n\s*([\d.]+(?:,\d+)?\s*€)/i) || [])[1] || '').trim();
+  return (h._ideal = { tel, pregunta: corta || pregunta, entera: !!pregunta, texto: t, ref, anuncio, precio });
+}
+// Iconos de los títulos: Correo (sobre, azul) e Idealista (casa, ámbar), para saber dónde se está.
+const CR_ICO_SOBRE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>';
+const CR_ICO_CASA = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>';
+function crDetalleIdealista(h, enVentana){
+  const bo = h.borrador, p = crPersona(h), d = crIdealistaDatos(h);
+  const faltan = bo?.faltan || [], equipo = crEquipo(h), m = crPrimero(h);
+  const telHref = d.tel ? 'tel:+34' + d.tel.replace(/\D/g, '').replace(/^34(?=\d{9}$)/, '') : '';
+  return `
+    <div class="co-det cr-idet">
+      <div class="cr-idcab">
+        <div class="cr-idquien">
+          <h3>${esc(p.nombre)}</h3>
+          <span class="co-para">${esc(crFecha(m.fecha || h.ultimo_en))}</span>
+          ${enVentana ? '<button class="cerrar" data-cr="cerrar" aria-label="Cerrar">×</button>' : ''}
+        </div>
+        <div class="cr-iddatos">
+          ${d.ref || d.anuncio ? `<span class="cr-idanun"><b>${esc(d.ref || 'Anuncio')}</b>${d.anuncio ? ` · ${esc(d.anuncio)}` : ''}${d.precio ? ` · ${esc(d.precio)}` : ''}</span>` : ''}
+          ${d.tel ? `<a class="cr-idtel" href="${esc(telHref)}">Llamar al ${esc(d.tel)}</a>` : ''}
+          <span class="cr-idestado">${crRespondidoHTML(h)}</span>
+        </div>
+      </div>
+      <section class="cr-idpreg" aria-label="Lo que pregunta">
+        <div class="co-msgt">Pregunta</div>
+        <div class="cr-idtexto">${coParrafos(d.entera ? d.pregunta : d.texto)}</div>
+        ${crAdjuntosMsg(m)}
+      </section>
+      ${bo ? `<section class="cr-idresp" aria-label="Respuesta propuesta">
+        <div class="cr-idacc">
+          <div class="co-msgt">Respuesta propuesta <span class="co-msgq">no se envía · modo sombra</span></div>
+          <button class="cbtn" type="button" data-cr="copiar" data-id="${esc(h.id)}">Copiar respuesta</button>
+          <button class="cbtn sec" type="button" data-cr="abrirportal" data-m="${esc(m.id || '')}">Abrir en idealista</button>
+        </div>
+        ${equipo.length ? `<div class="co-alerta cr-ideq"><b>Para el equipo:</b> ${equipo.map(esc).join(' · ')}. Esta respuesta no se enviaría sola.</div>` : ''}
+        ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}. ${crFaltaEnlaces(faltan)}</div>` : ''}
+        <div class="co-orig">${crBorrador(bo.texto)}</div>
+        ${crFotos(bo)}
+        ${(bo.fotos || []).length ? '<p class="co-para">Las fotos no se copian: adjúntalas en el chat de idealista.</p>' : ''}
+      </section>` : `<p class="co-para">${h.a_persona ? '<span class="pill rj">Para el equipo</span> El asistente no contestaría este mensaje solo.' : 'El asistente todavía no ha preparado su respuesta.'}</p>`}
+      ${d.entera ? `<details class="cr-idorig"><summary>Ver el aviso completo de idealista</summary><div class="co-orig">${coParrafos(d.texto)}</div></details>` : ''}
+    </div>`;
+}
+
 function crDetalle(h, enVentana){
+  if (crEnIdealista()) return crDetalleIdealista(h, enVentana);
   const msgs = h.mensajes || [];
   const bo = h.borrador;
   const p = crPersona(h);
-  const carp = CR_CARPETAS.find(k => k.id === crCarpetaDe(h));
   const lado = !!bo && CO.vista === 'lado' && coLadoCabe(enVentana);
   const faltan = bo?.faltan || [];
   const equipo = crEquipo(h);
@@ -4076,7 +4188,7 @@ function crDetalle(h, enVentana){
             <span class="co-para">Para ${esc(h.buzon || '')} · ${esc(crFecha(crPrimero(h).fecha || h.ultimo_en))}</span>
             ${p.responder ? `<br><span class="co-para">La respuesta irá a <b title="${esc(p.responder)}">${esc(p.nota ? 'la ' + p.nota : p.responder)}</b></span>` : ''}</div>
         </div>
-        <div class="co-clasif"><div><b>${esc(carp?.nombre || 'Sin clasificar')}</b>${h.tipo === 'comercial' && CR_SUBTIPO[h.subtipo] ? ` · ${esc(CR_SUBTIPO[h.subtipo])}` : ''}${h.motivo ? ` · <span class="por">${esc(h.motivo)}</span>` : ''}</div></div>
+        ${h.tipo === 'comercial' || h.tipo === 'cliente_actual' ? `<div class="cr-idestado cr-cestado">${crRespondidoHTML(h)}</div>` : ''}
       </div>
       <div class="co-par">
         <div class="cr-hilo">
@@ -4097,7 +4209,7 @@ function crDetalle(h, enVentana){
           <section class="co-msg co-msgresp" aria-label="Respuesta propuesta">
             <div class="co-msgt">Respuesta propuesta <span class="co-msgq">${equipo.length ? 'no se enviaría sola · modo sombra' : 'no se envía · modo sombra'}</span></div>
             ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}.
-              <button class="co-editar" data-cr="irmejorar">Ver cómo añadirlo</button></div>` : ''}
+              ${crFaltaEnlaces(faltan)}</div>` : ''}
             <div class="co-orig">${crBorrador(bo.texto)}</div>
             ${crFirmaHTML()}
             ${crFotos(bo)}
@@ -4107,7 +4219,8 @@ function crDetalle(h, enVentana){
               <span class="co-para">Pégala en el chat de ${esc(p.nombre)} en idealista${(bo.fotos || []).length ? ' y adjunta allí las fotos' : ''}.</span>
             </div>` : ''}
           </section>
-        </div>` : h.tipo === 'comercial' && !h.a_persona ? '<p class="co-para">El asistente todavía no ha preparado su respuesta.</p>' : ''}
+        </div>` : h.a_persona ? '<p class="co-para cr-paraeq"><span class="pill rj">Para el equipo</span> El asistente no contestaría este correo solo: lo tiene que ver alguien del equipo.</p>'
+          : h.tipo === 'comercial' ? '<p class="co-para">El asistente todavía no ha preparado su respuesta.</p>' : ''}
       </div>
     </div>`;
 }
@@ -4117,27 +4230,26 @@ function crBandeja(){
   // En el ordenador siempre hay uno abierto a la derecha.
   if (coLector() && !lista.some(h => h.id === CO.realAbierto)) CO.realAbierto = lista[0]?.id ?? null;
   const abierto = (CO.real.hilos || []).find(h => h.id === CO.realAbierto);
+  const ideal = crEnIdealista(), ph = ideal ? 'Buscar en idealista' : 'Buscar en el correo';
   return `
-    <div class="co-bandeja ${CO.vista === 'lado' && abierto?.borrador ? 'co-ladov' : ''}">
-      <div class="panel co-carps" role="list" aria-label="Carpetas">${crCarpetas()}</div>
+    <div class="co-bandeja ${ideal ? 'cr-sincarps' : ''} ${!ideal && CO.vista === 'lado' && abierto?.borrador ? 'co-ladov' : ''}">
+      ${ideal ? '' : `<div class="panel co-carps" role="navigation" aria-label="Carpetas">${crCarpetas()}</div>`}
       <div class="panel co-lista">
         <div class="co-lbusca"><div class="co-bwrap">
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 10.5 14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <input id="crbusca" type="search" value="${esc(CO.realBusca || '')}" placeholder="Buscar en el correo" aria-label="Buscar en el correo" autocomplete="off" spellcheck="false" data-cr="busca">
+          <input id="crbusca" type="search" value="${esc(CO.realBusca || '')}" placeholder="${ph}" aria-label="${ph}" autocomplete="off" spellcheck="false" data-cr="busca">
         </div></div>
         ${crListaCab()}
-        <div class="co-lscroll">${crListaFilas()}</div>
+        <div class="co-lscroll" role="listbox" aria-label="${ideal ? 'Mensajes de idealista' : 'Correos'}">${crListaFilas()}</div>
       </div>
       <div class="panel co-lector" aria-live="polite">${abierto ? crDetalle(abierto, false) : '<div class="vacio">Elige un correo para verlo aquí.</div>'}</div>
     </div>`;
 }
 
-/* ---------- Mejoras: lo que falta en la hoja y cómo va ----------
-   Decisión del usuario (16/11): «guiado a la hoja». Cada dato que le faltó
-   al asistente, cuántas veces, en qué correos, en qué pestaña de la hoja
-   va y cómo rellenarlo; «Ya lo he añadido» o «No lo damos» lo quitan de la
-   lista (mt_correo_falta_marcar, SQL 87). La pestaña es una suposición por
-   palabras: por eso los botones abren cualquiera de las tres. */
+/* ---------- Lo que le falta al asistente en la hoja ----------
+   18/11 noche: fuera la pestaña «Mejoras» (decisión del usuario, opción A).
+   Lo que falta sale dentro de la respuesta propuesta, con un enlace a la
+   pestaña de la hoja donde va. La pestaña es una suposición por palabras. */
 const CR_PESTANAS = {
   centros:  { nombre:'Centros', como:'Una fila por centro: busca el centro y rellena su columna (horario, m², servicios, salas…) o escríbelo en «notas».' },
   tarifas:  { nombre:'Tarifas', como:'Una fila por servicio: «servicio», «precio» y «ámbito» (el centro o «todos»); las condiciones (fianza, permanencia, descuentos…) en «notas».' },
@@ -4156,45 +4268,10 @@ function crUrlPestana(clave){
   const p = (hoja.pestanas || []).find(x => x.clave === clave);
   return hoja.url + (p ? '#gid=' + encodeURIComponent(p.gid) : '');
 }
-function crItemFalta(f, info){
-  const pest = crPestanaDe(f.dato), P = CR_PESTANAS[pest];
-  const hilos = (f.hilos || []).map(id => (CO.real.hilos || []).find(h => h.id === id)).filter(Boolean);
-  const url = P ? crUrlPestana(pest) : '';
-  const marcar = info.puede_marcar;
-  return `<div class="cr-fitem ${f.estado === 'vuelve' ? 'vuelve' : ''}">
-    <div class="cr-fdato">${esc(f.dato)}</div>
-    <div class="cr-fmeta">${f.veces === 1 ? 'Lo echó de menos 1 vez' : `Lo echó de menos ${f.veces} veces`}${f.ultimo_en ? ` · la última, ${esc(crFecha(f.ultimo_en))}` : ''}
-      ${f.estado === 'vuelve' ? ' · <span class="pill rj">Lo marcasteis como añadido, pero lo ha vuelto a echar de menos</span>' : ''}</div>
-    <div class="cr-fdonde">${P ? `<b>Dónde va:</b> pestaña «${esc(P.nombre)}» de vuestra hoja. ${esc(P.como)}`
-      : `<b>Disponibilidad:</b> cambia cada día, así que no va en la hoja. Si preferís que el asistente no la dé por correo, pulsa «No lo damos».`}</div>
-    <div class="cr-facc">
-      ${url ? `<a class="cbtn" href="${esc(url)}" target="_blank" rel="noopener">Abrir «${esc(P.nombre)}»</a>` : ''}
-      ${hilos.slice(0, 3).map((h, i) => `<button class="co-editar" data-cr="irhilo" data-id="${esc(h.id)}">${hilos.length > 1 ? `Ver el correo ${i + 1}` : 'Ver el correo'}</button>`).join('')}
-      ${marcar ? `<span class="cr-fder"><button class="cbtn sec" data-cr="falta" data-v="anadido" data-dato="${esc(f.dato)}">Ya lo he añadido</button>
-        <button class="cbtn sec" data-cr="falta" data-v="no_damos" data-dato="${esc(f.dato)}">No lo damos</button></span>` : ''}
-    </div></div>`;
-}
-function crMejorar(){
-  const info = CO.real.mejorar || { datos:[] };
-  const ds = info.datos || [];
-  const pend = ds.filter(f => !f.estado || f.estado === 'vuelve');
-  const hechos = ds.filter(f => f.estado === 'anadido'), nodamos = ds.filter(f => f.estado === 'no_damos');
-  const deshacer = f => `<li>${esc(f.dato)}${info.puede_marcar ? ` <button class="co-editar" data-cr="falta" data-v="" data-dato="${esc(f.dato)}">Deshacer</button>` : ''}</li>`;
-  const pestBotones = info.hoja?.url ? Object.entries(CR_PESTANAS).map(([k, P]) =>
-    `<a class="cbtn sec" href="${esc(crUrlPestana(k))}" target="_blank" rel="noopener">${esc(P.nombre)}</a>`).join('') : '';
-  return `
-    <div class="panel cr-mej">
-      <div class="cr-mcab">
-        <div><h3>Lo que le falta al asistente${pend.length ? ` <span class="pill am">${pend.length}</span>` : ''}</h3>
-          <p class="co-para">Cuando un cliente pregunta algo que no está en vuestra hoja, el asistente no se lo inventa: lo apunta aquí.
-            Añadidlo a la hoja y en unos 10 minutos lo sabrán el asistente de correo y Laura (WhatsApp); si tenéis prisa, usad el menú de publicar de la propia hoja.</p></div>
-        ${pestBotones ? `<div class="cr-mhoja"><span class="co-para">Abrir la hoja:</span> ${pestBotones}</div>` : ''}
-      </div>
-      ${!info.puede_marcar && esSimplia() ? '<p class="co-para">Para marcar datos como añadidos, abre el candado de arriba.</p>' : ''}
-      ${pend.length ? pend.map(f => crItemFalta(f, info)).join('') : '<div class="vacio">No falta nada: todo lo que han preguntado está en la hoja.</div>'}
-      ${hechos.length ? `<details class="cr-fhechos"><summary>Ya añadidos (${hechos.length})</summary><ul>${hechos.map(deshacer).join('')}</ul></details>` : ''}
-      ${nodamos.length ? `<details class="cr-fhechos"><summary>No lo damos (${nodamos.length})</summary><ul>${nodamos.map(deshacer).join('')}</ul></details>` : ''}
-    </div>`;
+// Dentro de la respuesta: un enlace por pestaña de la hoja donde va lo que falta.
+function crFaltaEnlaces(faltan){
+  const pest = [...new Set(faltan.map(crPestanaDe))].filter(k => CR_PESTANAS[k] && crUrlPestana(k));
+  return pest.map(k => `<a class="co-editar" href="${esc(crUrlPestana(k))}" target="_blank" rel="noopener noreferrer">Añadirlo en «${esc(CR_PESTANAS[k].nombre)}»</a>`).join(' ');
 }
 
 function crTope(){
@@ -4247,29 +4324,69 @@ function crConfiguracion(){
   }).join('');
 }
 
+// Idealista: los mismos datos que Correo; si aún no están, se piden.
+function pintarIdealista(){
+  if (VISTA !== 'idealista') return;
+  document.documentElement.style.setProperty('--cohdr', ($('header')?.offsetHeight || 63) + 'px');
+  if (!CO.cliente) CO.cliente = esSimplia() ? 'oficinasya' : TENANT?.slug;
+  if (CO.real && CO.real.slug === crSlug()) return coPintarReal();
+  const aviso = t => { $('#vista').innerHTML = `<div class="correo co-real cr-ideal"><div class="co-top"><h2 class="tit">Idealista</h2></div><div class="panel"><div class="vacio">${t}</div></div></div>`; };
+  aviso(CO.realEstado === 'error' ? '<strong>No se ha podido cargar.</strong><br>Vuelve a entrar en la pestaña en un momento.' : 'Cargando…');
+  if (CO.realPedidoPara === crSlug() && CO.realEstado === 'cargando') return;
+  CO.realPedidoPara = crSlug(); CO.realEstado = 'cargando';
+  coCargarReal().then(ok => { if (VISTA !== 'idealista') return; ok ? coPintarReal()
+    : aviso(CO.realEstado === 'error' ? '<strong>No se ha podido cargar.</strong><br>Vuelve a entrar en la pestaña en un momento.'
+      : 'Esta empresa aún no tiene un buzón de correo conectado. Cuando lo esté, aquí saldrán los mensajes de idealista.'); });
+}
+function crPintarIdealista(){
+  const misma = CO.realPintadoTab === 'idealista', sitio = {};
+  if (misma) for (const s of ['.co-lscroll', '.co-lector']){ const el = $(s); if (el) sitio[s] = el.scrollTop; }
+  const ventanaY = scrollY;
+  $('#vista').innerHTML = `
+    <div class="correo co-real co-bandeja-v cr-ideal">
+      <div class="co-top">
+        <h2 class="tit cr-idtit"><span class="cr-idico" aria-hidden="true">${CR_ICO_CASA}</span>Idealista</h2>
+        <div class="co-ctrl">
+          <button type="button" class="cr-ayuda" data-cr="atajos" title="Atajos de teclado (?)" aria-label="Atajos de teclado">?</button>
+          ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
+            <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
+        </div>
+      </div>
+      <div id="cocuerpo" class="co-cuerpo">${crBandeja()}</div>
+    </div>`;
+  if (misma) for (const [k, y] of Object.entries(sitio)){
+    if (k === '.co-lector' && CO.realPintado !== CO.realAbierto) continue;
+    const el = $(k); if (el) el.scrollTop = y;
+  }
+  if (scrollY !== ventanaY) scrollTo(0, ventanaY);
+  CO.realPintado = CO.realAbierto;
+  CO.realPintadoTab = 'idealista';
+  crCargarFotos();
+}
+
 function coPintarReal(){
-  if (!['bandeja', 'mejorar', 'ajustes'].includes(CO.realTab)) CO.realTab = 'bandeja';
+  if (crEnIdealista()) return crPintarIdealista();
+  if (!['bandeja', 'ajustes'].includes(CO.realTab)) CO.realTab = 'bandeja';
   const enBandeja = CO.realTab === 'bandeja';
   // La pantalla no se mueve al repintar: listas y correo abierto vuelven a donde estaban.
   const misma = CO.realPintadoTab === CO.realTab;
   const sitio = {};
   if (misma) for (const s of ['#cocuerpo', '.co-lscroll', '.co-carps', '.co-lector']){ const el = $(s); if (el) sitio[s] = el.scrollTop; }
   const ventanaY = scrollY;
-  const hs = CO.real.hilos || [];
+  const hs = crHilos();
   const hoy = hs.filter(h => h.primer_recibido_en && new Date(h.primer_recibido_en).toDateString() === new Date().toDateString()).length;
-  const pend = (CO.real.mejorar?.datos || []).filter(f => !f.estado || f.estado === 'vuelve').length;
-  const tabs = [['bandeja', 'Bandeja'], ['mejorar', 'Mejoras'], ['ajustes', 'Configuración']];
+  const tabs = [['bandeja', 'Bandeja'], ['ajustes', 'Configuración']];
   $('#vista').innerHTML = `
     <div class="correo co-real ${enBandeja ? 'co-bandeja-v' : ''}">
       <div class="co-top">
-        <h2 class="tit">Correo</h2>
+        <h2 class="tit cr-idtit"><span class="cr-idico cr-coico" aria-hidden="true">${CR_ICO_SOBRE}</span>Correo</h2>
         <div class="rangos co-tabs" role="tablist">
-          ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}${k === 'mejorar' && pend ? ` <span class="navn">${pend}</span>` : ''}</button>`).join('')}
+          ${tabs.map(([k, t]) => `<button class="rg ${CO.realTab === k ? 'on' : ''}" role="tab" aria-selected="${CO.realTab === k}" data-cr="tab" data-v="${k}">${t}</button>`).join('')}
         </div>
         ${enBandeja ? `<div class="co-cifras cr-cifras">
           <span><b>${hoy}</b> hoy</span>
           <span><b class="az">${crEnCarpeta('nuevos').length}</b> nuevos clientes</span>
-          <span><b>${crEnCarpeta('_prop').length}</b> con respuesta propuesta</span>
+          <span><b>${hs.filter(crParaEquipo).length}</b> para el equipo</span>
         </div>` : ''}
         <div class="co-ctrl">
           <span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>
@@ -4278,7 +4395,7 @@ function coPintarReal(){
             <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
         </div>
       </div>
-      <div id="cocuerpo" class="co-cuerpo">${enBandeja ? crBandeja() : CO.realTab === 'mejorar' ? crMejorar() : crConfiguracion()}</div>
+      <div id="cocuerpo" class="co-cuerpo">${enBandeja ? crBandeja() : crConfiguracion()}</div>
     </div>`;
   if (misma){
     for (const [k, y] of Object.entries(sitio)){
@@ -4348,12 +4465,13 @@ function crSonar(n){
 }
 
 // --- Lo ya visto: lo nuevo desde la primera vez que se entra en este navegador y que aún no se ha abierto.
-const CR_AVISAN = ['nuevos', 'persona', 'clientes', 'sin'];
+const CR_AVISAN = ['nuevos', 'clientes', 'sin'];
+const crAvisa = h => CR_AVISAN.includes(crCarpetaDe(h)) || !!h.a_persona;
 const crClaveVisto = () => 'cr-visto:' + (CO.real?.slug || crSlug());
 function crVistoBase(slug){ const k = 'cr-visto:' + slug; if (!crLeer(k, null)) crGuardar(k, { desde: new Date().toISOString(), ids: [] }); }
 function crEsNuevo(h){
   const v = crLeer(crClaveVisto(), null);
-  return !!v && CR_AVISAN.includes(crCarpetaDe(h)) && new Date(h.ultimo_en || 0) > new Date(v.desde) && !v.ids.includes(h.id);
+  return !!v && crAvisa(h) && new Date(h.ultimo_en || 0) > new Date(v.desde) && !v.ids.includes(h.id);
 }
 function crMarcarVisto(id){
   const v = crLeer(crClaveVisto(), null); if (!v || !id || v.ids.includes(id)) return;
@@ -4377,7 +4495,7 @@ function crAvisar(lista){
     const p = crPersona(h), el = document.createElement('div');
     el.className = 'cr-aviso' + (tipo === 'equipo' ? ' eq' : '');
     el.innerHTML = `<button type="button" class="cr-aabrir" data-crav="${esc(h.id)}">
-        <span class="cr-acab">${tipo === 'equipo' ? 'Intervención equipo' : 'Correo nuevo · ' + esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>
+        <span class="cr-acab">${tipo === 'equipo' ? 'Para el equipo' :'Correo nuevo · ' + esc(CR_CARPETAS.find(k => k.id === crCarpetaDe(h))?.nombre || '')}</span>
         <b>${esc(p.nombre)}${p.via ? ` · vía ${esc(p.via)}` : ''}</b><span class="cr-aas">${esc(tipo === 'equipo' ? crEquipo(h)[0] : h.asunto || '(sin asunto)')}</span></button>
       <button type="button" class="cr-acerrar" aria-label="Cerrar el aviso">×</button>`;
     crSeVa(el); zona.prepend(el);
@@ -4397,8 +4515,11 @@ function crSeVa(el){
     const b = e.target.closest('[data-crav]'); if (!b) return;
     salir();
     CO.realTab = 'bandeja'; CO.realBusca = '';
-    if (b.dataset.crav){ CO.realCarpeta = '_todo'; CO.realAbierto = b.dataset.crav; crMarcarVisto(b.dataset.crav); } else CO.realCarpeta = 'nuevos';
-    if (VISTA !== 'correo') await irA('correo'); else coPintarReal();
+    const hv = (CO.real?.hilos || []).find(x => x.id === b.dataset.crav);
+    if (hv){ CO.realCarpeta = crCarpetaDe(hv); CO.realAbierto = hv.id; crMarcarVisto(hv.id); } else CO.realCarpeta = 'nuevos';
+    // Los de idealista se abren en su apartado.
+    const destino = hv && crEsIdealista(hv) ? 'idealista' : 'correo';
+    if (VISTA !== destino) await irA(destino); else coPintarReal();
     if (b.dataset.crav && !coLector()) crAbrirVentana(b.dataset.crav);
   });
 }
@@ -4416,7 +4537,7 @@ async function crSondear(){
       if (CO.realPedidoPara === slug && CO.realEstado === 'cargando') return;
       CO.realPedidoPara = slug; CO.realEstado = 'cargando';
       await coCargarReal();
-      if (VISTA === 'correo') pintarCorreo();
+      if (VISTA === 'correo') pintarCorreo(); else if (VISTA === 'idealista') pintarIdealista();
       return;
     }
     const { data, error } = await supabase.rpc('mt_correo_panel', { p_slug: slug, p_desde: new Date(Date.now() - 3 * 3600e3).toISOString() });
@@ -4427,13 +4548,13 @@ async function crSondear(){
       const viejo = porId.get(h.id);
       if (viejo && crFirmaHilo(viejo) === crFirmaHilo(h)) continue;
       cambio = true;
-      if (!viejo && CR_AVISAN.includes(crCarpetaDe(h))) avisos.push({ h, tipo:'nuevo' });
+      if (!viejo && crAvisa(h)) avisos.push({ h, tipo:'nuevo' });
       else if (viejo && !crEquipo(viejo).length && crEquipo(h).length) avisos.push({ h, tipo:'equipo' });
       porId.set(h.id, h);
     }
     if (!cambio) return;
     CO.real.hilos = [...porId.values()].sort((a, b) => new Date(b.ultimo_en || b.primer_recibido_en || 0) - new Date(a.ultimo_en || a.primer_recibido_en || 0));
-    if (VISTA === 'correo' && CO.realTab === 'bandeja' && !escribiendo() && $('#modal').style.display !== 'block') coPintarReal();
+    if (crEnLista() && !escribiendo() && $('#modal').style.display !== 'block') coPintarReal();
     crAvisar(avisos);
   } catch { /* la siguiente vuelta */ }
   finally { CR_SONDEANDO = false; }
@@ -4471,6 +4592,8 @@ function crAyudaAtajos(){
       <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Correo anterior o siguiente</dd>
       <dt><kbd>Intro</kbd></dt><dd>Abrir el correo de la lista</dd>
       <dt><kbd>/</kbd></dt><dd>Buscar</dd>
+      <dt><kbd>1</kbd> … <kbd>9</kbd></dt><dd>Ir a una carpeta (en Correo, por orden)</dd>
+      <dt><kbd>I</kbd></dt><dd>Pasar de Correo a Idealista y volver</dd>
       <dt><kbd>Esc</kbd></dt><dd>Quitar la búsqueda o cerrar</dd>
       <dt><kbd>V</kbd></dt><dd>Respuesta debajo o al lado</dd>
       <dt><kbd>C</kbd></dt><dd>Copiar la respuesta propuesta (con la firma)</dd>
@@ -4488,7 +4611,7 @@ document.addEventListener('keydown', e => {
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ e.preventDefault(); e.stopImmediatePropagation(); crVisor(CR_VISOR.imgs, CR_VISOR.i + (e.key === 'ArrowRight' ? 1 : -1)); }
     return;
   }
-  if (VISTA !== 'correo' || !CO.real || CO.realTab !== 'bandeja' || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (!crEnLista() || !CO.real || e.ctrlKey || e.metaKey || e.altKey) return;
   if (escribiendo()){
     if (e.key === 'Escape' && e.target?.id === 'crbusca'){ e.preventDefault(); if (CO.realBusca){ CO.realBusca = ''; e.target.value = ''; crPintarLista(); } else e.target.blur(); }
     return;
@@ -4498,11 +4621,18 @@ document.addEventListener('keydown', e => {
   if (modal) return;
   const h = (CO.real.hilos || []).find(x => x.id === CO.realAbierto);
   if (e.key === '/'){ const b = $('#crbusca'); if (b){ e.preventDefault(); b.focus(); b.select(); } }
+  // 18/11 noche: 1 a 9 abren las carpetas (en Correo); «I» pasa de Correo a Idealista y vuelve.
+  else if (/^[1-9]$/.test(e.key) && !crEnIdealista() && CR_CARPETAS[e.key - 1]){
+    e.preventDefault(); CO.realCarpeta = CR_CARPETAS[e.key - 1].id; CO.realBusca = ''; CO.realAbierto = null; coPintarReal();
+    $(`#cocuerpo .co-carp[data-id="${CO.realCarpeta}"]`)?.focus();
+  }
+  else if (e.key === 'i' || e.key === 'I'){ e.preventDefault(); irA(crEnIdealista() ? 'correo' : 'idealista'); }
   else if (e.key === 'Escape' && CO.realBusca){ e.preventDefault(); CO.realBusca = ''; coPintarReal(); }
   else if ((e.key === 'v' || e.key === 'V') && h?.borrador){ e.preventDefault(); CO.vista = CO.vista === 'lado' ? 'arriba' : 'lado'; coGuardarVista(); coPintarReal(); }
   else if ((e.key === 'c' || e.key === 'C') && h?.borrador){
     e.preventDefault();
-    crCopiar(crTextoCopiar(h.borrador)).then(ok => { crSonar(ok ? 'hecho' : 'error'); coAviso(ok ? 'Respuesta copiada (con la firma).' : 'No se ha podido copiar.'); });
+    const firma = !crEsIdealista(h);
+    crCopiar(crTextoCopiar(h.borrador, firma)).then(ok => { crSonar(ok ? 'hecho' : 'error'); coAviso(ok ? (firma ? 'Respuesta copiada (con la firma).' : 'Respuesta copiada.') : 'No se ha podido copiar.'); });
   }
   else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && !e.target?.closest?.('.co-fila')){
     // Sin el foco en la lista: se mueve desde el correo abierto.
@@ -4521,7 +4651,7 @@ if (!window.__crOyentes){
   window.__crOyentes = true;
   document.addEventListener('click', async e => {
     const el = e.target.closest?.('[data-cr]');
-    if (!el || VISTA !== 'correo' || !CO.real) return;
+    if (!el || !crVistaReal() || !CO.real) return;
     const que = el.dataset.cr;
     if (que === 'tab'){ CO.realTab = el.dataset.v; return coPintarReal(); }
     if (que === 'carp'){ CO.realCarpeta = el.dataset.id; CO.realBusca = ''; CO.realAbierto = null; return coPintarReal(); }
@@ -4539,7 +4669,8 @@ if (!window.__crOyentes){
     }
     // Desde un dato que falta: abre ese correo en la bandeja (en la carpeta «Todos»).
     if (que === 'irhilo'){
-      CO.realTab = 'bandeja'; CO.realCarpeta = '_todo'; CO.realBusca = ''; CO.realAbierto = el.dataset.id; crMarcarVisto(el.dataset.id);
+      { const hv = (CO.real?.hilos || []).find(x => x.id === el.dataset.id); CO.realCarpeta = hv ? crCarpetaDe(hv) : 'nuevos'; }
+      CO.realTab = 'bandeja'; CO.realBusca = ''; CO.realAbierto = el.dataset.id; crMarcarVisto(el.dataset.id);
       coPintarReal();
       $(`#cocuerpo .co-fila[data-id="${CSS.escape(el.dataset.id)}"]`)?.scrollIntoView({ block:'center' });
       if (!coLector()) crAbrirVentana(el.dataset.id);
@@ -4549,22 +4680,23 @@ if (!window.__crOyentes){
     if (que === 'atajos') return crAyudaAtajos();
     if (que === 'copiar'){
       const h = (CO.real.hilos || []).find(x => x.id === el.dataset.id);
-      const ok = h?.borrador ? await crCopiar(crTextoCopiar(h.borrador)) : false;
+      const ok = h?.borrador ? await crCopiar(crTextoCopiar(h.borrador, !crEsIdealista(h))) : false;
       crSonar(ok ? 'hecho' : 'error');
-      return coAviso(ok ? 'Respuesta copiada. Ábrela en idealista y pégala en el chat de esa persona.' : 'No se ha podido copiar: selecciona el texto y cópialo a mano.');
+      return coAviso(ok ? 'Respuesta copiada. Pégala en el chat de idealista y, cuando la envíes, márcala como respondida.' : 'No se ha podido copiar: selecciona el texto y cópialo a mano.');
     }
-    if (que === 'irmejorar'){ if ($('#modal').style.display === 'block') cerrar(); CO.realTab = 'mejorar'; return coPintarReal(); }
-    if (que === 'falta'){
+    // 18/11 noche: marcar o desmarcar como respondido (SQL 107). Lo ve todo el equipo.
+    if (que === 'respondido'){
+      const h = (CO.real.hilos || []).find(x => x.id === el.dataset.id); if (!h) return;
+      const si = el.dataset.v === '1';
       el.disabled = true;
-      const { error } = await supabase.rpc('mt_correo_falta_marcar', { p_slug: CO.real.slug, p_dato: el.dataset.dato, p_estado: el.dataset.v || null });
+      const { error } = await supabase.rpc('mt_correo_marcar_respondido', { p_slug: CO.real.slug, p_hilo: h.id, p_respondido: si });
       el.disabled = false;
       if (error){ crSonar('error'); return coAviso('No se ha podido guardar: ' + (error.message || 'error')); }
+      h.respondido = si ? { en: new Date().toISOString(), quien: USUARIO_EMAIL } : null;
       crSonar('hecho');
-      coAviso(el.dataset.v === 'anadido' ? 'Marcado como añadido. Si el asistente lo vuelve a echar de menos, volverá a salir aquí.'
-        : el.dataset.v === 'no_damos' ? 'Marcado: no lo dais. Ya no sale en la lista.' : 'Vuelve a la lista.');
-      const r = await supabase.rpc('mt_correo_faltan', { p_slug: CO.real.slug });
-      if (!r.error && CO.real) CO.real.mejorar = r.data;
-      return VISTA === 'correo' && CO.real ? coPintarReal() : null;
+      coAviso(si ? 'Marcado como respondido.' : 'Vuelve a estar sin responder.');
+      if ($('#modal').style.display === 'block' && $('#mbox .co-det')) crAbrirVentana(h.id);
+      return coPintarReal();
     }
     if (que === 'tope'){
       const tope = Math.round(Number($('#crtope')?.value));
@@ -4593,14 +4725,14 @@ if (!window.__crOyentes){
   });
   // Buscador: repinta solo la lista, sin perder el foco.
   document.addEventListener('input', e => {
-    if (e.target?.dataset?.cr !== 'busca' || VISTA !== 'correo' || !CO.real) return;
+    if (e.target?.dataset?.cr !== 'busca' || !crVistaReal() || !CO.real) return;
     CO.realBusca = e.target.value;
     crPintarLista();
   });
   // Teclado en la lista: Intro abre; ↑ y ↓ pasan al anterior o al siguiente.
   document.addEventListener('keydown', e => {
     const f = e.target?.closest?.('.co-real .co-fila[data-cr="abrir"]');
-    if (!f || VISTA !== 'correo' || !CO.real) return;
+    if (!f || !crVistaReal() || !CO.real) return;
     if (e.key === 'Enter'){ e.preventDefault(); f.click(); return; }
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     e.preventDefault(); e.stopPropagation();
@@ -4619,9 +4751,9 @@ if (!window.__crOyentes){
       : (e.target.checked ? 'Sonidos encendidos.' : 'Sonidos apagados.'));
   });
   document.addEventListener('change', async e => {
-    if (e.target?.dataset?.cr !== 'cliente' || VISTA !== 'correo') return;
+    if (e.target?.dataset?.cr !== 'cliente' || !crVistaReal()) return;
     CO.cliente = e.target.value; CO.realAbierto = null; CO.real = null; CO.realPedidoPara = null;
-    pintarCorreo();
+    crEnIdealista() ? pintarIdealista() : pintarCorreo();
   });
 }
 
@@ -5480,7 +5612,7 @@ function embDetalle(l){
     <!-- Desde el Embudo no se envía nada: se va a Correo, a Conversaciones o a la Agenda. -->
     <div class="co-acc emb-accesos">
       ${l.correoId ? `<button class="btn corto" data-co="eircorreo" data-id="${l.id}">${l.etapa === 'toca' ? 'Ver el seguimiento en Correo' : l.etapa === 'contesto' ? 'Responder en Correo' : 'Abrir en Correo'}</button>` : ''}
-      ${l.userRef ? `<button class="cbtn" data-co="econvs" data-id="${l.id}">Ver en Conversaciones</button>` : ''}
+      ${l.userRef ? `<button class="cbtn" data-co="econvs" data-id="${l.id}">Ver en WhatsApp</button>` : ''}
       ${l.visitaEn ? `<button class="cbtn" data-co="eagenda" data-id="${l.id}">Ver en la Agenda</button>` : ''}
     </div>
   </div>`;
@@ -7699,7 +7831,7 @@ async function pintarConvs(silencioso){
   ULTIMA = Date.now(); pintarCuando();
 
   if (error){
-    pintaEn(`<h2 class="tit">Conversaciones</h2><div class="panel">
+    pintaEn(`<h2 class="tit convs-tit">WhatsApp</h2><div class="panel">
       <div class="vacio">No se han podido cargar.<br>${esc(mensajeError(error))}</div>
     </div>`, silencioso);
     return;
@@ -7709,7 +7841,7 @@ async function pintarConvs(silencioso){
   if (turno !== TURNO_CONVS || VISTA !== 'convs') return;
 
   pintaEn(`
-    <h2 class="tit convs-tit">Conversaciones</h2>
+    <h2 class="tit convs-tit">WhatsApp</h2>
     <div class="convs2">
       <div class="panel" id="pconvs"></div>
       <div id="pdetalle" class="panel vacio-det">
