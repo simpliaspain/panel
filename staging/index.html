@@ -2338,7 +2338,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-23b · Correo: carpetas por apartados con iconos, botones arriba y alineados, letra más pequeña; leído y no leído por persona y mover solo en el panel; fotos de quien escribe';
+const VERSION = '2026-11-23c · Correo sin «Sin clasificar», colaboraciones a Otros, Idealista sin casilla de todos; Correo: carpetas por apartados con iconos, botones arriba y alineados, letra más pequeña; leído y no leído por persona y mover solo en el panel; fotos de quien escribe';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -4185,7 +4185,6 @@ const CR_CARPETAS = [
   { id:'nuevos',     nombre:'Nuevos clientes', ico:'euro', grupo:'',
     que:'Personas o empresas que preguntan por un despacho, puesto, sala, oficina virtual o domiciliación. El asistente prepara la respuesta que daría.' },
   { id:'clientes',   nombre:'Clientes actuales', ico:'usuarios', grupo:'', que:'Quien ya trabaja en uno de vuestros centros.' },
-  { id:'sin',        nombre:'Sin clasificar', ico:'bandeja', grupo:'', que:'Recién llegados: el asistente aún no los ha clasificado.' },
   { id:'proveedor',  nombre:'Proveedores y facturas', ico:'documento', grupo:'Otros correos', que:'Proveedores, facturas y servicios.' },
   { id:'avisos',     nombre:'Avisos automáticos', ico:'campana', grupo:'Otros correos', que:'Avisos de bancos, plataformas y sistemas.' },
   { id:'newsletter', nombre:'Publicidad y newsletters', ico:'libro', grupo:'Otros correos', que:'Boletines y publicidad.' },
@@ -4209,7 +4208,9 @@ function crCarpetaDe(h){
   return m && CR_CARPETAS.some(k => k.id === m) ? m : crCarpetaIA(h);
 }
 function crCarpetaIA(h){
-  if (!h.tipo) return 'sin';
+  // 23/11 (c): sin carpeta «Sin clasificar» (pedido del usuario). Lo recién llegado va a
+  // Nuevos clientes con la etiqueta «Sin clasificar aún» hasta que lo clasifica el asistente (minutos).
+  if (!h.tipo) return 'nuevos';
   if (h.subtipo === 'saliente') return 'enviados';
   if (h.tipo === 'comercial') return 'nuevos';
   if (h.tipo === 'cliente_actual') return 'clientes';
@@ -4489,6 +4490,7 @@ function crFila(h){
   // 18/11 noche: una sola etiqueta de estado, «Para el equipo» (fuera
   // «Respuesta propuesta»: casi todos los nuevos clientes la llevaban).
   // Respondido manda: si ya se contestó, no hace falta avisar de nada más.
+  if (!h.tipo) eti.push('<span class="pill nt">Sin clasificar aún</span>');
   if (crRespondido(h)) eti.push('<span class="pill vd">Respondido</span>');
   else if (crParaEquipo(h)) eti.push('<span class="pill rj">Para el equipo</span>');
   // Al buscar, la carpeta. Máximo dos etiquetas: el asunto se tiene que leer.
@@ -4519,7 +4521,6 @@ function crListaCab(){
   if (sel.length && crMarcas()){
     const todosSel = lista.length > 0 && lista.every(h => CO.crSel.has(h.id));
     return `<div class="co-lcab cr-selbar">
-      ${ideal ? `<input type="checkbox" class="cr-fsel" style="opacity:1" data-cr="seltodo" ${todosSel ? 'checked' : ''} aria-label="Seleccionar todos">` : ''}
       <span class="cr-seln">${sel.length} seleccionado${sel.length > 1 ? 's' : ''}</span>
       <button class="cr-acc" data-cr="m-leido">Leído</button>
       <button class="cr-acc" data-cr="m-noleido">No leído</button>
@@ -4530,7 +4531,6 @@ function crListaCab(){
   }
   // 23/11 (b): en Correo, sin «No leídos» ni casilla de todos (pedido del usuario); en Idealista, todo en una línea.
   return `<div class="co-lcab cr-lcab">
-    ${crMarcas() && ideal && lista.length ? '<input type="checkbox" class="cr-fsel" style="opacity:1" data-cr="seltodo" aria-label="Seleccionar todos">' : ''}
     <h3>${esc(titulo)}</h3><span class="co-para">${lista.length}</span>
     ${buscando ? '<button class="co-editar co-blimpiar" data-cr="blimpiar">Quitar búsqueda</button>' : ''}
     ${crMarcas() && ideal ? `<div class="cr-lder">
@@ -4917,7 +4917,7 @@ function crSonar(n){
 }
 
 // --- Lo ya visto: lo nuevo desde la primera vez que se entra en este navegador y que aún no se ha abierto.
-const CR_AVISAN = ['nuevos', 'clientes', 'sin'];
+const CR_AVISAN = ['nuevos', 'clientes'];
 const crAvisa = h => CR_AVISAN.includes(crCarpetaDe(h)) || !!h.a_persona;
 const crClaveVisto = () => 'cr-visto:' + (CO.real?.slug || crSlug());
 function crVistoBase(slug){ const k = 'cr-visto:' + slug; if (!crLeer(k, null)) crGuardar(k, { desde: new Date().toISOString(), ids: [] }); }
