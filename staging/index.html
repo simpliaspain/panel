@@ -2119,6 +2119,38 @@
                padding:18%;box-sizing:border-box;box-shadow:inset 0 0 0 1px var(--linea)}
   .cr-cara img.g{object-fit:cover;padding:0;box-shadow:none}
   .cr-cara img.cr-cargando{opacity:0}
+  /* 23/11 (b) (pedido del usuario): carpetas por apartados con icono (como la Oficina),
+     cabeceras en una sola línea, barra del correo arriba y letra del correo más pequeña. */
+  .co-real .cr-carp{gap:10px;padding:7px 12px;font-size:14px;font-weight:500;color:var(--tinta)}
+  .co-real .cr-carp .cr-ico{width:18px;height:18px;flex:none;color:var(--gris)}
+  .co-real .cr-carp.on{background:var(--aire);color:var(--profundo);font-weight:600}
+  .co-real .cr-carp.on .cr-ico{color:var(--pulso)}
+  .co-real .cr-carp.sobre .cr-ico{color:#fff}
+  .co-real .cr-carp.cr-connl .co-cnomb{font-weight:700}
+  .co-real .cr-carp .cr-nl{background:none;color:var(--pulso);padding:0;font-size:12px;font-weight:700;margin-left:auto;font-family:inherit}
+  .co-real .cr-carp.sobre .cr-nl{color:#fff}
+  .cr-cgrupo{margin:10px 4px 2px;padding:12px 8px 4px;border-top:1px solid var(--linea);font-size:11px;font-weight:700;
+             letter-spacing:.08em;text-transform:uppercase;color:var(--gris)}
+  @media(max-width:820px){ .cr-cgrupo{display:none} .co-real .cr-carp{white-space:nowrap} .co-real .cr-carp .cr-ico{width:16px;height:16px} }
+  .co-real .cr-lcab{align-items:center}
+  .co-real .cr-lcab h3{margin:0;line-height:1.2}
+  .cr-accs .cr-ctl,.cr-lder .cr-ctl{height:32px;box-sizing:border-box;display:inline-flex;align-items:center;gap:6px;margin:0;
+           padding:0 10px;font:inherit;font-size:12px;font-weight:600;line-height:1;border-radius:8px;border:1px solid var(--linea);
+           background:var(--blanco);color:var(--tinta);width:auto;vertical-align:middle}
+  .cr-lder select.cr-ctl{padding:0 8px}
+  .cr-accs .cr-ctl:hover,.cr-lder .cr-ctl:hover{border-color:var(--pulso);color:var(--pulso)}
+  .cr-lder .cr-ctl[aria-pressed="true"]{background:var(--aire);border-color:var(--pulso);color:var(--profundo)}
+  .cr-ctl .cr-ico{width:15px;height:15px;flex:none}
+  .cr-accs .cr-mover{padding:0 6px 0 10px;cursor:pointer}
+  .cr-mover select{border:0;background:transparent;font:inherit;font-size:12px;font-weight:600;color:inherit;height:30px;padding:0 2px;margin:0;outline:none;cursor:pointer}
+  .cr-mover:focus-within{outline:2px solid var(--pulso);outline-offset:1px}
+  .cr-accs{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--linea)}
+  .cr-accs .cr-solopanel{margin-left:auto;font-size:11px;color:var(--gris);cursor:help}
+  .cr-mano{display:block;margin:-4px 0 10px;font-size:12px}
+  .cr-det .co-orig{font-size:13.5px;line-height:1.5}
+  .cr-det .co-orig p{margin:0 0 8px}
+  .cr-idet .cr-idtexto{font-size:15px;line-height:1.5}
+  .cr-idet .co-orig{font-size:13.5px;line-height:1.5}
   .cr-tscroll{overflow-x:auto}
   .cr-tabla{width:100%;border-collapse:collapse;font-size:13px}
   .cr-tabla th,.cr-tabla td{padding:8px 10px;border-bottom:1px solid var(--linea);text-align:right;white-space:nowrap}
@@ -2306,7 +2338,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-23a · Correo e Idealista: leído y no leído por persona, mover, archivar y papelera solo en el panel; fotos de quien escribe';
+const VERSION = '2026-11-23b · Correo: carpetas por apartados con iconos, botones arriba y alineados, letra más pequeña; leído y no leído por persona y mover solo en el panel; fotos de quien escribe';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -4129,21 +4161,41 @@ function coPintarSinBuzon(){
    visibles aunque estén vacías. Fuera «Con respuesta propuesta»,
    «Intervención equipo», «Todos» y «A una persona»: lo que tiene que hacer
    una persona va en su carpeta con la etiqueta «Para el equipo». */
+// 23/11 (b) (pedido del usuario): carpetas por apartados y con icono, como en la Oficina.
+// El orden de esta lista es el de la pantalla y el de los atajos 1 a 9.
+const CR_ICO = {
+  euro: 'M18 6.5A7 7 0 1 0 18 17.5M4 10h10M4 14h10',
+  usuarios: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+  bandeja: 'M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z',
+  documento: 'M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM14 2v6h6M8 13h8M8 17h8M8 9h2',
+  campana: 'M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13',
+  libro: 'M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z',
+  persona: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  otros: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM8 12h.01M12 12h.01M16 12h.01',
+  enviar: 'M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z',
+  archivo: 'M21 8v13H3V8M1 3h22v5H1zM10 12h4',
+  bloqueo: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM4.93 4.93l14.14 14.14',
+  papelera: 'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6',
+  noleido: 'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 6l-10 7L2 6',
+  leido: 'M20 6L9 17l-5-5',
+  mover: 'M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20'
+};
+const crIco = n => `<svg class="cr-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${CR_ICO[n] || CR_ICO.bandeja}"/></svg>`;
 const CR_CARPETAS = [
-  { id:'nuevos',     nombre:'Nuevos clientes', resp:true,
+  { id:'nuevos',     nombre:'Nuevos clientes', ico:'euro', grupo:'',
     que:'Personas o empresas que preguntan por un despacho, puesto, sala, oficina virtual o domiciliación. El asistente prepara la respuesta que daría.' },
-  { id:'clientes',   nombre:'Clientes actuales', que:'Quien ya trabaja en uno de vuestros centros.' },
-  { id:'proveedor',  nombre:'Proveedores', que:'Proveedores, facturas y servicios.' },
-  { id:'avisos',     nombre:'Avisos automáticos', que:'Avisos de bancos, plataformas y sistemas.' },
-  { id:'newsletter', nombre:'Publicidad y newsletters', que:'Boletines y publicidad.' },
-  { id:'personal',   nombre:'Personal o interno', que:'Correos personales o del propio equipo.' },
-  { id:'otros',      nombre:'Otros', que:'Lo que no encaja en las demás carpetas.' },
-  { id:'spam',       nombre:'Spam', que:'Correo no deseado.' },
-  { id:'enviados',   nombre:'Enviados por el equipo', que:'Conversaciones que empezó el equipo y en las que el cliente aún no ha contestado.' },
-  { id:'sin',        nombre:'Sin clasificar', que:'Recién llegados: el asistente aún no los ha clasificado.' },
-  // 23/11: solo esconden el correo en el panel (SQL 120). El buzón no cambia.
-  { id:'archivados', nombre:'Archivados', que:'Los que habéis archivado aquí. En vuestro buzón siguen igual.' },
-  { id:'papelera',   nombre:'Papelera', que:'Los que habéis quitado de la vista aquí. En vuestro buzón siguen igual.' }
+  { id:'clientes',   nombre:'Clientes actuales', ico:'usuarios', grupo:'', que:'Quien ya trabaja en uno de vuestros centros.' },
+  { id:'sin',        nombre:'Sin clasificar', ico:'bandeja', grupo:'', que:'Recién llegados: el asistente aún no los ha clasificado.' },
+  { id:'proveedor',  nombre:'Proveedores y facturas', ico:'documento', grupo:'Otros correos', que:'Proveedores, facturas y servicios.' },
+  { id:'avisos',     nombre:'Avisos automáticos', ico:'campana', grupo:'Otros correos', que:'Avisos de bancos, plataformas y sistemas.' },
+  { id:'newsletter', nombre:'Publicidad y newsletters', ico:'libro', grupo:'Otros correos', que:'Boletines y publicidad.' },
+  { id:'personal',   nombre:'Personal o interno', ico:'persona', grupo:'Otros correos', que:'Correos personales o del propio equipo.' },
+  { id:'otros',      nombre:'Otros', ico:'otros', grupo:'Otros correos', que:'Lo que no encaja en las demás carpetas.' },
+  { id:'enviados',   nombre:'Enviados por el equipo', ico:'enviar', grupo:'Más', que:'Conversaciones que empezó el equipo y en las que el cliente aún no ha contestado.' },
+  // 23/11: Archivados y Papelera solo esconden el correo en el panel (SQL 120). El buzón no cambia.
+  { id:'archivados', nombre:'Archivados', ico:'archivo', grupo:'Más', que:'Los que habéis archivado aquí. En vuestro buzón siguen igual.' },
+  { id:'spam',       nombre:'Spam', ico:'bloqueo', grupo:'Más', que:'Correo no deseado.' },
+  { id:'papelera',   nombre:'Papelera', ico:'papelera', grupo:'Más', que:'Los que habéis quitado de la vista aquí. En vuestro buzón siguen igual.' }
 ];
 const CR_FUERA = ['archivados', 'papelera'];
 // 18/11: lo que tiene que hacer el equipo (borrador.equipo, SQL 97).
@@ -4228,7 +4280,8 @@ function crLista(){
     : crEnIdealista() ? crHilos().filter(h => crIdCarp(h) === (CO.realIdCarp || ''))
     : crEnCarpeta(CO.realCarpeta);
   l = crBuscar(l);
-  return CO.realSoloNL ? l.filter(h => crNoLeido(h) || h.id === CO.realAbierto) : l;
+  // «No leídos» solo existe en Idealista (23/11 b).
+  return CO.realSoloNL && crEnIdealista() ? l.filter(h => crNoLeido(h) || h.id === CO.realAbierto) : l;
 }
 
 /* ---------- 23/11 (pedido del usuario): leído / no leído y mover, SOLO en
@@ -4399,30 +4452,35 @@ document.addEventListener('error', e => {
 
 // Todas las carpetas, siempre (también vacías). Sin descripciones al pasar el puntero.
 // 23/11: los no leídos en azul y se puede soltar un correo encima.
+// 23/11 (b): por apartados (los de siempre arriba, «Otros correos» y «Más»), con icono.
+// Como en la Oficina: solo se ve el número de no leídos, en azul.
 function crCarpetas(){
+  let grupo = null;
   return CR_CARPETAS.map((c, i) => { const on = CO.realCarpeta === c.id && !CO.realBusca?.trim();
     const todos = crEnCarpeta(c.id), nl = todos.filter(crNoLeido).length;
-    return `<button class="co-carp ${on ? 'on' : ''} ${nl ? 'cr-connl' : ''}" data-cr="carp" data-id="${c.id}" ${c.id !== 'sin' ? `data-crdrop="${c.id}"` : ''} ${on ? 'aria-current="true"' : ''}
-      ${i < 9 ? `aria-keyshortcuts="${i + 1}"` : ''}><span class="pt ${c.resp ? 'resp' : ''}"></span><span class="co-cnomb">${esc(c.nombre)}</span>${nl ? `<span class="cr-nl" title="${nl} sin leer">${nl}</span>` : ''}<span class="cn">${todos.length}</span></button>`; }).join('');
+    const cab = c.grupo !== grupo && c.grupo ? `<div class="cr-cgrupo" role="presentation">${esc(c.grupo)}</div>` : '';
+    grupo = c.grupo;
+    return `${cab}<button class="co-carp cr-carp ${on ? 'on' : ''} ${nl ? 'cr-connl' : ''}" data-cr="carp" data-id="${c.id}" ${c.id !== 'sin' ? `data-crdrop="${c.id}"` : ''} ${on ? 'aria-current="true"' : ''}
+      ${i < 9 ? `aria-keyshortcuts="${i + 1}"` : ''} title="${todos.length} ${todos.length === 1 ? 'correo' : 'correos'}${nl ? `, ${nl} sin leer` : ''}">${crIco(c.ico)}<span class="co-cnomb">${esc(c.nombre)}</span>${nl ? `<span class="cr-nl">${nl}</span>` : ''}</button>`; }).join('');
 }
 // Botones del correo abierto (23/11).
 function crAccionesHTML(h){
   if (!crMarcas()) return '';
   const nl = crNoLeido(h), mano = crMano(h), ideal = crEsIdealista(h), id = esc(h.id);
   const fuera = CR_FUERA.includes(mano);
-  const opciones = ideal ? '' : `<select class="co-sel" data-cr="mover" data-id="${id}" aria-label="Mover a otra carpeta">
-      <option value="">Mover a…</option>${CR_CARPETAS.filter(k => k.id !== 'sin' && k.id !== crCarpetaDe(h)).map(k => `<option value="${k.id}">${esc(k.nombre)}</option>`).join('')}</select>`;
+  // 23/11 (b): arriba del todo y todo a la misma altura (el «Mover a…» iba descolgado).
+  const opciones = ideal ? '' : `<label class="cr-acc cr-ctl cr-mover" title="Mover a otra carpeta">${crIco('mover')}<select data-cr="mover" data-id="${id}" aria-label="Mover a otra carpeta">
+      <option value="">Mover a…</option>${CR_CARPETAS.filter(k => k.id !== 'sin' && k.id !== crCarpetaDe(h)).map(k => `<option value="${k.id}">${esc(k.nombre)}</option>`).join('')}</select></label>`;
   const manoTxt = mano && !fuera && !ideal
-    ? `<span class="co-para">Movido a mano${crMarcas().carpetas[h.id]?.quien ? ' por ' + esc(crMarcas().carpetas[h.id].quien) : ''} · <button class="cr-link" data-cr="m-devolver" data-id="${id}">devolver a «${esc(crNombreCarpeta(crCarpetaIA(h)))}»</button></span>` : '';
-  return `<div class="cr-accs" role="group" aria-label="Acciones del panel">
-      <button class="cr-acc" data-cr="${nl ? 'm-leido' : 'm-noleido'}" data-id="${id}" title="Tecla U">${nl ? 'Marcar como leído' : 'Marcar como no leído'}</button>
+    ? `<span class="co-para cr-mano">Movido a mano${crMarcas().carpetas[h.id]?.quien ? ' por ' + esc(crMarcas().carpetas[h.id].quien) : ''} · <button class="cr-link" data-cr="m-devolver" data-id="${id}">devolver a «${esc(crNombreCarpeta(crCarpetaIA(h)))}»</button></span>` : '';
+  return `<div class="cr-accs" role="toolbar" aria-label="Acciones del panel">
+      <button class="cr-acc cr-ctl" data-cr="${nl ? 'm-leido' : 'm-noleido'}" data-id="${id}" title="Tecla U">${crIco(nl ? 'leido' : 'noleido')}${nl ? 'Marcar como leído' : 'Marcar como no leído'}</button>
       ${opciones}
-      ${fuera ? `<button class="cr-acc" data-cr="m-devolver" data-id="${id}">Sacar de ${esc(crNombreCarpeta(mano))}</button>`
-        : `<button class="cr-acc" data-cr="m-archivar" data-id="${id}" title="Tecla E">Archivar</button>
-           <button class="cr-acc" data-cr="m-papelera" data-id="${id}" title="Tecla Supr">Papelera</button>`}
-      ${manoTxt}
-      <span class="co-para cr-solopanel">Solo en el panel: vuestro buzón no cambia.</span>
-    </div>`;
+      ${fuera ? `<button class="cr-acc cr-ctl" data-cr="m-devolver" data-id="${id}">${crIco('bandeja')}Sacar de ${esc(crNombreCarpeta(mano))}</button>`
+        : `<button class="cr-acc cr-ctl" data-cr="m-archivar" data-id="${id}" title="Tecla E">${crIco('archivo')}Archivar</button>
+           <button class="cr-acc cr-ctl" data-cr="m-papelera" data-id="${id}" title="Tecla Supr">${crIco('papelera')}Papelera</button>`}
+      <span class="co-para cr-solopanel" title="Leído, no leído y carpetas se guardan solo en el panel: vuestro buzón no cambia.">Solo en el panel</span>
+    </div>${manoTxt}`;
 }
 
 function crFila(h){
@@ -4461,7 +4519,7 @@ function crListaCab(){
   if (sel.length && crMarcas()){
     const todosSel = lista.length > 0 && lista.every(h => CO.crSel.has(h.id));
     return `<div class="co-lcab cr-selbar">
-      <input type="checkbox" class="cr-fsel" style="opacity:1" data-cr="seltodo" ${todosSel ? 'checked' : ''} aria-label="Seleccionar todos">
+      ${ideal ? `<input type="checkbox" class="cr-fsel" style="opacity:1" data-cr="seltodo" ${todosSel ? 'checked' : ''} aria-label="Seleccionar todos">` : ''}
       <span class="cr-seln">${sel.length} seleccionado${sel.length > 1 ? 's' : ''}</span>
       <button class="cr-acc" data-cr="m-leido">Leído</button>
       <button class="cr-acc" data-cr="m-noleido">No leído</button>
@@ -4470,18 +4528,19 @@ function crListaCab(){
         : `<button class="cr-acc" data-cr="m-archivar">Archivar</button><button class="cr-acc" data-cr="m-papelera">Papelera</button>`}
       <button class="co-editar" data-cr="selnada">Quitar selección</button></div>`;
   }
-  return `<div class="co-lcab">
-    ${crMarcas() && lista.length ? '<input type="checkbox" class="cr-fsel" style="opacity:1" data-cr="seltodo" aria-label="Seleccionar todos">' : ''}
+  // 23/11 (b): en Correo, sin «No leídos» ni casilla de todos (pedido del usuario); en Idealista, todo en una línea.
+  return `<div class="co-lcab cr-lcab">
+    ${crMarcas() && ideal && lista.length ? '<input type="checkbox" class="cr-fsel" style="opacity:1" data-cr="seltodo" aria-label="Seleccionar todos">' : ''}
     <h3>${esc(titulo)}</h3><span class="co-para">${lista.length}</span>
     ${buscando ? '<button class="co-editar co-blimpiar" data-cr="blimpiar">Quitar búsqueda</button>' : ''}
-    ${crMarcas() ? `<div class="cr-lder">
-      ${ideal && !buscando ? `<select class="co-sel" data-cr="idcarp" aria-label="Qué mensajes ver">
+    ${crMarcas() && ideal ? `<div class="cr-lder">
+      ${!buscando ? `<select class="co-sel cr-ctl" data-cr="idcarp" aria-label="Qué mensajes ver">
         ${[['', 'Mensajes'], ['archivados', 'Archivados'], ['papelera', 'Papelera']].map(([v, t]) => `<option value="${v}" ${(CO.realIdCarp || '') === v ? 'selected' : ''}>${t}</option>`).join('')}</select>` : ''}
-      <button class="cr-acc" data-cr="solonl" aria-pressed="${!!CO.realSoloNL}">No leídos</button></div>` : ''}</div>`;
+      <button class="cr-acc cr-ctl" data-cr="solonl" aria-pressed="${!!CO.realSoloNL}">No leídos</button></div>` : ''}</div>`;
 }
 const crListaFilas = () => { const l = crLista(); if (l.length) return l.map(crFila).join('');
   if (CO.realBusca?.trim()) return '<div class="vacio">Nada coincide con la búsqueda.</div>';
-  if (CO.realSoloNL) return '<div class="vacio">No hay nada sin leer aquí.</div>';
+  if (CO.realSoloNL && crEnIdealista()) return '<div class="vacio">No hay nada sin leer aquí.</div>';
   if (crEnIdealista() && CO.realIdCarp) return `<div class="vacio">No hay mensajes en «${esc(crNombreCarpeta(CO.realIdCarp))}».</div>`;
   if (crEnIdealista()) return '<div class="vacio">Todavía no hay mensajes de idealista.</div>';
   const c = CR_CARPETAS.find(k => k.id === CO.realCarpeta);
@@ -4524,6 +4583,7 @@ function crDetalleIdealista(h, enVentana){
   const telHref = d.tel ? 'tel:+34' + d.tel.replace(/\D/g, '').replace(/^34(?=\d{9}$)/, '') : '';
   return `
     <div class="co-det cr-idet">
+      ${crAccionesHTML(h)}
       <div class="cr-idcab">
         <div class="cr-idquien">
           <h3>${esc(p.nombre)}</h3>
@@ -4535,7 +4595,6 @@ function crDetalleIdealista(h, enVentana){
           ${d.tel ? `<a class="cr-idtel" href="${esc(telHref)}">Llamar al ${esc(d.tel)}</a>` : ''}
           <span class="cr-idestado">${crRespondidoHTML(h)}</span>
         </div>
-        ${crAccionesHTML(h)}
       </div>
       <section class="cr-idpreg" aria-label="Lo que pregunta">
         <div class="co-msgt">Pregunta</div>
@@ -4567,8 +4626,9 @@ function crDetalle(h, enVentana){
   const faltan = bo?.faltan || [];
   const equipo = crEquipo(h);
   return `
-    <div class="co-det ${lado ? 'co-lado' : ''}">
+    <div class="co-det cr-det ${lado ? 'co-lado' : ''}">
       <div class="co-dcab">
+        ${crAccionesHTML(h)}
         <div class="co-dtit">
           <h3>${esc(h.asunto || '(sin asunto)')}</h3>
           ${bo ? `<div class="co-vistas" role="group" aria-label="Cómo ver el correo y la respuesta">
@@ -4584,7 +4644,6 @@ function crDetalle(h, enVentana){
             ${p.responder ? `<br><span class="co-para">La respuesta irá a <b title="${esc(p.responder)}">${esc(p.nota ? 'la ' + p.nota : p.responder)}</b></span>` : ''}</div>
         </div>
         ${h.tipo === 'comercial' || h.tipo === 'cliente_actual' ? `<div class="cr-idestado cr-cestado">${crRespondidoHTML(h)}</div>` : ''}
-        ${crAccionesHTML(h)}
       </div>
       <div class="co-par">
         <div class="cr-hilo">
