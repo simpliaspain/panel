@@ -4362,7 +4362,11 @@ function crCaraUrl(p){
     if (!hx){ crHashLuego(email); return { url:'' }; }
     return { url:`https://gravatar.com/avatar/${hx}?s=80&d=404`, g:true };
   }
-  return { url:`https://www.google.com/s2/favicons?domain=${encodeURIComponent(dom)}&sz=64` };
+  // El dominio principal (news.empresa.com → empresa.com): los subdominios de envío no tienen logo.
+  const partes = dom.replace(/[^a-z0-9.-]/g, '').split('.').filter(Boolean), dos = partes.slice(-2).join('.');
+  const base = partes.length > 2 && /^(co|com|org|net|gob|edu|ac)\.[a-z]{2}$/.test(dos) ? partes.slice(-3).join('.') : dos;
+  if (!base.includes('.')) return { url:'' };
+  return { url:`https://www.google.com/s2/favicons?domain=${encodeURIComponent(base)}&sz=64` };
 }
 function crCara(p, clase = ''){
   const ini = esc(String(p.nombre || '?').trim().charAt(0).toUpperCase() || '?');
