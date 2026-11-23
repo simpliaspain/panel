@@ -2092,6 +2092,33 @@
   .cr-cifbtn b{font-size:15px;color:var(--verde-oscuro);margin-right:4px}
   .co-ej.cr-sombra{background:#E5EFFE;color:var(--azul-texto);cursor:help}
   .co-real .co-fila{cursor:pointer}
+  /* 23/11: leído / no leído, seleccionar y mover, y fotos de quien escribe (solo en el panel). */
+  .co-real .co-fila .co-de{font-weight:600}
+  .co-real .co-fila.nuevo .co-de,.co-real .co-fila.nuevo .co-asunto{font-weight:800;color:var(--tinta)}
+  .cr-fsel{flex:none;width:16px;height:16px;margin:0;accent-color:var(--pulso);cursor:pointer;opacity:0;transition:opacity .12s ease}
+  .co-real .co-fila:hover .cr-fsel,.co-real .co-fila.sel .cr-fsel,.co-real .cr-haysel .cr-fsel,.cr-fsel:focus-visible{opacity:1}
+  @media (hover:none){ .cr-fsel{opacity:1} }
+  .co-real .co-fila.sel{background:var(--aire)}
+  .co-lcab.cr-selbar{align-items:center;flex-wrap:wrap;gap:6px}
+  .cr-seln{font-size:13px;font-weight:700;margin-right:4px}
+  .cr-lder{margin-left:auto;display:flex;gap:6px;align-items:center}
+  .cr-acc{font:inherit;font-size:12px;font-weight:600;padding:6px 10px;border-radius:8px;border:1px solid var(--linea);
+          background:var(--blanco);color:var(--tinta);cursor:pointer;white-space:nowrap}
+  .cr-acc:hover{border-color:var(--pulso);color:var(--pulso)}
+  .cr-acc[aria-pressed="true"]{background:var(--aire);border-color:var(--pulso);color:var(--profundo)}
+  .cr-acc:focus-visible{outline:2px solid var(--pulso);outline-offset:1px}
+  .cr-accs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .cr-accs .co-sel,.cr-selbar .co-sel,.cr-lder .co-sel{font-size:12px;padding:6px 10px;width:auto}
+  .cr-solopanel{margin-left:auto;font-size:11px}
+  .cr-link{background:none;border:0;padding:0;font:inherit;color:var(--pulso);cursor:pointer;text-decoration:underline}
+  .co-carp .cr-nl{font-size:11px;font-weight:800;color:#fff;background:var(--pulso);border-radius:999px;padding:1px 7px;margin-left:auto}
+  .co-carp .cr-nl + .cn{margin-left:6px}
+  .co-carp.cr-connl .co-cnomb{font-weight:800}
+  .cr-cara{position:relative;overflow:hidden}
+  .cr-cara img{position:absolute;inset:0;width:100%;height:100%;border-radius:999px;background:#fff;object-fit:contain;
+               padding:18%;box-sizing:border-box;box-shadow:inset 0 0 0 1px var(--linea)}
+  .cr-cara img.g{object-fit:cover;padding:0;box-shadow:none}
+  .cr-cara img.cr-cargando{opacity:0}
   .cr-tscroll{overflow-x:auto}
   .cr-tabla{width:100%;border-collapse:collapse;font-size:13px}
   .cr-tabla th,.cr-tabla td{padding:8px 10px;border-bottom:1px solid var(--linea);text-align:right;white-space:nowrap}
@@ -2279,7 +2306,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-20e · Últimas conversaciones abajo como antes, Embudo con tarjetas que se mueven y filtros por grupos, orden de WhatsApp con botones';
+const VERSION = '2026-11-23a · Correo e Idealista: leído y no leído por persona, mover, archivar y papelera solo en el panel; fotos de quien escribe';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -4049,16 +4076,20 @@ async function crCargarTextos(){
 async function coCargarReal(){
   const slug = crSlug();
   try {
-    const [b, d, f] = await Promise.all([
+    const [b, d, f, mk] = await Promise.all([
       supabase.rpc('mt_correo_panel_buzones', { p_slug: slug }),
       supabase.rpc('mt_correo_panel', { p_slug: slug, p_desde: null }),
       // Lo que falta en la hoja (SQL 87). Si falla, la bandeja sale igual.
-      supabase.rpc('mt_correo_faltan', { p_slug: slug })
+      supabase.rpc('mt_correo_faltan', { p_slug: slug }),
+      // 23/11: leídos de esta persona y carpetas a mano (SQL 120). Si falla, sin esos botones.
+      supabase.rpc('mt_correo_marcas', { p_slug: slug })
     ]);
     if (b.error){ CO.real = null; CO.realEstado = 'error'; coBadge(); return false; }
     if (!b.data?.buzones?.length){ CO.real = null; CO.realEstado = 'sin'; coBadge(); return false; }
     if (d.error){ CO.real = null; CO.realEstado = 'error'; coBadge(); return false; }
-    CO.real = { slug, ...b.data, ...d.data, mejorar: f.error ? null : f.data };
+    CO.real = { slug, ...b.data, ...d.data, mejorar: f.error ? null : f.data,
+      marcas: mk.error || !mk.data ? null : { desde: mk.data.desde, leidos: mk.data.leidos || {}, carpetas: mk.data.carpetas || {} } };
+    CO.crSel.clear();
     // 16/11 noche (pedido del usuario): fuera de la pantalla los correos de los
     // que no se guarda el texto (avisos, boletines, proveedores, spam, los que
     // empezó el equipo…). Solo se ocultan aquí: el buzón y Supabase no cambian.
@@ -4109,14 +4140,23 @@ const CR_CARPETAS = [
   { id:'otros',      nombre:'Otros', que:'Lo que no encaja en las demás carpetas.' },
   { id:'spam',       nombre:'Spam', que:'Correo no deseado.' },
   { id:'enviados',   nombre:'Enviados por el equipo', que:'Conversaciones que empezó el equipo y en las que el cliente aún no ha contestado.' },
-  { id:'sin',        nombre:'Sin clasificar', que:'Recién llegados: el asistente aún no los ha clasificado.' }
+  { id:'sin',        nombre:'Sin clasificar', que:'Recién llegados: el asistente aún no los ha clasificado.' },
+  // 23/11: solo esconden el correo en el panel (SQL 120). El buzón no cambia.
+  { id:'archivados', nombre:'Archivados', que:'Los que habéis archivado aquí. En vuestro buzón siguen igual.' },
+  { id:'papelera',   nombre:'Papelera', que:'Los que habéis quitado de la vista aquí. En vuestro buzón siguen igual.' }
 ];
+const CR_FUERA = ['archivados', 'papelera'];
 // 18/11: lo que tiene que hacer el equipo (borrador.equipo, SQL 97).
 const crEquipo = h => (h.borrador?.equipo || []).filter(Boolean);
 // «Para el equipo»: el siguiente paso es de una persona (lo dice la respuesta
 // propuesta) o el asistente no lo contestaría solo (a_persona).
 const crParaEquipo = h => !!h.a_persona || crEquipo(h).length > 0;
+// 23/11: la carpeta elegida a mano (SQL 120) manda sobre la del asistente.
 function crCarpetaDe(h){
+  const m = crMano(h);
+  return m && CR_CARPETAS.some(k => k.id === m) ? m : crCarpetaIA(h);
+}
+function crCarpetaIA(h){
   if (!h.tipo) return 'sin';
   if (h.subtipo === 'saliente') return 'enviados';
   if (h.tipo === 'comercial') return 'nuevos';
@@ -4180,14 +4220,205 @@ function crBuscar(lista){
   if (!q) return lista;
   return lista.filter(h => coNorm([h.asunto, h.motivo, crPersona(h).nombre, ...(h.mensajes || []).flatMap(m => [m.de, m.reply_to, crTextoDe(m)])].join(' ')).includes(q));
 }
-// La lista: la de la carpeta o, si se busca, en todas.
-const crLista = () => crBuscar(CO.realBusca?.trim() || crEnIdealista() ? crHilos() : crEnCarpeta(CO.realCarpeta));
+// La lista: la de la carpeta o, si se busca, en todas. En Idealista, la
+// bandeja, Archivados o Papelera (23/11). «Solo no leídos» filtra lo que haya.
+const crIdCarp = h => CR_FUERA.includes(crMano(h)) ? crMano(h) : '';
+function crLista(){
+  let l = CO.realBusca?.trim() ? crHilos()
+    : crEnIdealista() ? crHilos().filter(h => crIdCarp(h) === (CO.realIdCarp || ''))
+    : crEnCarpeta(CO.realCarpeta);
+  l = crBuscar(l);
+  return CO.realSoloNL ? l.filter(h => crNoLeido(h) || h.id === CO.realAbierto) : l;
+}
+
+/* ---------- 23/11 (pedido del usuario): leído / no leído y mover, SOLO en
+   el panel (SQL 120). El buzón del cliente no se toca: sigue en solo
+   lectura. El leído es de cada persona (cada usuario ve los suyos); la
+   carpeta elegida a mano es de la empresa y manda sobre la del asistente.
+   Archivados y Papelera solo esconden el correo aquí. ---------- */
+const crMarcas = () => CO.real?.marcas || null;
+const crMano = h => crMarcas()?.carpetas?.[h.id]?.carpeta || '';
+// Hora del último mensaje que llegó de fuera: lo que manda el equipo no lo vuelve «sin leer».
+function crUltimoRecibido(h){
+  const r = (h.mensajes || []).filter(m => m.sentido === 'recibido').map(m => +new Date(m.fecha || 0)).filter(Boolean);
+  return r.length ? Math.max(...r) : 0;
+}
+function crNoLeido(h){
+  const mk = crMarcas(); if (!mk) return false;
+  const l = mk.leidos?.[h.id], ult = crUltimoRecibido(h);
+  if (l) return !l.leido || ult > +new Date(l.en);
+  // Lo que llegó antes de que esta persona empezara a usarlo cuenta como leído.
+  return ult > +new Date(mk.desde || 0);
+}
+async function crCargarMarcas(slug){
+  try {
+    const { data, error } = await supabase.rpc('mt_correo_marcas', { p_slug: slug });
+    if (error || !data || !CO.real || CO.real.slug !== slug) return false;
+    CO.real.marcas = { desde: data.desde, leidos: data.leidos || {}, carpetas: data.carpetas || {} };
+    return true;
+  } catch { return false; }
+}
+function crRepintar(){
+  if (!CO.real || !crVistaReal()) return;
+  coPintarReal();
+  if ($('#modal').style.display === 'block' && $('#mbox .co-det') && CO.realAbierto) crAbrirVentana(CO.realAbierto);
+}
+// Seleccionados (casillas de la lista).
+CO.crSel = new Set();
+const crSelIds = () => { const vis = new Set(crLista().map(h => h.id)); return [...CO.crSel].filter(id => vis.has(id)); };
+const crIdsAccion = el => el?.dataset?.id ? [el.dataset.id] : crSelIds();
+const crNombreCarpeta = (id, ideal) => !id ? (ideal ? 'Mensajes' : 'su carpeta') : CR_CARPETAS.find(k => k.id === id)?.nombre || id;
+
+async function crMarcarLeido(ids, leido, { silencio = false } = {}){
+  const mk = crMarcas();
+  if (!mk){ if (!silencio) coAviso('No se ha podido cargar el estado de leídos. Vuelve a entrar en un momento.'); return false; }
+  if (!ids.length) return false;
+  const antes = ids.map(id => [id, mk.leidos[id]]);
+  const ahora = new Date().toISOString();
+  ids.forEach(id => { mk.leidos[id] = { leido, en: ahora }; });
+  if (!silencio) crRepintar();
+  const { error } = await supabase.rpc('mt_correo_marcar_leido', { p_slug: CO.real.slug, p_hilos: ids, p_leido: leido });
+  if (error){
+    antes.forEach(([id, v]) => { if (v) mk.leidos[id] = v; else delete mk.leidos[id]; });
+    crRepintar();
+    if (!silencio){ crSonar('error'); coAviso('No se ha podido guardar: ' + (error.message || 'error')); }
+    return false;
+  }
+  if (!silencio){
+    CO.crSel.clear(); crRepintar();
+    coAviso((leido ? 'Marcado como leído' : 'Marcado como no leído') + (ids.length > 1 ? ` (${ids.length} correos)` : '') + '. Solo en el panel.');
+  }
+  return true;
+}
+// Guarda en el servidor un mapa { hilo: carpeta | '' } ('' = la del asistente).
+async function crEnviarCarpetas(mapa){
+  const grupos = {};
+  for (const [id, c] of Object.entries(mapa)) (grupos[c] ||= []).push(id);
+  for (const [c, l] of Object.entries(grupos)){
+    const { error } = await supabase.rpc('mt_correo_mover', { p_slug: CO.real.slug, p_hilos: l, p_carpeta: c || null });
+    if (error) return error;
+  }
+  return null;
+}
+function crPonerCarpetas(mapa){
+  const mk = crMarcas(); if (!mk) return;
+  for (const [id, c] of Object.entries(mapa)){
+    if (c) mk.carpetas[id] = { carpeta: c, quien: USUARIO_EMAIL, en: new Date().toISOString() };
+    else delete mk.carpetas[id];
+  }
+}
+async function crMover(ids, destino){
+  const mk = crMarcas();
+  if (!mk){ coAviso('No se ha podido cargar el estado de las carpetas. Vuelve a entrar en un momento.'); return; }
+  const hs = ids.map(id => (CO.real.hilos || []).find(h => h.id === id)).filter(Boolean);
+  if (!hs.length) return;
+  // Volver a la carpeta del asistente = quitar la marca.
+  const nuevo = {}, viejo = {};
+  for (const h of hs){
+    viejo[h.id] = crMano(h);
+    nuevo[h.id] = !destino || (!crEsIdealista(h) && crCarpetaIA(h) === destino) ? '' : destino;
+  }
+  if (hs.every(h => nuevo[h.id] === viejo[h.id])) return;
+  const ideal = crEsIdealista(hs[0]);
+  crPonerCarpetas(nuevo);
+  CO.crSel.clear();
+  if ($('#modal').style.display === 'block' && $('#mbox .co-det')) cerrar();
+  crRepintar();
+  const error = await crEnviarCarpetas(nuevo);
+  if (error){
+    crPonerCarpetas(viejo); crRepintar(); crSonar('error');
+    return coAviso(/No puedes cambiar/.test(error.message || '') ? 'No tienes permiso para mover correos en esta empresa.' : 'No se ha podido mover: ' + (error.message || 'error'));
+  }
+  const n = hs.length, que = n > 1 ? `${n} correos` : '';
+  const texto = destino === 'archivados' ? `Archivado${n > 1 ? 's ' + que : ''}`
+    : destino === 'papelera' ? `En la papelera${n > 1 ? ' (' + que + ')' : ''}`
+    : `Movido${n > 1 ? 's ' + que : ''} a ${crNombreCarpeta(destino, ideal)}`;
+  crSonar('hecho');
+  CO.historial.push({ texto, deshecho: 'Deshecho: vuelve a donde estaba.', deshacer: async () => {
+    crPonerCarpetas(viejo); crRepintar();
+    const e2 = await crEnviarCarpetas(viejo);
+    if (e2){ crPonerCarpetas(nuevo); crRepintar(); coAviso('No se ha podido deshacer: ' + (e2.message || 'error')); }
+  } });
+  if (CO.historial.length > 30) CO.historial.shift();
+  coAviso(texto + '. Solo en el panel: vuestro buzón no cambia.', true);
+}
+
+/* ---------- 23/11: fotos de quien escribe (versión directa, sin guardar nada).
+   · Correo de empresa → el icono de su web (servicio de iconos por dominio).
+   · Gmail, Hotmail… → Gravatar, si la persona tiene foto allí (se manda la
+     huella SHA-256 del correo, no el correo).
+   · Sin foto → la inicial, como antes. Los portales (idealista…) no llevan foto.
+   El navegador las guarda en su caché; aquí se recuerda cuáles fallan. */
+const CR_PERSONALES = /^(gmail|googlemail|hotmail|outlook|live|msn|yahoo|ymail|icloud|me|mac|aol|gmx|proton|protonmail|terra|telefonica|movistar|orange|vodafone|ono|jazztel|wanadoo|yandex|mail|zoho)\.[a-z.]+$/i;
+const CR_CARAS = new Map();   // url → 'ok' | 'no'
+const CR_HASH = new Map();    // correo → huella sha-256
+const CR_HASHANDO = new Set();
+function crCaraUrl(p){
+  if (p.via && p.via !== 'formulario web') return { url:'' };
+  const email = String(p.email || '').trim().toLowerCase(), dom = crDominio(email);
+  if (!dom || !dom.includes('.')) return { url:'' };
+  if (CR_PERSONALES.test(dom)){
+    const hx = CR_HASH.get(email);
+    if (!hx){ crHashLuego(email); return { url:'' }; }
+    return { url:`https://gravatar.com/avatar/${hx}?s=80&d=404`, g:true };
+  }
+  return { url:`https://www.google.com/s2/favicons?domain=${encodeURIComponent(dom)}&sz=64` };
+}
+function crCara(p, clase = ''){
+  const ini = esc(String(p.nombre || '?').trim().charAt(0).toUpperCase() || '?');
+  const { url, g } = crCaraUrl(p), estado = url ? CR_CARAS.get(url) : 'no';
+  const img = url && estado !== 'no'
+    ? `<img src="${esc(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-crcara="${esc(url)}" class="${g ? 'g' : ''} ${estado === 'ok' ? '' : 'cr-cargando'}">` : '';
+  return `<span class="co-av co-logo cr-cara ${clase}" aria-hidden="true" data-email="${esc(String(p.email || '').toLowerCase())}" data-n="${esc(p.nombre || '')}" data-via="${esc(p.via || '')}" data-clase="${esc(clase)}"><span>${ini}</span>${img}</span>`;
+}
+function crHashLuego(email){
+  if (CR_HASHANDO.has(email) || !window.crypto?.subtle) return;
+  CR_HASHANDO.add(email);
+  crypto.subtle.digest('SHA-256', new TextEncoder().encode(email)).then(b => {
+    CR_HASH.set(email, [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''));
+    document.querySelectorAll('.cr-cara').forEach(el => {
+      if (el.dataset.email === email) el.outerHTML = crCara({ nombre: el.dataset.n, email, via: el.dataset.via }, el.dataset.clase || '');
+    });
+  }).catch(() => {});
+}
+// Si la imagen carga y no es el icono genérico (16 px), se queda; si no, la inicial.
+document.addEventListener('load', e => {
+  const i = e.target; if (i?.tagName !== 'IMG' || !i.dataset?.crcara) return;
+  const ok = i.naturalWidth >= 24;
+  CR_CARAS.set(i.dataset.crcara, ok ? 'ok' : 'no');
+  if (ok) i.classList.remove('cr-cargando'); else i.remove();
+}, true);
+document.addEventListener('error', e => {
+  const i = e.target; if (i?.tagName !== 'IMG' || !i.dataset?.crcara) return;
+  CR_CARAS.set(i.dataset.crcara, 'no'); i.remove();
+}, true);
 
 // Todas las carpetas, siempre (también vacías). Sin descripciones al pasar el puntero.
+// 23/11: los no leídos en azul y se puede soltar un correo encima.
 function crCarpetas(){
   return CR_CARPETAS.map((c, i) => { const on = CO.realCarpeta === c.id && !CO.realBusca?.trim();
-    return `<button class="co-carp ${on ? 'on' : ''}" data-cr="carp" data-id="${c.id}" ${on ? 'aria-current="true"' : ''}
-      ${i < 9 ? `aria-keyshortcuts="${i + 1}"` : ''}><span class="pt ${c.resp ? 'resp' : ''}"></span><span class="co-cnomb">${esc(c.nombre)}</span><span class="cn">${crEnCarpeta(c.id).length}</span></button>`; }).join('');
+    const todos = crEnCarpeta(c.id), nl = todos.filter(crNoLeido).length;
+    return `<button class="co-carp ${on ? 'on' : ''} ${nl ? 'cr-connl' : ''}" data-cr="carp" data-id="${c.id}" ${c.id !== 'sin' ? `data-crdrop="${c.id}"` : ''} ${on ? 'aria-current="true"' : ''}
+      ${i < 9 ? `aria-keyshortcuts="${i + 1}"` : ''}><span class="pt ${c.resp ? 'resp' : ''}"></span><span class="co-cnomb">${esc(c.nombre)}</span>${nl ? `<span class="cr-nl" title="${nl} sin leer">${nl}</span>` : ''}<span class="cn">${todos.length}</span></button>`; }).join('');
+}
+// Botones del correo abierto (23/11).
+function crAccionesHTML(h){
+  if (!crMarcas()) return '';
+  const nl = crNoLeido(h), mano = crMano(h), ideal = crEsIdealista(h), id = esc(h.id);
+  const fuera = CR_FUERA.includes(mano);
+  const opciones = ideal ? '' : `<select class="co-sel" data-cr="mover" data-id="${id}" aria-label="Mover a otra carpeta">
+      <option value="">Mover a…</option>${CR_CARPETAS.filter(k => k.id !== 'sin' && k.id !== crCarpetaDe(h)).map(k => `<option value="${k.id}">${esc(k.nombre)}</option>`).join('')}</select>`;
+  const manoTxt = mano && !fuera && !ideal
+    ? `<span class="co-para">Movido a mano${crMarcas().carpetas[h.id]?.quien ? ' por ' + esc(crMarcas().carpetas[h.id].quien) : ''} · <button class="cr-link" data-cr="m-devolver" data-id="${id}">devolver a «${esc(crNombreCarpeta(crCarpetaIA(h)))}»</button></span>` : '';
+  return `<div class="cr-accs" role="group" aria-label="Acciones del panel">
+      <button class="cr-acc" data-cr="${nl ? 'm-leido' : 'm-noleido'}" data-id="${id}" title="Tecla U">${nl ? 'Marcar como leído' : 'Marcar como no leído'}</button>
+      ${opciones}
+      ${fuera ? `<button class="cr-acc" data-cr="m-devolver" data-id="${id}">Sacar de ${esc(crNombreCarpeta(mano))}</button>`
+        : `<button class="cr-acc" data-cr="m-archivar" data-id="${id}" title="Tecla E">Archivar</button>
+           <button class="cr-acc" data-cr="m-papelera" data-id="${id}" title="Tecla Supr">Papelera</button>`}
+      ${manoTxt}
+      <span class="co-para cr-solopanel">Solo en el panel: vuestro buzón no cambia.</span>
+    </div>`;
 }
 
 function crFila(h){
@@ -4205,9 +4436,12 @@ function crFila(h){
   const ideal = crEnIdealista(), di = ideal ? crIdealistaDatos(h) : null;
   if (di?.ref) eti.push(`<span class="pill nt" title="${esc(di.anuncio)}">${esc(di.ref)}</span>`);
   const asunto = ideal ? ((di.pregunta || di.texto).replace(/\s+/g, ' ').trim().slice(0, 200) || 'Mensaje en idealista') : h.asunto || '(sin asunto)';
-  return `<div class="co-fila ${CO.realAbierto === h.id && coLector() ? 'on' : ''} ${crEsNuevo(h) ? 'nuevo' : ''}" tabindex="0" role="option" aria-selected="${CO.realAbierto === h.id}"
-      data-cr="abrir" data-id="${esc(h.id)}">
-      <span class="co-av co-logo" aria-hidden="true"><span>${esc(p.nombre.charAt(0).toUpperCase() || '?')}</span></span>
+  // 23/11: «nuevo» = sin leer por esta persona (SQL 120); casilla para seleccionar; se puede arrastrar a una carpeta.
+  const sel = CO.crSel.has(h.id), nl = crNoLeido(h);
+  return `<div class="co-fila ${CO.realAbierto === h.id && coLector() ? 'on' : ''} ${nl ? 'nuevo' : ''} ${sel ? 'sel' : ''}" tabindex="0" role="option" aria-selected="${CO.realAbierto === h.id}"
+      data-cr="abrir" data-id="${esc(h.id)}" ${!ideal && crMarcas() ? `draggable="true" data-crdrag="${esc(h.id)}"` : ''}>
+      ${crMarcas() ? `<input type="checkbox" class="cr-fsel" data-cr="sel" data-id="${esc(h.id)}" ${sel ? 'checked' : ''} aria-label="Seleccionar el correo de ${esc(p.nombre)}">` : ''}
+      ${crCara(p)}
       <div class="co-fcuerpo">
         <div class="co-l1"><span class="co-de" title="${esc(p.email || p.responder || '')}">${esc(p.nombre)}${p.via && !ideal ? `<span class="cr-via"> · vía ${esc(p.via)}</span>` : ''}</span><span class="co-hora">${esc(crHora(h.ultimo_en))}</span></div>
         <div class="co-l2"><span class="co-asunto">${esc(asunto)}</span>${eti.length ? `<span class="co-etis">${eti.join('')}</span>` : ''}</div>
@@ -4216,12 +4450,35 @@ function crFila(h){
 function crListaCab(){
   const buscando = !!CO.realBusca?.trim();
   const c = CR_CARPETAS.find(k => k.id === CO.realCarpeta);
-  const titulo = crEnIdealista() ? (buscando ? 'Resultados' : 'Mensajes') : buscando ? 'Resultados en todas las carpetas' : c?.nombre || '';
-  return `<div class="co-lcab"><h3>${esc(titulo)}</h3><span class="co-para">${crLista().length}</span>
-    ${buscando ? '<button class="co-editar co-blimpiar" data-cr="blimpiar">Quitar búsqueda</button>' : ''}</div>`;
+  const ideal = crEnIdealista();
+  const titulo = ideal ? (buscando ? 'Resultados' : crNombreCarpeta(CO.realIdCarp || '', true)) : buscando ? 'Resultados en todas las carpetas' : c?.nombre || '';
+  const lista = crLista(), sel = crSelIds();
+  // 23/11: con algo seleccionado, la barra de acciones (solo en el panel).
+  if (sel.length && crMarcas()){
+    const todosSel = lista.length > 0 && lista.every(h => CO.crSel.has(h.id));
+    return `<div class="co-lcab cr-selbar">
+      <input type="checkbox" class="cr-fsel" style="opacity:1" data-cr="seltodo" ${todosSel ? 'checked' : ''} aria-label="Seleccionar todos">
+      <span class="cr-seln">${sel.length} seleccionado${sel.length > 1 ? 's' : ''}</span>
+      <button class="cr-acc" data-cr="m-leido">Leído</button>
+      <button class="cr-acc" data-cr="m-noleido">No leído</button>
+      ${ideal ? '' : `<select class="co-sel" data-cr="mover" aria-label="Mover los seleccionados a"><option value="">Mover a…</option>${CR_CARPETAS.filter(k => k.id !== 'sin').map(k => `<option value="${k.id}">${esc(k.nombre)}</option>`).join('')}</select>`}
+      ${ideal && CO.realIdCarp ? '<button class="cr-acc" data-cr="m-devolver">Sacar de aquí</button>'
+        : `<button class="cr-acc" data-cr="m-archivar">Archivar</button><button class="cr-acc" data-cr="m-papelera">Papelera</button>`}
+      <button class="co-editar" data-cr="selnada">Quitar selección</button></div>`;
+  }
+  return `<div class="co-lcab">
+    ${crMarcas() && lista.length ? '<input type="checkbox" class="cr-fsel" style="opacity:1" data-cr="seltodo" aria-label="Seleccionar todos">' : ''}
+    <h3>${esc(titulo)}</h3><span class="co-para">${lista.length}</span>
+    ${buscando ? '<button class="co-editar co-blimpiar" data-cr="blimpiar">Quitar búsqueda</button>' : ''}
+    ${crMarcas() ? `<div class="cr-lder">
+      ${ideal && !buscando ? `<select class="co-sel" data-cr="idcarp" aria-label="Qué mensajes ver">
+        ${[['', 'Mensajes'], ['archivados', 'Archivados'], ['papelera', 'Papelera']].map(([v, t]) => `<option value="${v}" ${(CO.realIdCarp || '') === v ? 'selected' : ''}>${t}</option>`).join('')}</select>` : ''}
+      <button class="cr-acc" data-cr="solonl" aria-pressed="${!!CO.realSoloNL}">No leídos</button></div>` : ''}</div>`;
 }
 const crListaFilas = () => { const l = crLista(); if (l.length) return l.map(crFila).join('');
   if (CO.realBusca?.trim()) return '<div class="vacio">Nada coincide con la búsqueda.</div>';
+  if (CO.realSoloNL) return '<div class="vacio">No hay nada sin leer aquí.</div>';
+  if (crEnIdealista() && CO.realIdCarp) return `<div class="vacio">No hay mensajes en «${esc(crNombreCarpeta(CO.realIdCarp))}».</div>`;
   if (crEnIdealista()) return '<div class="vacio">Todavía no hay mensajes de idealista.</div>';
   const c = CR_CARPETAS.find(k => k.id === CO.realCarpeta);
   return `<div class="vacio">No hay correos en «${esc(c?.nombre || '')}».${c?.que ? `<br><span class="co-para">Aquí van: ${esc(c.que.charAt(0).toLowerCase() + c.que.slice(1))}</span>` : ''}</div>`; };
@@ -4274,6 +4531,7 @@ function crDetalleIdealista(h, enVentana){
           ${d.tel ? `<a class="cr-idtel" href="${esc(telHref)}">Llamar al ${esc(d.tel)}</a>` : ''}
           <span class="cr-idestado">${crRespondidoHTML(h)}</span>
         </div>
+        ${crAccionesHTML(h)}
       </div>
       <section class="cr-idpreg" aria-label="Lo que pregunta">
         <div class="co-msgt">Pregunta</div>
@@ -4316,12 +4574,13 @@ function crDetalle(h, enVentana){
           ${enVentana ? '<button class="cerrar" data-cr="cerrar" aria-label="Cerrar">×</button>' : ''}
         </div>
         <div class="co-dde">
-          <span class="co-av co-logo" aria-hidden="true"><span>${esc(p.nombre.charAt(0).toUpperCase() || '?')}</span></span>
+          ${crCara(p)}
           <div><b>${esc(p.nombre)}</b> ${p.email && p.email !== p.nombre ? `<span class="co-para">&lt;${esc(p.email)}&gt;</span>` : ''}${p.via ? ` <span class="pill nt">vía ${esc(p.via)}</span>` : ''}<br>
             <span class="co-para">Para ${esc(h.buzon || '')} · ${esc(crFecha(crPrimero(h).fecha || h.ultimo_en))}</span>
             ${p.responder ? `<br><span class="co-para">La respuesta irá a <b title="${esc(p.responder)}">${esc(p.nota ? 'la ' + p.nota : p.responder)}</b></span>` : ''}</div>
         </div>
         ${h.tipo === 'comercial' || h.tipo === 'cliente_actual' ? `<div class="cr-idestado cr-cestado">${crRespondidoHTML(h)}</div>` : ''}
+        ${crAccionesHTML(h)}
       </div>
       <div class="co-par">
         <div class="cr-hilo">
@@ -4373,7 +4632,7 @@ function crBandeja(){
           <input id="crbusca" type="search" value="${esc(CO.realBusca || '')}" placeholder="${ph}" aria-label="${ph}" autocomplete="off" spellcheck="false" data-cr="busca">
         </div></div>
         ${crListaCab()}
-        <div class="co-lscroll" role="listbox" aria-label="${ideal ? 'Mensajes de idealista' : 'Correos'}">${crListaFilas()}</div>
+        <div class="co-lscroll ${crSelIds().length ? 'cr-haysel' : ''}" role="listbox" aria-label="${ideal ? 'Mensajes de idealista' : 'Correos'}">${crListaFilas()}</div>
       </div>
       <div class="panel co-lector" aria-live="polite">${abierto ? crDetalle(abierto, false) : '<div class="vacio">Elige un correo para verlo aquí.</div>'}</div>
     </div>`;
@@ -4604,6 +4863,9 @@ function crEsNuevo(h){
   return !!v && crAvisa(h) && new Date(h.ultimo_en || 0) > new Date(v.desde) && !v.ids.includes(h.id);
 }
 function crMarcarVisto(id){
+  // 23/11: abrir un correo lo marca como leído para esta persona (solo en el panel).
+  const hl = id && (CO.real?.hilos || []).find(x => x.id === id);
+  if (hl && crNoLeido(hl)) crMarcarLeido([id], true, { silencio: true });
   const v = crLeer(crClaveVisto(), null); if (!v || !id || v.ids.includes(id)) return;
   v.ids.push(id); if (v.ids.length > 500) v.ids = v.ids.slice(-500);
   crGuardar(crClaveVisto(), v);
@@ -4672,8 +4934,14 @@ async function crSondear(){
       if (VISTA === 'correo') pintarCorreo(); else if (VISTA === 'idealista') pintarIdealista();
       return;
     }
-    const { data, error } = await supabase.rpc('mt_correo_panel', { p_slug: slug, p_desde: new Date(Date.now() - 3 * 3600e3).toISOString() });
+    // 23/11: también lo que hayan movido los compañeros y los leídos de otro aparato.
+    const marcasAntes = JSON.stringify(CO.real.marcas || null);
+    const [{ data, error }] = await Promise.all([
+      supabase.rpc('mt_correo_panel', { p_slug: slug, p_desde: new Date(Date.now() - 3 * 3600e3).toISOString() }),
+      crCargarMarcas(slug)
+    ]);
     if (error || !CO.real || CO.real.slug !== slug) return;
+    if (JSON.stringify(CO.real.marcas || null) !== marcasAntes && crEnLista() && !escribiendo() && $('#modal').style.display !== 'block') coPintarReal();
     const porId = new Map(CO.real.hilos.map(h => [h.id, h]));
     const avisos = []; let cambio = false;
     for (const h of crLimpiar(data?.hilos)){
@@ -4729,6 +4997,11 @@ function crAyudaAtajos(){
       <dt><kbd>Esc</kbd></dt><dd>Quitar la búsqueda o cerrar</dd>
       <dt><kbd>V</kbd></dt><dd>Respuesta debajo o al lado</dd>
       <dt><kbd>C</kbd></dt><dd>Copiar la respuesta propuesta (con la firma)</dd>
+      <dt><kbd>U</kbd></dt><dd>Marcar como leído o no leído</dd>
+      <dt><kbd>X</kbd></dt><dd>Seleccionar o quitar de la selección</dd>
+      <dt><kbd>E</kbd></dt><dd>Archivar</dd>
+      <dt><kbd>Supr</kbd></dt><dd>A la papelera (solo en el panel)</dd>
+      <dt><kbd>Ctrl</kbd> <kbd>Z</kbd></dt><dd>Deshacer el último mover</dd>
       <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>En el visor de fotos, la anterior o la siguiente</dd>
       <dt><kbd>?</kbd></dt><dd>Esta ayuda</dd>
     </dl></div>`;
@@ -4758,6 +5031,18 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); CO.realCarpeta = CR_CARPETAS[e.key - 1].id; CO.realBusca = ''; CO.realAbierto = null; coPintarReal();
     $(`#cocuerpo .co-carp[data-id="${CO.realCarpeta}"]`)?.focus();
   }
+  // 23/11: U leído / no leído, E archivar, Supr papelera, X seleccionar (sobre los seleccionados o el abierto).
+  else if (crMarcas() && /^[uUeExX]$|^Delete$|^#$/.test(e.key)){
+    const fila = e.target?.closest?.('.co-fila[data-id]'), sel = crSelIds();
+    const ids = sel.length ? sel : fila ? [fila.dataset.id] : h ? [h.id] : [];
+    if (!ids.length) return;
+    e.preventDefault();
+    const k = e.key.toLowerCase();
+    if (k === 'x'){ const id = fila?.dataset.id || h?.id; if (id){ CO.crSel.has(id) ? CO.crSel.delete(id) : CO.crSel.add(id); coPintarReal(); } }
+    else if (k === 'u'){ const hs = ids.map(id => CO.real.hilos.find(x => x.id === id)).filter(Boolean); crMarcarLeido(ids, hs.some(crNoLeido)); }
+    else if (k === 'e') crMover(ids, crEnIdealista() && CO.realIdCarp === 'archivados' ? '' : 'archivados');
+    else crMover(ids, 'papelera');
+  }
   else if (e.key === 'i' || e.key === 'I'){ e.preventDefault(); irA(crEnIdealista() ? 'correo' : 'idealista'); }
   else if (e.key === 'Escape' && CO.realBusca){ e.preventDefault(); CO.realBusca = ''; coPintarReal(); }
   else if ((e.key === 'v' || e.key === 'V') && h?.borrador){ e.preventDefault(); CO.vista = CO.vista === 'lado' ? 'arriba' : 'lado'; coGuardarVista(); coPintarReal(); }
@@ -4786,8 +5071,17 @@ if (!window.__crOyentes){
     if (!el || !(crVistaReal() || VISTA === 'ajustes') || !CO.real) return;
     const que = el.dataset.cr;
     if (que === 'tab'){ CO.realTab = el.dataset.v; return coPintarReal(); }
-    if (que === 'carp'){ CO.realCarpeta = el.dataset.id; CO.realBusca = ''; CO.realAbierto = null; return coPintarReal(); }
+    if (que === 'carp'){ CO.realCarpeta = el.dataset.id; CO.realBusca = ''; CO.realAbierto = null; CO.crSel.clear(); return coPintarReal(); }
     if (que === 'blimpiar'){ CO.realBusca = ''; return coPintarReal(); }
+    // 23/11: seleccionar, leído / no leído y mover (solo en el panel, SQL 120).
+    if (que === 'sel'){ e.stopPropagation(); CO.crSel[el.checked ? 'add' : 'delete'](el.dataset.id); return coPintarReal(); }
+    if (que === 'seltodo'){ const l = crLista(); if (el.checked) l.forEach(h => CO.crSel.add(h.id)); else CO.crSel.clear(); return coPintarReal(); }
+    if (que === 'selnada'){ CO.crSel.clear(); return coPintarReal(); }
+    if (que === 'solonl'){ CO.realSoloNL = !CO.realSoloNL; CO.crSel.clear(); return coPintarReal(); }
+    if (que === 'm-leido' || que === 'm-noleido') return crMarcarLeido(crIdsAccion(el), que === 'm-leido');
+    if (que === 'm-archivar') return crMover(crIdsAccion(el), 'archivados');
+    if (que === 'm-papelera') return crMover(crIdsAccion(el), 'papelera');
+    if (que === 'm-devolver') return crMover(crIdsAccion(el), '');
     if (que === 'abrir'){
       CO.realAbierto = el.dataset.id; crMarcarVisto(el.dataset.id);
       if (!coLector()) return crAbrirVentana(el.dataset.id);
@@ -4886,7 +5180,53 @@ if (!window.__crOyentes){
   document.addEventListener('change', async e => {
     if (e.target?.dataset?.cr !== 'cliente' || !crVistaReal()) return;
     CO.cliente = e.target.value; CO.realAbierto = null; CO.real = null; CO.realPedidoPara = null;
+    CO.crSel.clear(); CO.realIdCarp = '';
     crEnIdealista() ? pintarIdealista() : pintarCorreo();
+  });
+  // 23/11: «Mover a…» y, en Idealista, Mensajes / Archivados / Papelera.
+  document.addEventListener('change', e => {
+    const que = e.target?.dataset?.cr;
+    if (!crVistaReal() || !CO.real || (que !== 'mover' && que !== 'idcarp')) return;
+    if (que === 'idcarp'){ CO.realIdCarp = e.target.value; CO.realAbierto = null; CO.crSel.clear(); return coPintarReal(); }
+    const destino = e.target.value; if (!destino) return;
+    crMover(crIdsAccion(e.target), destino);
+  });
+  // 23/11: arrastrar un correo (o los seleccionados) a una carpeta.
+  let crArr = null;
+  document.addEventListener('dragstart', e => {
+    const f = e.target?.closest?.('.co-real [data-crdrag]'); if (!f || !CO.real) return;
+    const id = f.dataset.crdrag, sel = crSelIds();
+    crArr = sel.length > 1 && sel.includes(id) ? sel : [id];
+    e.dataTransfer.setData('text/plain', crArr.length > 1 ? `${crArr.length} correos` : (CO.real.hilos.find(h => h.id === id)?.asunto || 'correo'));
+    e.dataTransfer.effectAllowed = 'move';
+    f.classList.add('arrastrando');
+  });
+  document.addEventListener('dragend', () => {
+    crArr = null;
+    document.querySelectorAll('.co-real .arrastrando,.co-real .co-carp.sobre').forEach(x => x.classList.remove('arrastrando', 'sobre'));
+  });
+  document.addEventListener('dragover', e => {
+    const z = e.target?.closest?.('.co-real [data-crdrop]'); if (!z || !crArr) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.co-real .co-carp.sobre').forEach(x => x !== z && x.classList.remove('sobre'));
+    z.classList.add('sobre');
+  });
+  document.addEventListener('dragleave', e => {
+    const z = e.target?.closest?.('.co-real [data-crdrop]'); if (z && !z.contains(e.relatedTarget)) z.classList.remove('sobre');
+  });
+  document.addEventListener('drop', e => {
+    const z = e.target?.closest?.('.co-real [data-crdrop]'); if (!z || !crArr) return;
+    e.preventDefault();
+    const ids = crArr; crArr = null;
+    crMover(ids, z.dataset.crdrop);
+  });
+  // 23/11: Ctrl+Z (Cmd+Z) deshace el último mover en el correo real.
+  document.addEventListener('keydown', e => {
+    if (!CO.real || !crEnLista() || escribiendo()) return;
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z'){
+      const paso = CO.historial.pop(); if (!paso) return coAviso('No hay nada que deshacer.');
+      e.preventDefault(); paso.deshacer(); coAviso(paso.deshecho || 'Deshecho.');
+    }
   });
 }
 
