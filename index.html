@@ -2255,6 +2255,19 @@
     .emb-grupo, .emb-grupo .rangos{width:100%}
     .emb-grupo .rangos{overflow-x:auto}
   }
+
+/* 24/11 · borradores y confirmación de idealista */
+.cr-botxt{width:100%;box-sizing:border-box;font:inherit;font-size:13.5px;line-height:1.5;padding:10px 12px;border:1px solid #CBD5E1;border-radius:10px;background:#fff;color:#0A0E1A;resize:vertical}
+.cr-botxt:focus-visible{outline:2px solid #1B7CFF;outline-offset:1px}
+.cr-acc2{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#crenvios{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1200;display:flex;flex-direction:column;gap:8px}
+.cr-envio{display:flex;gap:14px;align-items:center;background:#0A0E1A;color:#fff;padding:10px 16px;border-radius:10px;font-size:13.5px}
+.cr-envio button{background:none;border:0;color:#7DB4FF;font:inherit;font-weight:700;cursor:pointer;padding:4px}
+.cr-confv{position:fixed;inset:0;z-index:2000;background:rgba(10,14,26,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.cr-confc{background:#fff;color:#0A0E1A;border-radius:14px;padding:22px;max-width:480px;width:100%}
+.cr-confc h3{margin:0 0 6px;font-size:18px}
+.cr-tira{display:flex;flex-direction:column;border-bottom:1px solid #FED7AA;background:#FFF7ED}
+.cr-tira button{background:none;border:0;text-align:left;font:inherit;font-size:13px;color:#9A3412;padding:8px 14px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -2338,7 +2351,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-23c · Correo sin «Sin clasificar», colaboraciones a Otros, Idealista sin casilla de todos; Correo: carpetas por apartados con iconos, botones arriba y alineados, letra más pequeña; leído y no leído por persona y mover solo en el panel; fotos de quien escribe';
+const VERSION = '2026-11-24a · Correo con borradores, envío y carpetas en el buzón; Idealista con confirmación';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -4015,7 +4028,7 @@ const crFirmaHTML = () => { const [a, b] = crFirma().split('\n'); return `<div c
    del propio correo, que el flujo «[MT] Correo · Enlace» lee del buzón
    (solo lectura, SQL 100; lo encuentra aunque el equipo lo haya borrado). */
 const N8N_ENLACE = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/enlace';
-async function crAbrirPortal(mensajeId){
+async function crAbrirPortal(mensajeId, antes){
   // La pestaña se abre YA (si no, el navegador la bloquea) y luego se le pone la dirección.
   const v = window.open('', '_blank');
   try {
@@ -4023,6 +4036,7 @@ async function crAbrirPortal(mensajeId){
     const { data } = await supabase.auth.getSession();
     const token = data?.session?.access_token;
     if (!token) throw new Error('Vuelve a entrar en el panel.');
+    if (antes) await antes();
     const r = await fetch(`${N8N_ENLACE}?m=${encodeURIComponent(mensajeId)}`, { headers:{ 'Authorization':'Bearer ' + token } });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !/^https:\/\/([a-z0-9-]+\.)*(idealista\.com|fotocasa\.es|habitaclia\.com|pisos\.com)\//i.test(j.url || '')) throw new Error(j.error || 'No se ha encontrado el enlace.');
@@ -4030,8 +4044,10 @@ async function crAbrirPortal(mensajeId){
   } catch (e) {
     try { v?.close(); } catch {}
     crSonar('error');
-    coAviso('No se ha podido abrir la conversación en idealista: ' + (e.message || 'error') + ' También se le puede contestar respondiendo a su correo.');
+    coAviso('No se ha podido abrir la conversación en idealista: ' + (e.message || 'error'));
+    return false;
   }
+  return true;
 }
 // 18/11 noche: en idealista sin firma (se pega en su chat, no es un correo).
 function crTextoCopiar(bo, conFirma = true){
@@ -4047,18 +4063,23 @@ function crTextoCopiar(bo, conFirma = true){
      se contesta en su chat y no pasa por el buzón.
    · Solo: si después del último correo de la persona hay uno del equipo en Enviados. */
 function crRespondido(h){
-  if (h.respondido) return { como:'mano', en: h.respondido.en, quien: h.respondido.quien || '' };
   const ms = h.mensajes || [];
   const ult = ms.filter(m => m.sentido === 'recibido').pop();
+  // 24/11: si la persona ha vuelto a escribir después, deja de estar respondido.
+  const vale = en => !ult || new Date(en) >= new Date(ult.fecha);
+  if (h.respondido && vale(h.respondido.en)) return { como: h.respondido.como || 'mano', en: h.respondido.en, quien: h.respondido.quien || '' };
+  const bo = h.borrador;
+  if (bo?.estado === 'enviado' && bo.enviado_en && vale(bo.enviado_en))
+    return { como:'correo', en: bo.enviado_en, quien: bo.enviado_como === 'panel' ? bo.quien || '' : '', otra: bo.enviado_como === 'otra' };
   const env = ms.filter(m => m.sentido === 'enviado' && (!ult || new Date(m.fecha) >= new Date(ult.fecha))).pop();
   return env ? { como:'correo', en: env.fecha, quien: crRemite(env.de).nombre } : null;
 }
 function crRespondidoHTML(h){
   const r = crRespondido(h);
   if (!r) return `<button class="cbtn sec cr-bresp" type="button" data-cr="respondido" data-id="${esc(h.id)}" data-v="1">Marcar como respondido</button>`;
-  const quien = r.como === 'correo' ? 'por correo' : r.quien ? `por ${esc(r.quien.split('@')[0])}` : '';
-  return `<span class="cr-resp"><span class="pill vd">Respondido</span> <span class="co-para">${quien ? quien + ' · ' : ''}${esc(crFecha(r.en))}</span>
-    ${r.como === 'mano' ? `<button class="co-editar" type="button" data-cr="respondido" data-id="${esc(h.id)}" data-v="">Deshacer</button>` : ''}</span>`;
+  const quien = r.como === 'correo' ? (r.otra ? 'por correo, con otra respuesta' : 'por correo') : r.quien ? `por ${esc(r.quien.split('@')[0])}` : '';
+  return `<span class="cr-resp"><span class="pill vd">${r.como === 'no_hace_falta' ? 'No hacía falta responder' : 'Respondido'}</span> <span class="co-para">${quien ? quien + ' · ' : ''}${esc(crFecha(r.en))}</span>
+    ${r.como !== 'correo' ? `<button class="co-editar" type="button" data-cr="respondido" data-id="${esc(h.id)}" data-v="">Deshacer</button>` : ''}</span>`;
 }
 async function crCopiar(texto){
   try { await navigator.clipboard.writeText(texto); return true; }
@@ -4120,7 +4141,8 @@ async function coCargarReal(){
     if (!b.data?.buzones?.length){ CO.real = null; CO.realEstado = 'sin'; coBadge(); return false; }
     if (d.error){ CO.real = null; CO.realEstado = 'error'; coBadge(); return false; }
     CO.real = { slug, ...b.data, ...d.data, mejorar: f.error ? null : f.data,
-      marcas: mk.error || !mk.data ? null : { desde: mk.data.desde, leidos: mk.data.leidos || {}, carpetas: mk.data.carpetas || {} } };
+      marcas: mk.error || !mk.data ? null : crMarcasDe(mk.data) };
+    setTimeout(crConfVer, 0);
     CO.crSel.clear();
     // 16/11 noche (pedido del usuario): fuera de la pantalla los correos de los
     // que no se guarda el texto (avisos, boletines, proveedores, spam, los que
@@ -4291,6 +4313,11 @@ function crLista(){
    carpeta elegida a mano es de la empresa y manda sobre la del asistente.
    Archivados y Papelera solo esconden el correo aquí. ---------- */
 const crMarcas = () => CO.real?.marcas || null;
+const crMarcasDe = d => ({ desde: d.desde, leidos: d.leidos || {}, carpetas: d.carpetas || {}, confirmar: d.confirmar || {} });
+// 24/11 (SQL 145): en «Solo mirar» no se guarda nada, ni lo que se lee. Con el
+// candado cerrado manda el candado; si no, el permiso de la persona.
+const crSoloMirar = () => OP.activo && !OP.abierto;
+const crPuede = () => OP.activo ? OP.abierto : !!CO.real?.puede_editar;
 const crMano = h => crMarcas()?.carpetas?.[h.id]?.carpeta || '';
 // Hora del último mensaje que llegó de fuera: lo que manda el equipo no lo vuelve «sin leer».
 function crUltimoRecibido(h){
@@ -4308,7 +4335,8 @@ async function crCargarMarcas(slug){
   try {
     const { data, error } = await supabase.rpc('mt_correo_marcas', { p_slug: slug });
     if (error || !data || !CO.real || CO.real.slug !== slug) return false;
-    CO.real.marcas = { desde: data.desde, leidos: data.leidos || {}, carpetas: data.carpetas || {} };
+    CO.real.marcas = crMarcasDe(data);
+    crConfVer();
     return true;
   } catch { return false; }
 }
@@ -4325,6 +4353,7 @@ const crNombreCarpeta = (id, ideal) => !id ? (ideal ? 'Mensajes' : 'su carpeta')
 
 async function crMarcarLeido(ids, leido, { silencio = false } = {}){
   const mk = crMarcas();
+  if (crSoloMirar()){ if (!silencio) coAviso('Estás en «Solo mirar»: no se cambia nada.'); return false; }
   if (!mk){ if (!silencio) coAviso('No se ha podido cargar el estado de leídos. Vuelve a entrar en un momento.'); return false; }
   if (!ids.length) return false;
   const antes = ids.map(id => [id, mk.leidos[id]]);
@@ -4364,6 +4393,7 @@ function crPonerCarpetas(mapa){
 async function crMover(ids, destino){
   const mk = crMarcas();
   if (!mk){ coAviso('No se ha podido cargar el estado de las carpetas. Vuelve a entrar en un momento.'); return; }
+  if (crSoloMirar()) return coAviso('Estás en «Solo mirar»: no se cambia nada.');
   const hs = ids.map(id => (CO.real.hilos || []).find(h => h.id === id)).filter(Boolean);
   if (!hs.length) return;
   // Volver a la carpeta del asistente = quitar la marca.
@@ -4394,7 +4424,7 @@ async function crMover(ids, destino){
     if (e2){ crPonerCarpetas(nuevo); crRepintar(); coAviso('No se ha podido deshacer: ' + (e2.message || 'error')); }
   } });
   if (CO.historial.length > 30) CO.historial.shift();
-  coAviso(texto + '. Solo en el panel: vuestro buzón no cambia.', true);
+  coAviso(texto + (hs.some(h => h.activo) ? '. En vuestro buzón se mueve en un par de minutos.' : '. Solo en el panel: vuestro buzón no cambia.'), true);
 }
 
 /* ---------- 23/11: fotos de quien escribe (versión directa, sin guardar nada).
@@ -4480,7 +4510,8 @@ function crAccionesHTML(h){
       ${fuera ? `<button class="cr-acc cr-ctl" data-cr="m-devolver" data-id="${id}">${crIco('bandeja')}Sacar de ${esc(crNombreCarpeta(mano))}</button>`
         : `<button class="cr-acc cr-ctl" data-cr="m-archivar" data-id="${id}" title="Tecla E">${crIco('archivo')}Archivar</button>
            <button class="cr-acc cr-ctl" data-cr="m-papelera" data-id="${id}" title="Tecla Supr">${crIco('papelera')}Papelera</button>`}
-      <span class="co-para cr-solopanel" title="Leído, no leído y carpetas se guardan solo en el panel: vuestro buzón no cambia.">Solo en el panel</span>
+      ${h.activo ? '<span class="co-para cr-solopanel" title="Las carpetas y la papelera cambian también en vuestro buzón. El leído es de cada persona y solo del panel.">Carpetas: también en el buzón</span>'
+        : '<span class="co-para cr-solopanel" title="Leído, no leído y carpetas se guardan solo en el panel: vuestro buzón no cambia.">Solo en el panel</span>'}
     </div>${manoTxt}`;
 }
 
@@ -4492,6 +4523,8 @@ function crFila(h){
   // Respondido manda: si ya se contestó, no hace falta avisar de nada más.
   if (!h.tipo) eti.push('<span class="pill nt">Sin clasificar aún</span>');
   if (crRespondido(h)) eti.push('<span class="pill vd">Respondido</span>');
+  else if (crConf(h)) eti.push(`<span class="pill ${crConfTarde(crConf(h)) ? 'rj' : 'am'}">${crConfTarde(crConf(h)) ? 'Sin confirmar' : 'Por confirmar'}</span>`);
+  else if (h.activo && h.borrador?.estado === 'dudoso') eti.push('<span class="pill rj">Revisar envío</span>');
   else if (crParaEquipo(h)) eti.push('<span class="pill rj">Para el equipo</span>');
   // Al buscar, la carpeta. Máximo dos etiquetas: el asunto se tiene que leer.
   if (CO.realBusca?.trim() && !crEnIdealista() && eti.length < 2)
@@ -4603,10 +4636,11 @@ function crDetalleIdealista(h, enVentana){
       </section>
       ${bo ? `<section class="cr-idresp" aria-label="Respuesta propuesta">
         <div class="cr-idacc">
-          <div class="co-msgt">Respuesta propuesta <span class="co-msgq">no se envía · modo sombra</span></div>
-          <button class="cbtn" type="button" data-cr="copiar" data-id="${esc(h.id)}">Copiar respuesta</button>
-          <button class="cbtn sec" type="button" data-cr="abrirportal" data-m="${esc(m.id || '')}">Abrir en idealista</button>
+          <div class="co-msgt">Respuesta propuesta <span class="co-msgq">se pega en el chat de idealista</span></div>
+          ${crPuede() ? `<button class="cbtn" type="button" data-cr="copiaryabrir" data-id="${esc(h.id)}" data-m="${esc(crUltimoDe(h).id || m.id || '')}">Copiar y abrir en idealista</button>`
+            : `<button class="cbtn sec" type="button" data-cr="copiar" data-id="${esc(h.id)}">Copiar respuesta</button>`}
         </div>
+        ${crConfHTML(h)}
         ${equipo.length ? `<div class="co-alerta cr-ideq"><b>Para el equipo:</b> ${equipo.map(esc).join(' · ')}. Esta respuesta no se enviaría sola.</div>` : ''}
         ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}. ${crFaltaEnlaces(faltan)}</div>` : ''}
         <div class="co-orig">${crBorrador(bo.texto)}</div>
@@ -4659,9 +4693,9 @@ function crDetalle(h, enVentana){
             <div class="co-msgt">Intervención equipo</div>
             <div class="cr-eqlista"><b>Lo tiene que hacer el equipo:</b>
               ${equipo.length > 1 ? `<ul>${equipo.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ` ${esc(equipo[0])}.`}</div>
-            <p class="co-para">Esta respuesta no se enviaría sola: antes tiene que actuar alguien del equipo.</p>
+            <p class="co-para">${h.activo ? 'Hasta que alguien la revise y la guarde, no se deja en Borradores.' : 'Esta respuesta no se enviaría sola: antes tiene que actuar alguien del equipo.'}</p>
           </section>` : ''}
-          <section class="co-msg co-msgresp" aria-label="Respuesta propuesta">
+          ${h.activo ? crRespuestaHTML(h) : `<section class="co-msg co-msgresp" aria-label="Respuesta propuesta">
             <div class="co-msgt">Respuesta propuesta <span class="co-msgq">${equipo.length ? 'no se enviaría sola · modo sombra' : 'no se envía · modo sombra'}</span></div>
             ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}.
               ${crFaltaEnlaces(faltan)}</div>` : ''}
@@ -4673,11 +4707,183 @@ function crDetalle(h, enVentana){
               <button class="cbtn sec" type="button" data-cr="abrirportal" data-m="${esc(crPrimero(h).id || '')}">Abrir en idealista</button>
               <span class="co-para">Pégala en el chat de ${esc(p.nombre)} en idealista${(bo.fotos || []).length ? ' y adjunta allí las fotos' : ''}.</span>
             </div>` : ''}
-          </section>
+          </section>`}
         </div>` : h.a_persona ? '<p class="co-para cr-paraeq"><span class="pill rj">Para el equipo</span> El asistente no contestaría este correo solo: lo tiene que ver alguien del equipo.</p>'
           : h.tipo === 'comercial' ? '<p class="co-para">El asistente todavía no ha preparado su respuesta.</p>' : ''}
       </div>
     </div>`;
+}
+
+/* =====================================================================
+   24/11 (SQL 145) · FUERA DEL MODO SOMBRA
+   · Correo: la respuesta se edita y la envía una persona (10 s para
+     deshacer) por el SMTP del cliente: «[MT] Correo · Enviar». También
+     está en Borradores de su programa de correo ([MT] Correo · Buzón).
+   · Idealista: se pega en su chat; al volver hay que decir si se respondió.
+   · Solo en las conversaciones con h.activo (lo decide el servidor).
+   ===================================================================== */
+const N8N_ENVIAR = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/enviar';
+const crEnBorrador = () => (CO.real?.buzones || []).some(b => b.modo === 'borrador');
+const crUltimoDe = h => (h.mensajes || []).filter(m => m.sentido === 'recibido').pop() || {};
+CO.crEdit = {};      // borrador → texto que se está editando aquí
+CO.crEnvios = {};    // hilo → { t } mientras se puede deshacer, { enviando:true } después
+const crTextoEdit = bo => CO.crEdit[bo.id] ?? crTextoCopiar(bo, false);
+
+function crRespuestaHTML(h){
+  const bo = h.borrador, id = esc(h.id), faltan = bo.faltan || [];
+  const env = CO.crEnvios[h.id], resp = crRespondido(h), puede = crPuede();
+  const cab = t => `<div class="co-msgt">Respuesta propuesta <span class="co-msgq">${t}</span></div>`;
+  const ver = `<div class="co-orig">${coParrafos(crTextoEdit(bo))}</div>${crFirmaHTML()}${crFotos(bo)}`;
+  const caja = x => `<section class="co-msg co-msgresp" aria-label="Respuesta propuesta">${x}</section>`;
+  const nuevoCorreo = bo.mensaje_id && crUltimoDe(h).id && bo.mensaje_id !== crUltimoDe(h).id;
+  if (resp) return caja(cab('ya está respondido') + ver);
+  if (env) return caja(cab(env.enviando ? 'enviando…' : 'se envía en unos segundos') + ver);
+  if (bo.estado === 'enviando') return caja(cab('la está enviando ' + esc((bo.quien || 'otra persona').split('@')[0])) + ver);
+  if (bo.estado === 'dudoso') return caja(cab('comprobar el envío') + `<div class="co-alerta">${esc(bo.error || 'No sabemos si este correo ha salido. Mirad en Enviados.')} Si salió, pulsa «Marcar como respondido».</div>` + ver);
+  if (nuevoCorreo || bo.estado === 'sustituido') return caja(cab('la persona ha vuelto a escribir') + '<p class="co-para">El asistente está preparando otra respuesta.</p>');
+  if (bo.estado === 'descartado') return caja(cab('descartada') + ver + (puede ? `<div class="cr-acc2"><button class="cbtn sec" type="button" data-cr="bo-descartar" data-id="${id}" data-v="">Recuperar</button></div>` : ''));
+  return caja(cab(bo.en_buzon ? 'también en Borradores del buzón' : 'la envía una persona')
+    + (bo.estado === 'editado' ? '<div class="co-alerta">Alguien ha cambiado este borrador en su programa de correo. Antes de enviarlo desde aquí, comprueba que no lo estén usando.</div>' : '')
+    + (bo.error ? `<div class="co-alerta">${esc(bo.error)}</div>` : '')
+    + (faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}. ${crFaltaEnlaces(faltan)}${bo.revisado ? '' : ' Complétala y guárdala para que pase a Borradores.'}</div>` : '')
+    + (puede ? `<label class="sr" for="crbo-${esc(bo.id)}">Respuesta</label><textarea class="cr-botxt" id="crbo-${esc(bo.id)}" data-crbo="${esc(bo.id)}" rows="${Math.min(22, Math.max(8, crTextoEdit(bo).split('\n').length + 3))}">${esc(crTextoEdit(bo))}</textarea>${crFirmaHTML()}${crFotos(bo)}
+      <div class="cr-acc2"><button class="cbtn" type="button" data-cr="bo-enviar" data-id="${id}">Enviar</button>
+        <button class="cbtn sec" type="button" data-cr="bo-guardar" data-id="${id}">Guardar</button>
+        <button class="cbtn sec" type="button" data-cr="bo-descartar" data-id="${id}" data-v="1">Descartar</button></div>`
+      : ver + `<p class="co-para">${crSoloMirar() ? 'Estás en «Solo mirar»: no se puede enviar ni cambiar.' : 'Solo quien puede editar puede enviarla.'}</p>`));
+}
+const crHiloDe = id => (CO.real?.hilos || []).find(x => x.id === id);
+async function crBorradorGuardar(id, el){
+  const h = crHiloDe(id), bo = h?.borrador; if (!bo) return;
+  const texto = crTextoEdit(bo); if (el) el.disabled = true;
+  const { data, error } = await supabase.rpc('mt_correo_borrador_guardar', { p_borrador: bo.id, p_texto: texto, p_version: bo.version });
+  if (el) el.disabled = false;
+  if (error){ crSonar('error'); return coAviso(error.message || 'No se ha podido guardar.'); }
+  Object.assign(bo, { texto, version: data.version, estado:'propuesto', revisado:true, error:null }); delete CO.crEdit[bo.id];
+  crSonar('hecho'); crRepintar(); coAviso('Guardada. En Borradores cambia en un par de minutos.');
+}
+async function crBorradorDescartar(id, si, el){
+  const h = crHiloDe(id), bo = h?.borrador; if (!bo) return; if (el) el.disabled = true;
+  const { error } = await supabase.rpc('mt_correo_borrador_descartar', { p_borrador: bo.id, p_descartar: si });
+  if (el) el.disabled = false;
+  if (error){ crSonar('error'); return coAviso(error.message || 'No se ha podido.'); }
+  bo.estado = si ? 'descartado' : 'propuesto'; if (!si) bo.version++;
+  crRepintar(); coAviso(si ? 'Descartada. Se quita también de Borradores.' : 'Recuperada.');
+}
+function crEnviarPedir(id){
+  const h = crHiloDe(id), bo = h?.borrador; if (!bo || CO.crEnvios[id]) return;
+  if (!crPuede()) return coAviso('No puedes enviar en esta empresa.');
+  const texto = crTextoEdit(bo).trim();
+  if (texto.length < 2) return coAviso('La respuesta está vacía.');
+  const pend = [...(bo.faltan || []), ...crEquipo(h)];
+  if (pend.length && !bo.revisado && !confirm('Antes de enviarla, revisa esto:\n\n· ' + pend.join('\n· ') + '\n\n¿La envías así?')) return;
+  if (bo.estado === 'editado' && !confirm('Alguien ha cambiado este borrador en su programa de correo. ¿Lo envías desde aquí de todas formas?')) return;
+  const envio = { slug: CO.real.slug, bo, texto, version: bo.version };
+  envio.t = setTimeout(() => crEnviarYa(id, envio), 10000);
+  CO.crEnvios[id] = envio;
+  crRepintar();
+  crEnvioAviso(id, `Se envía a ${crPersona(h).nombre} en 10 segundos`, true);
+}
+function crEnvioAviso(id, txt, deshacer){
+  let z = $('#crenvios'); if (!z){ z = document.createElement('div'); z.id = 'crenvios'; z.setAttribute('role', 'status'); document.body.append(z); }
+  z.querySelector(`[data-e="${CSS.escape(id)}"]`)?.remove();
+  if (!txt) return;
+  const d = document.createElement('div'); d.dataset.e = id; d.className = 'cr-envio';
+  d.innerHTML = `<span>${esc(txt)}</span>${deshacer ? '<button type="button">Deshacer</button>' : ''}`;
+  d.querySelector('button')?.addEventListener('click', () => { const x = CO.crEnvios[id]; if (!x?.t) return; clearTimeout(x.t); delete CO.crEnvios[id]; d.remove(); crRepintar(); coAviso('No se ha enviado.'); });
+  z.append(d);
+}
+async function crEnviarYa(id, envio){
+  // Si en esos 10 s se ha cerrado el candado o cambiado de empresa, no sale.
+  if (CO.real?.slug !== envio.slug || !crPuede()){ delete CO.crEnvios[id]; crEnvioAviso(id, ''); return coAviso('No se ha enviado: has cambiado de empresa o de modo.'); }
+  CO.crEnvios[id] = { enviando:true }; crRepintar(); crEnvioAviso(id, 'Enviando…');
+  let aviso = '', mal = true;
+  try {
+    const { data } = await supabase.auth.getSession();
+    const r = await fetch(N8N_ENVIAR, { method:'POST', headers:{ 'Authorization':'Bearer ' + (data?.session?.access_token || ''), 'Content-Type':'application/json' },
+      body: JSON.stringify({ borrador: envio.bo.id, texto: envio.texto, version: envio.version }) });
+    const j = await r.json().catch(() => ({}));
+    const h = crHiloDe(id), bo = h?.borrador?.id === envio.bo.id ? h.borrador : envio.bo;
+    if (r.ok && j.que === 'enviado'){
+      mal = false; aviso = j.aviso || 'Enviado.'; delete CO.crEdit[bo.id];
+      Object.assign(bo, { estado:'enviado', enviado_en: new Date().toISOString(), enviado_como:'panel', quien: USUARIO_EMAIL, texto: envio.texto, error:null });
+    } else if ((r.ok && j.que === 'no_enviado') || r.status === 409 || r.status === 400) aviso = 'No se ha enviado. ' + (j.error || '');
+    else { bo.estado = 'dudoso'; bo.error = j.error || null; aviso = 'No sabemos si ha salido. Mirad en Enviados antes de repetirlo.'; }
+  } catch { envio.bo.estado = 'dudoso'; aviso = 'Se ha cortado la conexión: mirad en Enviados antes de repetirlo.'; }
+  delete CO.crEnvios[id]; crEnvioAviso(id, '');
+  crSonar(mal ? 'error' : 'hecho'); crRepintar(); coAviso(aviso); crSondear();
+}
+addEventListener('beforeunload', e => { if (Object.keys(CO.crEnvios).length){ e.preventDefault(); e.returnValue = ''; } });
+document.addEventListener('input', e => { const b = e.target?.dataset?.crbo; if (b) CO.crEdit[b] = e.target.value; });
+
+// ---------- Idealista: ¿se ha respondido? ----------
+const crConf = h => { const c = crMarcas()?.confirmar?.[h.id]; return c && !crRespondido(h) ? c : null; };
+const crConfMio = () => { const e = Object.entries(crMarcas()?.confirmar || {}).find(([id, c]) => c.mio && crHiloDe(id) && !crRespondido(crHiloDe(id))); return e ? { id: e[0], ...e[1] } : null; };
+// Horas de lunes a viernes, de 9 a 19.
+function crHorasLab(desde){
+  let t = +new Date(desde), n = 0; const fin = Date.now();
+  if (fin - t > 7 * 864e5) return 99;
+  for (; t < fin; t += 6e5){ const d = new Date(t), dia = d.getDay(), hh = d.getHours(); if (dia > 0 && dia < 6 && hh >= 9 && hh < 19) n++; }
+  return n / 6;
+}
+const crConfTarde = c => crHorasLab(c.abierto_en) >= 2;
+const crConfBotones = id => `<button class="cbtn" type="button" data-cr="confresp" data-id="${esc(id)}" data-v="si">Sí, respondido</button>
+  <button class="cbtn sec" type="button" data-cr="confresp" data-id="${esc(id)}" data-v="todavia">Todavía no</button>
+  <button class="cbtn sec" type="button" data-cr="confresp" data-id="${esc(id)}" data-v="no_hace_falta">No hace falta responder</button>`;
+function crConfHTML(h){
+  const c = crConf(h); if (!c) return '';
+  return `<div class="co-alerta cr-conf"><b>${c.mio ? 'Lo abriste' : 'Lo abrió ' + esc((c.quien || 'alguien').split('@')[0])} el ${esc(crFecha(c.abierto_en))}.</b> ¿Se le ha respondido en idealista?
+    ${crPuede() ? `<div class="cr-acc2">${crConfBotones(h.id)}</div>` : ''}</div>`;
+}
+function crConfTira(){
+  const l = crHilos().filter(h => { const c = crConf(h); return c && (c.mio || crConfTarde(c)); });
+  return l.length ? `<div class="cr-tira" role="status">${l.map(h => `<button type="button" data-cr="abrir" data-id="${esc(h.id)}"><b>${esc(crPersona(h).nombre)}</b> · ${crConf(h).mio ? 'di si le has respondido' : 'sin confirmar por ' + esc((crConf(h).quien || '').split('@')[0])}</button>`).join('')}</div>` : '';
+}
+async function crCopiarYAbrir(id, mensaje){
+  const h = crHiloDe(id); if (!h?.borrador) return;
+  const otro = crConfMio();
+  if (otro && otro.id !== id) return crConfVer(true);
+  const copiado = await crCopiar(crTextoCopiar(h.borrador, false));
+  const ok = await crAbrirPortal(mensaje, async () => {
+    const { error } = await supabase.rpc('mt_correo_idealista_abrir', { p_slug: CO.real.slug, p_hilo: id });
+    if (error) throw new Error(error.message);
+  });
+  if (!ok){ await crCargarMarcas(CO.real.slug); return crRepintar(); }
+  if (crMarcas() && !crRespondido(h)) crMarcas().confirmar[id] = { quien: USUARIO_EMAIL, mio:true, abierto_en: new Date().toISOString(), todavia_en:null };
+  if (!copiado) coAviso('No se ha podido copiar: selecciona el texto y cópialo a mano.');
+  crRepintar(); crConfVer();
+}
+// La ventana no se cierra sin contestar: ni con Esc ni pulsando fuera.
+function crConfVer(forzar){
+  let v = $('#crconf');
+  const c = crConfMio(), reciente = c?.todavia_en && Date.now() - new Date(c.todavia_en) < 18e5;
+  if (!c || crSoloMirar() || !crPuede() || (reciente && forzar !== true)){
+    v?.remove(); [...document.body.children].forEach(x => { if (x.dataset.crinerte){ x.inert = false; delete x.dataset.crinerte; } });
+    return;
+  }
+  if (v?.dataset.id === c.id) return;
+  v?.remove();
+  const h = crHiloDe(c.id);
+  v = document.createElement('div'); v.id = 'crconf'; v.dataset.id = c.id; v.className = 'cr-confv';
+  v.setAttribute('role', 'alertdialog'); v.setAttribute('aria-modal', 'true'); v.setAttribute('aria-labelledby', 'crconft');
+  v.innerHTML = `<div class="cr-confc"><h3 id="crconft">¿Le has respondido a ${esc(crPersona(h).nombre)} en idealista?</h3>
+    <p class="co-para">${esc(crIdealistaDatos(h).ref || '')} ${esc(crIdealistaDatos(h).anuncio || '')}</p><div class="cr-acc2">${crConfBotones(c.id)}</div></div>`;
+  v.addEventListener('click', e => { const b = e.target.closest('[data-cr="confresp"]'); e.stopPropagation(); if (b) crConfResponder(b.dataset.id, b.dataset.v, b); });
+  [...document.body.children].forEach(x => { if (!x.inert && !/^(SCRIPT|STYLE)$/.test(x.tagName)){ x.inert = true; x.dataset.crinerte = '1'; } });
+  document.body.append(v); v.querySelector('button')?.focus();
+}
+addEventListener('keydown', e => { if (e.key === 'Escape' && $('#crconf')){ e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+addEventListener('focus', () => { if (CO.real) crConfVer(); });
+async function crConfResponder(id, v, el){
+  if (el) el.disabled = true;
+  const { error } = await supabase.rpc('mt_correo_idealista_confirmar', { p_slug: CO.real.slug, p_hilo: id, p_respuesta: v });
+  if (el) el.disabled = false;
+  if (error){ crSonar('error'); return coAviso(error.message || 'No se ha podido guardar.'); }
+  const h = crHiloDe(id), c = crMarcas()?.confirmar || {}, en = new Date().toISOString();
+  if (v === 'todavia'){ if (c[id]) c[id].todavia_en = en; }
+  else { delete c[id]; if (h) h.respondido = { en, quien: USUARIO_EMAIL, como: v === 'si' ? 'idealista' : 'no_hace_falta' }; }
+  crConfVer(); crSonar('hecho'); if (h && crEnLista()) crRepintar();
+  coAviso(v === 'todavia' ? 'Queda arriba, por confirmar.' : v === 'si' ? 'Marcado como respondido.' : 'Marcado: no hacía falta responder.');
 }
 
 function crBandeja(){
@@ -4695,6 +4901,7 @@ function crBandeja(){
           <input id="crbusca" type="search" value="${esc(CO.realBusca || '')}" placeholder="${ph}" aria-label="${ph}" autocomplete="off" spellcheck="false" data-cr="busca">
         </div></div>
         ${crListaCab()}
+        ${ideal ? crConfTira() : ''}
         <div class="co-lscroll ${crSelIds().length ? 'cr-haysel' : ''}" role="listbox" aria-label="${ideal ? 'Mensajes de idealista' : 'Correos'}">${crListaFilas()}</div>
       </div>
       <div class="panel co-lector" aria-live="polite">${abierto ? crDetalle(abierto, false) : '<div class="vacio">Elige un correo para verlo aquí.</div>'}</div>
@@ -4738,7 +4945,8 @@ function crTope(){
     <b>Tope diario del asistente de correo</b> <span class="pill ${color}">${usado} de ${tope} hoy</span>
     <div class="fila"><span>Cuenta las respuestas propuestas que escribe el asistente (clasificar no cuenta).
       Al llegar al tope deja de escribir borradores hasta mañana. Al 80 % llega un aviso al equipo de Simplia.</span></div>
-    ${r.puede_cambiar_tope ? `<div class="cr-clave">
+    ${r.puede_cambiar_tope && crSoloMirar() ? '<div class="cr-adj">Para cambiar el tope, abre el candado de arriba.</div>' : ''}
+    ${r.puede_cambiar_tope && !crSoloMirar() ? `<div class="cr-clave">
         <label for="crtope">Nuevo tope al día</label>
         <input id="crtope" type="number" min="1" max="1000" step="1" value="${tope}" style="max-width:120px">
         <button class="cbtn" data-cr="tope">Cambiar el tope</button>
@@ -4761,7 +4969,7 @@ function crConfiguracion(){
   return prefs + crTope() + (r.buzones || []).map(b => {
     const e = EST[b.estado] || [b.estado, 'nt'];
     return `<div class="cr-buzon">
-      <b>${esc(b.email)}</b> <span class="pill ${e[1]}">${esc(e[0])}</span> <span class="pill nt">${b.modo === 'sombra' ? 'Modo sombra: solo observa' : esc(b.modo)}</span>
+      <b>${esc(b.email)}</b> <span class="pill ${e[1]}">${esc(e[0])}</span> <span class="pill nt">${b.modo === 'sombra' ? 'Modo sombra: solo observa' : b.modo === 'borrador' ? 'Borradores: los envía el equipo' : esc(b.modo)}</span>
       <div class="fila">
         <span>Contraseña: ${b.tiene_clave ? 'guardada' : 'falta'}</span>
         <span>Última lectura: ${b.leido_en ? esc(crFecha(b.leido_en)) : 'todavía no'}</span>
@@ -4774,7 +4982,7 @@ function crConfiguracion(){
           <input id="crclave-${esc(b.id)}" type="password" autocomplete="new-password" placeholder="${b.tiene_clave ? 'Cambiar la contraseña' : 'Contraseña del buzón'}">
           <button class="cbtn" data-cr="clave" data-id="${esc(b.id)}">Guardar contraseña</button>
         </div>
-        <div class="cr-adj" style="margin-top:6px">Se guarda cifrada y no se vuelve a enseñar. Solo se usa para leer el buzón; el asistente no envía nada.</div>` : ''}
+        <div class="cr-adj" style="margin-top:6px">Se guarda cifrada y no se vuelve a enseñar. Se usa para leer el buzón, dejar borradores, ordenar las carpetas y enviar lo que el equipo mande desde aquí. El asistente no envía nada por su cuenta.</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -4841,7 +5049,8 @@ function coPintarReal(){
           <span><b>${hs.filter(crParaEquipo).length}</b> para el equipo</span>
         </div>` : ''}
         <div class="co-ctrl">
-          <span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>
+          ${crEnBorrador() ? '<span class="co-ej cr-sombra" tabindex="0" title="El asistente prepara la respuesta y la deja aquí y en Borradores. Solo sale cuando alguien del equipo le da a Enviar.">Borradores · los envía el equipo</span>'
+            : '<span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>'}
           <button type="button" class="cr-ayuda" data-cr="atajos" title="Atajos de teclado (?)" aria-label="Atajos de teclado">?</button>
           ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
             <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
@@ -4983,7 +5192,7 @@ function crSeVa(el){
 
 // --- Ponerse al día solo: cada 30 segundos, lo de las últimas 3 horas.
 let CR_SONDEANDO = false;
-const crFirmaHilo = h => [h.id, h.ultimo_en, (h.mensajes || []).length, h.borrador?.id || '', crEquipo(h).length, h.tipo || ''].join('|');
+const crFirmaHilo = h => [h.id, h.ultimo_en, h.actualizado_en || '', (h.mensajes || []).length, h.borrador?.id || '', crEquipo(h).length, h.tipo || ''].join('|');
 async function crSondear(){
   if (CR_SONDEANDO || !TENANT || !correoPermitido()) return;
   const slug = crSlug();
@@ -5166,6 +5375,11 @@ if (!window.__crOyentes){
       return;
     }
     if (que === 'abrirportal') return crAbrirPortal(el.dataset.m);
+    if (que === 'copiaryabrir') return crCopiarYAbrir(el.dataset.id, el.dataset.m);
+    if (que === 'confresp') return crConfResponder(el.dataset.id, el.dataset.v, el);
+    if (que === 'bo-enviar') return crEnviarPedir(el.dataset.id);
+    if (que === 'bo-guardar') return crBorradorGuardar(el.dataset.id, el);
+    if (que === 'bo-descartar') return crBorradorDescartar(el.dataset.id, el.dataset.v === '1', el);
     if (que === 'atajos') return crAyudaAtajos();
     if (que === 'copiar'){
       const h = (CO.real.hilos || []).find(x => x.id === el.dataset.id);
@@ -5181,7 +5395,8 @@ if (!window.__crOyentes){
       const { error } = await supabase.rpc('mt_correo_marcar_respondido', { p_slug: CO.real.slug, p_hilo: h.id, p_respondido: si });
       el.disabled = false;
       if (error){ crSonar('error'); return coAviso('No se ha podido guardar: ' + (error.message || 'error')); }
-      h.respondido = si ? { en: new Date().toISOString(), quien: USUARIO_EMAIL } : null;
+      h.respondido = si ? { en: new Date().toISOString(), quien: USUARIO_EMAIL, como:'mano' } : null;
+      if (si && crMarcas()?.confirmar) delete crMarcas().confirmar[h.id];
       crSonar('hecho');
       coAviso(si ? 'Marcado como respondido.' : 'Vuelve a estar sin responder.');
       if ($('#modal').style.display === 'block' && $('#mbox .co-det')) crAbrirVentana(h.id);
