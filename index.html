@@ -2082,8 +2082,10 @@
   .cr-prefs{display:grid;gap:6px;margin:8px 0}
   .cr-prefs .co-interr{display:flex;gap:10px;align-items:flex-start}
   .cr-prefs .co-interr small{display:block;font-size:12px;color:var(--gris);font-weight:400}
-  .cr-firma{margin-top:14px;padding-top:10px;border-top:1px dashed var(--linea);font-size:13px;line-height:1.5;color:var(--tinta-suave)}
-  .cr-firma span{font-size:12px;color:var(--gris)}
+  .cr-firma{display:flex;gap:12px;align-items:center;margin-top:20px;padding-left:12px;border-left:3px solid var(--pulso);font-size:13px;line-height:1.5;color:var(--tinta)}
+  .cr-firma img{width:48px;height:48px;object-fit:contain;flex:none;border-radius:8px}
+  .cr-fdatos{color:var(--tinta-suave);overflow-wrap:anywhere} .cr-fdatos i{font-style:normal;color:var(--gris)}
+  .cr-fia{font-size:12px;color:var(--gris)}
   .cr-acc a.cbtn{text-decoration:none}
   .co-msg.cr-env{background:var(--fondo-hueco)}
   .co-msg.cr-cmp .cr-ver{margin:0 0 8px}
@@ -2257,9 +2259,22 @@
   }
 
 /* 24/11 · borradores y confirmación de idealista */
-.cr-botxt{width:100%;box-sizing:border-box;font:inherit;font-size:13.5px;line-height:1.5;padding:10px 12px;border:1px solid #CBD5E1;border-radius:10px;background:#fff;color:#0A0E1A;resize:vertical}
-.cr-botxt:focus-visible{outline:2px solid #1B7CFF;outline-offset:1px}
+/* 25/11: el texto se edita dentro de la misma hoja y crece con lo escrito: sin barra ni recuadro propios. */
+/* El correo abierto no lleva caja ni barra propias: se desplaza todo junto con el panel. */
+.co-lector .cr-det,#mbox .cr-det{border:0;padding:0;max-height:none;overflow:visible;box-shadow:none;border-radius:0}
+.cr-hoja{background:var(--blanco)}
+.cr-hoja:focus-within{border-color:var(--pulso)}
+.cr-bocaja{display:grid}
+.cr-bocaja::after{content:attr(data-v) ' ';visibility:hidden;pointer-events:none}
+.cr-bocaja::after,.cr-botxt{grid-area:1/1;width:100%;min-width:0;margin:0;padding:0;border:0;box-sizing:border-box;font:inherit;font-size:13.5px;line-height:1.5;letter-spacing:inherit;white-space:pre-wrap;overflow-wrap:anywhere}
+.cr-botxt{background:none;color:var(--tinta);resize:none;overflow:hidden;outline:0}
+.cr-hoja .cr-acc2{margin-top:18px;padding-top:14px;border-top:1px solid var(--linea)}
 .cr-acc2{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.cr-faltas{list-style:none;margin:0;padding:0}
+.cr-falta{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--linea);font-size:14px}
+.cr-faltas>.cr-falta:first-child{border-top:0}
+.cr-falta>div:first-child{flex:1 1 260px;min-width:0} .cr-falta b{display:block;font-weight:600}
+.cr-fbot{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 #crenvios{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1200;display:flex;flex-direction:column;gap:8px}
 .cr-envio{display:flex;gap:14px;align-items:center;background:#0A0E1A;color:#fff;padding:10px 16px;border-radius:10px;font-size:13.5px}
 .cr-envio button{background:none;border:0;color:#7DB4FF;font:inherit;font-weight:700;cursor:pointer;padding:4px}
@@ -2351,7 +2366,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-24a · Correo con borradores, envío y carpetas en el buzón; Idealista con confirmación';
+const VERSION = '2026-11-25a · Respuesta propuesta en una sola hoja, con la firma dentro; lo que falta, en Configuración';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3892,7 +3907,7 @@ function pintarCorreo(){
    mt_correo_guardar_clave, SQL 77; nunca se enseña).
    16/11 noche: la bandeja tiene la forma de la maqueta (carpetas, lista
    con buscador y el correo a la derecha). 18/11 noche: sin «Mejoras»; lo
-   que falta en la hoja sale dentro de cada respuesta (mt_correo_faltan, SQL 87).
+   que falta en la hoja sale en Configuración › General (mt_correo_faltan, SQL 87).
    En producción solo lo ven las empresas de CO_EMPRESAS_CON_ACCESO.
    ===================================================================== */
 CO.real = null;          // { slug, buzones, puede_editar, hilos, resumen, faltan, mejorar }
@@ -4018,7 +4033,16 @@ function crCuerpo(t){
 }
 const crBorrador = t => coParrafos(crCuerpo(t)).replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi,
   (_m, c) => `<span class="pill az" title="Al enviar, aquí va el enlace de reserva de visita de ese centro">Enlace para reservar la visita · ${c.replace(/-/g, ' ')}</span>`);
-const crFirmaHTML = () => { const [a, b] = crFirma().split('\n'); return `<div class="cr-firma" title="La firma la añade el sistema al enviar">${esc(a)}<br><span>${esc(b)}</span></div>`; };
+// 25/11: la firma va dentro del correo, igual que se envía (nucleo.firmaHtml; datos de mt_correo_firma, SQL 147).
+const crFirmaHTML = () => {
+  const f = CO.real?.firma || {}, [a, b] = crFirma().split('\n'), mail = CO.real?.buzones?.[0]?.email || '';
+  const color = /^#[0-9a-f]{6}$/i.test(f.color || '') ? f.color : '#1B7CFF';
+  const datos = [f.telefono, mail, (f.web || '').replace(/^https?:\/\/|\/$/g, '')].filter(Boolean);
+  return `<div class="cr-firma" title="La firma la añade el sistema al enviar" style="border-left-color:${color}">
+    ${/^https:\/\//.test(f.logo || '') ? `<img src="${esc(f.logo)}" alt="" width="48" height="48">` : ''}
+    <div><b>${esc(a)}</b>${datos.length ? `<div class="cr-fdatos">${datos.map(d => `<span>${esc(d)}</span>`).join('<i> · </i>')}</div>` : ''}
+      <div class="cr-fia">${esc(b)}</div></div></div>`;
+};
 /* Idealista (18/11, decisión del usuario): se contesta desde el chat de
    idealista, no por correo. El panel da «Copiar respuesta» (con el enlace
    de reserva de verdad en vez de la marca [[VISITA:…]], de
@@ -4612,7 +4636,7 @@ const CR_ICO_SOBRE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none
 const CR_ICO_CASA = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>';
 function crDetalleIdealista(h, enVentana){
   const bo = h.borrador, p = crPersona(h), d = crIdealistaDatos(h);
-  const faltan = bo?.faltan || [], equipo = crEquipo(h), m = crPrimero(h);
+  const equipo = crEquipo(h), m = crPrimero(h);
   const telHref = d.tel ? 'tel:+34' + d.tel.replace(/\D/g, '').replace(/^34(?=\d{9}$)/, '') : '';
   return `
     <div class="co-det cr-idet">
@@ -4642,7 +4666,6 @@ function crDetalleIdealista(h, enVentana){
         </div>
         ${crConfHTML(h)}
         ${equipo.length ? `<div class="co-alerta cr-ideq"><b>Para el equipo:</b> ${equipo.map(esc).join(' · ')}. Esta respuesta no se enviaría sola.</div>` : ''}
-        ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}. ${crFaltaEnlaces(faltan)}</div>` : ''}
         <div class="co-orig">${crBorrador(bo.texto)}</div>
         ${crFotos(bo)}
         ${(bo.fotos || []).length ? '<p class="co-para">Las fotos no se copian: adjúntalas en el chat de idealista.</p>' : ''}
@@ -4657,7 +4680,6 @@ function crDetalle(h, enVentana){
   const bo = h.borrador;
   const p = crPersona(h);
   const lado = !!bo && CO.vista === 'lado' && coLadoCabe(enVentana);
-  const faltan = bo?.faltan || [];
   const equipo = crEquipo(h);
   return `
     <div class="co-det cr-det ${lado ? 'co-lado' : ''}">
@@ -4697,8 +4719,6 @@ function crDetalle(h, enVentana){
           </section>` : ''}
           ${h.activo ? crRespuestaHTML(h) : `<section class="co-msg co-msgresp" aria-label="Respuesta propuesta">
             <div class="co-msgt">Respuesta propuesta <span class="co-msgq">${equipo.length ? 'no se enviaría sola · modo sombra' : 'no se envía · modo sombra'}</span></div>
-            ${faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}.
-              ${crFaltaEnlaces(faltan)}</div>` : ''}
             <div class="co-orig">${crBorrador(bo.texto)}</div>
             ${crFirmaHTML()}
             ${crFotos(bo)}
@@ -4734,7 +4754,7 @@ function crRespuestaHTML(h){
   const env = CO.crEnvios[h.id], resp = crRespondido(h), puede = crPuede();
   const cab = t => `<div class="co-msgt">Respuesta propuesta <span class="co-msgq">${t}</span></div>`;
   const ver = `<div class="co-orig">${coParrafos(crTextoEdit(bo))}</div>${crFirmaHTML()}${crFotos(bo)}`;
-  const caja = x => `<section class="co-msg co-msgresp" aria-label="Respuesta propuesta">${x}</section>`;
+  const caja = x => `<section class="co-msg co-msgresp cr-hoja" aria-label="Respuesta propuesta">${x}</section>`;
   const nuevoCorreo = bo.mensaje_id && crUltimoDe(h).id && bo.mensaje_id !== crUltimoDe(h).id;
   if (resp) return caja(cab('ya está respondido') + ver);
   if (env) return caja(cab(env.enviando ? 'enviando…' : 'se envía en unos segundos') + ver);
@@ -4742,11 +4762,11 @@ function crRespuestaHTML(h){
   if (bo.estado === 'dudoso') return caja(cab('comprobar el envío') + `<div class="co-alerta">${esc(bo.error || 'No sabemos si este correo ha salido. Mirad en Enviados.')} Si salió, pulsa «Marcar como respondido».</div>` + ver);
   if (nuevoCorreo || bo.estado === 'sustituido') return caja(cab('la persona ha vuelto a escribir') + '<p class="co-para">El asistente está preparando otra respuesta.</p>');
   if (bo.estado === 'descartado') return caja(cab('descartada') + ver + (puede ? `<div class="cr-acc2"><button class="cbtn sec" type="button" data-cr="bo-descartar" data-id="${id}" data-v="">Recuperar</button></div>` : ''));
-  return caja(cab(bo.en_buzon ? 'también en Borradores del buzón' : 'la envía una persona')
+  const sinGuardar = !bo.en_buzon && !bo.revisado && (faltan.length || crEquipo(h).length);
+  return caja(cab(bo.en_buzon ? 'también en Borradores del buzón' : sinGuardar ? 'al guardarla pasa a Borradores' : 'la envía una persona')
     + (bo.estado === 'editado' ? '<div class="co-alerta">Alguien ha cambiado este borrador en su programa de correo. Antes de enviarlo desde aquí, comprueba que no lo estén usando.</div>' : '')
     + (bo.error ? `<div class="co-alerta">${esc(bo.error)}</div>` : '')
-    + (faltan.length ? `<div class="co-alerta">Le faltó en vuestra hoja: ${faltan.map(esc).join(' · ')}. ${crFaltaEnlaces(faltan)}${bo.revisado ? '' : ' Complétala y guárdala para que pase a Borradores.'}</div>` : '')
-    + (puede ? `<label class="sr" for="crbo-${esc(bo.id)}">Respuesta</label><textarea class="cr-botxt" id="crbo-${esc(bo.id)}" data-crbo="${esc(bo.id)}" rows="${Math.min(22, Math.max(8, crTextoEdit(bo).split('\n').length + 3))}">${esc(crTextoEdit(bo))}</textarea>${crFirmaHTML()}${crFotos(bo)}
+    + (puede ? `<label class="sr" for="crbo-${esc(bo.id)}">Respuesta</label><div class="cr-bocaja" data-v="${esc(crTextoEdit(bo))}"><textarea class="cr-botxt" id="crbo-${esc(bo.id)}" data-crbo="${esc(bo.id)}" rows="1">${esc(crTextoEdit(bo))}</textarea></div>${crFirmaHTML()}${crFotos(bo)}
       <div class="cr-acc2"><button class="cbtn" type="button" data-cr="bo-enviar" data-id="${id}">Enviar</button>
         <button class="cbtn sec" type="button" data-cr="bo-guardar" data-id="${id}">Guardar</button>
         <button class="cbtn sec" type="button" data-cr="bo-descartar" data-id="${id}" data-v="1">Descartar</button></div>`
@@ -4775,7 +4795,7 @@ function crEnviarPedir(id){
   if (!crPuede()) return coAviso('No puedes enviar en esta empresa.');
   const texto = crTextoEdit(bo).trim();
   if (texto.length < 2) return coAviso('La respuesta está vacía.');
-  const pend = [...(bo.faltan || []), ...crEquipo(h)];
+  const pend = crEquipo(h);   // 25/11: lo que falta en la hoja está en Configuración › General
   if (pend.length && !bo.revisado && !confirm('Antes de enviarla, revisa esto:\n\n· ' + pend.join('\n· ') + '\n\n¿La envías así?')) return;
   if (bo.estado === 'editado' && !confirm('Alguien ha cambiado este borrador en su programa de correo. ¿Lo envías desde aquí de todas formas?')) return;
   const envio = { slug: CO.real.slug, bo, texto, version: bo.version };
@@ -4814,7 +4834,7 @@ async function crEnviarYa(id, envio){
   crSonar(mal ? 'error' : 'hecho'); crRepintar(); coAviso(aviso); crSondear();
 }
 addEventListener('beforeunload', e => { if (Object.keys(CO.crEnvios).length){ e.preventDefault(); e.returnValue = ''; } });
-document.addEventListener('input', e => { const b = e.target?.dataset?.crbo; if (b) CO.crEdit[b] = e.target.value; });
+document.addEventListener('input', e => { const b = e.target?.dataset?.crbo; if (b){ CO.crEdit[b] = e.target.value; e.target.parentNode.dataset.v = e.target.value; } });
 
 // ---------- Idealista: ¿se ha respondido? ----------
 const crConf = h => { const c = crMarcas()?.confirmar?.[h.id]; return c && !crRespondido(h) ? c : null; };
@@ -4910,8 +4930,8 @@ function crBandeja(){
 
 /* ---------- Lo que le falta al asistente en la hoja ----------
    18/11 noche: fuera la pestaña «Mejoras» (decisión del usuario, opción A).
-   Lo que falta sale dentro de la respuesta propuesta, con un enlace a la
-   pestaña de la hoja donde va. La pestaña es una suposición por palabras. */
+   25/11 (pedido del usuario): lo que falta sale en Configuración › General,
+   con un enlace a la pestaña de la hoja donde va. La pestaña es una suposición por palabras. */
 const CR_PESTANAS = {
   centros:  { nombre:'Centros', como:'Una fila por centro: busca el centro y rellena su columna (horario, m², servicios, salas…) o escríbelo en «notas».' },
   tarifas:  { nombre:'Tarifas', como:'Una fila por servicio: «servicio», «precio» y «ámbito» (el centro o «todos»); las condiciones (fianza, permanencia, descuentos…) en «notas».' },
@@ -4935,6 +4955,31 @@ function crFaltaEnlaces(faltan){
   const pest = [...new Set(faltan.map(crPestanaDe))].filter(k => CR_PESTANAS[k] && crUrlPestana(k));
   return pest.map(k => `<a class="co-editar" href="${esc(crUrlPestana(k))}" target="_blank" rel="noopener noreferrer">Añadirlo en «${esc(CR_PESTANAS[k].nombre)}»</a>`).join(' ');
 }
+
+// Configuración › General: lo que el asistente no encontró en la hoja al contestar correos.
+function crFaltaPanel(){
+  const m = CO.real?.mejorar;
+  if (!m) return '<div class="vacio">' + (CO.realEstado === 'cargando' ? 'Cargando…' : 'No se ha podido cargar.') + '</div>';
+  const pend = (m.datos || []).filter(d => !d.estado || d.estado === 'vuelve');
+  if (!pend.length) return '<p class="hint" style="margin:0">No falta nada por ahora.</p>';
+  const fila = d => `<li class="cr-falta"><div><b>${esc(d.dato)}</b>
+      <span class="co-para">${Number(d.veces) === 1 ? '1 vez' : Number(d.veces) + ' veces'} · la última, ${esc(crFecha(d.ultimo_en))}${d.estado === 'vuelve' ? ' · lo marcasteis como añadido y ha vuelto a faltar' : ''}</span></div>
+    <div class="cr-fbot">${crFaltaEnlaces([d.dato])}${m.puede_marcar ? `
+      <button class="cbtn sec" type="button" data-falta="${esc(d.dato)}" data-v="anadido">Ya está añadido</button>
+      <button class="cbtn sec" type="button" data-falta="${esc(d.dato)}" data-v="no_damos">No lo damos</button>` : ''}</div></li>`;
+  return `<ul class="cr-faltas">${pend.slice(0, 8).map(fila).join('')}</ul>
+    ${pend.length > 8 ? `<details class="co-por"><summary>Ver ${pend.length - 8} más</summary><ul class="cr-faltas">${pend.slice(8).map(fila).join('')}</ul></details>` : ''}`;
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest?.('[data-falta]'); if (!b) return;
+  const d = (CO.real?.mejorar?.datos || []).find(x => x.dato === b.dataset.falta); if (!d) return;
+  b.disabled = true;
+  const { error } = await supabase.rpc('mt_correo_falta_marcar', { p_slug: CO.real.slug, p_dato: d.dato, p_estado: b.dataset.v });
+  if (error){ b.disabled = false; return coAviso(error.message || 'No se ha podido guardar.'); }
+  d.estado = b.dataset.v;
+  const caja = $('#aj-falta'); if (caja) caja.innerHTML = crFaltaPanel();
+  coAviso(b.dataset.v === 'anadido' ? 'Marcado como añadido. Si vuelve a faltar, saldrá otra vez.' : 'Marcado: no lo dais.');
+});
 
 function crTope(){
   const r = CO.real;
@@ -9169,6 +9214,14 @@ async function pintarAjustes(silencioso){
     CO.realPedidoPara = crSlug(); CO.realEstado = 'cargando';
     coCargarReal().then(() => { if (VISTA === 'ajustes') pintarAjustes(true); });
   }
+  // En General solo se rellena su bloque: repintar todo borraría lo que se esté escribiendo.
+  if (conCorreo && ver('general') && !correoListo && !(CO.realPedidoPara === crSlug() && CO.realEstado === 'cargando')){
+    CO.realPedidoPara = crSlug(); CO.realEstado = 'cargando';
+    coCargarReal().then(() => {
+      const c = $('#aj-falta'); if (VISTA !== 'ajustes' || !c) return;
+      if (CO.realEstado === 'sin') c.closest('.panel').hidden = true; else c.innerHTML = crFaltaPanel();
+    });
+  }
   const prefAj = (k, t, d) => `<label class="co-interr"><input type="checkbox" data-crpref="${k}" ${crPref(k) ? 'checked' : ''}><span>${t}<small>${d}</small></span></label>`;
 
   $('#vista').innerHTML = `
@@ -9300,6 +9353,12 @@ async function pintarAjustes(silencioso){
           <dd>${a.coste_hora_eur != null ? nf.format(Number(a.coste_hora_eur)) + ' €/h' : '—'}</dd>
         </dl>`}
     </div>
+
+    ${conCorreo ? `<div class="panel">
+      <h3>Información que le falta al asistente</h3>
+      <p class="ph">Lo que os han preguntado por correo o idealista y no estaba en vuestra hoja. Al añadirlo, el asistente ya podrá contestarlo.</p>
+      <div id="aj-falta">${correoListo ? crFaltaPanel() : '<div class="vacio">Cargando…</div>'}</div>
+    </div>` : ''}
 
     ${CFG.documentos && CFG.documentos.length ? `<div class="panel">
       <h3>Información del servicio</h3>
