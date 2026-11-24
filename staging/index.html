@@ -2366,7 +2366,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-25a · Respuesta propuesta en una sola hoja, con la firma dentro; lo que falta, en Configuración';
+const VERSION = '2026-11-25b · Al recargar (F5) se sigue en la misma pantalla';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -2754,6 +2754,7 @@ window.addEventListener('focus', alVolver);
 
 $('#salir').addEventListener('click', async () => {
   clearInterval(TIMER);
+  SIN_SITIO = true;
   await supabase.auth.signOut();
   location.reload();
 });
@@ -2766,6 +2767,31 @@ $('#salir').addEventListener('click', async () => {
 // números») pulsaban la pestaña y esperaban 700 ms a ciegas: con una
 // conexión algo lenta la ficha no se abría, o se abría la de otra
 // persona, o salía en la ventana del móvil encima del ordenador.
+/* Al recargar (F5) se sigue donde se estaba (25/11): pestaña, apartado de
+   Configuración, carpeta y correo abierto. Por pestaña del navegador y por
+   empresa; al salir o al cambiar de empresa se empieza en el Latido. */
+const CLAVE_SITIO = 'simplia-panel-sitio-' + ENTORNO_SESION;
+let SITIO = null, SIN_SITIO = false;
+try { SITIO = JSON.parse(sessionStorage.getItem(CLAVE_SITIO) || 'null'); sessionStorage.removeItem(CLAVE_SITIO); } catch {}
+window.addEventListener('pagehide', () => {
+  if (SIN_SITIO || !TENANT) return;
+  try { sessionStorage.setItem(CLAVE_SITIO, JSON.stringify({ slug: TENANT.slug, quien: USUARIO_EMAIL, v: VISTA, aj: AJ_TAB,
+    carpeta: CO.realCarpeta, idcarp: CO.realIdCarp, abierto: CO.realAbierto })); } catch {}
+});
+async function volverAlSitio(){
+  const x = SITIO; SITIO = null;
+  if (!x || x.slug !== TENANT?.slug || (x.quien && USUARIO_EMAIL && x.quien !== USUARIO_EMAIL) || !x.v || x.v === 'latido') return false;
+  const deCorreo = x.v === 'correo' || x.v === 'idealista';
+  if (x.v === 'cuentas' ? !OP.activo : deCorreo ? !correoPermitido() : !document.querySelector(`nav button[data-v="${CSS.escape(x.v)}"]`)) return false;
+  if (x.aj) AJ_TAB = x.aj;
+  if (deCorreo){
+    if (CR_CARPETAS.some(k => k.id === x.carpeta)) CO.realCarpeta = x.carpeta;
+    if (x.idcarp != null) CO.realIdCarp = x.idcarp;
+    CO.realAbierto = x.abierto || null;
+  }
+  await irA(x.v);
+  return true;
+}
 function irA(v){
   // Se empieza por arriba: con la cabecera fija ya se puede cambiar de
   // pestaña con la página bajada, y en el móvil se aterrizaba a mitad.
@@ -7062,6 +7088,7 @@ async function opEntrar(slug){
   OP.slug = slug; OP.abierto = false;
   CO.cliente = slug; CO.real = null; CO.realPedidoPara = null; CO.realAbierto = null;
   document.body.classList.remove('eligiendo');
+  SITIO = null;
   VISTA = 'latido';
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x.dataset.v === 'latido'));
   $('#vista').innerHTML = esqueleto('latido');
@@ -7186,8 +7213,8 @@ async function arrancar(){
     document.querySelector('nav button[data-v="agenda"]')?.remove();
 
   // Si se ha llegado desde el «Ver» del correo diario, directo a esa
-  // conversación; si no, al Latido como siempre.
-  if (!(await abrirDesdeEnlace())) await pintarLatido();
+  // conversación; si se ha recargado, a donde se estaba; si no, al Latido.
+  if (!(await abrirDesdeEnlace()) && !(await volverAlSitio())) await pintarLatido();
   autoRefresco();
 }
 
