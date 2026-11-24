@@ -2366,7 +2366,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-25b · Al recargar (F5) se sigue en la misma pantalla';
+const VERSION = '2026-11-25c · Se ve cuándo se está clasificando o redactando la respuesta';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -4281,7 +4281,7 @@ function crCarpetaDe(h){
 }
 function crCarpetaIA(h){
   // 23/11 (c): sin carpeta «Sin clasificar» (pedido del usuario). Lo recién llegado va a
-  // Nuevos clientes con la etiqueta «Sin clasificar aún» hasta que lo clasifica el asistente (minutos).
+  // Nuevos clientes con la etiqueta «Clasificando…» hasta que lo clasifica el asistente (minutos).
   if (!h.tipo) return 'nuevos';
   if (h.subtipo === 'saliente') return 'enviados';
   if (h.tipo === 'comercial') return 'nuevos';
@@ -4571,7 +4571,8 @@ function crFila(h){
   // 18/11 noche: una sola etiqueta de estado, «Para el equipo» (fuera
   // «Respuesta propuesta»: casi todos los nuevos clientes la llevaban).
   // Respondido manda: si ya se contestó, no hace falta avisar de nada más.
-  if (!h.tipo) eti.push('<span class="pill nt">Sin clasificar aún</span>');
+  if (!h.tipo) eti.push('<span class="pill nt">Clasificando…</span>');
+  else if (crRedactando(h)) eti.push('<span class="pill nt">Redactando la respuesta…</span>');
   if (crRespondido(h)) eti.push('<span class="pill vd">Respondido</span>');
   else if (crConf(h)) eti.push(`<span class="pill ${crConfTarde(crConf(h)) ? 'rj' : 'am'}">${crConfTarde(crConf(h)) ? 'Sin confirmar' : 'Por confirmar'}</span>`);
   else if (h.activo && h.borrador?.estado === 'dudoso') eti.push('<span class="pill rj">Revisar envío</span>');
@@ -4755,7 +4756,7 @@ function crDetalle(h, enVentana){
             </div>` : ''}
           </section>`}
         </div>` : h.a_persona ? '<p class="co-para cr-paraeq"><span class="pill rj">Para el equipo</span> El asistente no contestaría este correo solo: lo tiene que ver alguien del equipo.</p>'
-          : h.tipo === 'comercial' ? '<p class="co-para">El asistente todavía no ha preparado su respuesta.</p>' : ''}
+          : h.tipo === 'comercial' ? `<p class="co-para">${crRedactando(h) ? 'El asistente está redactando la respuesta…' : 'El asistente todavía no ha preparado su respuesta.'}</p>` : ''}
       </div>
     </div>`;
 }
@@ -4798,6 +4799,8 @@ function crRespuestaHTML(h){
         <button class="cbtn sec" type="button" data-cr="bo-descartar" data-id="${id}" data-v="1">Descartar</button></div>`
       : ver + `<p class="co-para">${crSoloMirar() ? 'Estás en «Solo mirar»: no se puede enviar ni cambiar.' : 'Solo quien puede editar puede enviarla.'}</p>`));
 }
+// Recién clasificado y sin respuesta todavía (25/11): más de 10 minutos ya no es «redactando».
+const crRedactando = h => !!h.activo && h.tipo === 'comercial' && !h.borrador && !crRespondido(h) && Date.now() - new Date(h.ultimo_en || 0) < 6e5;
 const crHiloDe = id => (CO.real?.hilos || []).find(x => x.id === id);
 async function crBorradorGuardar(id, el){
   const h = crHiloDe(id), bo = h?.borrador; if (!bo) return;
