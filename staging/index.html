@@ -2149,6 +2149,8 @@
   .cr-accs{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--linea)}
   .cr-accs .cr-solopanel{margin-left:auto;font-size:11px;color:var(--gris);cursor:help}
   .cr-mano{display:block;margin:-4px 0 10px;font-size:12px}
+  .cr-marco{background:#fff;border-radius:8px;overflow:hidden}
+  .cr-marco iframe{display:block;width:100%;height:100%;border:0;background:#fff}
   .cr-det .co-orig{font-size:13.5px;line-height:1.5}
   .cr-det .co-orig p{margin:0 0 8px}
   .cr-idet .cr-idtexto{font-size:15px;line-height:1.5}
@@ -2366,7 +2368,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-25d · Idealista: «Todavía no» quita el aviso y deja el mensaje sin leer';
+const VERSION = '2026-11-25e · Los correos se ven tal cual llegaron';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3975,7 +3977,7 @@ function crFotos(bo){
 const N8N_ADJUNTO = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/adjunto';
 const CR_ADJ = new Map();     // 'mensaje|n' -> URL del blob, '' si no se pudo, null pidiéndose
 const crEsImagen = a => /^image\/(jpeg|jpg|png|gif|webp)$/i.test(a?.tipo || '');
-const crImagenesDe = m => (m.adjuntos || []).map((a, i) => ({ ...a, i })).filter(a => crEsImagen(a) && Number(a.bytes || 0) >= 12000);
+const crImagenesDe = m => (m.adjuntos || []).map((a, i) => ({ ...a, i })).filter(a => crEsImagen(a) && Number(a.bytes || 0) >= 12000 && !CR_HTML.get(m.id)?.dentro?.includes(a.i));
 function crAdjuntosMsg(m){
   const imgs = crImagenesDe(m);
   const otros = (m.adjuntos || []).filter(a => !a.en_linea && !crEsImagen(a));
@@ -4146,34 +4148,83 @@ async function crCopiar(texto){
    «[MT] Correo · Texto», que lo lee del buzón del cliente (solo lectura) y
    lo guarda 7 días en Redis. Antes (16/11) se ocultaban. */
 const crLimpiar = hilos => (hilos || []).filter(h => (h.mensajes || []).length);
-const CR_TEXTOS = new Map();   // mensaje → { texto } | { error } | null (pidiéndose)
 const N8N_TEXTO = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/texto';
-const crTextoDe = m => (m.texto != null && String(m.texto).trim()) ? m.texto : CR_TEXTOS.get(m.id)?.texto;
+const crTextoDe = m => (m.texto != null && String(m.texto).trim()) ? m.texto : CR_HTML.get(m.id)?.texto;
+/* 25/11 (pedido del usuario): el correo se ve TAL CUAL llegó. El HTML se lee
+   del buzón al abrirlo (f=html) y va en un marco aislado: sin scripts, sin
+   formularios y sin poder tocar el panel. Mientras llega, o si falla, se ve
+   el texto guardado. */
+const CR_HTML = new Map();   // mensaje → { html, texto, dentro, alto } | { error } | null (pidiéndose)
 function crTextoMsg(m){
-  const t = crTextoDe(m);
-  if (t != null && String(t).trim()) return `<div class="co-orig">${coParrafos(t)}</div>`;
-  const e = CR_TEXTOS.get(m.id);
-  if (e?.texto === '') return crImagenesDe(m).length ? '' : '<div class="co-orig co-para">(Este correo no trae texto.)</div>';
-  if (e?.error) return `<div class="co-orig co-para">No se ha podido leer el texto del buzón: ${esc(e.error)}</div>`;
-  return `<div class="co-orig co-para cr-txtcarga" data-crtxt="${esc(m.id)}" aria-busy="true">Leyendo el correo del buzón…</div>`;
+  const x = CR_HTML.get(m.id), id = esc(m.id);
+  if (x?.html) return `<div class="cr-marco" data-crmarco="${id}" style="height:${x.alto || 160}px"></div>`;
+  const t = x && x.texto != null ? x.texto : m.texto;
+  const hay = t != null && String(t).trim();
+  if (x && !x.error) return hay ? `<div class="co-orig">${coParrafos(t)}</div>`
+    : crImagenesDe(m).length ? '' : '<div class="co-orig co-para">(Este correo no trae texto.)</div>';
+  if (x?.error) return hay ? `<div class="co-orig">${coParrafos(t)}</div><p class="co-para">No se ha podido cargar el diseño original: ${esc(x.error)}</p>`
+    : `<div class="co-orig co-para">No se ha podido leer el correo del buzón: ${esc(x.error)}</div>`;
+  return `<div data-crtxt="${id}" aria-busy="true">${hay ? `<div class="co-orig">${coParrafos(t)}</div>` : '<div class="co-orig co-para cr-txtcarga">Leyendo el correo del buzón…</div>'}</div>`;
 }
-// Pide al buzón los textos que faltan en lo que está en pantalla (uno a uno).
+// Solo se quita lo que podría ejecutar algo o sacar al usuario de aquí; el diseño no se toca.
+function crDocTalCual(html){
+  const doc = new DOMParser().parseFromString(String(html), 'text/html');
+  doc.querySelectorAll('script,base,iframe,frame,frameset,object,embed,applet,meta[http-equiv]').forEach(n => n.remove());
+  doc.querySelectorAll('*').forEach(n => {
+    for (const at of [...n.attributes]){
+      const k = at.name.toLowerCase();
+      if (k.startsWith('on') || k === 'srcdoc' || /^\s*(javascript|vbscript):/i.test(at.value.replace(/[\u0000-\u001f]/g, ''))) n.removeAttribute(at.name);
+    }
+    if (n.matches('a,area')){ n.setAttribute('target', '_blank'); n.setAttribute('rel', 'noopener noreferrer'); }
+  });
+  doc.head.insertAdjacentHTML('afterbegin', `<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: https:; style-src 'unsafe-inline' https:; font-src data: https:; form-action 'none'"><meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light"><style>html{overflow-y:hidden;height:auto!important}</style>`);
+  return (doc.doctype ? '<!doctype html>' : '') + doc.documentElement.outerHTML;
+}
+function crPintarMarcos(){
+  document.querySelectorAll('[data-crmarco]:empty').forEach(div => {
+    const id = div.dataset.crmarco, x = CR_HTML.get(id);
+    if (!x?.html) return;
+    x.doc ??= crDocTalCual(x.html);
+    const f = document.createElement('iframe');
+    f.title = 'Correo original';
+    f.setAttribute('sandbox', 'allow-same-origin allow-popups allow-popups-to-escape-sandbox');   // sin allow-scripts
+    f.referrerPolicy = 'no-referrer';
+    let veces = 0;
+    const medir = () => {
+      const d = f.contentDocument; if (!d?.body || veces++ > 40) return;
+      const de = d.documentElement, alto = Math.min(30000, Math.ceil(Math.max(de.getBoundingClientRect().height, d.body.scrollHeight)) + (de.scrollWidth > de.clientWidth + 1 ? 18 : 0));
+      if (alto > 0 && Math.abs(alto - (x.alto || 0)) > 1){ x.alto = alto; div.style.height = alto + 'px'; }
+    };
+    f.addEventListener('load', () => { medir(); try { new ResizeObserver(() => requestAnimationFrame(medir)).observe(f.contentDocument.body); } catch {} });
+    f.srcdoc = x.doc;
+    div.append(f);
+  });
+}
+// Pide al buzón los correos que están en pantalla (uno a uno).
 async function crCargarTextos(){
-  const pend = [...new Set([...document.querySelectorAll('[data-crtxt]')].map(x => x.dataset.crtxt))].filter(id => !CR_TEXTOS.has(id));
+  crPintarMarcos();
+  const pend = [...new Set([...document.querySelectorAll('[data-crtxt]')].map(x => x.dataset.crtxt))].filter(id => !CR_HTML.has(id));
   if (!pend.length) return;
   const { data } = await supabase.auth.getSession();
   const token = data?.session?.access_token;
   if (!token) return;
   for (const id of pend){
-    CR_TEXTOS.set(id, null);
+    if (CR_HTML.has(id)) continue;
+    CR_HTML.set(id, null);
+    let x;
     try {
-      const r = await fetch(`${N8N_TEXTO}?m=${encodeURIComponent(id)}`, { headers:{ 'Authorization':'Bearer ' + token } });
+      const r = await fetch(`${N8N_TEXTO}?m=${encodeURIComponent(id)}&f=html`, { headers:{ 'Authorization':'Bearer ' + token } });
       const j = await r.json().catch(() => ({}));
-      CR_TEXTOS.set(id, r.ok && typeof j.texto === 'string' ? { texto: j.texto } : { error: j.error || 'error ' + r.status });
-    } catch (e) { CR_TEXTOS.set(id, { error: 'sin conexión' }); }
-    const m = (CO.real?.hilos || []).flatMap(h => h.mensajes || []).find(x => x.id === id);
+      x = r.ok && (typeof j.html === 'string' || typeof j.texto === 'string') ? { html: j.html || null, texto: j.texto, dentro: j.dentro || [] } : { error: j.error || 'error ' + r.status };
+    } catch (e) { x = { error: 'sin conexión' }; }
+    CR_HTML.set(id, x);
+    if (CR_HTML.size > 60) for (const [k, v] of CR_HTML){ if (CR_HTML.size <= 40) break; if (v && k !== id && !document.querySelector(`[data-crmarco="${CSS.escape(k)}"]`)) CR_HTML.delete(k); }
+    const m = (CO.real?.hilos || []).flatMap(h => h.mensajes || []).find(y => y.id === id);
     document.querySelectorAll(`[data-crtxt="${CSS.escape(id)}"]`).forEach(el => {
       const t = document.createElement('div'); t.innerHTML = crTextoMsg(m || { id }); el.replaceWith(...t.childNodes); });
+    // Las imágenes que ya se ven dentro del correo no se repiten debajo.
+    (x.dentro || []).forEach(n => document.querySelectorAll(`img[data-cradj="${CSS.escape(id)}"][data-n="${n}"]`).forEach(y => y.closest('figure')?.remove()));
+    crPintarMarcos();
   }
 }
 async function coCargarReal(){
@@ -4574,7 +4625,8 @@ function crFila(h){
   // 18/11 noche: una sola etiqueta de estado, «Para el equipo» (fuera
   // «Respuesta propuesta»: casi todos los nuevos clientes la llevaban).
   // Respondido manda: si ya se contestó, no hace falta avisar de nada más.
-  if (!h.tipo) eti.push('<span class="pill nt">Clasificando…</span>');
+  if (CO.crEnvios[h.id] || h.borrador?.estado === 'enviando') eti.push('<span class="pill nt">Enviando…</span>');
+  else if (!h.tipo) eti.push('<span class="pill nt">Clasificando…</span>');
   else if (crRedactando(h)) eti.push('<span class="pill nt">Redactando la respuesta…</span>');
   const resp = crRespondido(h);
   if (resp) eti.push(`<span class="pill ${resp.como === 'no_hace_falta' ? 'nt' : 'vd'}">${resp.como === 'no_hace_falta' ? 'No hace falta responder' : 'Respondido'}</span>`);
