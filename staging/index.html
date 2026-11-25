@@ -2366,7 +2366,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-25c · Se ve cuándo se está clasificando o redactando la respuesta';
+const VERSION = '2026-11-25d · Idealista: «Todavía no» quita el aviso y deja el mensaje sin leer';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -4128,7 +4128,7 @@ function crRespondidoHTML(h){
   const r = crRespondido(h);
   if (!r) return `<button class="cbtn sec cr-bresp" type="button" data-cr="respondido" data-id="${esc(h.id)}" data-v="1">Marcar como respondido</button>`;
   const quien = r.como === 'correo' ? (r.otra ? 'por correo, con otra respuesta' : 'por correo') : r.quien ? `por ${esc(r.quien.split('@')[0])}` : '';
-  return `<span class="cr-resp"><span class="pill vd">${r.como === 'no_hace_falta' ? 'No hacía falta responder' : 'Respondido'}</span> <span class="co-para">${quien ? quien + ' · ' : ''}${esc(crFecha(r.en))}</span>
+  return `<span class="cr-resp"><span class="pill vd">${r.como === 'no_hace_falta' ? 'No hace falta responder' : 'Respondido'}</span> <span class="co-para">${quien ? quien + ' · ' : ''}${esc(crFecha(r.en))}</span>
     ${r.como !== 'correo' ? `<button class="co-editar" type="button" data-cr="respondido" data-id="${esc(h.id)}" data-v="">Deshacer</button>` : ''}</span>`;
 }
 async function crCopiar(texto){
@@ -4382,9 +4382,12 @@ function crNoLeido(h){
   return ult > +new Date(mk.desde || 0);
 }
 async function crCargarMarcas(slug){
+  const v = CO.crMarcasV;
   try {
     const { data, error } = await supabase.rpc('mt_correo_marcas', { p_slug: slug });
     if (error || !data || !CO.real || CO.real.slug !== slug) return false;
+    // Se contestó mientras venía esta carga: es vieja y volvería a sacar el aviso.
+    if (v !== CO.crMarcasV) return false;
     CO.real.marcas = crMarcasDe(data);
     crConfVer();
     return true;
@@ -4573,7 +4576,8 @@ function crFila(h){
   // Respondido manda: si ya se contestó, no hace falta avisar de nada más.
   if (!h.tipo) eti.push('<span class="pill nt">Clasificando…</span>');
   else if (crRedactando(h)) eti.push('<span class="pill nt">Redactando la respuesta…</span>');
-  if (crRespondido(h)) eti.push('<span class="pill vd">Respondido</span>');
+  const resp = crRespondido(h);
+  if (resp) eti.push(`<span class="pill ${resp.como === 'no_hace_falta' ? 'nt' : 'vd'}">${resp.como === 'no_hace_falta' ? 'No hace falta responder' : 'Respondido'}</span>`);
   else if (crConf(h)) eti.push(`<span class="pill ${crConfTarde(crConf(h)) ? 'rj' : 'am'}">${crConfTarde(crConf(h)) ? 'Sin confirmar' : 'Por confirmar'}</span>`);
   else if (h.activo && h.borrador?.estado === 'dudoso') eti.push('<span class="pill rj">Revisar envío</span>');
   else if (crParaEquipo(h)) eti.push('<span class="pill rj">Para el equipo</span>');
@@ -4891,22 +4895,22 @@ function crConfTira(){
 async function crCopiarYAbrir(id, mensaje){
   const h = crHiloDe(id); if (!h?.borrador) return;
   const otro = crConfMio();
-  if (otro && otro.id !== id) return crConfVer(true);
+  if (otro && otro.id !== id) return crConfVer();
   const copiado = await crCopiar(crTextoCopiar(h.borrador, false));
   const ok = await crAbrirPortal(mensaje, async () => {
     const { error } = await supabase.rpc('mt_correo_idealista_abrir', { p_slug: CO.real.slug, p_hilo: id });
     if (error) throw new Error(error.message);
   });
   if (!ok){ await crCargarMarcas(CO.real.slug); return crRepintar(); }
-  if (crMarcas() && !crRespondido(h)) crMarcas().confirmar[id] = { quien: USUARIO_EMAIL, mio:true, abierto_en: new Date().toISOString(), todavia_en:null };
+  if (crMarcas() && !crRespondido(h)) crMarcas().confirmar[id] = { quien: USUARIO_EMAIL, mio:true, abierto_en: new Date().toISOString() };
   if (!copiado) coAviso('No se ha podido copiar: selecciona el texto y cópialo a mano.');
   crRepintar(); crConfVer();
 }
 // La ventana no se cierra sin contestar: ni con Esc ni pulsando fuera.
-function crConfVer(forzar){
+function crConfVer(){
   let v = $('#crconf');
-  const c = crConfMio(), reciente = c?.todavia_en && Date.now() - new Date(c.todavia_en) < 18e5;
-  if (!c || crSoloMirar() || !crPuede() || (reciente && forzar !== true)){
+  const c = crConfMio();
+  if (!c || crSoloMirar() || !crPuede()){
     v?.remove(); [...document.body.children].forEach(x => { if (x.dataset.crinerte){ x.inert = false; delete x.dataset.crinerte; } });
     return;
   }
@@ -4929,10 +4933,13 @@ async function crConfResponder(id, v, el){
   if (el) el.disabled = false;
   if (error){ crSonar('error'); return coAviso(error.message || 'No se ha podido guardar.'); }
   const h = crHiloDe(id), c = crMarcas()?.confirmar || {}, en = new Date().toISOString();
-  if (v === 'todavia'){ if (c[id]) c[id].todavia_en = en; }
-  else { delete c[id]; if (h) h.respondido = { en, quien: USUARIO_EMAIL, como: v === 'si' ? 'idealista' : 'no_hace_falta' }; }
+  CO.crMarcasV = (CO.crMarcasV || 0) + 1;
+  delete c[id];
+  // «Todavía no»: fuera el aviso y el mensaje vuelve a estar sin leer (SQL 149).
+  if (v === 'todavia'){ if (crMarcas()) crMarcas().leidos[id] = { leido:false, en }; }
+  else if (h){ h.respondido = { en, quien: USUARIO_EMAIL, como: v === 'si' ? 'idealista' : 'no_hace_falta' }; }
   crConfVer(); crSonar('hecho'); if (h && crEnLista()) crRepintar();
-  coAviso(v === 'todavia' ? 'Queda arriba, por confirmar.' : v === 'si' ? 'Marcado como respondido.' : 'Marcado: no hacía falta responder.');
+  coAviso(v === 'todavia' ? 'Queda como no leído.' : v === 'si' ? 'Marcado como respondido.' : 'Marcado: no hace falta responder.');
 }
 
 function crBandeja(){
