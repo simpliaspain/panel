@@ -2149,6 +2149,8 @@
   .cr-accs{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--linea)}
   .cr-accs .cr-solopanel{margin-left:auto;font-size:11px;color:var(--gris);cursor:help}
   .cr-mano{display:block;margin:-4px 0 10px;font-size:12px}
+  .cr-marco{background:#fff;border-radius:8px;overflow:hidden}
+  .cr-marco iframe{display:block;width:100%;height:100%;border:0;background:#fff}
   .cr-det .co-orig{font-size:13.5px;line-height:1.5}
   .cr-det .co-orig p{margin:0 0 8px}
   .cr-idet .cr-idtexto{font-size:15px;line-height:1.5}
@@ -2366,7 +2368,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-25d · Idealista: «Todavía no» quita el aviso y deja el mensaje sin leer';
+const VERSION = '2026-11-25f · Envío rápido guardado en el servidor; «Respondido por el agente»';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -3959,7 +3961,7 @@ const crNombreFoto = c => String(c || '').replace(/-(\d+)$/, ', despacho $1').re
 function crFotos(bo){
   const fs = Array.isArray(bo?.fotos) ? bo.fotos : [];
   if (!fs.length) return '';
-  return `<div class="cr-adj" style="margin-top:8px">Fotos que se adjuntarían (${esc(crNombreFoto(fs[0].clave))}):</div>
+  return `<div class="cr-adj" style="margin-top:8px">${bo.estado === 'enviado' ? 'Fotos adjuntas' : 'Fotos que se adjuntarían'} (${esc(crNombreFoto(fs[0].clave))}):</div>
     <div class="cr-fotos">${fs.map((f, i) => {
       const k = bo.id + '|' + i, url = CR_FOTOS.get(k);
       return `<figure class="cr-foto">${url === '' ? `<div class="cr-fimg cr-fmal">No se ha podido cargar la foto</div>`
@@ -3975,7 +3977,7 @@ function crFotos(bo){
 const N8N_ADJUNTO = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/adjunto';
 const CR_ADJ = new Map();     // 'mensaje|n' -> URL del blob, '' si no se pudo, null pidiéndose
 const crEsImagen = a => /^image\/(jpeg|jpg|png|gif|webp)$/i.test(a?.tipo || '');
-const crImagenesDe = m => (m.adjuntos || []).map((a, i) => ({ ...a, i })).filter(a => crEsImagen(a) && Number(a.bytes || 0) >= 12000);
+const crImagenesDe = m => (m.adjuntos || []).map((a, i) => ({ ...a, i })).filter(a => crEsImagen(a) && Number(a.bytes || 0) >= 12000 && !CR_HTML.get(m.id)?.dentro?.includes(a.i));
 function crAdjuntosMsg(m){
   const imgs = crImagenesDe(m);
   const otros = (m.adjuntos || []).filter(a => !a.en_linea && !crEsImagen(a));
@@ -4120,14 +4122,14 @@ function crRespondido(h){
   if (h.respondido && vale(h.respondido.en)) return { como: h.respondido.como || 'mano', en: h.respondido.en, quien: h.respondido.quien || '' };
   const bo = h.borrador;
   if (bo?.estado === 'enviado' && bo.enviado_en && vale(bo.enviado_en))
-    return { como:'correo', en: bo.enviado_en, quien: bo.enviado_como === 'panel' ? bo.quien || '' : '', otra: bo.enviado_como === 'otra' };
+    return { como:'correo', en: bo.enviado_en, quien: bo.enviado_como === 'panel' ? bo.quien || '' : '', otra: bo.enviado_como === 'otra', agente: bo.enviado_como !== 'otra' };
   const env = ms.filter(m => m.sentido === 'enviado' && (!ult || new Date(m.fecha) >= new Date(ult.fecha))).pop();
-  return env ? { como:'correo', en: env.fecha, quien: crRemite(env.de).nombre } : null;
+  return env ? { como:'correo', en: env.fecha, quien: crRemite(env.de).nombre, agente: !!env.agente } : null;
 }
 function crRespondidoHTML(h){
   const r = crRespondido(h);
   if (!r) return `<button class="cbtn sec cr-bresp" type="button" data-cr="respondido" data-id="${esc(h.id)}" data-v="1">Marcar como respondido</button>`;
-  const quien = r.como === 'correo' ? (r.otra ? 'por correo, con otra respuesta' : 'por correo') : r.quien ? `por ${esc(r.quien.split('@')[0])}` : '';
+  const quien = r.como === 'correo' ? (r.agente ? 'por el agente' + (r.quien?.includes('@') ? ', lo envió ' + esc(r.quien.split('@')[0]) : '') : r.otra ? 'por correo, con otra respuesta' : 'por correo') : r.quien ? `por ${esc(r.quien.split('@')[0])}` : '';
   return `<span class="cr-resp"><span class="pill vd">${r.como === 'no_hace_falta' ? 'No hace falta responder' : 'Respondido'}</span> <span class="co-para">${quien ? quien + ' · ' : ''}${esc(crFecha(r.en))}</span>
     ${r.como !== 'correo' ? `<button class="co-editar" type="button" data-cr="respondido" data-id="${esc(h.id)}" data-v="">Deshacer</button>` : ''}</span>`;
 }
@@ -4146,34 +4148,83 @@ async function crCopiar(texto){
    «[MT] Correo · Texto», que lo lee del buzón del cliente (solo lectura) y
    lo guarda 7 días en Redis. Antes (16/11) se ocultaban. */
 const crLimpiar = hilos => (hilos || []).filter(h => (h.mensajes || []).length);
-const CR_TEXTOS = new Map();   // mensaje → { texto } | { error } | null (pidiéndose)
 const N8N_TEXTO = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/texto';
-const crTextoDe = m => (m.texto != null && String(m.texto).trim()) ? m.texto : CR_TEXTOS.get(m.id)?.texto;
+const crTextoDe = m => (m.texto != null && String(m.texto).trim()) ? m.texto : CR_HTML.get(m.id)?.texto;
+/* 25/11 (pedido del usuario): el correo se ve TAL CUAL llegó. El HTML se lee
+   del buzón al abrirlo (f=html) y va en un marco aislado: sin scripts, sin
+   formularios y sin poder tocar el panel. Mientras llega, o si falla, se ve
+   el texto guardado. */
+const CR_HTML = new Map();   // mensaje → { html, texto, dentro, alto } | { error } | null (pidiéndose)
 function crTextoMsg(m){
-  const t = crTextoDe(m);
-  if (t != null && String(t).trim()) return `<div class="co-orig">${coParrafos(t)}</div>`;
-  const e = CR_TEXTOS.get(m.id);
-  if (e?.texto === '') return crImagenesDe(m).length ? '' : '<div class="co-orig co-para">(Este correo no trae texto.)</div>';
-  if (e?.error) return `<div class="co-orig co-para">No se ha podido leer el texto del buzón: ${esc(e.error)}</div>`;
-  return `<div class="co-orig co-para cr-txtcarga" data-crtxt="${esc(m.id)}" aria-busy="true">Leyendo el correo del buzón…</div>`;
+  const x = CR_HTML.get(m.id), id = esc(m.id);
+  if (x?.html) return `<div class="cr-marco" data-crmarco="${id}" style="height:${x.alto || 160}px"></div>`;
+  const t = x && x.texto != null ? x.texto : m.texto;
+  const hay = t != null && String(t).trim();
+  if (x && !x.error) return hay ? `<div class="co-orig">${coParrafos(t)}</div>`
+    : crImagenesDe(m).length ? '' : '<div class="co-orig co-para">(Este correo no trae texto.)</div>';
+  if (x?.error) return hay ? `<div class="co-orig">${coParrafos(t)}</div><p class="co-para">No se ha podido cargar el diseño original: ${esc(x.error)}</p>`
+    : `<div class="co-orig co-para">No se ha podido leer el correo del buzón: ${esc(x.error)}</div>`;
+  return `<div data-crtxt="${id}" aria-busy="true">${hay ? `<div class="co-orig">${coParrafos(t)}</div>` : '<div class="co-orig co-para cr-txtcarga">Leyendo el correo del buzón…</div>'}</div>`;
 }
-// Pide al buzón los textos que faltan en lo que está en pantalla (uno a uno).
+// Solo se quita lo que podría ejecutar algo o sacar al usuario de aquí; el diseño no se toca.
+function crDocTalCual(html){
+  const doc = new DOMParser().parseFromString(String(html), 'text/html');
+  doc.querySelectorAll('script,base,iframe,frame,frameset,object,embed,applet,meta[http-equiv]').forEach(n => n.remove());
+  doc.querySelectorAll('*').forEach(n => {
+    for (const at of [...n.attributes]){
+      const k = at.name.toLowerCase();
+      if (k.startsWith('on') || k === 'srcdoc' || /^\s*(javascript|vbscript):/i.test(at.value.replace(/[\u0000-\u001f]/g, ''))) n.removeAttribute(at.name);
+    }
+    if (n.matches('a,area')){ n.setAttribute('target', '_blank'); n.setAttribute('rel', 'noopener noreferrer'); }
+  });
+  doc.head.insertAdjacentHTML('afterbegin', `<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data: https:; style-src 'unsafe-inline' https:; font-src data: https:; form-action 'none'"><meta name="referrer" content="no-referrer"><meta name="color-scheme" content="light"><style>html{overflow-y:hidden;height:auto!important}</style>`);
+  return (doc.doctype ? '<!doctype html>' : '') + doc.documentElement.outerHTML;
+}
+function crPintarMarcos(){
+  document.querySelectorAll('[data-crmarco]:empty').forEach(div => {
+    const id = div.dataset.crmarco, x = CR_HTML.get(id);
+    if (!x?.html) return;
+    x.doc ??= crDocTalCual(x.html);
+    const f = document.createElement('iframe');
+    f.title = 'Correo original';
+    f.setAttribute('sandbox', 'allow-same-origin allow-popups allow-popups-to-escape-sandbox');   // sin allow-scripts
+    f.referrerPolicy = 'no-referrer';
+    let veces = 0;
+    const medir = () => {
+      const d = f.contentDocument; if (!d?.body || veces++ > 40) return;
+      const de = d.documentElement, alto = Math.min(30000, Math.ceil(Math.max(de.getBoundingClientRect().height, d.body.scrollHeight)) + (de.scrollWidth > de.clientWidth + 1 ? 18 : 0));
+      if (alto > 0 && Math.abs(alto - (x.alto || 0)) > 1){ x.alto = alto; div.style.height = alto + 'px'; }
+    };
+    f.addEventListener('load', () => { medir(); try { new ResizeObserver(() => requestAnimationFrame(medir)).observe(f.contentDocument.body); } catch {} });
+    f.srcdoc = x.doc;
+    div.append(f);
+  });
+}
+// Pide al buzón los correos que están en pantalla (uno a uno).
 async function crCargarTextos(){
-  const pend = [...new Set([...document.querySelectorAll('[data-crtxt]')].map(x => x.dataset.crtxt))].filter(id => !CR_TEXTOS.has(id));
+  crPintarMarcos();
+  const pend = [...new Set([...document.querySelectorAll('[data-crtxt]')].map(x => x.dataset.crtxt))].filter(id => !CR_HTML.has(id));
   if (!pend.length) return;
   const { data } = await supabase.auth.getSession();
   const token = data?.session?.access_token;
   if (!token) return;
   for (const id of pend){
-    CR_TEXTOS.set(id, null);
+    if (CR_HTML.has(id)) continue;
+    CR_HTML.set(id, null);
+    let x;
     try {
-      const r = await fetch(`${N8N_TEXTO}?m=${encodeURIComponent(id)}`, { headers:{ 'Authorization':'Bearer ' + token } });
+      const r = await fetch(`${N8N_TEXTO}?m=${encodeURIComponent(id)}&f=html`, { headers:{ 'Authorization':'Bearer ' + token } });
       const j = await r.json().catch(() => ({}));
-      CR_TEXTOS.set(id, r.ok && typeof j.texto === 'string' ? { texto: j.texto } : { error: j.error || 'error ' + r.status });
-    } catch (e) { CR_TEXTOS.set(id, { error: 'sin conexión' }); }
-    const m = (CO.real?.hilos || []).flatMap(h => h.mensajes || []).find(x => x.id === id);
+      x = r.ok && (typeof j.html === 'string' || typeof j.texto === 'string') ? { html: j.html || null, texto: j.texto, dentro: j.dentro || [] } : { error: j.error || 'error ' + r.status };
+    } catch (e) { x = { error: 'sin conexión' }; }
+    CR_HTML.set(id, x);
+    if (CR_HTML.size > 60) for (const [k, v] of CR_HTML){ if (CR_HTML.size <= 40) break; if (v && k !== id && !document.querySelector(`[data-crmarco="${CSS.escape(k)}"]`)) CR_HTML.delete(k); }
+    const m = (CO.real?.hilos || []).flatMap(h => h.mensajes || []).find(y => y.id === id);
     document.querySelectorAll(`[data-crtxt="${CSS.escape(id)}"]`).forEach(el => {
       const t = document.createElement('div'); t.innerHTML = crTextoMsg(m || { id }); el.replaceWith(...t.childNodes); });
+    // Las imágenes que ya se ven dentro del correo no se repiten debajo.
+    (x.dentro || []).forEach(n => document.querySelectorAll(`img[data-cradj="${CSS.escape(id)}"][data-n="${n}"]`).forEach(y => y.closest('figure')?.remove()));
+    crPintarMarcos();
   }
 }
 async function coCargarReal(){
@@ -4574,11 +4625,13 @@ function crFila(h){
   // 18/11 noche: una sola etiqueta de estado, «Para el equipo» (fuera
   // «Respuesta propuesta»: casi todos los nuevos clientes la llevaban).
   // Respondido manda: si ya se contestó, no hace falta avisar de nada más.
-  if (!h.tipo) eti.push('<span class="pill nt">Clasificando…</span>');
+  if (CO.crEnvios[h.id] || h.borrador?.estado === 'enviando') eti.push(`<span class="pill nt">${h.borrador?.reintento ? 'Reintentando el envío…' : 'Enviando…'}</span>`);
+  else if (!h.tipo) eti.push('<span class="pill nt">Clasificando…</span>');
   else if (crRedactando(h)) eti.push('<span class="pill nt">Redactando la respuesta…</span>');
   const resp = crRespondido(h);
   if (resp) eti.push(`<span class="pill ${resp.como === 'no_hace_falta' ? 'nt' : 'vd'}">${resp.como === 'no_hace_falta' ? 'No hace falta responder' : 'Respondido'}</span>`);
   else if (crConf(h)) eti.push(`<span class="pill ${crConfTarde(crConf(h)) ? 'rj' : 'am'}">${crConfTarde(crConf(h)) ? 'Sin confirmar' : 'Por confirmar'}</span>`);
+  else if (h.activo && ['propuesto', 'editado'].includes(h.borrador?.estado) && /^No se ha enviado/.test(h.borrador.error || '')) eti.push('<span class="pill rj">No enviado</span>');
   else if (h.activo && h.borrador?.estado === 'dudoso') eti.push('<span class="pill rj">Revisar envío</span>');
   else if (crParaEquipo(h)) eti.push('<span class="pill rj">Para el equipo</span>');
   // Al buscar, la carpeta. Máximo dos etiquetas: el asunto se tiene que leer.
@@ -4734,8 +4787,8 @@ function crDetalle(h, enVentana){
       </div>
       <div class="co-par">
         <div class="cr-hilo">
-          ${msgs.map(m => `<section class="co-msg ${m.sentido === 'enviado' ? 'cr-env' : ''}" aria-label="${m.sentido === 'enviado' ? 'Respuesta del equipo' : 'Correo recibido'}">
-            ${msgs.length > 1 || m.sentido === 'enviado' ? `<div class="co-msgt">${m.sentido === 'enviado' ? 'Respondió el equipo' : 'Recibido'}
+          ${msgs.map(m => `<section class="co-msg ${m.sentido === 'enviado' ? 'cr-env' : ''}" aria-label="${m.sentido === 'enviado' ? (m.agente ? 'Respuesta del agente' : 'Respuesta del equipo') : 'Correo recibido'}">
+            ${msgs.length > 1 || m.sentido === 'enviado' ? `<div class="co-msgt">${m.sentido === 'enviado' ? (m.agente ? 'Respondido por el agente' : 'Respondió el equipo') : 'Recibido'}
               <span class="co-msgq">${esc(crRemite(m.de).nombre)} · ${esc(crFecha(m.fecha))}</span></div>` : ''}
             ${crTextoMsg(m)}
             ${crAdjuntosMsg(m)}
@@ -4773,11 +4826,11 @@ function crDetalle(h, enVentana){
    · Idealista: se pega en su chat; al volver hay que decir si se respondió.
    · Solo en las conversaciones con h.activo (lo decide el servidor).
    ===================================================================== */
-const N8N_ENVIAR = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/enviar';
+const N8N_ENVIAR = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/envio';
 const crEnBorrador = () => (CO.real?.buzones || []).some(b => b.modo === 'borrador');
 const crUltimoDe = h => (h.mensajes || []).filter(m => m.sentido === 'recibido').pop() || {};
 CO.crEdit = {};      // borrador → texto que se está editando aquí
-CO.crEnvios = {};    // hilo → { t } mientras se puede deshacer, { enviando:true } después
+CO.crEnvios = {};    // hilo → { envio, slug, previo } mientras sale el que se ha pedido aquí
 const crTextoEdit = bo => CO.crEdit[bo.id] ?? crTextoCopiar(bo, false);
 
 function crRespuestaHTML(h){
@@ -4787,9 +4840,10 @@ function crRespuestaHTML(h){
   const ver = `<div class="co-orig">${coParrafos(crTextoEdit(bo))}</div>${crFirmaHTML()}${crFotos(bo)}`;
   const caja = x => `<section class="co-msg co-msgresp cr-hoja" aria-label="Respuesta propuesta">${x}</section>`;
   const nuevoCorreo = bo.mensaje_id && crUltimoDe(h).id && bo.mensaje_id !== crUltimoDe(h).id;
-  if (resp) return caja(cab('ya está respondido') + ver);
-  if (env) return caja(cab(env.enviando ? 'enviando…' : 'se envía en unos segundos') + ver);
-  if (bo.estado === 'enviando') return caja(cab('la está enviando ' + esc((bo.quien || 'otra persona').split('@')[0])) + ver);
+  if (resp) return caja(cab('ya está respondido') + (bo.estado === 'enviado' && bo.error ? `<div class="co-alerta">${esc(bo.error)}</div>` : '') + ver);
+  const deshacer = bo.envio && puede ? `<div class="cr-acc2"><button class="cbtn sec" type="button" data-cr="bo-deshacer" data-id="${id}" data-v="${esc(bo.envio)}">No enviar</button></div>` : '';
+  if (bo.estado === 'enviando' && bo.reintento) return caja(cab('se vuelve a intentar sola') + `<div class="co-alerta">El servidor de correo no la ha aceptado todavía. ${esc(bo.error || '')}</div>` + ver + deshacer);
+  if (env || bo.estado === 'enviando') return caja(cab(env || bo.quien === USUARIO_EMAIL ? 'enviando…' : 'la está enviando ' + esc((bo.quien || 'otra persona').split('@')[0])) + ver + deshacer);
   if (bo.estado === 'dudoso') return caja(cab('comprobar el envío') + `<div class="co-alerta">${esc(bo.error || 'No sabemos si este correo ha salido. Mirad en Enviados.')} Si salió, pulsa «Marcar como respondido».</div>` + ver);
   if (nuevoCorreo || bo.estado === 'sustituido') return caja(cab('la persona ha vuelto a escribir') + '<p class="co-para">El asistente está preparando otra respuesta.</p>');
   if (bo.estado === 'descartado') return caja(cab('descartada') + ver + (puede ? `<div class="cr-acc2"><button class="cbtn sec" type="button" data-cr="bo-descartar" data-id="${id}" data-v="">Recuperar</button></div>` : ''));
@@ -4823,7 +4877,7 @@ async function crBorradorDescartar(id, si, el){
   bo.estado = si ? 'descartado' : 'propuesto'; if (!si) bo.version++;
   crRepintar(); coAviso(si ? 'Descartada. Se quita también de Borradores.' : 'Recuperada.');
 }
-function crEnviarPedir(id){
+async function crEnviarPedir(id){
   const h = crHiloDe(id), bo = h?.borrador; if (!bo || CO.crEnvios[id]) return;
   if (!crPuede()) return coAviso('No puedes enviar en esta empresa.');
   const texto = crTextoEdit(bo).trim();
@@ -4831,11 +4885,51 @@ function crEnviarPedir(id){
   const pend = crEquipo(h);   // 25/11: lo que falta en la hoja está en Configuración › General
   if (pend.length && !bo.revisado && !confirm('Antes de enviarla, revisa esto:\n\n· ' + pend.join('\n· ') + '\n\n¿La envías así?')) return;
   if (bo.estado === 'editado' && !confirm('Alguien ha cambiado este borrador en su programa de correo. ¿Lo envías desde aquí de todas formas?')) return;
-  const envio = { slug: CO.real.slug, bo, texto, version: bo.version };
-  envio.t = setTimeout(() => crEnviarYa(id, envio), 10000);
-  CO.crEnvios[id] = envio;
+  // 25/11 (SQL 150): lo guarda el servidor y sale a los 10 s aunque se cierre la pestaña.
+  const slug = CO.real.slug;
+  CO.crEnvios[id] = {}; crRepintar(); crEnvioAviso(id, 'Preparando el envío…');
+  const fuera = txt => { delete CO.crEnvios[id]; crEnvioAviso(id, ''); if (txt){ crSonar('error'); coAviso(txt); } crRepintar(); crSondear(); };
+  let r, j;
+  try {
+    const { data } = await supabase.auth.getSession();
+    r = await fetch(N8N_ENVIAR, { method:'POST', headers:{ 'Authorization':'Bearer ' + (data?.session?.access_token || ''), 'Content-Type':'application/json' },
+      body: JSON.stringify({ borrador: bo.id, texto, version: bo.version }) });
+    j = await r.json().catch(() => ({}));
+  } catch { return fuera('Se ha cortado la conexión. Mira cómo queda este correo antes de volver a enviarlo.'); }
+  if (!r.ok || !j.envio) return fuera(r.status === 409 || r.status === 400 ? 'No se ha enviado. ' + (j.error || '') : 'No ha contestado el servidor. Mira cómo queda este correo antes de volver a enviarlo.');
+  const previo = bo.estado;
+  CO.crEnvios[id] = { envio: j.envio, slug, previo };
+  Object.assign(crHiloDe(id)?.borrador || bo, { estado:'enviando', envio: j.envio, reintento:false, error:null, quien: USUARIO_EMAIL });
   crRepintar();
   crEnvioAviso(id, `Se envía a ${crPersona(h).nombre} en 10 segundos`, true);
+  setTimeout(() => { if (CO.crEnvios[id]?.envio === j.envio){ crEnvioAviso(id, 'Enviando…'); crEnvioSeguir(id, j.envio); } }, Number(j.ms) || 10000);
+}
+async function crEnvioDeshacer(id, envio){
+  const { data, error } = await supabase.rpc('mt_correo_enviar_cancelar', { p_envio: envio });
+  if (error || !data?.ok){ crSonar('error'); return coAviso(error ? 'No se ha podido deshacer: ' + error.message : 'Ya no se puede deshacer: está saliendo.'); }
+  const bo = crHiloDe(id)?.borrador;
+  if (bo?.envio === envio) Object.assign(bo, { estado: CO.crEnvios[id]?.previo || 'propuesto', envio:null, reintento:false, error:null });
+  delete CO.crEnvios[id]; crEnvioAviso(id, ''); crRepintar(); coAviso('No se ha enviado.');
+}
+// Cómo va, cada segundo. Si se cierra la pestaña, el envío sigue en el servidor.
+async function crEnvioSeguir(id, envio){
+  let e = null;
+  for (let n = 0; n < 45; n++){
+    const { data } = await supabase.rpc('mt_correo_envio_estado', { p_envio: envio });
+    e = data; if (e && e.que !== 'enviando') break;
+    await new Promise(ok => setTimeout(ok, 1000));
+  }
+  const suyo = CO.crEnvios[id]?.envio === envio; if (!suyo) return;
+  delete CO.crEnvios[id]; crEnvioAviso(id, '');
+  const bo = crHiloDe(id)?.borrador, mio = bo?.envio === envio;
+  if (e?.que === 'enviado'){
+    if (mio){ Object.assign(bo, { estado:'enviado', enviado_en: e.enviado_en, enviado_como:'panel', envio:null, error:null, texto: CO.crEdit[bo.id] ?? bo.texto }); delete CO.crEdit[bo.id]; }
+    crSonar('hecho'); coAviso('Enviado.');
+  } else if (e?.que === 'reintento'){ if (mio) Object.assign(bo, { reintento:true, error: e.error }); crSonar('error'); coAviso('El servidor de correo no lo ha aceptado todavía. Se repite solo.'); }
+  else if (e?.que === 'no_enviado'){ if (mio) Object.assign(bo, { estado:'propuesto', envio:null, error: e.error, version: e.version }); crSonar('error'); coAviso(e.error || 'No se ha enviado.'); }
+  else if (e?.que === 'dudoso'){ if (mio) Object.assign(bo, { estado:'dudoso', envio:null, error: e.error }); crSonar('error'); coAviso(e.error || 'No sabemos si ha salido. Mirad en Enviados antes de repetirlo.'); }
+  else coAviso('Sigue en marcha: en un momento verás aquí cómo ha quedado.');
+  crRepintar(); crSondear();
 }
 function crEnvioAviso(id, txt, deshacer){
   let z = $('#crenvios'); if (!z){ z = document.createElement('div'); z.id = 'crenvios'; z.setAttribute('role', 'status'); document.body.append(z); }
@@ -4843,30 +4937,9 @@ function crEnvioAviso(id, txt, deshacer){
   if (!txt) return;
   const d = document.createElement('div'); d.dataset.e = id; d.className = 'cr-envio';
   d.innerHTML = `<span>${esc(txt)}</span>${deshacer ? '<button type="button">Deshacer</button>' : ''}`;
-  d.querySelector('button')?.addEventListener('click', () => { const x = CO.crEnvios[id]; if (!x?.t) return; clearTimeout(x.t); delete CO.crEnvios[id]; d.remove(); crRepintar(); coAviso('No se ha enviado.'); });
+  d.querySelector('button')?.addEventListener('click', () => { const x = CO.crEnvios[id]; if (x?.envio) crEnvioDeshacer(id, x.envio); });
   z.append(d);
 }
-async function crEnviarYa(id, envio){
-  // Si en esos 10 s se ha cerrado el candado o cambiado de empresa, no sale.
-  if (CO.real?.slug !== envio.slug || !crPuede()){ delete CO.crEnvios[id]; crEnvioAviso(id, ''); return coAviso('No se ha enviado: has cambiado de empresa o de modo.'); }
-  CO.crEnvios[id] = { enviando:true }; crRepintar(); crEnvioAviso(id, 'Enviando…');
-  let aviso = '', mal = true;
-  try {
-    const { data } = await supabase.auth.getSession();
-    const r = await fetch(N8N_ENVIAR, { method:'POST', headers:{ 'Authorization':'Bearer ' + (data?.session?.access_token || ''), 'Content-Type':'application/json' },
-      body: JSON.stringify({ borrador: envio.bo.id, texto: envio.texto, version: envio.version }) });
-    const j = await r.json().catch(() => ({}));
-    const h = crHiloDe(id), bo = h?.borrador?.id === envio.bo.id ? h.borrador : envio.bo;
-    if (r.ok && j.que === 'enviado'){
-      mal = false; aviso = j.aviso || 'Enviado.'; delete CO.crEdit[bo.id];
-      Object.assign(bo, { estado:'enviado', enviado_en: new Date().toISOString(), enviado_como:'panel', quien: USUARIO_EMAIL, texto: envio.texto, error:null });
-    } else if ((r.ok && j.que === 'no_enviado') || r.status === 409 || r.status === 400) aviso = 'No se ha enviado. ' + (j.error || '');
-    else { bo.estado = 'dudoso'; bo.error = j.error || null; aviso = 'No sabemos si ha salido. Mirad en Enviados antes de repetirlo.'; }
-  } catch { envio.bo.estado = 'dudoso'; aviso = 'Se ha cortado la conexión: mirad en Enviados antes de repetirlo.'; }
-  delete CO.crEnvios[id]; crEnvioAviso(id, '');
-  crSonar(mal ? 'error' : 'hecho'); crRepintar(); coAviso(aviso); crSondear();
-}
-addEventListener('beforeunload', e => { if (Object.keys(CO.crEnvios).length){ e.preventDefault(); e.returnValue = ''; } });
 document.addEventListener('input', e => { const b = e.target?.dataset?.crbo; if (b){ CO.crEdit[b] = e.target.value; e.target.parentNode.dataset.v = e.target.value; } });
 
 // ---------- Idealista: ¿se ha respondido? ----------
@@ -5459,6 +5532,7 @@ if (!window.__crOyentes){
     if (que === 'copiaryabrir') return crCopiarYAbrir(el.dataset.id, el.dataset.m);
     if (que === 'confresp') return crConfResponder(el.dataset.id, el.dataset.v, el);
     if (que === 'bo-enviar') return crEnviarPedir(el.dataset.id);
+    if (que === 'bo-deshacer') return crEnvioDeshacer(el.dataset.id, el.dataset.v);
     if (que === 'bo-guardar') return crBorradorGuardar(el.dataset.id, el);
     if (que === 'bo-descartar') return crBorradorDescartar(el.dataset.id, el.dataset.v === '1', el);
     if (que === 'atajos') return crAyudaAtajos();
