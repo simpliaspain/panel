@@ -2368,7 +2368,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-25f · Envío rápido guardado en el servidor; «Respondido por el agente»';
+const VERSION = '2026-11-25g · El correo no vibra: solo se cambia lo que ha cambiado';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -2722,7 +2722,8 @@ function tic30(){
   if (document.hidden) return;
   // Correo: se mira siempre, para que el número de la pestaña esté al día.
   // Solo cambia la lista: lo que se esté escribiendo no se toca.
-  if (TENANT && correoPermitido()) coRefrescar(false);
+  // 25/11: con datos reales lo hace crSondear (antes se recargaba y repintaba todo cada 20 s: la pantalla vibraba).
+  if (TENANT && correoPermitido() && !CO.real) coRefrescar(false);
   if ($('#modal').style.display === 'block') return;
   if (escribiendo()) return;
   // Si la carga anterior del Latido aún no ha vuelto, no se empieza
@@ -4200,6 +4201,52 @@ function crPintarMarcos(){
     div.append(f);
   });
 }
+/* Pintar sin vibrar (25/11): se compara lo que se pintó la última vez con lo
+   que toca ahora y solo se cambia lo distinto. El correo abierto (su marco y
+   sus fotos) y lo que se esté escribiendo no se tocan si no han cambiado. */
+CO.crFuente = null; CO.crRaiz = null;
+const CR_CLAVES = ['id', 'data-id', 'data-crmarco-de', 'data-crmarco', 'data-crtxt', 'data-cradj', 'data-cradja', 'data-crfoto', 'data-crbo', 'data-n', 'class'];
+function crPoner(html){
+  const caja = $('#vista'), t = document.createElement('template');
+  t.innerHTML = html.trim();
+  const nueva = t.content.firstElementChild, viva = caja.firstElementChild;
+  if (CO.crFuente && viva && viva === CO.crRaiz && caja.childElementCount === 1) crCambiar(viva, CO.crFuente, nueva);
+  else caja.replaceChildren(document.importNode(nueva, true));
+  CO.crFuente = nueva; CO.crRaiz = caja.firstElementChild;
+}
+function crCambiar(viva, antes, ahora){
+  if (antes.isEqualNode(ahora)) return;
+  const cambiar = () => viva.replaceWith(document.importNode(ahora, true));
+  if (antes.nodeType !== ahora.nodeType || viva.nodeType !== ahora.nodeType) return cambiar();
+  if (ahora.nodeType !== 1){ if (viva.nodeValue !== ahora.nodeValue) viva.nodeValue = ahora.nodeValue; return; }
+  if (viva.tagName !== ahora.tagName) return cambiar();
+  // Otro correo, otra fila u otra foto: no se aprovecha lo que había dentro.
+  for (const k of CR_CLAVES){
+    if (k === 'class' && !viva.matches('.co-msg,.cr-hoja,.cr-fotos,.co-par')) continue;
+    if (antes.getAttribute(k) !== ahora.getAttribute(k)) return cambiar();
+  }
+  const a = [...antes.childNodes], b = [...ahora.childNodes], v = [...viva.childNodes];
+  const iguales = a.length === b.length && a.every((x, i) => x.isEqualNode(b[i]));
+  if (!iguales && (a.length !== b.length || v.length !== a.length)){
+    // Cambia el número de piezas (una fila más, un aviso…): se conservan las que siguen igual.
+    if (v.length !== a.length) return cambiar();
+    const usadas = new Set(), nuevos = b.map(n => {
+      const i = a.findIndex((x, j) => !usadas.has(j) && x.isEqualNode(n));
+      if (i < 0) return document.importNode(n, true);
+      usadas.add(i); return v[i];
+    });
+    v.forEach((x, i) => { if (!usadas.has(i)) x.remove(); });
+    nuevos.forEach((x, i) => { if (viva.childNodes[i] !== x) viva.insertBefore(x, viva.childNodes[i] || null); });
+  } else if (!iguales) a.forEach((x, i) => crCambiar(v[i], x, b[i]));
+  for (const { name } of [...antes.attributes]) if (!ahora.hasAttribute(name)) viva.removeAttribute(name);
+  for (const { name, value } of [...ahora.attributes]) if (antes.getAttribute(name) !== value && viva.getAttribute(name) !== value) viva.setAttribute(name, value);
+  if (viva.matches('input,textarea,select,option')){
+    if (viva.type === 'checkbox') viva.checked = ahora.hasAttribute('checked');
+    else if (viva.tagName === 'TEXTAREA'){ if (viva.value !== ahora.defaultValue) viva.value = ahora.defaultValue; }
+    else if (viva.tagName === 'INPUT' && viva !== document.activeElement) viva.value = ahora.getAttribute('value') || '';
+    else if (viva.tagName === 'OPTION') viva.selected = ahora.hasAttribute('selected');
+  }
+}
 // Pide al buzón los correos que están en pantalla (uno a uno).
 async function crCargarTextos(){
   crPintarMarcos();
@@ -4220,10 +4267,11 @@ async function crCargarTextos(){
     CR_HTML.set(id, x);
     if (CR_HTML.size > 60) for (const [k, v] of CR_HTML){ if (CR_HTML.size <= 40) break; if (v && k !== id && !document.querySelector(`[data-crmarco="${CSS.escape(k)}"]`)) CR_HTML.delete(k); }
     const m = (CO.real?.hilos || []).flatMap(h => h.mensajes || []).find(y => y.id === id);
-    document.querySelectorAll(`[data-crtxt="${CSS.escape(id)}"]`).forEach(el => {
+    if (document.querySelector('#vista [data-crtxt]') && crVistaReal()) coPintarReal();
+    document.querySelectorAll(`#mbox [data-crtxt="${CSS.escape(id)}"]`).forEach(el => {
       const t = document.createElement('div'); t.innerHTML = crTextoMsg(m || { id }); el.replaceWith(...t.childNodes); });
     // Las imágenes que ya se ven dentro del correo no se repiten debajo.
-    (x.dentro || []).forEach(n => document.querySelectorAll(`img[data-cradj="${CSS.escape(id)}"][data-n="${n}"]`).forEach(y => y.closest('figure')?.remove()));
+    (x.dentro || []).forEach(n => document.querySelectorAll(`#mbox img[data-cradj="${CSS.escape(id)}"][data-n="${n}"]`).forEach(y => y.closest('figure')?.remove()));
     crPintarMarcos();
   }
 }
@@ -5033,7 +5081,7 @@ function crBandeja(){
         ${ideal ? crConfTira() : ''}
         <div class="co-lscroll ${crSelIds().length ? 'cr-haysel' : ''}" role="listbox" aria-label="${ideal ? 'Mensajes de idealista' : 'Correos'}">${crListaFilas()}</div>
       </div>
-      <div class="panel co-lector" aria-live="polite">${abierto ? crDetalle(abierto, false) : '<div class="vacio">Elige un correo para verlo aquí.</div>'}</div>
+      <div class="panel co-lector" aria-live="polite" data-crmarco-de="${esc(abierto?.id || '')}">${abierto ? crDetalle(abierto, false) : '<div class="vacio">Elige un correo para verlo aquí.</div>'}</div>
     </div>`;
 }
 
@@ -5159,7 +5207,7 @@ function crPintarIdealista(){
   const misma = CO.realPintadoTab === 'idealista', sitio = {};
   if (misma) for (const s of ['.co-lscroll', '.co-lector']){ const el = $(s); if (el) sitio[s] = el.scrollTop; }
   const ventanaY = scrollY;
-  $('#vista').innerHTML = `
+  crPoner(`
     <div class="correo co-real co-bandeja-v cr-ideal">
       <h2 class="tit">Idealista</h2>
       ${esSimplia() && !OP.activo ? `<div class="co-top">
@@ -5169,7 +5217,7 @@ function crPintarIdealista(){
         </div>
       </div>` : ''}
       <div id="cocuerpo" class="co-cuerpo">${crBandeja()}</div>
-    </div>`;
+    </div>`);
   if (misma) for (const [k, y] of Object.entries(sitio)){
     if (k === '.co-lector' && CO.realPintado !== CO.realAbierto) continue;
     const el = $(k); if (el) el.scrollTop = y;
@@ -5193,7 +5241,7 @@ function coPintarReal(){
   const ventanaY = scrollY;
   const hs = crHilos();
   const hoy = hs.filter(h => h.primer_recibido_en && new Date(h.primer_recibido_en).toDateString() === new Date().toDateString()).length;
-  $('#vista').innerHTML = `
+  crPoner(`
     <div class="correo co-real ${enBandeja ? 'co-bandeja-v' : ''}">
       <div class="co-top">
         <h2 class="tit">Correo</h2>
@@ -5211,7 +5259,7 @@ function coPintarReal(){
         </div>
       </div>
       <div id="cocuerpo" class="co-cuerpo">${enBandeja ? crBandeja() : crConfiguracion()}</div>
-    </div>`;
+    </div>`);
   if (misma){
     for (const [k, y] of Object.entries(sitio)){
       if (k === '.co-lector' && CO.realPintado !== CO.realAbierto) continue;   // otro correo: arriba
