@@ -194,7 +194,7 @@
       <button role="tab" data-v="integracion">Integración</button>
       <button role="tab" data-v="preguntas">Preguntas</button>
     </nav>
-    <div class="hder"><b>Documentación técnica</b>Noviembre de 2026</div>
+    <div class="hder"><b>Documentación técnica</b></div>
   </div>
 </header>
 
@@ -254,7 +254,7 @@
       </div>
       <div class="col">
         <span class="eti">Vuestro equipo</span>
-        <div class="nodo" data-n="kb"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Base de conocimiento</b><span>Una hoja de Google que edita vuestro equipo: centros, tarifas, reglas y disponibilidad.</span></div>
+        <div class="nodo" data-n="kb"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Base de conocimiento</b><span>Centros, tarifas, reglas y disponibilidad, donde vuestro equipo trabaje más cómodo: una hoja de Google o vuestras propias herramientas.</span></div>
         <div class="nodo" data-n="panel"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>Panel web</b><span>Aplicación web por HTTPS, con usuario y contraseña de cada persona.</span></div>
         <div class="nodo" data-n="avisos"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>Avisos</b><span>Por correo, enviados desde vuestro SMTP: contacto nuevo, visita reservada, alguien pide una persona.</span></div>
       </div>
@@ -265,7 +265,7 @@
       <button class="chip" data-caso="correo" aria-pressed="false">Correo entrante</button>
       <button class="chip" data-caso="idealista" aria-pressed="false">Consulta de Idealista</button>
       <button class="chip" data-caso="visita" aria-pressed="false">Reserva de visita</button>
-      <button class="chip" data-caso="conocimiento" aria-pressed="false">Cambio en la hoja</button>
+      <button class="chip" data-caso="conocimiento" aria-pressed="false">Cambio en vuestros datos</button>
     </div>
     <ol class="pasos" id="pasos"></ol>
     <p class="nota mt">Pasa el ratón por un paso (o tócalo) para ver qué piezas intervienen.</p>
@@ -282,7 +282,7 @@
           <tr><td>Modelos de IA</td><td data-c="Dónde">Proveedores de modelos por API empresarial</td><td data-c="Cómo se conecta">HTTPS, con claves y límite de gasto separados por cliente</td></tr>
           <tr><td>WhatsApp</td><td data-c="Dónde">Plataforma de WhatsApp Business de Meta, a través de un proveedor oficial</td><td data-c="Cómo se conecta">Webhook de entrada y API de envío, con la cuenta a nombre del cliente</td></tr>
           <tr><td>Envío y lectura de correo</td><td data-c="Dónde"><b>Vuestro servidor de correo</b></td><td data-c="Cómo se conecta">IMAP y SMTP sobre TLS con un usuario del buzón</td></tr>
-          <tr><td>Base de conocimiento</td><td data-c="Dónde">Vuestra hoja de Google</td><td data-c="Cómo se conecta">Lectura periódica; se valida antes de publicarla al agente</td></tr>
+          <tr><td>Base de conocimiento</td><td data-c="Dónde">Donde trabajéis: una hoja de Google, vuestro CRM, un Excel, documentos…</td><td data-c="Cómo se conecta">Lectura periódica o por API; se valida antes de publicarla al agente</td></tr>
           <tr><td>Panel web</td><td data-c="Dónde">Web estática servida por HTTPS</td><td data-c="Cómo se conecta">Usuario y contraseña de cada persona, por HTTPS</td></tr>
         </tbody>
       </table>
@@ -317,7 +317,7 @@
         <li><i>✓</i><span>Lee el buzón por <b>IMAP</b> y clasifica cada correo: nuevo cliente, cliente actual, proveedor, aviso, publicidad, personal, spam…</span></li>
         <li><i>✓</i><span>A los correos comerciales les prepara la respuesta con vuestra base de conocimiento, en el panel y en la carpeta <b>Borradores</b> de vuestro buzón.</span></li>
         <li><i>✓</i><span>Los envíos salen por <b>vuestro SMTP</b>, con vuestra firma y vuestro dominio, y quedan en vuestra carpeta de enviados.</span></li>
-        <li><i>✓</i><span>Lo que el agente no encuentra en la hoja queda apuntado como «información que falta», para completarla.</span></li>
+        <li><i>✓</i><span>Lo que el agente no encuentra en vuestra base de conocimiento queda apuntado como «información que falta», para completarla.</span></li>
       </ul>
       <div class="fases">
         <div class="fase"><span class="n">Fase 1</span><b>Aprende</b><span>Lee, clasifica y redacta sin tocar el buzón. Comparamos cada propuesta con lo que respondió vuestro equipo.</span></div>
@@ -348,6 +348,16 @@
       </ul>
     </div>
   </div>
+  <div class="panel canal mt">
+    <div class="cab"><div class="ico" style="background:var(--aire);color:var(--pulso-texto)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg></div>
+      <div><h3>Base de conocimiento, a vuestra manera</h3><span class="pill vd">Nos adaptamos</span></div></div>
+    <p class="ph" style="margin:0">Lo que necesita saber el agente (centros, tarifas, reglas, disponibilidad) puede vivir donde vuestro equipo trabaje más cómodo. Lo importante es que lo mantengáis sin esfuerzo y que la integración funcione.</p>
+    <ul class="lista">
+      <li><i>✓</i><span>Podemos trabajar con <b>una hoja de Google</b>: es fácil de editar y os la entregamos ya rellenada con los datos de vuestra web y portales.</span></li>
+      <li><i>✓</i><span>Si ya usáis otra herramienta, <b>nos conectamos a ella</b>: vuestro CRM o programa de reservas, un Excel, documentos o una API.</span></li>
+      <li><i>✓</i><span>Lo cambiáis vosotros, sin pedirnos nada, y el agente lo usa en pocos minutos.</span></li>
+    </ul>
+  </div>
 </section>
 
 <!-- ===================== IA ===================== -->
@@ -358,14 +368,14 @@
   </div>
   <div class="panel">
     <div class="capas">
-      <div class="capa"><div><h3>Conocimiento cerrado</h3><p>El agente responde con vuestra base de conocimiento, no con lo que «sabe» de internet. La hoja se valida antes de publicarse: si un cambio no se puede leer, el agente sigue con la última versión correcta. Lo que no encuentra lo dice, lo apunta como información que falta o pasa la conversación al equipo.</p></div></div>
+      <div class="capa"><div><h3>Conocimiento cerrado</h3><p>El agente responde con vuestra base de conocimiento, no con lo que «sabe» de internet. Los datos se validan antes de publicarse: si un cambio no se puede leer, el agente sigue con la última versión correcta. Lo que no encuentra lo dice, lo apunta como información que falta o pasa la conversación al equipo.</p></div></div>
       <div class="capa"><div><h3>Cambios controlados por personas</h3><p>Ningún proceso cambia por su cuenta las instrucciones ni la configuración del agente: los cambios los decide y revisa una persona, y se prueban con un número de pruebas antes de llegar a vuestros clientes.</p></div></div>
-      <div class="capa"><div><h3>Comprobaciones sin IA sobre la respuesta</h3><p>Antes de enviar, reglas deterministas revisan lo que ha escrito el modelo: precios que no están en la hoja, formato y datos que no debe pedir. Los enlaces de reserva no los escribe el modelo: escribe un marcador y el sistema pone el enlace firmado. Si una IA corrige un mensaje, la corrección se comprueba sin IA.</p></div></div>
+      <div class="capa"><div><h3>Comprobaciones sin IA sobre la respuesta</h3><p>Antes de enviar, reglas deterministas revisan lo que ha escrito el modelo: precios que no están en vuestra base de conocimiento, formato y datos que no debe pedir. Los enlaces de reserva no los escribe el modelo: escribe un marcador y el sistema pone el enlace firmado. Si una IA corrige un mensaje, la corrección se comprueba sin IA.</p></div></div>
       <div class="capa"><div><h3>Modelo de reserva y respuesta ante fallos</h3><p>Si el modelo principal falla o tarda demasiado, contesta un modelo de reserva de otro proveedor. Si fallan los dos, la persona recibe un mensaje de disculpa en lugar de silencio y se genera una alerta.</p></div></div>
       <div class="capa"><div><h3>Límites y control de entrada</h3><p>Eventos duplicados descartados, mensajes seguidos agrupados, tope diario por contacto y por empresa, y límite de gasto de IA por cliente. Así se evitan abusos, respuestas repetidas y costes descontrolados.</p></div></div>
       <div class="capa"><div><h3>Una persona cuando hace falta</h3><p>El agente pasa la conversación al equipo si la persona lo pide o si el caso está fuera de su alcance. En el correo marca lo que debe hacer el equipo («Para el equipo»), y si alguien del equipo interviene en WhatsApp, el agente se retira.</p></div></div>
       <div class="capa"><div><h3>Autonomía que se gana</h3><p>En el correo la autonomía va por fases: primero se compara cada propuesta con la respuesta real de vuestro equipo; solo cuando la calidad es buena se pasa a borradores y, después, al envío automático de los tipos de correo que elijáis.</p></div></div>
-      <div class="capa"><div><h3>Medición y vigilancia</h3><p>Cada ejecución queda registrada (duración, resultado y errores). Se vigilan de forma continua el número de WhatsApp, la sincronización de la hoja, los envíos fallidos, las reservas rechazadas y los contactos atascados, y un latido externo avisa si la propia vigilancia se detiene.</p></div></div>
+      <div class="capa"><div><h3>Medición y vigilancia</h3><p>Cada ejecución queda registrada (duración, resultado y errores). Se vigilan de forma continua el número de WhatsApp, la sincronización de la base de conocimiento, los envíos fallidos, las reservas rechazadas y los contactos atascados, y un latido externo avisa si la propia vigilancia se detiene.</p></div></div>
       <div class="capa"><div><h3>Transparencia</h3><p>El agente se presenta como asistente automático en el primer mensaje (Reglamento europeo de IA) y no confirma quién es cliente ni da datos de ningún cliente.</p></div></div>
     </div>
   </div>
@@ -385,7 +395,7 @@
         <li><i>✓</i><span><b>Multiempresa con los datos separados</b>: cada empresa solo ve los suyos.</span></li>
         <li><i>✓</i><span><b>Datos que salen de la UE:</b> para redactar cada respuesta, el texto de la conversación se envía a los proveedores de modelos de IA, que tienen su sede en <b>Estados Unidos</b>. Es una transferencia internacional de datos, cubierta con las garantías del RGPD: las cláusulas contractuales tipo de la Comisión Europea incluidas en sus acuerdos de tratamiento de datos.</span></li>
         <li><i>✓</i><span>Esos proveedores no usan los datos para entrenar sus modelos. Lo que guardamos nosotros (conversaciones, contactos, citas) se queda en la UE.</span></li>
-        <li><i>✓</i><span>Meta (WhatsApp) y Google (la hoja) tratan los datos según sus propias condiciones, que acepta vuestra empresa al usar sus servicios.</span></li>
+        <li><i>✓</i><span>Meta (WhatsApp) y, si los usáis, servicios como Google tratan los datos según sus propias condiciones, que acepta vuestra empresa al usarlos.</span></li>
       </ul>
     </div>
     <div class="panel">
@@ -440,7 +450,7 @@
         <tr><td>Correo</td><td data-c="Qué necesitamos">El buzón comercial: servidor IMAP y SMTP, puertos con TLS, usuario y qué carpetas leer.</td><td data-c="Cómo se entrega">La contraseña (mejor una contraseña de aplicación, revocable) la escribís vosotros en el panel. Se guarda cifrada.</td></tr>
         <tr><td>Dominio del correo</td><td data-c="Qué necesitamos">SPF, DKIM y DMARC del dominio en orden, porque los envíos salen de vuestro servidor.</td><td data-c="Cómo se entrega">Lo revisamos juntos. Si vuestro servidor limita por IP, os damos la de salida.</td></tr>
         <tr><td>Calendario</td><td data-c="Qué necesitamos">Qué calendario usáis en cada centro o sede (Google Calendar, Microsoft 365…) o vuestro sistema de reservas.</td><td data-c="Cómo se entrega">Conectamos vuestro Google Calendar o Microsoft 365 con una autorización desde vuestra cuenta, sin contraseñas. Si lo preferís, creamos uno nuevo.</td></tr>
-        <tr><td>Base de conocimiento</td><td data-c="Qué necesitamos">Revisar y completar la hoja que os preparamos con los datos de vuestra web y portales.</td><td data-c="Cómo se entrega">La hoja es vuestra; nos dais acceso de lectura.</td></tr>
+        <tr><td>Base de conocimiento</td><td data-c="Qué necesitamos">Centros, tarifas, reglas y disponibilidad. Os la preparamos con los datos de vuestra web y portales, y la revisáis.</td><td data-c="Cómo se entrega">Como os resulte más cómodo: podemos trabajar con una hoja de Google, pero nos adaptamos a vuestro CRM, programa de reservas, Excel o documentos. Solo necesitamos acceso de lectura.</td></tr>
         <tr><td>Panel</td><td data-c="Qué necesitamos">El correo de cada persona que vaya a usarlo y quién es administrador.</td><td data-c="Cómo se entrega">Cada persona recibe una invitación y crea su contraseña.</td></tr>
         <tr><td>Contacto técnico</td><td data-c="Qué necesitamos">Una persona de vuestro equipo para la puesta en marcha y para incidencias.</td><td data-c="Cómo se entrega">Nombre y correo.</td></tr>
       </tbody>
@@ -462,20 +472,20 @@
     <h2 class="tit">Preguntas frecuentes</h2>
     <p class="sub">Lo que suele preguntar un equipo técnico.</p>
   </div>
-  <details class="pq"><summary>¿Hay que instalar algo o abrir puertos?</summary><p>No hay que instalar nada en vuestros equipos ni abrir accesos entrantes a vuestra red. Nos conectamos a servicios que ya usáis: WhatsApp a través de Meta, vuestro servidor de correo por IMAP y SMTP, vuestro calendario y una hoja de Google. El panel es una web.</p></details>
+  <details class="pq"><summary>¿Hay que instalar algo o abrir puertos?</summary><p>No hay que instalar nada en vuestros equipos ni abrir accesos entrantes a vuestra red. Nos conectamos a servicios que ya usáis: WhatsApp a través de Meta, vuestro servidor de correo por IMAP y SMTP, vuestro calendario y vuestros datos, estén donde estén. El panel es una web.</p></details>
   <details class="pq"><summary>¿Por qué el correo sale de nuestro servidor?</summary><p>Porque es lo mejor para vosotros: los correos salen de vuestro dominio, con vuestra autenticación (SPF, DKIM y DMARC), quedan en vuestra carpeta de enviados y no dependen de la reputación ni de la capacidad de un servidor ajeno.</p></details>
   <details class="pq"><summary>¿Qué permisos necesita sobre el buzón?</summary><p>Los de un usuario normal del buzón por IMAP y SMTP: leer la bandeja de entrada y los enviados, dejar borradores, ordenar carpetas si lo activáis y enviar. Recomendamos una contraseña de aplicación, que podéis revocar en cualquier momento.</p></details>
   <details class="pq"><summary>¿Perdemos la app de WhatsApp Business?</summary><p>No. Con la coexistencia, el número queda conectado a la API oficial de Meta y el equipo sigue usando la app. Si alguien del equipo escribe a un contacto, el agente se retira de esa conversación.</p></details>
   <details class="pq"><summary>¿La IA se entrena con nuestras conversaciones? ¿Salen datos de la UE?</summary><p>No se entrena con ellas: usamos los modelos por API empresarial, cuyos términos excluyen el entrenamiento con los datos enviados. Y sí salen datos de la UE: para redactar cada respuesta, el texto de la conversación va a proveedores de IA con sede en Estados Unidos, con las cláusulas contractuales tipo de la Comisión Europea. Lo que guardamos nosotros se queda en la UE.</p></details>
   <details class="pq"><summary>¿Qué pasa si la IA se equivoca o no está disponible?</summary><p>Las respuestas pasan por comprobaciones sin IA antes de enviarse. Si el modelo principal falla, responde uno de reserva de otro proveedor; si fallan los dos, la persona recibe una disculpa y se genera una alerta. En el correo, la autonomía va por fases y la decidís vosotros.</p></details>
-  <details class="pq"><summary>Si cambiamos un precio en la hoja, ¿cuándo lo usa el agente?</summary><p>En pocos minutos, sin pedirnos nada. Si el cambio no se puede leer, el agente sigue con la última versión correcta.</p></details>
+  <details class="pq"><summary>Si cambiamos un precio, ¿cuándo lo usa el agente?</summary><p>En pocos minutos, sin pedirnos nada. Si el cambio no se puede leer, el agente sigue con la última versión correcta.</p></details>
   <details class="pq"><summary>¿Se puede conectar con nuestro CRM o sistema de reservas?</summary><p>Sí, si tiene API. Lo estudiamos en cada caso: disponibilidad de despachos, reservas o alta de contactos.</p></details>
-  <details class="pq"><summary>¿Hay permanencia? ¿De quién son los datos?</summary><p>No hay permanencia: basta con avisar con 30 días. Los datos, la cuenta de WhatsApp, el buzón y la hoja son vuestros.</p></details>
+  <details class="pq"><summary>¿Hay permanencia? ¿De quién son los datos?</summary><p>No hay permanencia: basta con avisar con 30 días. Los datos, la cuenta de WhatsApp, el buzón y vuestra base de conocimiento son vuestros.</p></details>
 </section>
 </main>
 
 <footer>
-  <span>SimpliaSpain · Documentación técnica · Noviembre de 2026 · Contacto técnico: <a href="mailto:sergio@simpliaspain.com">sergio@simpliaspain.com</a></span>
+  <span>SimpliaSpain · Documentación técnica · Contacto técnico: <a href="mailto:sergio@simpliaspain.com">sergio@simpliaspain.com</a></span>
   <a href="https://www.simpliaspain.com" target="_blank" rel="noopener">www.simpliaspain.com</a>
 </footer>
 
@@ -534,8 +544,8 @@
       ['Recordatorio', 'Antes de la visita se envía un recordatorio por WhatsApp.', ['orq', 'wa']]
     ],
     conocimiento: [
-      ['Edición', 'Vuestro equipo cambia un precio, un horario o una regla en la hoja.', ['kb']],
-      ['Lectura periódica', 'La hoja de cada empresa se lee periódicamente.', ['orq', 'kb']],
+      ['Edición', 'Vuestro equipo cambia un precio, un horario o una regla donde trabaja: la hoja, el CRM, el Excel…', ['kb']],
+      ['Lectura', 'Los datos de cada empresa se leen periódicamente o por API.', ['orq', 'kb']],
       ['Validación', 'Si el contenido no es válido o no ha cambiado, no se publica: el agente sigue con la versión anterior.', ['orq']],
       ['Publicación', 'La versión validada pasa a la caché que lee el agente en cada respuesta.', ['cola', 'ia']]
     ]
