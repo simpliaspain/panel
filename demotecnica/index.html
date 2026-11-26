@@ -138,13 +138,11 @@
   .nunca .lista li i{color:#FDA29B}
 
   /* ---------- Preguntas ---------- */
-  details.pq{border:1px solid var(--linea);border-radius:14px;background:var(--blanco);padding:0 16px}
-  details.pq+details.pq{margin-top:10px}
-  details.pq summary{list-style:none;cursor:pointer;padding:15px 28px 15px 0;font-weight:700;font-size:15px;position:relative}
-  details.pq summary::-webkit-details-marker{display:none}
-  details.pq summary::after{content:"";position:absolute;right:4px;top:50%;width:9px;height:9px;border-right:2px solid var(--gris);border-bottom:2px solid var(--gris);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
-  details.pq[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
-  details.pq p{padding:0 0 16px;color:var(--tinta-suave);font-size:14.5px}
+  .contacto{text-align:center;padding:64px 32px}
+  .contacto h2{font-size:40px;font-weight:800;letter-spacing:-.02em;color:#fff}
+  .contacto p{font-size:18px;margin:14px auto 0;max-width:560px}
+  .contacto .boton{display:inline-block;margin-top:28px;padding:16px 28px;border-radius:14px;background:#fff;color:var(--profundo);font-weight:800;font-size:20px;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.18);transition:transform .15s,box-shadow .15s}
+  .contacto .boton:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(0,0,0,.22)}
 
   footer{max-width:1200px;margin:0 auto;padding:0 24px 40px;color:var(--gris);font-size:12.5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   footer a{color:var(--gris)}
@@ -159,6 +157,10 @@
     .mapa .centro{grid-column:1/-1}
   }
   @media (max-width:720px){
+    .contacto{padding:44px 20px}
+    .contacto h2{font-size:30px}
+    .contacto p{font-size:16px}
+    .contacto .boton{font-size:17px;padding:14px 20px;max-width:100%;overflow-wrap:anywhere}
     .hcab{padding:10px 16px 0}
     nav{margin:0 -16px;padding:0 6px}
     main{padding:20px 16px 48px}
@@ -320,7 +322,7 @@
       <ul class="lista">
         <li><i>✓</i><span>Lee el buzón por <b>IMAP</b> y clasifica cada correo: nuevo cliente, cliente actual, proveedor, aviso, publicidad, personal, spam…</span></li>
         <li><i>✓</i><span>A los correos comerciales les prepara la respuesta con vuestra base de conocimiento, en el panel y en la carpeta <b>Borradores</b> de vuestro buzón.</span></li>
-        <li><i>✓</i><span>Los envíos salen por <b>vuestro SMTP</b>, con vuestra firma y vuestro dominio, y quedan en vuestra carpeta de enviados.</span></li>
+        <li><i>✓</i><span>Los envíos salen por <b>vuestro SMTP</b>, con vuestra firma y vuestro dominio, y quedan en vuestra carpeta de enviados. Es lo mejor para vosotros: van autenticados con vuestro SPF, DKIM y DMARC y no dependen de la reputación ni de la capacidad de un servidor ajeno.</span></li>
         <li><i>✓</i><span>Lo que el agente no encuentra en vuestra base de conocimiento queda apuntado como «información que falta», para completarla.</span></li>
       </ul>
       <div class="fases">
@@ -472,19 +474,11 @@
 
 <!-- ===================== PREGUNTAS ===================== -->
 <section class="vista" id="v-preguntas" role="tabpanel" aria-labelledby="t-preguntas">
-  <div class="vcab">
-    <h2 class="tit">Preguntas frecuentes</h2>
-    <p class="sub">Lo que suele preguntar un equipo técnico.</p>
+  <div class="panel heroe contacto">
+    <h2>¿Tenéis más preguntas?</h2>
+    <p>Estamos encantados de responderlas. Escribidnos y os contestamos con todo el detalle que necesitéis.</p>
+    <a class="boton" href="mailto:sergio@simpliaspain.com">sergio@simpliaspain.com</a>
   </div>
-  <details class="pq"><summary>¿Hay que instalar algo o abrir puertos?</summary><p>No hay que instalar nada en vuestros equipos ni abrir accesos entrantes a vuestra red. Nos conectamos a servicios que ya usáis: WhatsApp a través de Meta, vuestro servidor de correo por IMAP y SMTP, vuestro calendario y vuestros datos, estén donde estén. El panel es una web.</p></details>
-  <details class="pq"><summary>¿Por qué el correo sale de nuestro servidor?</summary><p>Porque es lo mejor para vosotros: los correos salen de vuestro dominio, con vuestra autenticación (SPF, DKIM y DMARC), quedan en vuestra carpeta de enviados y no dependen de la reputación ni de la capacidad de un servidor ajeno.</p></details>
-  <details class="pq"><summary>¿Qué permisos necesita sobre el buzón?</summary><p>Los de un usuario normal del buzón por IMAP y SMTP: leer la bandeja de entrada y los enviados, dejar borradores, ordenar carpetas si lo activáis y enviar. Recomendamos una contraseña de aplicación, que podéis revocar en cualquier momento.</p></details>
-  <details class="pq"><summary>¿Perdemos la app de WhatsApp Business?</summary><p>No. Con la coexistencia, el número queda conectado a la API oficial de Meta y el equipo sigue usando la app. Si alguien del equipo escribe a un contacto, el agente se retira de esa conversación.</p></details>
-  <details class="pq"><summary>¿La IA se entrena con nuestras conversaciones? ¿Salen datos de la UE?</summary><p>No se entrena con ellas: usamos los modelos por API empresarial, cuyos términos excluyen el entrenamiento con los datos enviados. Y sí salen datos de la UE: para redactar cada respuesta, el texto de la conversación va a proveedores de IA con sede en Estados Unidos, con las cláusulas contractuales tipo de la Comisión Europea. Lo que guardamos nosotros se queda en la UE.</p></details>
-  <details class="pq"><summary>¿Qué pasa si la IA se equivoca o no está disponible?</summary><p>Las respuestas pasan por comprobaciones sin IA antes de enviarse. Si el modelo principal falla, responde uno de reserva de otro proveedor; si fallan los dos, la persona recibe una disculpa y se genera una alerta. En el correo, la autonomía va por fases y la decidís vosotros.</p></details>
-  <details class="pq"><summary>Si cambiamos un precio, ¿cuándo lo usa el agente?</summary><p>En pocos minutos, sin pedirnos nada. Si el cambio no se puede leer, el agente sigue con la última versión correcta.</p></details>
-  <details class="pq"><summary>¿Se puede conectar con nuestro CRM o sistema de reservas?</summary><p>Sí, si tiene API. Lo estudiamos en cada caso: disponibilidad de despachos, reservas o alta de contactos.</p></details>
-  <details class="pq"><summary>¿Hay permanencia? ¿De quién son los datos?</summary><p>No hay permanencia: basta con avisar con 30 días. Los datos, la cuenta de WhatsApp, el buzón y vuestra base de conocimiento son vuestros.</p></details>
 </section>
 </main>
 
