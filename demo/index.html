@@ -2825,7 +2825,7 @@ function irA(v){
 
    Solo para ver cómo quedaría. Todo son datos de ejemplo en memoria:
    no llama a Supabase ni a n8n, y lo que se cambia se pierde al
-   recargar. Los correos reales de prueba (hola@oficinasya.es)
+   recargar. Los correos reales de prueba (hola@coworkingdemo.es)
    sustituirán a estos.
    ============================================================ */
 // La firma ya no va dentro del texto: la pone la firma de la empresa (Ajustes).
@@ -2833,10 +2833,10 @@ const FIRMA_OYA = '';
 const CO = {
   tab: 'bandeja', carpeta: '_revisar', modo: 'revision', sig: 100, enlazado: false,
   buzones: [
-    { email:'hola@oficinasya.es', proveedor:'Dinahosting', estado:'conectado', leido:'hace 1 min', carpetasEnBuzon:true, modo:'revision' },
-    { email:'reservas@oficinasya.es', proveedor:'Dinahosting', estado:'conectado', leido:'hace 1 min', carpetasEnBuzon:false, modo:'prueba' }
+    { email:'hola@coworkingdemo.es', proveedor:'MailNube', estado:'conectado', leido:'hace 1 min', carpetasEnBuzon:true, modo:'revision' },
+    { email:'reservas@coworkingdemo.es', proveedor:'MailNube', estado:'conectado', leido:'hace 1 min', carpetasEnBuzon:false, modo:'prueba' }
   ],
-  sel: new Set(['hola@oficinasya.es', 'reservas@oficinasya.es']), abierto: null, pop: false,
+  sel: new Set(['hola@coworkingdemo.es', 'reservas@coworkingdemo.es']), abierto: null, pop: false,
   carpetas: [
     { id:'comerciales', nombre:'Nuevos clientes', responde:true, fija:true,
       que:'Personas o empresas que preguntan por un despacho, puesto, sala de reuniones, oficina virtual o domiciliación: precios, disponibilidad, visitas o presupuestos. También los avisos de portales (idealista, Fotocasa…) con los datos de un interesado.',
@@ -2857,12 +2857,12 @@ const CO = {
       que:'Lo que el asistente no tiene claro o parece sospechoso (por ejemplo, correos que piden contraseñas).', remitente:'', asunto:'' }
   ],
   docs: [
-    { id:1, nombre:'Tarifas IBC Velázquez 2026.pdf', tipo:'pdf', kb:412, centro:'IBC Velázquez', auto:true, usos:14, subido:'28 oct',
-      cuando:'Cuando pregunten precios o qué incluye un despacho en IBC Velázquez.' },
+    { id:1, nombre:'Tarifas Castellana 120 2026.pdf', tipo:'pdf', kb:412, centro:'Castellana 120', auto:true, usos:14, subido:'28 oct',
+      cuando:'Cuando pregunten precios o qué incluye un despacho en Castellana 120.' },
     { id:2, nombre:'Oficina virtual · condiciones.pdf', tipo:'pdf', kb:180, centro:'Todos', auto:true, usos:9, subido:'28 oct',
       cuando:'Cuando pregunten por oficina virtual o domiciliación de empresa, en cualquier centro.' },
-    { id:3, nombre:'Fotos IBC Capitán Haya.pdf', tipo:'pdf', kb:2150, centro:'IBC Capitán Haya', auto:false, usos:3, subido:'30 oct',
-      cuando:'Cuando pidan fotos o quieran ver cómo es IBC Capitán Haya.' },
+    { id:3, nombre:'Fotos Chamberí.pdf', tipo:'pdf', kb:2150, centro:'Chamberí', auto:false, usos:3, subido:'30 oct',
+      cuando:'Cuando pidan fotos o quieran ver cómo es Chamberí.' },
     { id:4, nombre:'Plano salas de reuniones.png', tipo:'img', kb:640, centro:'Todos', auto:true, usos:2, subido:'2 nov',
       cuando:'Cuando pregunten por salas de reuniones y cuántas personas caben.' },
     { id:5, nombre:'Contrato tipo despacho.docx', tipo:'doc', kb:95, centro:'Todos', auto:false, usos:0, subido:'4 nov',
@@ -2875,15 +2875,15 @@ Correos cortos: 3 o 4 párrafos de 1-2 frases. Sin emojis.
 Dais el precio «al mes + IVA» y decís qué incluye en una frase.
 Termináis proponiendo la visita con el enlace de reserva.
 Despedida: «Un saludo,» y la firma del equipo comercial.`,
-  firma: { modo:'sencilla', logo:'', nombre:'Equipo comercial', empresa:'Oficinas YA!', web:'oficinasya.es',
+  firma: { modo:'sencilla', logo:'', nombre:'Equipo comercial', empresa:'Coworking Demo', web:'coworkingdemo.es',
            telefono:'', html:'' },
   correos: [
     { id:1, carpeta:'comerciales', estado:'borrador', nuevo:true, de:'Lucía Fernández', email:'lucia.fernandez@estudiolf.es',
-      asunto:'Despacho para 3 personas en Velázquez', hora:'hace 12 min', seguro:97,
-      motivo:'Pide precio y disponibilidad de un despacho para 3 personas en IBC Velázquez y quiere visitarlo.',
+      asunto:'Despacho para 3 personas en Castellana', hora:'hace 12 min', seguro:97,
+      motivo:'Pide precio y disponibilidad de un despacho para 3 personas en Castellana 120 y quiere visitarlo.',
       cuerpo:`Hola,
 
-Somos un estudio de arquitectura de 3 personas y buscamos un despacho cerrado por la zona de Velázquez a partir de enero. ¿Tenéis algo disponible? ¿Qué precio tendría y qué incluye?
+Somos un estudio de arquitectura de 3 personas y buscamos un despacho cerrado por la zona de Castellana a partir de enero. ¿Tenéis algo disponible? ¿Qué precio tendría y qué incluye?
 
 Si es posible, nos gustaría verlo la semana que viene. Os adjunto un resumen de lo que necesitamos.
 
@@ -2892,37 +2892,37 @@ Lucía Fernández
 Estudio LF`,
       respuesta:`Buenos días, Lucía:
 
-Gracias por escribirnos. En IBC Velázquez tenemos un despacho exterior para 3 personas, de 14 m², libre desde el 1 de enero.
+Gracias por escribirnos. En Castellana 120 tenemos un despacho exterior para 3 personas, de 14 m², libre desde el 1 de enero.
 
 El precio es de 1.150 € al mes + IVA e incluye mobiliario, limpieza, internet de fibra, recepción y salas de reuniones por horas. Le adjunto fotos del despacho y las tarifas del centro.
 
-Si quieren verlo la semana que viene, pueden elegir día y hora aquí: reservas.simpliaspain.com/oficinasya/velazquez
+Si quieren verlo la semana que viene, pueden elegir día y hora aquí: reservas.simpliaspain.com/demo/visita-castellana
 
 Un saludo,
 ${FIRMA_OYA}`,
       adjuntos:[1], fotos:['VE-14 · 1.jpg', 'VE-14 · 2.jpg', 'VE-14 · 3.jpg'],
-      fuentes:['Fotos del despacho VE-14 (vuestra carpeta de Drive, las mismas que manda Laura)',
-               'Vuestra información de IBC Velázquez (despachos, precios y servicios)',
+      fuentes:['Fotos del despacho VE-14 (vuestra carpeta de Drive, las mismas que manda el asistente)',
+               'Vuestra información de Castellana 120 (despachos, precios y servicios)',
                'Catálogo de despachos: VE-14, libre desde el 01/01',
-               'Documento «Tarifas IBC Velázquez 2026» (cuándo usarlo: precios de Velázquez)'] },
+               'Documento «Tarifas Castellana 120 2026» (cuándo usarlo: precios de Castellana)'] },
     { id:2, carpeta:'comerciales', estado:'borrador', nuevo:true, de:'idealista', email:'noreply@idealista.com',
-      responderA:'marcos.ruiz@gmail.com', asunto:'Nuevo contacto por tu anuncio: Oficina en Capitán Haya', hora:'hace 38 min', seguro:94,
+      responderA:'marcos.ruiz@gmail.com', asunto:'Nuevo contacto por tu anuncio: Oficina en Chamberí', hora:'hace 38 min', seguro:94,
       motivo:'Aviso de un portal con un interesado (Marcos Ruiz, 6 personas). La respuesta va a su correo, no al portal.',
-      cuerpo:`Marcos Ruiz te ha enviado un mensaje sobre tu anuncio «Oficina en Capitán Haya»:
+      cuerpo:`Marcos Ruiz te ha enviado un mensaje sobre tu anuncio «Oficina en Chamberí»:
 
 «Buenas tardes, me interesa la oficina. ¿Sigue disponible? Seríamos 6 personas.»
 
 Email: marcos.ruiz@gmail.com`,
       respuesta:`Buenas tardes, Marcos:
 
-Gracias por su interés en la oficina de IBC Capitán Haya que ha visto en idealista. Para 6 personas tenemos libre un despacho de 28 m² con luz natural, por 2.100 € al mes + IVA con todos los servicios incluidos.
+Gracias por su interés en la oficina de Chamberí que ha visto en idealista. Para 6 personas tenemos libre un despacho de 28 m² con luz natural, por 2.100 € al mes + IVA con todos los servicios incluidos.
 
-Le adjunto fotos del despacho. Si quiere verlo, puede reservar la visita aquí: reservas.simpliaspain.com/oficinasya/capitan-haya
+Le adjunto fotos del despacho. Si quiere verlo, puede reservar la visita aquí: reservas.simpliaspain.com/demo/visita-chamberi
 
 Un saludo,
 ${FIRMA_OYA}`,
       adjuntos:[], fotos:['CH-28 · 1.jpg', 'CH-28 · 2.jpg'],
-      fuentes:['Vuestra información de IBC Capitán Haya', 'Catálogo de despachos: CH-28, libre',
+      fuentes:['Vuestra información de Chamberí', 'Catálogo de despachos: CH-28, libre',
                'Fotos del despacho CH-28 (vuestra carpeta de Drive)'] },
     { id:3, carpeta:'comerciales', estado:'borrador', nuevo:false, de:'James Miller', email:'james@millerconsulting.co.uk',
       asunto:'Virtual office in Madrid', hora:'hace 1 h', seguro:96,
@@ -2935,7 +2935,7 @@ Thanks,
 James`,
       respuesta:`Good morning James,
 
-Thank you for getting in touch. Our virtual office gives you a business address at IBC Velázquez (Madrid), mail handling and access to meeting rooms by the hour, for 59 € per month + VAT.
+Thank you for getting in touch. Our virtual office gives you a business address at Castellana 120 (Madrid), mail handling and access to meeting rooms by the hour, for 59 € per month + VAT.
 
 I've attached the full conditions. If you'd like to go ahead, just reply to this email and a colleague will send you the contract.
 
@@ -2943,44 +2943,44 @@ Kind regards,`,
       adjuntos:[2],
       fuentes:['Vuestra información: oficina virtual', 'Documento «Oficina virtual · condiciones»'] },
     { id:4, carpeta:'comerciales', estado:'borrador', nuevo:false, de:'Antonio Gil', email:'agil@transportesgil.es',
-      asunto:'¿Tenéis parking para furgoneta en La Florida?', hora:'hace 2 h', seguro:88,
-      alerta:'No está en vuestra información si hay parking para furgonetas en La Florida. El borrador no se lo inventa: dice que un compañero lo confirma. Aunque el modo fuera automático, este correo se quedaría para revisar.',
-      motivo:'Quiere un despacho en La Florida (Pozuelo) y pregunta por parking para una furgoneta.',
+      asunto:'¿Tenéis parking para furgoneta en Arganzuela?', hora:'hace 2 h', seguro:88,
+      alerta:'No está en vuestra información si hay parking para furgonetas en Arganzuela. El borrador no se lo inventa: dice que un compañero lo confirma. Aunque el modo fuera automático, este correo se quedaría para revisar.',
+      motivo:'Quiere un despacho en Arganzuela y pregunta por parking para una furgoneta.',
       cuerpo:`Buenos días,
 
-Busco un despacho pequeño en La Florida para 2 personas. Lo importante es que tengamos sitio para dejar una furgoneta de reparto. ¿Es posible?
+Busco un despacho pequeño en Arganzuela para 2 personas. Lo importante es que tengamos sitio para dejar una furgoneta de reparto. ¿Es posible?
 
 Antonio Gil
 Transportes Gil`,
       respuesta:`Buenos días, Antonio:
 
-Gracias por escribirnos. En La Florida (Pozuelo) tenemos despachos para 2 personas desde 520 € al mes + IVA.
+Gracias por escribirnos. En Arganzuela tenemos despachos para 2 personas desde 520 € al mes + IVA.
 
 Sobre el sitio para la furgoneta, se lo confirma hoy mismo un compañero del centro.
 
-Si quiere ver los despachos mientras tanto, puede reservar la visita aquí: reservas.simpliaspain.com/oficinasya/la-florida
+Si quiere ver los despachos mientras tanto, puede reservar la visita aquí: reservas.simpliaspain.com/demo/visita-mendez
 
 Un saludo,
 ${FIRMA_OYA}`,
       adjuntos:[],
-      fuentes:['Vuestra información de La Florida (despachos y precios)', 'Parking para furgonetas: no aparece → «un compañero lo confirma»'] },
+      fuentes:['Vuestra información de Arganzuela (despachos y precios)', 'Parking para furgonetas: no aparece → «un compañero lo confirma»'] },
     { id:5, carpeta:'comerciales', estado:'enviado', nuevo:false, de:'Elena Ruiz', email:'elena.ruiz@outlook.es',
       asunto:'Puesto fijo en el coworking', hora:'hoy, 9:02', seguro:98,
       motivo:'Pide precio de un puesto fijo de coworking.', desdeCorreo:true,
-      enviadoPor:'Enviada desde Outlook por roberto@oficinasya.es · 9:14 · con un cambio en el borrador',
+      enviadoPor:'Enviada desde Outlook por andrea@coworkingdemo.es · 9:14 · con un cambio en el borrador',
       cuerpo:`Hola, ¿cuánto cuesta un puesto fijo en el coworking? Trabajo sola y necesitaría de lunes a viernes. Gracias.`,
       respuesta:`Buenos días, Elena:
 
 Gracias por escribirnos. Un puesto fijo en nuestro coworking cuesta 220 € al mes + IVA, de lunes a viernes, con internet, café y salas de reuniones por horas.
 
-Si quiere verlo antes, puede reservar la visita aquí: reservas.simpliaspain.com/oficinasya
+Si quiere verlo antes, puede reservar la visita aquí: reservas.simpliaspain.com/demo
 
 Un saludo,
 ${FIRMA_OYA}`,
       adjuntos:[], fuentes:['Vuestra información: coworking'] },
     { id:6, carpeta:'socios', estado:'clasificado', nuevo:true, de:'Laura Gómez', email:'laura.gomez@gomezasesores.es',
       asunto:'Paquete en recepción · despacho 12', hora:'hace 25 min', seguro:95,
-      motivo:'Clienta de IBC Serrano: avisa de un paquete que llega mañana.',
+      motivo:'Clienta de Las Tablas: avisa de un paquete que llega mañana.',
       cuerpo:`Hola,
 
 Mañana me llega un paquete grande de una mensajería. ¿Lo podéis recoger en recepción? Es para el despacho 12.
@@ -2997,14 +2997,14 @@ Laura` },
       asunto:'Tiene una notificación disponible', hora:'ayer', seguro:97,
       motivo:'Aviso de notificación de Hacienda. Nunca se responde solo.', cuerpo:'Tiene una nueva notificación disponible en la Dirección Electrónica Habilitada única (DEHú).' },
     { id:10, carpeta:'avisos', estado:'clasificado', nuevo:false, de:'Cal.com', email:'no-reply@cal.com',
-      asunto:'Nueva reserva: Visita IBC Velázquez · jueves 12 nov 10:00', hora:'hace 4 h', seguro:99,
-      motivo:'Aviso automático de una reserva.', cuerpo:'Se ha reservado una visita a IBC Velázquez para el jueves 12 de noviembre a las 10:00.' },
+      asunto:'Nueva reserva: Visita Castellana 120 · jueves 12 nov 10:00', hora:'hace 4 h', seguro:99,
+      motivo:'Aviso automático de una reserva.', cuerpo:'Se ha reservado una visita a Castellana 120 para el jueves 12 de noviembre a las 10:00.' },
     { id:11, carpeta:'publicidad', estado:'clasificado', nuevo:false, de:'Coworking Spain News', email:'news@coworkingspain-news.com',
       asunto:'5 tendencias del espacio flexible en 2027', hora:'hace 5 h', seguro:98,
       motivo:'Boletín con publicidad.', cuerpo:'Este mes: las 5 tendencias que cambiarán el espacio flexible…' },
-    { id:12, carpeta:'revisar', estado:'clasificado', nuevo:true, de:'Soporte Correo', email:'soporte@dinaserv1ce-mail.com',
+    { id:12, carpeta:'revisar', estado:'clasificado', nuevo:true, de:'Soporte Correo', email:'soporte@mailnub3-mail.com',
       asunto:'Su buzón está lleno: verifique su cuenta', hora:'hace 50 min', seguro:93, sospechoso:true,
-      motivo:'Parece una suplantación: imita a Dinahosting con un dominio que no es el suyo («dinaserv1ce») y pide la contraseña. No abráis el enlace.',
+      motivo:'Parece una suplantación: imita a MailNube con un dominio que no es el suyo («mailnub3») y pide la contraseña. No abráis el enlace.',
       cuerpo:'Su buzón ha superado el límite. Para no perder correos, verifique su cuenta en el siguiente enlace antes de 24 horas.' }
   ]
 };
@@ -3021,7 +3021,7 @@ const CO_SISTEMA = [{ id:'archivados', nombre:'Archivados', sistema:true }, { id
 const coCarp = id => CO.carpetas.find(c => c.id === id) || CO_SISTEMA.find(c => c.id === id);
 const coFuera = c => c.carpeta === 'archivados' || c.carpeta === 'papelera';
 const coDoc  = id => CO.docs.find(d => d.id === id);
-const coBuzon = c => c.buzon || 'hola@oficinasya.es';
+const coBuzon = c => c.buzon || 'hola@coworkingdemo.es';
 // Todos los del buzón (también archivados y papelera), del más nuevo al más viejo.
 const coVisibles = () => CO.correos.filter(c => CO.sel.has(coBuzon(c)) && !c.borrado).sort((a, b) => b.llegada - a.llegada);
 // Los que están «en juego» (sin archivados ni papelera).
@@ -3105,11 +3105,11 @@ const esSimplia = () => TENANT?.rol === 'operador' || SIMPLIA_EQUIPO.includes(US
 // APAGADO para todos. Solo lo ven las empresas a las que Simplia le dé
 // acceso, añadiendo su slug a CO_EMPRESAS_CON_ACCESO (decisión del 09/11:
 // primero las pruebas, después se activa a cada cliente).
-// 16/11: OficinasYA, para todo el que entre en su panel (sus cuentas y el
+// 16/11: Coworking Demo, para todo el que entre en su panel (sus cuentas y el
 // equipo de Simplia). Sigue en modo sombra: solo lee, no envía nada.
-const CO_EMPRESAS_CON_ACCESO = ['oficinasya', 'demo'];
+const CO_EMPRESAS_CON_ACCESO = ['demo'];
 // STAGING y pruebas en local: las empresas de esta lista y el equipo de Simplia.
-const CO_EMPRESAS_EN_PRUEBAS = ['oficinasya', 'demo'];
+const CO_EMPRESAS_EN_PRUEBAS = ['demo'];
 const CO_EN_PRODUCCION = location.hostname === 'panel.simpliaspain.com' && !location.pathname.startsWith('/staging');
 // 16/11: fuera los datos de ejemplo. El Correo enseña solo lo real (modo
 // sombra) y, sin buzón, un aviso; el Embudo y la Agenda no mezclan correos
@@ -3124,24 +3124,24 @@ function correoPermitido(){
 // Añadir y quitar usuarios: el administrador de la empresa (o el equipo de Simplia).
 const esAdminCorreo = () => esSimplia() || TENANT?.rol === 'admin';
 // Clientes que puede elegir el equipo de Simplia (en la versión real, mt_tenants).
-const CO_CLIENTES = [{ slug:'oficinasya', nombre:'Oficinas YA!' }, { slug:'simplia', nombre:'Simplia Spain' }];
+const CO_CLIENTES = [{ slug:'ejemplo', nombre:'Coworking Demo' }, { slug:'simplia', nombre:'Simplia Spain' }];
 CO.usuarios = {
-  oficinasya: [
-    { email:'roberto@oficinasya.es', nombre:'Roberto', rol:'admin', idioma:'es', foto:'' },
-    { email:'recepcion@oficinasya.es', nombre:'Recepción', rol:'empleado', idioma:'es', foto:'' },
-    { email:'comercial@oficinasya.es', nombre:'Equipo comercial', rol:'empleado', idioma:'es', foto:'' }
+  ejemplo: [
+    { email:'andrea@coworkingdemo.es', nombre:'Andrea', rol:'admin', idioma:'es', foto:'' },
+    { email:'recepcion@coworkingdemo.es', nombre:'Recepción', rol:'empleado', idioma:'es', foto:'' },
+    { email:'comercial@coworkingdemo.es', nombre:'Equipo comercial', rol:'empleado', idioma:'es', foto:'' }
   ]
 };
-CO.avisos = ['roberto@oficinasya.es'];
+CO.avisos = ['andrea@coworkingdemo.es'];
 function correoAcceso(){
   for (const v of ['correo', 'idealista']){ const b = document.querySelector(`nav button[data-v="${v}"]`); if (b) b.hidden = !correoPermitido(); }
-  CO.cliente = esSimplia() ? (CO.cliente || 'oficinasya') : TENANT?.slug;
+  CO.cliente = esSimplia() ? (CO.cliente || 'ejemplo') : TENANT?.slug;
   coLeerVista();
   coBadge();
 }
 function coBadge(){
   // Con datos reales (modo sombra) no hay nada que revisar ni enviar: sin número.
-  const n = CO.real || !CO_MAQUETA ? 0 : CO.cliente === 'oficinasya' ? coPorRevisar().length : 0;
+  const n = CO.real || !CO_MAQUETA ? 0 : CO.cliente === 'ejemplo' ? coPorRevisar().length : 0;
   // `hidden` solo no basta: el estilo de .navn lo pisa y se veía un «0».
   const badge = $('#navcorreo'); if (badge){ badge.textContent = n; badge.hidden = !n; badge.style.display = n ? '' : 'none'; }
   return n;
@@ -3149,7 +3149,7 @@ function coBadge(){
 
 // Correos de ejemplo del segundo buzón
 CO.correos.push(
-  { id:21, buzon:'reservas@oficinasya.es', carpeta:'comerciales', estado:'borrador', nuevo:true, de:'Marta Sanz', email:'marta.sanz@formacionmas.es',
+  { id:21, buzon:'reservas@coworkingdemo.es', carpeta:'comerciales', estado:'borrador', nuevo:true, de:'Marta Sanz', email:'marta.sanz@formacionmas.es',
     asunto:'Sala para una formación de 20 personas', hora:'hace 20 min', seguro:95,
     motivo:'Empresa que quiere alquilar una sala para una formación de 20 personas el 20 de noviembre.',
     cuerpo:`Buenos días,
@@ -3161,7 +3161,7 @@ Marta Sanz
 Formación Más`,
     respuesta:`Buenos días, Marta:
 
-Gracias por escribirnos. Para 20 personas tenemos la sala grande de IBC Ortega y Gasset, con proyector y pizarra. El jueves 20 de noviembre de 9:00 a 14:00 está libre.
+Gracias por escribirnos. Para 20 personas tenemos la sala grande de Retiro, con proyector y pizarra. El jueves 20 de noviembre de 9:00 a 14:00 está libre.
 
 Media jornada son 250 € + IVA, y el café para 20 personas, 90 € + IVA. Le adjunto el plano de las salas.
 
@@ -3170,13 +3170,13 @@ Si le encaja, conteste a este correo y se la dejamos reservada.
 Un saludo,
 ${FIRMA_OYA}`,
     adjuntos:[4], fuentes:['Vuestra información: salas de reuniones y precios', 'Documento «Plano salas de reuniones»'] },
-  { id:22, buzon:'reservas@oficinasya.es', carpeta:'socios', estado:'clasificado', nuevo:false, de:'Pedro Alonso', email:'palonso@alonsoabogados.es',
+  { id:22, buzon:'reservas@coworkingdemo.es', carpeta:'socios', estado:'clasificado', nuevo:false, de:'Pedro Alonso', email:'palonso@alonsoabogados.es',
     asunto:'Cambiar la reserva de la sala del viernes', hora:'hace 1 h', seguro:93,
-    motivo:'Cliente de IBC Colbrand: quiere cambiar la hora de su reserva de sala.',
+    motivo:'Cliente de Méndez Álvaro: quiere cambiar la hora de su reserva de sala.',
     cuerpo:'Hola, ¿podemos pasar la sala del viernes de las 10:00 a las 12:00? Gracias. Pedro' },
-  { id:23, buzon:'reservas@oficinasya.es', carpeta:'avisos', estado:'clasificado', nuevo:false, de:'Cal.com', email:'no-reply@cal.com',
-    asunto:'Reserva cancelada: Visita IBC Serrano', hora:'hace 3 h', seguro:99,
-    motivo:'Aviso automático: se ha cancelado una visita.', cuerpo:'Se ha cancelado la visita a IBC Serrano del viernes 13 a las 12:00.' }
+  { id:23, buzon:'reservas@coworkingdemo.es', carpeta:'avisos', estado:'clasificado', nuevo:false, de:'Cal.com', email:'no-reply@cal.com',
+    asunto:'Reserva cancelada: Visita Las Tablas', hora:'hace 3 h', seguro:99,
+    motivo:'Aviso automático: se ha cancelado una visita.', cuerpo:'Se ha cancelado la visita a Las Tablas del viernes 13 a las 12:00.' }
 );
 
 /* ---- Hora de llegada: los correos van del más nuevo al más viejo ---- */
@@ -3186,43 +3186,43 @@ CO.correos.forEach(c => {
   c.llegada = CO_T0 - (CO_MINUTOS[c.id] ?? 30) * 60000;
   if (c.respuesta) c.respuesta = c.respuesta.trimEnd();
 });
-CO.buzones.forEach(b => { b.smtp = 'oficinasya-es.correoseguro.dinaserver.com'; b.puerto = 587; });
+CO.buzones.forEach(b => { b.smtp = 'mail.coworkingdemo.es'; b.puerto = 587; });
 CO.actualizado = Date.now();
 
 // Un correo que «entra» en la primera recarga, para ver que se pone solo arriba.
 CO.pendientes = [
   { id:31, carpeta:'comerciales', estado:'borrador', nuevo:true, de:'Javier Ortiz', email:'javier@ortizdiseno.es',
-    asunto:'¿Despacho para 2 en Serrano?', seguro:96,
-    motivo:'Busca un despacho para 2 personas en IBC Serrano y pide fotos.',
+    asunto:'¿Despacho para 2 en Las Tablas?', seguro:96,
+    motivo:'Busca un despacho para 2 personas en Las Tablas y pide fotos.',
     cuerpo:`Hola, buenas tardes:
 
-Somos dos diseñadores y buscamos un despacho en Serrano. ¿Tenéis alguno libre? Si podéis, mandadme fotos.
+Somos dos diseñadores y buscamos un despacho en Las Tablas. ¿Tenéis alguno libre? Si podéis, mandadme fotos.
 
 Gracias,
 Javier`,
     respuesta:`Buenas tardes, Javier:
 
-Gracias por escribirnos. En IBC Serrano tenemos libre un despacho interior para 2 personas, de 9 m², por 690 € al mes + IVA con todos los servicios incluidos. Le adjunto fotos del despacho.
+Gracias por escribirnos. En Las Tablas tenemos libre un despacho interior para 2 personas, de 9 m², por 690 € al mes + IVA con todos los servicios incluidos. Le adjunto fotos del despacho.
 
-Si quiere verlo, puede reservar la visita aquí: reservas.simpliaspain.com/oficinasya/serrano
+Si quiere verlo, puede reservar la visita aquí: reservas.simpliaspain.com/demo/visita-tablas
 
 Un saludo,`,
     adjuntos:[], fotos:['SE-07 · 1.jpg', 'SE-07 · 2.jpg', 'SE-07 · 3.jpg'],
-    fuentes:['Vuestra información de IBC Serrano', 'Catálogo de despachos: SE-07, libre', 'Fotos del despacho SE-07 (vuestra carpeta de Drive)'] }
+    fuentes:['Vuestra información de Las Tablas', 'Catálogo de despachos: SE-07, libre', 'Fotos del despacho SE-07 (vuestra carpeta de Drive)'] }
 ];
 
-// Fotos de los despachos: las mismas carpetas de Drive que usa Laura por WhatsApp (norma del 28/10).
+// Fotos de los despachos: las mismas carpetas de Drive que usa el asistente por WhatsApp (norma del 28/10).
 // Lo que hay en cada carpeta de centro, según la norma: despachos, sala, zonas comunes, coworking.
 // (Ejemplo. En la versión real lo lee [MT] Catálogo de despachos y guarda miniaturas, sin descargar las fotos.)
 CO.fotosDrive = [
-  { centro:'IBC Velázquez', items:[['Despacho VE-14','despacho',3], ['Despacho VE-21','despacho',4], ['Sala de reuniones','sala',2], ['Zonas comunes','comunes',5]] },
-  { centro:'IBC Capitán Haya', items:[['Despacho CH-28','despacho',2], ['Despacho CH-05','despacho',3], ['Sala de reuniones','sala',1], ['Zonas comunes','comunes',4]] },
-  { centro:'IBC Serrano', items:[['Despacho SE-07','despacho',3], ['Zonas comunes','comunes',3], ['Coworking','coworking',2]] },
-  { centro:'La Florida (Pozuelo)', items:[['Zonas comunes','comunes',2]] }
+  { centro:'Castellana 120', items:[['Despacho VE-14','despacho',3], ['Despacho VE-21','despacho',4], ['Sala de reuniones','sala',2], ['Zonas comunes','comunes',5]] },
+  { centro:'Chamberí', items:[['Despacho CH-28','despacho',2], ['Despacho CH-05','despacho',3], ['Sala de reuniones','sala',1], ['Zonas comunes','comunes',4]] },
+  { centro:'Las Tablas', items:[['Despacho SE-07','despacho',3], ['Zonas comunes','comunes',3], ['Coworking','coworking',2]] },
+  { centro:'Arganzuela', items:[['Zonas comunes','comunes',2]] }
 ];
 // Enlace a la carpeta de fotos de Drive (en la versión real sale de la configuración del cliente en Supabase).
-// (Es la carpeta privada de OficinasYA: solo la abre quien tenga permiso en Drive.)
-CO.driveUrl = 'https://drive.google.com/drive/folders/1qEhFnONaLQMOCEmf-VyHrgB_YL1lblq8';
+// (Es la carpeta privada de Coworking Demo: solo la abre quien tenga permiso en Drive.)
+CO.driveUrl = 'https://coworkingdemo.es/fotos';
 CO.fotosMax = 3; CO.fotosActivo = true;
 
 // Respuestas automáticas: cada buzón con las suyas.
@@ -3268,7 +3268,7 @@ function coHoraLarga(c){
 const CO_RECIBIDOS = {
   1: [{ nombre:'Necesidades Estudio LF.pdf', tipo:'pdf', kb:186 }],
   7: [{ nombre:'Factura octubre 2026.pdf', tipo:'pdf', kb:94 }],
-  8: [{ nombre:'Presupuesto cristales noviembre.pdf', tipo:'pdf', kb:212 }, { nombre:'Cristales IBC Velázquez.jpg', tipo:'img', kb:1240 }],
+  8: [{ nombre:'Presupuesto cristales noviembre.pdf', tipo:'pdf', kb:212 }, { nombre:'Cristales Castellana 120.jpg', tipo:'img', kb:1240 }],
   21: [{ nombre:'Programa formación 20 nov.docx', tipo:'doc', kb:48 }]
 };
 CO.correos.forEach(c => { if (CO_RECIBIDOS[c.id]) c.recibidos = CO_RECIBIDOS[c.id]; });
@@ -3540,14 +3540,14 @@ CO.correos.push({ id:13, carpeta:'revisar', estado:'clasificado', nuevo:true, de
   sospechoso:true, motivo:'Se hace pasar por Iberdrola y trae un adjunto peligroso.', llegada: Date.now() - 95 * 60000,
   cuerpo:'Estimado cliente:\n\nSu factura de octubre está pendiente de pago. Para evitar el corte de suministro, abra el archivo adjunto y realice el pago hoy.\n\nAtentamente,\nIberdrola Clientes',
   recibidos:[{ nombre:'Factura_0931.html', tipo:'html', kb:12, peligro:true }] });
-{ const m12 = CO.correos.find(c => c.id === 12); if (m12) m12.cuerpo += '\n\nVerificar mi cuenta: dinahosting.com/verificar'; }
+{ const m12 = CO.correos.find(c => c.id === 12); if (m12) m12.cuerpo += '\n\nVerificar mi cuenta: mailnube.com/verificar'; }
 const CO_SEG = {
   12: { nivel:'peligro', resumen:'Parece un intento de engaño para robar la contraseña del correo.',
-        enlaces:[{ texto:'dinahosting.com/verificar', destino:'dinaserv1ce-mail.com/login' }],
+        enlaces:[{ texto:'mailnube.com/verificar', destino:'mailnub3-mail.com/login' }],
         checks:[['mal','El servidor que lo envía no está autorizado por su dominio (SPF falla).'],
                 ['mal','Sin firma DKIM y no pasa DMARC.'],
-                ['mal','«dinaserv1ce-mail.com» imita a Dinahosting, vuestro proveedor, pero no es suyo.'],
-                ['mal','El enlace dice «dinahosting.com/verificar» pero lleva a dinaserv1ce-mail.com/login.'],
+                ['mal','«mailnub3-mail.com» imita a MailNube, vuestro proveedor, pero no es suyo.'],
+                ['mal','El enlace dice «mailnube.com/verificar» pero lleva a mailnub3-mail.com/login.'],
                 ['mal','El dominio se registró hace 3 días.'],
                 ['mal','Pide la contraseña y mete prisa («antes de 24 horas»).'],
                 ['info','Es la primera vez que os escribe.']] },
@@ -3570,16 +3570,16 @@ function coSeguridad(c){
 
 // ---- Varios compañeros a la vez (en la versión real, Supabase Realtime) ----
 CO.presencia = {
-  2:  { email:'recepcion@oficinasya.es', que:'viendo' },
-  4:  { email:'comercial@oficinasya.es', que:'respondiendo' }
+  2:  { email:'recepcion@coworkingdemo.es', que:'viendo' },
+  4:  { email:'comercial@coworkingdemo.es', que:'respondiendo' }
 };
 CO.respuestaDeOtro = {
-  4: { email:'comercial@oficinasya.es', texto:'Buenos días, Antonio:\n\nSí, en La Florida hay plazas de garaje donde cabe una furgoneta. Le llamo esta mañana y lo vemos.\n\nUn saludo,' }
+  4: { email:'comercial@coworkingdemo.es', texto:'Buenos días, Antonio:\n\nSí, en Arganzuela hay plazas de garaje donde cabe una furgoneta. Le llamo esta mañana y lo vemos.\n\nUn saludo,' }
 };
 const coPersona = email => (CO.usuarios[CO.cliente] || []).find(u => u.email === email) || { nombre: email?.split('@')[0] || '?', email };
 const coIniciales = n => String(n || '?').split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase();
 const coPresencia = c => { const p = CO.presencia[c.id]; return p && p.email !== USUARIO_EMAIL ? { ...p, ...coPersona(p.email) } : null; };
-const coEnLinea = () => (CO.usuarios[CO.cliente] || []).filter(u => u.email !== USUARIO_EMAIL && u.email !== 'laura@oficinasya.es')
+const coEnLinea = () => (CO.usuarios[CO.cliente] || []).filter(u => u.email !== USUARIO_EMAIL && u.email !== 'laura@coworkingdemo.es')
   .filter(u => Object.values(CO.presencia).some(p => p.email === u.email));
 
 // ---- Versiones del borrador y «pídele un cambio» ----
@@ -3603,7 +3603,7 @@ function coReescribir(t, orden){
     .replace('Le agradecemos su interés.', '¡Gracias por escribirnos!').replace(/^(Un saludo|Atentamente),$/m, '¡Hasta pronto!');
   if (orden === 'visita'){
     if (/reservas\.simpliaspain\.com/.test(t)) return t;
-    const ps = t.split(/\n{2,}/); ps.splice(ps.length - 1, 0, 'Si quiere verlo, puede reservar la visita aquí: reservas.simpliaspain.com/oficinasya');
+    const ps = t.split(/\n{2,}/); ps.splice(ps.length - 1, 0, 'Si quiere verlo, puede reservar la visita aquí: reservas.simpliaspain.com/demo');
     return ps.join('\n\n');
   }
   return t;
@@ -3734,27 +3734,27 @@ CO.embudoCanal = 'whatsapp';
 CO.seguimiento = { activo:true, dias:3, max:2, modo:'revision' };
 const CO_DIA = 864e5;
 CO.leads = [
-  { id:101, nombre:'Paula Marín', email:'paula@marinlegal.es', asunto:'Despacho para 2 en Capitán Haya', busca:'Despacho para 2 · IBC Capitán Haya',
+  { id:101, nombre:'Paula Marín', email:'paula@marinlegal.es', asunto:'Despacho para 2 en Chamberí', busca:'Despacho para 2 · Chamberí',
     etapa:'toca', seg:0, eventos:[[-4,'Escribió pidiendo precio y disponibilidad'], [-4,'Le respondimos con precio, fotos y enlace de visita'], [0,'3 días sin contestar']],
-    propuesta:`Buenos días, Paula:\n\nLe escribo por si le surgió alguna duda sobre el despacho para 2 personas en IBC Capitán Haya. Sigue libre y podemos enseñárselo cuando le venga bien.\n\nPuede elegir día y hora aquí: reservas.simpliaspain.com/oficinasya/capitan-haya\n\nUn saludo,` },
+    propuesta:`Buenos días, Paula:\n\nLe escribo por si le surgió alguna duda sobre el despacho para 2 personas en Chamberí. Sigue libre y podemos enseñárselo cuando le venga bien.\n\nPuede elegir día y hora aquí: reservas.simpliaspain.com/demo/visita-chamberi\n\nUn saludo,` },
   { id:102, nombre:'Sofía Herrera', email:'sofia@herreradesign.es', asunto:'Puesto de coworking', busca:'Puesto fijo · coworking',
     etapa:'toca', seg:1, eventos:[[-7,'Escribió preguntando por un puesto fijo'], [-7,'Le respondimos con el precio'], [-4,'Primer seguimiento enviado'], [0,'Sin contestar']],
     propuesta:`Hola, Sofía:\n\nÚltimo mensaje por nuestra parte, para no molestarte: si más adelante buscas puesto en el coworking, aquí estaremos. Esta semana aún hay sitios libres junto a la ventana.\n\nUn saludo,` },
   { id:103, nombre:'Daniel Cano', email:'dcano@canoconsultores.com', asunto:'Oficina virtual', busca:'Oficina virtual',
     etapa:'espera', seg:1, proximo: Date.now() + 2 * CO_DIA, eventos:[[-5,'Escribió por oficina virtual'], [-5,'Le respondimos con las condiciones'], [-1,'Primer seguimiento enviado']] },
   { id:104, nombre:'Elena Ruiz', email:'elena.ruiz@outlook.es', asunto:'Puesto fijo en el coworking', busca:'Puesto fijo', correoId:5,
-    etapa:'espera', seg:0, proximo: Date.now() + 3 * CO_DIA, eventos:[[0,'Escribió hoy'], [0,'Roberto le respondió desde Outlook']] },
-  { id:105, nombre:'Andrés Vidal', email:'avidal@vidalarquitectos.es', asunto:'Despacho para 4 en Velázquez', busca:'Despacho para 4 · IBC Velázquez',
+    etapa:'espera', seg:0, proximo: Date.now() + 3 * CO_DIA, eventos:[[0,'Escribió hoy'], [0,'Andrea le respondió desde Outlook']] },
+  { id:105, nombre:'Andrés Vidal', email:'avidal@vidalarquitectos.es', asunto:'Despacho para 4 en Castellana', busca:'Despacho para 4 · Castellana 120',
     etapa:'contesto', seg:1, eventos:[[-6,'Escribió'], [-6,'Le respondimos'], [-3,'Primer seguimiento enviado'], [-1,'Contestó: «¿Podemos verlo el jueves a las 10?»']] },
-  { id:106, nombre:'Laura Pérez', email:'lperez@perezasesores.es', asunto:'Despacho en Serrano', busca:'Despacho para 3 · IBC Serrano',
-    etapa:'visita', seg:0, visitaEn: new Date(2026, 10, 12, 12, 0).getTime(), centro:'IBC Serrano',
+  { id:106, nombre:'Laura Pérez', email:'lperez@perezasesores.es', asunto:'Despacho en Las Tablas', busca:'Despacho para 3 · Las Tablas',
+    etapa:'visita', seg:0, visitaEn: new Date(2026, 10, 12, 12, 0).getTime(), centro:'Las Tablas',
     eventos:[[-3,'Escribió'], [-3,'Le respondimos'], [-2,'Reservó visita para el jueves 12 a las 12:00']] },
   { id:107, nombre:'Tomás Gil', email:'tgil@gilyasociados.es', asunto:'Despacho para 5', busca:'Despacho para 5',
     etapa:'cerrado', seg:2, eventos:[[-12,'Escribió'], [-9,'Primer seguimiento'], [-6,'Segundo seguimiento'], [-5,'Contestó: «Ya hemos encontrado oficina, gracias»']] }
 ];
 // Lo que dijimos en nuestro último correo (se ve en el seguimiento, en Correo).
 Object.assign(CO.leads.find(l => l.id === 101), { diasSin:3,
-  ultimoNuestro:'Buenos días, Paula:\n\nGracias por escribirnos. En IBC Capitán Haya tenemos libre un despacho para 2 personas, de 12 m², por 980 € al mes + IVA. Le adjunto fotos.\n\nPuede reservar la visita aquí: reservas.simpliaspain.com/oficinasya/capitan-haya\n\nUn saludo,' });
+  ultimoNuestro:'Buenos días, Paula:\n\nGracias por escribirnos. En Chamberí tenemos libre un despacho para 2 personas, de 12 m², por 980 € al mes + IVA. Le adjunto fotos.\n\nPuede reservar la visita aquí: reservas.simpliaspain.com/demo/visita-chamberi\n\nUn saludo,' });
 Object.assign(CO.leads.find(l => l.id === 102), { diasSin:4,
   ultimoNuestro:'Hola, Sofía:\n\nTe escribo por si te surgió alguna duda sobre el puesto fijo en el coworking. Sigue libre.\n\nUn saludo,' });
 Object.assign(CO.leads.find(l => l.id === 103), { userRef:'34600111222@s.whatsapp.net', telefono:'+34600111222' });
@@ -3770,10 +3770,10 @@ for (const l of CO.leads.filter(x => x.etapa === 'toca')){
 }
 // La respuesta de Andrés (lead 105) también está en Correo, con su borrador.
 CO.correos.push({ id: 1105, leadId: 105, carpeta:'comerciales', estado:'borrador', nuevo:true, de:'Andrés Vidal',
-  email:'avidal@vidalarquitectos.es', asunto:'Re: Despacho para 4 en Velázquez', seguro: 98, llegada: Date.now() - 20 * 3600e3,
+  email:'avidal@vidalarquitectos.es', asunto:'Re: Despacho para 4 en Castellana', seguro: 98, llegada: Date.now() - 20 * 3600e3,
   motivo:'Contesta al seguimiento: quiere ver el despacho el jueves a las 10.',
   cuerpo:'Hola,\n\n¿Podemos verlo el jueves a las 10?\n\nGracias,\nAndrés',
-  respuesta:'Buenos días, Andrés:\n\nPerfecto, le esperamos el jueves 12 a las 10:00 en IBC Velázquez. Pregunte en recepción por el equipo comercial.\n\nUn saludo,',
+  respuesta:'Buenos días, Andrés:\n\nPerfecto, le esperamos el jueves 12 a las 10:00 en Castellana 120. Pregunte en recepción por el equipo comercial.\n\nUn saludo,',
   adjuntos: [], fuentes: ['Catálogo: despacho VE-21 libre', 'Agenda del centro: jueves 12, 10:00 libre'] });
 CO.leads.find(l => l.id === 105).correoId = 1105;
 
@@ -3787,7 +3787,7 @@ const CO_IDIOMAS = { es:'español', en:'inglés', fr:'francés', it:'italiano', 
 { const m3 = CO.correos.find(c => c.id === 3);
   if (m3) Object.assign(m3, { idioma:'en',
     traduccion:'Hola:\n\nEstoy montando una pequeña consultoría en España y necesito una dirección comercial en Madrid. ¿Qué incluye vuestra oficina virtual y cuánto cuesta?\n\nGracias,\nJames',
-    respuestaEs:'Buenos días, James:\n\nGracias por escribirnos. Nuestra oficina virtual le da una dirección comercial en IBC Velázquez (Madrid), gestión del correo postal y salas de reuniones por horas, por 59 € al mes + IVA.\n\nLe adjunto las condiciones completas. Si quiere seguir adelante, conteste a este correo y un compañero le enviará el contrato.\n\nUn saludo,',
+    respuestaEs:'Buenos días, James:\n\nGracias por escribirnos. Nuestra oficina virtual le da una dirección comercial en Castellana 120 (Madrid), gestión del correo postal y salas de reuniones por horas, por 59 € al mes + IVA.\n\nLe adjunto las condiciones completas. Si quiere seguir adelante, conteste a este correo y un compañero le enviará el contrato.\n\nUn saludo,',
     escribirEs:true });
   m3.respuestaEsOrig = m3.respuestaEs; m3.respuestaOrig = m3.respuesta; }
 // Traduce lo que has escrito en tu idioma al del cliente. En la maqueta solo
@@ -3850,7 +3850,7 @@ function pintarCorreo(){
   if (VISTA !== 'correo') return;
   if (OP.activo) opAltos();
   else document.documentElement.style.setProperty('--cohdr', ($('header')?.offsetHeight || 63) + 'px');
-  if (!CO.cliente) CO.cliente = esSimplia() ? 'oficinasya' : TENANT?.slug;
+  if (!CO.cliente) CO.cliente = esSimplia() ? 'ejemplo' : TENANT?.slug;
   // Datos reales (modo sombra) si el cliente tiene un buzón conectado. La
   // primera vez se piden y, mientras llegan, «Cargando…».
   if (CO.real && CO.real.slug === crSlug()) return coPintarReal();
@@ -3860,7 +3860,7 @@ function pintarCorreo(){
   }
   if (!CO_MAQUETA) return coPintarSinBuzon();
   if (CO.tab === 'carpetas'){ CO.tab = 'ajustes'; CO.irA = 'co-sec-carpetas'; }
-  const propio = CO.cliente === 'oficinasya';
+  const propio = CO.cliente === 'ejemplo';
   const n = coBadge();
   const tabs = [['bandeja','Bandeja'],['documentos','Documentos'],['ajustes','Configuración']];
   const sel = CO.buzones.filter(b => CO.sel.has(b.email));
@@ -3947,12 +3947,12 @@ CO.realAbierto = null;
 const CR_TIPO = { comercial:'Comercial', cliente_actual:'Cliente actual', no_comercial:'No comercial' };
 const CR_VER = { igual:['Igual que el equipo','vd'], mejor:['Mejor que el equipo','vd'], peor:['Peor que el equipo','am'],
   equivocado:['Equivocado','rj'], sin_respuesta:['El equipo no contestó por correo','nt'] };
-const crSlug = () => esSimplia() ? (CO.cliente || 'oficinasya') : TENANT?.slug;
+const crSlug = () => esSimplia() ? (CO.cliente || 'ejemplo') : TENANT?.slug;
 const crFecha = f => f ? new Date(f).toLocaleString('es-ES', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
-// El borrador lleva las marcas de Laura: [[VISITA:gasset]] se convierte en el
+// El borrador lleva las marcas del asistente: [[VISITA:castellana]] se convierte en el
 // enlace de reserva al enviar (con el nombre y el teléfono de esa persona).
 // En la vista previa se enseña qué iría ahí, sin inventar el enlace.
-/* Fotos del despacho que se adjuntarían (las mismas de Drive que manda Laura).
+/* Fotos del despacho que se adjuntarían (las mismas de Drive que manda el asistente).
    Las sirve «[MT] Correo · Foto» con la sesión del panel: solo si quien mira
    ve esa empresa. Se piden una vez y se guardan mientras dure la página. */
 const N8N_FOTO = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/foto';
@@ -5147,7 +5147,7 @@ function crConfiguracion(){
 function pintarIdealista(){
   if (VISTA !== 'idealista') return;
   document.documentElement.style.setProperty('--cohdr', ($('header')?.offsetHeight || 63) + 'px');
-  if (!CO.cliente) CO.cliente = esSimplia() ? 'oficinasya' : TENANT?.slug;
+  if (!CO.cliente) CO.cliente = esSimplia() ? 'ejemplo' : TENANT?.slug;
   if (CO.real && CO.real.slug === crSlug()) return coPintarReal();
   const aviso = t => { $('#vista').innerHTML = `<div class="correo co-real cr-ideal"><div class="co-top"><h2 class="tit">Idealista</h2></div><div class="panel"><div class="vacio">${t}</div></div></div>`; };
   aviso(CO.realEstado === 'error' ? '<strong>No se ha podido cargar.</strong><br>Vuelve a entrar en la pestaña en un momento.' : 'Cargando…');
@@ -6077,14 +6077,14 @@ function coDocumentos(){
 
 function coFormDoc(id){
   const d = coDoc(id); if (!d) return;
-  const centros = ['Todos','IBC Velázquez','IBC Capitán Haya','IBC Ortega y Gasset','IBC Serrano','IBC Colbrand','La Florida (Pozuelo)','Manoteras','Sanse'];
+  const centros = ['Todos','Castellana 120','Chamberí','Retiro','Las Tablas','Méndez Álvaro','Arganzuela','Hortaleza','Alcobendas'];
   $('#mbox').innerHTML = `
     <div class="cab"><h3 class="co-det" style="font-size:21px">${esc(d.nombre)}</h3>
       <button class="cerrar" data-co="cerrar" aria-label="Cerrar">×</button></div>
     <div class="co-form">
       <div><label for="dfnom">Nombre que verá el cliente</label><input id="dfnom" value="${esc(d.nombre)}"></div>
       <div><label for="dfcuando">Cuándo usarlo</label>
-        <textarea class="co-txt corto" id="dfcuando" placeholder="Por ejemplo: cuando pregunten precios de despachos en Velázquez.">${esc(d.cuando)}</textarea></div>
+        <textarea class="co-txt corto" id="dfcuando" placeholder="Por ejemplo: cuando pregunten precios de despachos en Castellana.">${esc(d.cuando)}</textarea></div>
       <div><label for="dfcentro">Centro</label>
         <select class="co-sel" id="dfcentro">${centros.map(x => `<option ${x===d.centro?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
       <label class="co-interr co-check1"><input type="checkbox" id="dfauto" ${d.auto?'checked':''}> Puede salir en respuestas automáticas (sin que lo revise nadie)</label>
@@ -6489,7 +6489,7 @@ function coRepintarDonde(){
 /* ===================== Embudo › Correo (seguimiento) ===================== */
 function embudoCabecera(){
   if (!correoPermitido() || !CO_MAQUETA) return '<h2 class="tit">Embudo</h2>';
-  const n = CO.cliente === 'oficinasya' ? CO.leads.filter(l => l.etapa === 'toca').length : 0;
+  const n = CO.cliente === 'ejemplo' ? CO.leads.filter(l => l.etapa === 'toca').length : 0;
   return `<div class="emb-cab"><h2 class="tit">Embudo</h2>
     <div class="rangos emb-canal" role="tablist" aria-label="Canal">
       <button class="rg ${CO.embudoCanal !== 'correo' ? 'on' : ''}" data-embcanal="whatsapp" role="tab" aria-selected="${CO.embudoCanal !== 'correo'}">WhatsApp</button>
@@ -6537,7 +6537,7 @@ function embSiguiente(l){
 }
 function pintarEmbudoCorreo(){
   if (VISTA !== 'embudo') return;
-  const propio = CO.cliente === 'oficinasya';
+  const propio = CO.cliente === 'ejemplo';
   const sitio = {}; for (const s of ['.emb-lista', '.emb-det']){ const el = $(s); if (el) sitio[s] = el.scrollTop; }
   const mismoLead = CO.leadPintado === CO.leadAbierto;
   if (!coLead(CO.leadAbierto)) CO.leadAbierto = (CO.leads.find(l => l.etapa === 'toca') || CO.leads[0])?.id;
@@ -9128,7 +9128,7 @@ async function pintarAgenda(silencioso){
   if (!silencioso) $('#vista').innerHTML = esqueleto('lista');
 
   // Con el correo activado, la Agenda junta WhatsApp y correo: visitas y cifras del embudo.
-  const conCorreo = CO_MAQUETA && correoPermitido() && CO.cliente === 'oficinasya';
+  const conCorreo = CO_MAQUETA && correoPermitido() && CO.cliente === 'ejemplo';
   const [{ data, error }, resumenWa] = await Promise.all([
     supabase.rpc('mt_mis_citas'),
     conCorreo ? supabase.rpc('mt_embudo_resumen').then(r => r, () => ({ error: true })) : Promise.resolve(null)
@@ -10459,7 +10459,7 @@ function ordenLeads(a, b){
    EMBUDO · TABLERO (20/11, pedido del usuario)
 
    El embudo de antes era una lista que había que trabajar a mano y nadie
-   lo hacía (125 personas en OficinasYA, ninguna con una llamada, nota o
+   lo hacía (125 personas en Coworking Demo, ninguna con una llamada, nota o
    próxima acción apuntada). El tablero coloca SOLO a cada persona con lo
    que ya sabe el sistema (quién dejó sus datos, quién tiene visita en
    Cal.com y quién ya la hizo) y junta WhatsApp, correo e idealista:
@@ -11075,7 +11075,7 @@ function aplicaEspera(r){
 }
 const esperando = () => (ESPERA || []).filter(e => e.estado === 'activa');
 
-// «Velázquez, Serrano · 4 personas · despacho»
+// «Castellana, Las Tablas · 4 personas · despacho»
 function buscaEspera(e){
   const p = [];
   const sedes = (Array.isArray(e.centros) ? e.centros : []).filter(Boolean);

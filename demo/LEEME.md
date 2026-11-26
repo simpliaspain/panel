@@ -20,7 +20,7 @@ a posibles clientes sin tocar datos reales.
   todo salen primero los que han reservado visita y luego los que han dejado su
   correo, con servicios variados. No hay ejemplos de fricción ni de «sin
   respuesta».
-- **Correo e Idealista salen como los tiene Oficinas YA**, con el buzón
+- **Correo e Idealista salen como en el panel real**, con el buzón
   inventado `comercial@coworkingdemo.es`: carpetas, respuestas propuestas
   (editar, guardar, descartar, enviar con 10 s para deshacer), leído y mover,
   «Para el equipo», lo que le falta al asistente (Configuración › General) y

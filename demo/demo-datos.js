@@ -569,7 +569,7 @@
   }
 
   /* ---------- 8 bis. Correo e Idealista ----------
-     El buzón comercial del cliente inventado, como lo ve hoy Oficinas YA:
+     El buzón comercial del cliente inventado, como en el panel real:
      el asistente clasifica cada correo en su carpeta y prepara la
      respuesta; una persona la revisa y la envía (10 s para deshacer). Los
      mensajes de idealista salen en su apartado: se copia la respuesta, se
