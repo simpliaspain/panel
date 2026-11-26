@@ -4,176 +4,134 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>SimpliaSpain · Cómo funciona por dentro</title>
-<meta name="description" content="Resumen técnico de SimpliaSpain para el equipo técnico del cliente: arquitectura, canales, seguridad, fiabilidad y puesta en marcha.">
+<title>SimpliaSpain · Documentación técnica</title>
+<meta name="description" content="Cómo funciona SimpliaSpain por dentro: arquitectura, canales, control de calidad de la IA, seguridad e integración.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
     --pulso:#1B7CFF; --pulso-texto:#0A5FD6; --profundo:#0A1F4A; --tinta:#0A0E1A; --tinta-suave:#475569;
-    --aire:#E5EFFE; --azul-suave:#DBEAFE; --azul-borde:#BFDBFE; --gris:#64748B; --linea:#E2E8F0;
+    --aire:#E5EFFE; --azul-borde:#BFDBFE; --gris:#64748B; --linea:#E2E8F0;
     --blanco:#FFFFFF; --fondo:#F7FAFF; --verde:#12B76A; --verde-tenue:#E7F8F0; --verde-oscuro:#04724D;
-    --ambar:#F79009; --ambar-tenue:#FFFAEB; --ambar-oscuro:#B54708; --coral-fondo:#FBEAE5; --coral-texto:#9C4221;
+    --ambar-tenue:#FFFAEB; --ambar-oscuro:#B54708;
     --r:16px; --sombra:0 1px 2px rgba(10,31,74,.04),0 4px 16px rgba(10,31,74,.05);
   }
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
-  body{margin:0;background:var(--fondo);color:var(--tinta);font:15px/1.55 'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif}
-  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  body{margin:0;background:var(--fondo);color:var(--tinta);font:15px/1.6 'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif}
   button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
   a{color:var(--pulso-texto)}
   h1,h2,h3,h4{margin:0;line-height:1.25;letter-spacing:-.01em}
   p{margin:0}
   :focus-visible{outline:2px solid var(--pulso);outline-offset:2px;border-radius:6px}
 
-  /* ---------- Cabecera, como la del panel ---------- */
+  /* ---------- Cabecera ---------- */
   header{position:sticky;top:0;z-index:20;background:var(--blanco);border-bottom:1px solid var(--linea)}
   .hcab{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:24px;padding:0 24px;height:62px}
-  .marca{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--profundo);white-space:nowrap}
+  .marca{font-weight:800;font-size:19px;letter-spacing:-.02em;color:var(--profundo);white-space:nowrap;text-decoration:none}
   .marca span{color:var(--pulso)}
+  .marca:hover{opacity:.85}
   nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1;align-self:stretch}
   nav::-webkit-scrollbar{display:none}
-  nav button{position:relative;padding:0 12px;font-weight:600;font-size:14.5px;color:var(--gris);white-space:nowrap;border-radius:0}
+  nav button{position:relative;padding:0 11px;font-weight:600;font-size:14px;color:var(--gris);white-space:nowrap}
   nav button:hover{color:var(--tinta)}
   nav button[aria-selected="true"]{color:var(--pulso-texto)}
-  nav button[aria-selected="true"]::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--pulso)}
-  .hder{display:flex;align-items:center;gap:8px;white-space:nowrap}
-  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;line-height:1.5}
+  nav button[aria-selected="true"]::after{content:"";position:absolute;left:9px;right:9px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--pulso)}
+  .hder{font-size:12px;color:var(--gris);white-space:nowrap;text-align:right;line-height:1.35}
+  .hder b{display:block;color:var(--tinta-suave);font-weight:700}
+
+  main{max-width:1200px;margin:0 auto;padding:28px 24px 64px}
+  .vista{display:none}
+  .vista.on{display:block}
+  .tit{font-size:26px;font-weight:800;color:var(--profundo)}
+  .sub{color:var(--tinta-suave);margin-top:6px;max-width:820px}
+  .vcab{margin-bottom:22px}
+  .panel{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:22px;box-shadow:var(--sombra)}
+  .panel h3{font-size:16.5px;font-weight:700}
+  .panel .ph{color:var(--tinta-suave);font-size:14px;margin-top:6px}
+  .rejilla{display:grid;gap:16px}
+  .r2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .r3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mt{margin-top:16px}
+  .nota{font-size:12.5px;color:var(--gris)}
+  .eti{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gris)}
+  .pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;line-height:1.6;white-space:nowrap}
   .pill.az{background:var(--aire);color:var(--pulso-texto)}
   .pill.vd{background:var(--verde-tenue);color:var(--verde-oscuro)}
   .pill.am{background:var(--ambar-tenue);color:var(--ambar-oscuro)}
   .pill.nt{background:#F1F5F9;color:var(--tinta-suave)}
+  .ir{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:13.5px;color:var(--pulso-texto);margin-top:10px;cursor:pointer;text-decoration:none}
+  .ir:hover{text-decoration:underline}
+  .ir::after{content:"→"}
 
-  main{max-width:1200px;margin:0 auto;padding:28px 24px 64px}
-  .vista{display:none}
-  .vista.on{display:block;animation:entra .25s ease}
-  @keyframes entra{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  @media (prefers-reduced-motion:reduce){.vista.on{animation:none}*{transition:none!important}}
-
-  .tit{font-size:26px;font-weight:800;color:var(--profundo)}
-  .sub{color:var(--tinta-suave);margin-top:6px;max-width:760px}
-  .vcab{margin-bottom:22px}
-  .panel{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:22px;box-shadow:var(--sombra)}
-  .panel h3{font-size:16.5px;font-weight:700;color:var(--tinta)}
-  .panel .ph{color:var(--gris);font-size:13.5px;margin-top:3px}
-  .rejilla{display:grid;gap:16px}
-  .r2{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .r3{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .r4{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .mt{margin-top:16px}
-  .mt2{margin-top:28px}
-  .nota{font-size:12.5px;color:var(--gris)}
-  .eti{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gris)}
+  .lista{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+  .lista.mt{margin-top:14px}
+  .lista li{display:grid;grid-template-columns:20px 1fr;gap:8px;font-size:14px;color:var(--tinta-suave)}
+  .lista li i{font-style:normal;font-weight:800;color:var(--verde);line-height:1.6}
+  .lista li b{color:var(--tinta);font-weight:600}
 
   /* ---------- Resumen ---------- */
-  .heroe{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:stretch}
-  .heroe .panel.grande{background:linear-gradient(135deg,var(--profundo),#123B8A);color:#fff;border:none;padding:28px}
-  .heroe .panel.grande{display:flex;flex-direction:column}
-  .cifras{margin-top:auto;padding-top:22px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-  .cifras div{border-top:1px solid rgba(255,255,255,.18);padding-top:12px}
-  .cifras b{display:block;font-size:24px;font-weight:800;color:#fff;letter-spacing:-.02em}
-  .cifras span{display:block;font-size:12.5px;color:#AFC4EC;margin-top:2px;line-height:1.4}
-  .heroe .grande h2{font-size:24px;font-weight:800;letter-spacing:-.02em}
-  .heroe .grande p{color:#C9DAF8;margin-top:10px;font-size:15px}
-  .heroe .grande ul{margin:18px 0 0;padding:0;list-style:none;display:grid;gap:9px}
-  .heroe .grande li{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:#EAF1FF}
-  .heroe .grande li svg{flex:none;margin-top:3px;color:#6CE9A6}
-  .clave{display:flex;gap:12px;align-items:flex-start}
-  .clave .ico{flex:none;width:38px;height:38px;border-radius:11px;background:var(--aire);color:var(--pulso-texto);display:grid;place-items:center}
-  .clave b{display:block;font-size:15px}
-  .clave span{display:block;color:var(--tinta-suave);font-size:13.5px;margin-top:2px}
+  .heroe{background:linear-gradient(135deg,var(--profundo),#123B8A);color:#fff;border:none;padding:30px}
+  .heroe h2{font-size:24px;font-weight:800;letter-spacing:-.02em;max-width:820px}
+  .heroe p{color:#C9DAF8;margin-top:10px;max-width:820px}
+  .claves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}
+  .clave{display:flex;flex-direction:column}
+  .clave .ico{width:38px;height:38px;border-radius:11px;background:var(--aire);color:var(--pulso-texto);display:grid;place-items:center;margin-bottom:12px}
+  .clave h3{font-size:15.5px}
+  .clave p{color:var(--tinta-suave);font-size:14px;margin-top:6px;flex:1}
 
-  .estado{display:grid;gap:0}
-  .estado .fila{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--linea)}
-  .estado .fila:first-child{border-top:none}
-  .punto{width:9px;height:9px;border-radius:50%;background:var(--verde);box-shadow:0 0 0 4px var(--verde-tenue)}
-  .punto.am{background:var(--ambar);box-shadow:0 0 0 4px var(--ambar-tenue)}
-  .estado .q{font-weight:600;font-size:14px}
-  .estado .q small{display:block;font-weight:500;color:var(--gris);font-size:12.5px}
-  .estado .c{font-size:12.5px;color:var(--gris);text-align:right}
-  .registro{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:2px}
-  .registro li{display:grid;grid-template-columns:52px 1fr;gap:10px;font-size:13.5px;padding:7px 0;border-top:1px dashed var(--linea)}
-  .registro li:first-child{border-top:none}
-  .registro .h{color:var(--gris)}
-  .registro li.nuevo{animation:aparece .6s ease}
-  @keyframes aparece{from{background:var(--aire)}to{background:transparent}}
-
-  /* ---------- Cómo funciona: diagrama ---------- */
-  .flujos{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
-  .chip{padding:8px 14px;border-radius:999px;border:1px solid var(--linea);background:var(--blanco);font-weight:600;font-size:14px;color:var(--tinta-suave)}
-  .chip:hover{border-color:var(--azul-borde);color:var(--tinta)}
-  .chip[aria-pressed="true"]{background:var(--pulso);border-color:var(--pulso);color:#fff}
-  .mapa{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:18px;align-items:stretch}
+  /* ---------- Arquitectura ---------- */
+  .mapa{display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:18px;align-items:stretch}
   .col{display:flex;flex-direction:column;gap:12px}
-  .col .eti{margin-bottom:-2px}
-  .nodo{position:relative;border:1.5px solid var(--linea);background:var(--blanco);border-radius:14px;padding:13px 14px;transition:border-color .25s,box-shadow .25s,opacity .25s,transform .25s}
+  .nodo{border:1.5px solid var(--linea);background:var(--blanco);border-radius:14px;padding:13px 14px;transition:border-color .2s,box-shadow .2s,opacity .2s}
   .nodo b{display:flex;align-items:center;gap:8px;font-size:14.5px}
   .nodo b svg{flex:none;color:var(--pulso-texto)}
   .nodo span{display:block;color:var(--tinta-suave);font-size:12.8px;margin-top:3px}
   .nucleo{background:linear-gradient(180deg,#F3F8FF,#FFFFFF);border:1.5px dashed var(--azul-borde);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px}
   .nucleo>.eti{color:var(--pulso-texto)}
-  .mapa.siguiendo .nodo{opacity:.38}
-  .mapa.siguiendo .nodo.activo{opacity:1;border-color:var(--pulso);box-shadow:0 0 0 4px rgba(27,124,255,.14);transform:translateY(-1px)}
-  .mapa.siguiendo .nodo.visto{opacity:.85}
-  .pasos{margin-top:18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start}
-  .pasos ol{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:p}
-  .pasos li{counter-increment:p;display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;padding:11px 12px;border-radius:12px;border:1px solid transparent;color:var(--tinta-suave);cursor:pointer;transition:background .2s,border-color .2s}
-  .pasos li::before{content:counter(p);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:700;background:#F1F5F9;color:var(--gris)}
-  .pasos li.on{background:var(--aire);border-color:var(--azul-borde);color:var(--tinta)}
-  .pasos li.on::before{background:var(--pulso);color:#fff}
-  .pasos li.hecho::before{background:var(--verde-tenue);color:var(--verde-oscuro)}
+  .mapa.marcando .nodo{opacity:.4}
+  .mapa.marcando .nodo.activo{opacity:1;border-color:var(--pulso);box-shadow:0 0 0 4px rgba(27,124,255,.14)}
+  .casos{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 12px}
+  .chip{padding:7px 14px;border-radius:999px;border:1px solid var(--linea);background:var(--blanco);font-weight:600;font-size:14px;color:var(--tinta-suave)}
+  .chip:hover{border-color:var(--azul-borde);color:var(--tinta)}
+  .chip[aria-pressed="true"]{background:var(--pulso);border-color:var(--pulso);color:#fff}
+  .pasos{list-style:none;margin:0;padding:0;display:grid;gap:6px;counter-reset:p}
+  .pasos li{counter-increment:p;display:grid;grid-template-columns:30px 1fr;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid transparent;color:var(--tinta-suave);font-size:14px;transition:background .15s,border-color .15s}
+  .pasos li::before{content:counter(p);width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:700;background:var(--aire);color:var(--pulso-texto)}
+  .pasos li.on{background:#F3F8FF;border-color:var(--azul-borde)}
   .pasos li b{display:block;color:var(--tinta);font-size:14.5px}
-  .mando{display:flex;flex-direction:column;gap:8px;min-width:150px}
-  .cbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:11px;background:var(--pulso);color:#fff;font-weight:700;font-size:14px}
-  .cbtn:hover{background:var(--pulso-texto)}
-  .cbtn.sec{background:var(--blanco);color:var(--tinta);border:1px solid var(--linea)}
-  .cbtn.sec:hover{border-color:var(--azul-borde);background:#F8FAFF}
-  .cbtn[disabled]{opacity:.45;cursor:default}
+  .tabla{width:100%;border-collapse:collapse;font-size:14px}
+  .tabla th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--gris);font-weight:700;padding:0 12px 10px 0;border-bottom:1px solid var(--linea)}
+  .tabla td{padding:12px 12px 12px 0;border-bottom:1px solid var(--linea);vertical-align:top;color:var(--tinta-suave)}
+  .tabla tr:last-child td{border-bottom:none}
+  .tabla td:first-child{color:var(--tinta);font-weight:600;width:24%}
+  .tabla td b{color:var(--tinta)}
 
   /* ---------- Canales ---------- */
   .canal{display:flex;flex-direction:column;gap:14px}
   .canal .cab{display:flex;align-items:center;gap:12px}
   .canal .cab .ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none}
   .canal .cab h3{font-size:18px}
-  .lista{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-  .lista li{display:grid;grid-template-columns:20px 1fr;gap:8px;font-size:14px;color:var(--tinta-suave)}
-  .lista.mt{margin-top:14px}
-  .lista li i{font-style:normal;font-weight:800;color:var(--verde);line-height:1.55}
-  .nunca .lista li i.no{color:#FDA29B}
-  .lista li b{color:var(--tinta);font-weight:600}
-  .bloque{background:#F8FAFC;border:1px solid var(--linea);border-radius:12px;padding:12px 14px}
-  .bloque .eti{display:block;margin-bottom:6px}
-  .modos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-  .modo{border:1px solid var(--linea);border-radius:12px;padding:10px 12px;background:var(--blanco)}
-  .modo b{font-size:13.5px;display:block}
-  .modo span{font-size:12.5px;color:var(--tinta-suave)}
-  .modo.on{border-color:var(--azul-borde);background:var(--aire)}
+  .fases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .fase{border:1px solid var(--linea);border-radius:12px;padding:12px;background:var(--blanco)}
+  .fase .n{font-size:11.5px;font-weight:800;color:var(--pulso-texto);letter-spacing:.06em;text-transform:uppercase}
+  .fase b{display:block;font-size:14.5px;margin-top:2px}
+  .fase span{display:block;font-size:13px;color:var(--tinta-suave);margin-top:4px}
+
+  /* ---------- IA ---------- */
+  .capas{display:grid;gap:18px;counter-reset:c}
+  .capa{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start}
+  .capa::before{counter-increment:c;content:counter(c);width:40px;height:40px;border-radius:12px;background:var(--profundo);color:#fff;display:grid;place-items:center;font-weight:800}
+  .capa h3{font-size:16px}
+  .capa p{color:var(--tinta-suave);font-size:14px;margin-top:4px}
 
   /* ---------- Seguridad ---------- */
-  .seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
   .nunca{background:var(--profundo);color:#fff;border:none}
   .nunca h3{color:#fff}
   .nunca .lista li{color:#DCE6FA}
   .nunca .lista li b{color:#fff}
-
-  /* ---------- Puesta en marcha ---------- */
-  .tareas{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-  .tarea{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:start;padding:14px;border:1px solid var(--linea);border-radius:14px;background:var(--blanco)}
-  .tarea input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--verde)}
-  .tarea b{display:block;font-size:15px}
-  .tarea span{display:block;color:var(--tinta-suave);font-size:13.5px;margin-top:3px}
-  .tarea .quien{font-size:12px}
-  .tarea.ok{background:#FBFEFC;border-color:#B7EBD0}
-  .tarea.ok b{text-decoration:line-through;text-decoration-color:var(--verde);color:var(--tinta-suave)}
-  .barra{height:8px;border-radius:999px;background:#EEF2F7;overflow:hidden;margin-top:10px}
-  .barra i{display:block;height:100%;width:0;background:var(--verde);border-radius:999px;transition:width .35s ease}
-  .plazos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin-top:6px}
-  .plazo{position:relative;padding:14px 12px 0 0}
-  .plazo::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--azul-borde)}
-  .plazo::after{content:"";position:absolute;top:-4px;left:0;width:11px;height:11px;border-radius:50%;background:var(--pulso);border:2px solid #fff;box-shadow:0 0 0 1px var(--azul-borde)}
-  .plazo b{display:block;font-size:14px}
-  .plazo span{display:block;font-size:12.8px;color:var(--tinta-suave);margin-top:2px}
+  .nunca .lista li i{color:#FDA29B}
 
   /* ---------- Preguntas ---------- */
   details.pq{border:1px solid var(--linea);border-radius:14px;background:var(--blanco);padding:0 16px}
@@ -185,18 +143,16 @@
   details.pq p{padding:0 0 16px;color:var(--tinta-suave);font-size:14.5px}
 
   footer{max-width:1200px;margin:0 auto;padding:0 24px 40px;color:var(--gris);font-size:12.5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  footer a{color:var(--gris)}
 
-  /* ---------- Pantallas más pequeñas ---------- */
   @media (max-width:1000px){
     .hcab{gap:12px;height:auto;flex-wrap:wrap;padding-top:10px}
     .marca{flex:1}
-    nav::after{content:"";flex:0 0 36px}
     nav{order:3;flex-basis:100%;height:44px;margin:0 -24px;padding:0 14px;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
-    .r4{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .heroe{grid-template-columns:1fr}
+    nav::after{content:"";flex:0 0 36px}
+    .r3,.claves{grid-template-columns:repeat(2,minmax(0,1fr))}
     .mapa{grid-template-columns:1fr 1fr}
-    .mapa .col.centro{grid-column:1/-1;order:-1}
-    .plazos{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px}
+    .mapa .centro{grid-column:1/-1}
   }
   @media (max-width:720px){
     .hcab{padding:10px 16px 0}
@@ -204,137 +160,132 @@
     main{padding:20px 16px 48px}
     footer{padding:0 16px 32px}
     .tit{font-size:22px}
-    .r2,.r3,.r4,.seg,.mapa{grid-template-columns:1fr}
-    .mapa .col.centro{grid-column:auto;order:0}
+    .r2,.r3,.claves,.mapa,.fases{grid-template-columns:1fr}
     .mapa .col,.nucleo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .mapa .col>.eti,.nucleo>.eti,.mapa .col.centro>.nucleo{grid-column:1/-1}
-    .mapa .col.centro{display:block}
+    .mapa .col>.eti,.nucleo>.eti{grid-column:1/-1}
+    .mapa .centro{display:block;grid-column:auto}
     .nodo{padding:10px 11px}
     .nodo b{font-size:13.5px}
     .nodo span{display:none}
-    .modos{grid-template-columns:1fr}
-    .pasos{grid-template-columns:1fr}
-    .mando{flex-direction:row;min-width:0}
-    .mando .cbtn{flex:1}
     .panel{padding:18px}
-    .heroe .panel.grande{padding:22px}
-    .cifras{grid-template-columns:1fr;gap:0}
-    .cifras div{display:grid;grid-template-columns:76px 1fr;align-items:baseline;padding:10px 0}
-    .cifras b{font-size:20px}
-    .plazos{grid-template-columns:1fr}
-    .tarea{grid-template-columns:28px 1fr}
-    .tarea .quien{grid-column:2}
+    .heroe{padding:22px}
+    .tabla,.tabla tbody,.tabla tr,.tabla td{display:block;width:100%}
+    .tabla td:first-child{width:100%}
+    .tabla thead{display:none}
+    .tabla tr{border-bottom:1px solid var(--linea);padding:10px 0}
+    .tabla tr:last-child{border-bottom:none}
+    .tabla td{border:none;padding:2px 0}
+    .tabla td[data-c]::before{content:attr(data-c);display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gris);margin-top:6px}
+    .capa{grid-template-columns:36px 1fr;gap:10px}
+    .capa::before{width:34px;height:34px;border-radius:10px}
   }
 </style>
 </head>
 <body>
 <header>
   <div class="hcab">
-    <div class="marca">Simplia<span>Spain</span></div>
+    <a class="marca" href="https://www.simpliaspain.com" target="_blank" rel="noopener" title="Ir a la web de SimpliaSpain">Simplia<span>Spain</span></a>
     <nav role="tablist" aria-label="Apartados">
       <button role="tab" data-v="resumen" aria-selected="true">Resumen</button>
-      <button role="tab" data-v="funciona">Cómo funciona</button>
+      <button role="tab" data-v="arquitectura">Arquitectura</button>
       <button role="tab" data-v="canales">Canales</button>
+      <button role="tab" data-v="ia">IA y calidad</button>
       <button role="tab" data-v="seguridad">Seguridad y datos</button>
-      <button role="tab" data-v="fiabilidad">Fiabilidad</button>
-      <button role="tab" data-v="marcha">Puesta en marcha</button>
+      <button role="tab" data-v="integracion">Integración</button>
       <button role="tab" data-v="preguntas">Preguntas</button>
     </nav>
-    <div class="hder"><span class="pill az" title="Página de demostración para la reunión">Demo</span></div>
+    <div class="hder"><b>Documentación técnica</b>Noviembre de 2026</div>
   </div>
 </header>
 
 <main>
 <!-- ===================== RESUMEN ===================== -->
 <section class="vista on" id="v-resumen" role="tabpanel" aria-label="Resumen">
-  <div class="heroe">
-    <div class="panel grande">
-      <h2>Un agente de IA que atiende vuestros canales y un panel para vuestro equipo</h2>
-      <p>Lo montamos y lo mantenemos nosotros. Por vuestra parte no hay que instalar nada ni tocar vuestros sistemas: solo conectar los canales y darnos una hoja con vuestros datos.</p>
-      <ul>
-        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Contesta por <b>WhatsApp</b> al momento, a cualquier hora, y agenda las visitas.</span></li>
-        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>En el <b>correo</b> ordena la bandeja y prepara las respuestas. Las envía una persona.</span></li>
-        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>En <b>Idealista</b> deja la respuesta redactada para pegarla en su chat.</span></li>
-        <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Todo queda en un <b>panel web</b>: conversaciones, embudo, agenda y configuración.</span></li>
-      </ul>
-      <div class="cifras">
-        <div><b>3</b><span>canales: WhatsApp, correo e Idealista</span></div>
-        <div><b>0</b><span>programas que instalar en vuestros equipos</span></div>
-        <div><b>10 min</b><span>como mucho para aplicar un cambio de la hoja</span></div>
-      </div>
-    </div>
-    <div class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-        <h3>Estado del servicio</h3><span class="pill nt">Ejemplo</span>
-      </div>
-      <p class="ph">Lo que vigilamos de cada cliente, cada 10 minutos. Si algo falla, nos llega un aviso.</p>
-      <div class="estado mt" id="estado"></div>
-    </div>
+  <div class="panel heroe">
+    <h2>Agentes de IA para WhatsApp, correo e Idealista, con un panel web para el equipo</h2>
+    <p>Esta página explica a un equipo técnico cómo funciona el sistema por dentro: qué piezas tiene, cómo se conecta con vuestros servicios, cómo controlamos la calidad de la IA, cómo protegemos los datos y qué necesitamos para la integración.</p>
   </div>
-
-  <div class="rejilla r4 mt">
-    <div class="panel clave"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg></div>
-      <div><b>Datos en la UE</b><span>La base de datos está en Frankfurt (Alemania).</span></div></div>
+  <div class="claves">
+    <div class="panel clave"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v3a3 3 0 0 0 3 3h6"/><circle cx="18" cy="6" r="3"/><path d="M9 6h6"/></svg></div>
+      <h3>Lo operamos nosotros</h3><p>Orquestación, base de datos y modelos de IA corren en nuestra infraestructura. Nos conectamos a vuestros servicios con sus protocolos estándar y, para el correo, enviamos desde vuestro propio servidor.</p>
+      <a class="ir" data-ir="arquitectura">Arquitectura</a></div>
     <div class="panel clave"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.6 7.3L3 21l2.2-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg></div>
-      <div><b>WhatsApp oficial</b><span>Conexión oficial de Meta, con vuestro mismo número.</span></div></div>
+      <h3>WhatsApp oficial de Meta</h3><p>Siempre con la API oficial de WhatsApp Business, con vuestro número y en coexistencia con la app. El agente responde, cualifica y agenda la visita.</p>
+      <a class="ir" data-ir="canales">Canales</a></div>
     <div class="panel clave"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
-      <div><b>El correo lo contesta una persona</b><span>El agente prepara la respuesta; la envía siempre alguien del equipo.</span></div></div>
+      <h3>Correo en tres fases</h3><p>Primero aprende de vuestras respuestas, después prepara todos los borradores para que el equipo los revise y, al final, envía solo los tipos de correo que decidáis.</p>
+      <a class="ir" data-ir="canales">Fases del correo</a></div>
+    <div class="panel clave"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.4z"/></svg></div>
+      <h3>IA con controles</h3><p>Respuestas basadas en vuestros datos, comprobaciones sin IA sobre lo que escribe el modelo, modelo de reserva y derivación a una persona.</p>
+      <a class="ir" data-ir="ia">IA y calidad</a></div>
     <div class="panel clave"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
-      <div><b>Vuestros datos son vuestros</b><span>No se usan para entrenar modelos de IA.</span></div></div>
-  </div>
-
-  <div class="panel mt">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-      <h3>Lo que va pasando</h3><span class="pill nt">Ejemplo · se mueve solo</span>
-    </div>
-    <p class="ph">Así se ve por dentro un rato normal. Las personas y los datos son inventados.</p>
-    <ul class="registro mono" id="registro" aria-live="off"></ul>
+      <h3>Datos separados y cifrados</h3><p>Servidores y base de datos en la UE, los datos de cada empresa separados, credenciales en un almacén cifrado y copias de seguridad diarias.</p>
+      <a class="ir" data-ir="seguridad">Seguridad y datos</a></div>
+    <div class="panel clave"><div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div>
+      <h3>Integración sencilla</h3><p>Necesitamos acceso al buzón comercial, la cuenta de WhatsApp Business, el calendario de cada centro y una persona de contacto. Nada que instalar en vuestros equipos.</p>
+      <a class="ir" data-ir="integracion">Integración</a></div>
   </div>
 </section>
 
-<!-- ===================== CÓMO FUNCIONA ===================== -->
-<section class="vista" id="v-funciona" role="tabpanel" aria-label="Cómo funciona">
+<!-- ===================== ARQUITECTURA ===================== -->
+<section class="vista" id="v-arquitectura" role="tabpanel" aria-label="Arquitectura">
   <div class="vcab">
-    <h2 class="tit">Cómo funciona</h2>
-    <p class="sub">Las piezas y cómo se conectan. Elige un caso y pulsa «Siguiente» para seguir el mensaje paso a paso.</p>
-  </div>
-  <div class="flujos" role="group" aria-label="Caso">
-    <button class="chip" data-flujo="whatsapp" aria-pressed="true">Mensaje de WhatsApp</button>
-    <button class="chip" data-flujo="correo" aria-pressed="false">Correo de un cliente</button>
-    <button class="chip" data-flujo="idealista" aria-pressed="false">Consulta de Idealista</button>
-    <button class="chip" data-flujo="visita" aria-pressed="false">Reserva de una visita</button>
+    <h2 class="tit">Arquitectura</h2>
+    <p class="sub">El sistema es multiempresa: un mismo conjunto de procesos atiende a cada cliente con su configuración, su base de conocimiento y sus datos, separados del resto. Elige un caso para ver por qué piezas pasa.</p>
   </div>
   <div class="panel">
     <div class="mapa" id="mapa">
       <div class="col">
-        <span class="eti">Vuestros canales</span>
-        <div class="nodo" data-n="wa"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.6 7.3L3 21l2.2-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>WhatsApp</b><span>Vuestro número, por la conexión oficial de Meta. Seguís usando la app.</span></div>
-        <div class="nodo" data-n="mail"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Vuestro buzón de correo</b><span>Se lee por IMAP y se responde por vuestro SMTP.</span></div>
-        <div class="nodo" data-n="ideal"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>Idealista</b><span>Sus avisos llegan a vuestro buzón. No tiene API para responder.</span></div>
+        <span class="eti">Vuestros servicios</span>
+        <div class="nodo" data-n="wa"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.6 7.3L3 21l2.2-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>WhatsApp Business</b><span>Vuestro número en la plataforma oficial de Meta. Entrada por webhook y salida por la API.</span></div>
+        <div class="nodo" data-n="mail"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Servidor de correo</b><span>IMAP para leer y dejar borradores; SMTP para enviar desde vuestro dominio.</span></div>
+        <div class="nodo" data-n="ideal"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>Idealista</b><span>Sus avisos llegan a vuestro buzón. No ofrece API para responder.</span></div>
+        <div class="nodo" data-n="cal"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendarios</b><span>La disponibilidad de cada centro o sede.</span></div>
       </div>
       <div class="col centro">
         <div class="nucleo">
-          <span class="eti">Simplia</span>
-          <div class="nodo" data-n="orq"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v3a3 3 0 0 0 3 3h6"/><circle cx="18" cy="6" r="3"/><path d="M9 6h6"/></svg>Orquestador</b><span>Recibe cada mensaje, lo prepara y decide qué hacer. Lleva los turnos, las pausas y los límites.</span></div>
-          <div class="nodo" data-n="ia"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.4z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>Agente de IA</b><span>Clasifica y redacta con vuestros datos. Modelos de IA por API empresarial.</span></div>
-          <div class="nodo" data-n="kb"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Base de conocimiento</b><span>Una hoja de Google vuestra: centros, tarifas, reglas, disponibilidad. Se lee cada 10 minutos.</span></div>
-          <div class="nodo" data-n="db"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Base de datos (UE)</b><span>PostgreSQL gestionado en Frankfurt. Conversaciones, embudo, citas y ajustes, separados por empresa.</span></div>
+          <span class="eti">Infraestructura de Simplia (UE)</span>
+          <div class="nodo" data-n="orq"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v3a3 3 0 0 0 3 3h6"/><circle cx="18" cy="6" r="3"/><path d="M9 6h6"/></svg>Orquestador</b><span>Motor de procesos autoalojado. Recibe eventos, aplica reglas (pausas, límites, duplicados), llama a la IA y ejecuta las acciones.</span></div>
+          <div class="nodo" data-n="cola"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Caché y colas en memoria</b><span>Agrupa mensajes seguidos, evita procesar dos veces el mismo evento y guarda la base de conocimiento ya validada.</span></div>
+          <div class="nodo" data-n="ia"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.4z"/></svg>Modelos de IA</b><span>Por API empresarial, con un modelo principal y otro de reserva de un proveedor distinto.</span></div>
+          <div class="nodo" data-n="db"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Base de datos</b><span>PostgreSQL gestionado. Conversaciones, contactos, embudo, citas y configuración de cada empresa.</span></div>
+          <div class="nodo" data-n="res"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 15l2.5 2.5L16 12"/></svg>Motor de reservas</b><span>Cal.com autoalojado: una página de reserva por centro, conectada a vuestro Google Calendar o Microsoft 365.</span></div>
         </div>
       </div>
       <div class="col">
         <span class="eti">Vuestro equipo</span>
-        <div class="nodo" data-n="panel"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>Panel web</b><span>En el navegador, con usuario y contraseña de cada persona. Nada que instalar.</span></div>
-        <div class="nodo" data-n="cal"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Reservas de visitas</b><span>Enlace de reserva por centro, con la disponibilidad de vuestra agenda.</span></div>
-        <div class="nodo" data-n="avisos"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>Avisos al equipo</b><span>Por correo y en el panel: alguien pide una persona, nueva visita, nuevo contacto.</span></div>
+        <div class="nodo" data-n="kb"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Base de conocimiento</b><span>Una hoja de Google que edita vuestro equipo: centros, tarifas, reglas y disponibilidad.</span></div>
+        <div class="nodo" data-n="panel"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>Panel web</b><span>Aplicación web por HTTPS, con usuario y contraseña de cada persona.</span></div>
+        <div class="nodo" data-n="avisos"><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>Avisos</b><span>Por correo, enviados desde vuestro SMTP: contacto nuevo, visita reservada, alguien pide una persona.</span></div>
       </div>
     </div>
-    <div class="pasos">
-      <ol id="pasos" aria-live="polite"></ol>
-      <div class="mando">
-        <button class="cbtn" id="sig">Siguiente</button>
-        <button class="cbtn sec" id="ant">Anterior</button>
-        <button class="cbtn sec" id="auto">Reproducir</button>
-      </div>
+
+    <div class="casos" role="group" aria-label="Caso">
+      <button class="chip" data-caso="whatsapp" aria-pressed="true">Mensaje de WhatsApp</button>
+      <button class="chip" data-caso="correo" aria-pressed="false">Correo entrante</button>
+      <button class="chip" data-caso="idealista" aria-pressed="false">Consulta de Idealista</button>
+      <button class="chip" data-caso="visita" aria-pressed="false">Reserva de visita</button>
+      <button class="chip" data-caso="conocimiento" aria-pressed="false">Cambio en la hoja</button>
+    </div>
+    <ol class="pasos" id="pasos"></ol>
+    <p class="nota mt">Pasa el ratón por un paso (o tócalo) para ver qué piezas intervienen.</p>
+  </div>
+
+  <div class="panel mt">
+    <h3>Qué corre dónde</h3>
+    <div class="mt">
+      <table class="tabla">
+        <thead><tr><th>Pieza</th><th>Dónde</th><th>Cómo se conecta</th></tr></thead>
+        <tbody>
+          <tr><td>Orquestador, colas y motor de reservas</td><td data-c="Dónde">Servidor propio de Simplia en la UE (Alemania)</td><td data-c="Cómo se conecta">Webhooks HTTPS de entrada; llamadas salientes a APIs y a vuestro servidor de correo por TLS</td></tr>
+          <tr><td>Base de datos</td><td data-c="Dónde">PostgreSQL gestionado en Fráncfort (UE)</td><td data-c="Cómo se conecta">Conexión cifrada desde nuestros procesos y desde el panel</td></tr>
+          <tr><td>Modelos de IA</td><td data-c="Dónde">Proveedores de modelos por API empresarial</td><td data-c="Cómo se conecta">HTTPS, con claves y límite de gasto separados por cliente</td></tr>
+          <tr><td>WhatsApp</td><td data-c="Dónde">Plataforma de WhatsApp Business de Meta, a través de un proveedor oficial</td><td data-c="Cómo se conecta">Webhook de entrada y API de envío, con la cuenta a nombre del cliente</td></tr>
+          <tr><td>Envío y lectura de correo</td><td data-c="Dónde"><b>Vuestro servidor de correo</b></td><td data-c="Cómo se conecta">IMAP y SMTP sobre TLS con un usuario del buzón</td></tr>
+          <tr><td>Base de conocimiento</td><td data-c="Dónde">Vuestra hoja de Google</td><td data-c="Cómo se conecta">Lectura periódica; se valida antes de publicarla al agente</td></tr>
+          <tr><td>Panel web</td><td data-c="Dónde">Web estática servida por HTTPS</td><td data-c="Cómo se conecta">Usuario y contraseña de cada persona, por HTTPS</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>
@@ -343,65 +294,79 @@
 <section class="vista" id="v-canales" role="tabpanel" aria-label="Canales">
   <div class="vcab">
     <h2 class="tit">Canales</h2>
-    <p class="sub">Qué hace el agente en cada canal, qué necesitamos de vosotros y dónde están los límites.</p>
+    <p class="sub">Qué hace el sistema en cada canal y con qué límites.</p>
   </div>
   <div class="rejilla r2">
     <div class="panel canal">
       <div class="cab"><div class="ico" style="background:var(--verde-tenue);color:var(--verde-oscuro)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.6 7.3L3 21l2.2-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg></div>
-        <div><h3>WhatsApp</h3><span class="pill vd">Responde solo</span></div></div>
+        <div><h3>WhatsApp</h3><span class="pill vd">Responde de forma autónoma</span></div></div>
       <ul class="lista">
-        <li><i class="ok" aria-hidden="true">✓</i><span><b>Conexión oficial de Meta</b> (API de WhatsApp Business) con vuestro número de siempre. Por la coexistencia, el equipo sigue usando la app de WhatsApp Business.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Si la persona escribe varios mensajes seguidos, espera y contesta a todo junto. <b>Entiende audios y fotos.</b></span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span><b>Si alguien del equipo escribe desde la app, el agente se aparta</b> de esa conversación. También se puede pausar desde el panel.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Envía el enlace de reserva, confirma la visita y la recuerda antes.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Si la persona pide hablar con alguien, avisa al equipo al momento.</span></li>
+        <li><i>✓</i><span>Siempre con la <b>API oficial de WhatsApp Business</b> y vuestro número. Con la coexistencia, el equipo sigue usando la app de WhatsApp Business en el mismo número.</span></li>
+        <li><i>✓</i><span>Agrupa los mensajes que la persona envía seguidos y responde una vez a todos. Transcribe audios e interpreta imágenes.</span></li>
+        <li><i>✓</i><span>Si alguien del equipo escribe desde la app, <b>el agente se retira de esa conversación</b>. También se puede pausar desde el panel.</span></li>
+        <li><i>✓</i><span>Cualifica al contacto, lo registra en el embudo, envía el enlace de reserva y avisa al equipo cuando alguien pide una persona.</span></li>
+        <li><i>✓</i><span>Si un contacto deja de responder, el sistema programa un seguimiento y, antes de enviarlo, comprueba que la conversación sigue parada.</span></li>
+        <li><i>✓</i><span>La cuenta de WhatsApp Business y el número <b>son vuestros</b>. Meta factura directamente los mensajes de pago, sin margen nuestro.</span></li>
       </ul>
-      <div class="bloque"><span class="eti">Necesitamos</span>Una cuenta de Meta Business verificada y el número con la app de WhatsApp Business. Listo en 7 días naturales desde la aprobación de Meta.</div>
-      <p class="nota">Coste de Meta: los mensajes de los clientes son gratis, las respuestas del agente también hasta 1.000 al mes por número, y cada recordatorio de visita cuesta unos 0,02 €. Se paga directamente a Meta.</p>
     </div>
 
     <div class="panel canal">
       <div class="cab"><div class="ico" style="background:var(--aire);color:var(--pulso-texto)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
-        <div><h3>Correo</h3><span class="pill az">Prepara; envía una persona</span></div></div>
+        <div><h3>Correo</h3><span class="pill az">Autonomía por fases</span></div></div>
       <ul class="lista">
-        <li><i class="ok" aria-hidden="true">✓</i><span>Lee vuestro buzón <b>por IMAP cada minuto</b>. No borra nada.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Clasifica cada correo: nuevo cliente, cliente actual, proveedor, aviso, publicidad, personal, spam…</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>A los comerciales les <b>prepara la respuesta</b> en unos minutos. La deja en el panel y en la carpeta Borradores de vuestro buzón.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Una persona la revisa y pulsa Enviar. Sale <b>por vuestro propio servidor SMTP</b>, con vuestra firma, a los 10 segundos. Hasta entonces se puede deshacer.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Lo que no encuentra en vuestra hoja lo apunta en «Información que le falta al asistente».</span></li>
+        <li><i>✓</i><span>Lee el buzón por <b>IMAP</b> y clasifica cada correo: nuevo cliente, cliente actual, proveedor, aviso, publicidad, personal, spam…</span></li>
+        <li><i>✓</i><span>A los correos comerciales les prepara la respuesta con vuestra base de conocimiento, en el panel y en la carpeta <b>Borradores</b> de vuestro buzón.</span></li>
+        <li><i>✓</i><span>Los envíos salen por <b>vuestro SMTP</b>, con vuestra firma y vuestro dominio, y quedan en vuestra carpeta de enviados.</span></li>
+        <li><i>✓</i><span>Lo que el agente no encuentra en la hoja queda apuntado como «información que falta», para completarla.</span></li>
       </ul>
-      <div class="bloque"><span class="eti">A vuestro ritmo</span>
-        <div class="modos">
-          <div class="modo"><b>1 · Sombra</b><span>Solo lee y propone. No toca el buzón.</span></div>
-          <div class="modo on"><b>2 · Borradores</b><span>Deja las respuestas en Borradores. Envía una persona.</span></div>
-          <div class="modo"><b>Tope diario</b><span>Máximo de respuestas al día por empresa (50 de partida).</span></div>
-        </div>
+      <div class="fases">
+        <div class="fase"><span class="n">Fase 1</span><b>Aprende</b><span>Lee, clasifica y redacta sin tocar el buzón. Comparamos cada propuesta con lo que respondió vuestro equipo.</span></div>
+        <div class="fase"><span class="n">Fase 2</span><b>Prepara</b><span>Todos los correos comerciales llegan redactados. Una persona revisa, cambia si quiere y envía, con unos segundos para deshacerlo.</span></div>
+        <div class="fase"><span class="n">Fase 3</span><b>Envía</b><span>Los tipos de correo que decidáis salen solos; el resto sigue pasando por una persona.</span></div>
       </div>
-      <div class="bloque"><span class="eti">Necesitamos</span>El buzón comercial: servidor IMAP y SMTP, puertos, usuario y una contraseña (mejor, de aplicación). Se guarda cifrada y no se vuelve a mostrar.</div>
+      <p class="nota">Resultado: respuestas en minutos en lugar de horas, más completas y sin trabajo repetitivo para el equipo. Hay un tope diario de respuestas por empresa.</p>
     </div>
 
     <div class="panel canal">
       <div class="cab"><div class="ico" style="background:var(--ambar-tenue);color:var(--ambar-oscuro)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg></div>
-        <div><h3>Idealista</h3><span class="pill am">Respuesta lista para pegar</span></div></div>
+        <div><h3>Idealista</h3><span class="pill am">Respuesta preparada</span></div></div>
       <ul class="lista">
-        <li><i class="ok" aria-hidden="true">✓</i><span>Idealista <b>no permite responder desde herramientas externas</b> (no hay API) y valora que se conteste desde su portal. Por eso el agente no contesta solo.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Del aviso que llega a vuestro buzón saca el nombre, el teléfono, el anuncio y la pregunta.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Redacta la respuesta. Con <b>«Copiar y abrir en idealista»</b> se copia y se abre la conversación de esa persona: solo hay que pegar.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Al volver, el panel pregunta si se respondió, para que no se quede nadie sin contestar.</span></li>
+        <li><i>✓</i><span>Idealista <b>no permite responder desde herramientas externas</b> (no hay API) y valora que se conteste desde su portal. Por eso el agente no responde solo en este canal.</span></li>
+        <li><i>✓</i><span>Del aviso que llega al buzón extrae nombre, teléfono, anuncio y pregunta, y redacta la respuesta.</span></li>
+        <li><i>✓</i><span>Desde el panel se copia la respuesta y se abre la conversación de esa persona en Idealista. El panel registra si se respondió.</span></li>
       </ul>
-      <div class="bloque"><span class="eti">Necesitamos</span>Que los avisos de Idealista lleguen al buzón que conectamos. Nada más.</div>
     </div>
 
     <div class="panel canal">
       <div class="cab"><div class="ico" style="background:#F1F5F9;color:var(--tinta-suave)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
-        <div><h3>Visitas y seguimiento</h3><span class="pill nt">Hasta la visita</span></div></div>
+        <div><h3>Visitas y calendario</h3><span class="pill nt">Conectado a vuestro calendario</span></div></div>
       <ul class="lista">
-        <li><i class="ok" aria-hidden="true">✓</i><span>El agente llega <b>hasta agendar la visita</b>. A partir de ahí sigue vuestro equipo.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Cada centro tiene su enlace de reserva, con la disponibilidad de vuestra agenda.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Cada reserva se comprueba (firma y repetidos), se guarda, se confirma por WhatsApp y se avisa al equipo con la ficha de la persona.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Si alguien deja de contestar, el agente le vuelve a escribir en el momento adecuado, comprobando antes que la conversación sigue parada.</span></li>
+        <li><i>✓</i><span><b>Nos conectamos a vuestro calendario</b> para conocer la disponibilidad de cada centro o sede.</span></li>
+        <li><i>✓</i><span>Trabajamos sobre todo con <b>Cal.com</b> (autoalojado): una página de reserva por centro, <b>conectada a vuestro Google Calendar o Microsoft 365</b>.</span></li>
+        <li><i>✓</i><span>Si hace falta, <b>integramos directamente vuestro calendario o vuestro sistema de reservas</b>, o usamos un calendario por sede para su disponibilidad.</span></li>
+        <li><i>✓</i><span>Cada reserva llega firmada, se comprueba que no esté repetida, se confirma por WhatsApp, se avisa al equipo y se envía un recordatorio antes de la visita.</span></li>
       </ul>
-      <div class="bloque"><span class="eti">Necesitamos</span>Qué calendario usáis (Google Calendar, Outlook…) o si preferís que os creemos uno nuevo, y quién recibe los avisos.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== IA ===================== -->
+<section class="vista" id="v-ia" role="tabpanel" aria-label="IA y control de calidad">
+  <div class="vcab">
+    <h2 class="tit">IA y control de calidad</h2>
+    <p class="sub">Un modelo de lenguaje puede equivocarse. Por eso no trabaja solo: lo rodean capas que limitan lo que puede decir, comprueban lo que escribe y pasan la conversación a una persona cuando hace falta.</p>
+  </div>
+  <div class="panel">
+    <div class="capas">
+      <div class="capa"><div><h3>Conocimiento cerrado</h3><p>El agente responde con vuestra base de conocimiento, no con lo que «sabe» de internet. La hoja se valida antes de publicarse: si un cambio no se puede leer, el agente sigue con la última versión correcta. Lo que no encuentra lo dice, lo apunta como información que falta o pasa la conversación al equipo.</p></div></div>
+      <div class="capa"><div><h3>Cambios controlados por personas</h3><p>Ningún proceso cambia por su cuenta las instrucciones ni la configuración del agente: los cambios los decide y revisa una persona, y se prueban con un número de pruebas antes de llegar a vuestros clientes.</p></div></div>
+      <div class="capa"><div><h3>Comprobaciones sin IA sobre la respuesta</h3><p>Antes de enviar, reglas deterministas revisan lo que ha escrito el modelo: precios que no están en la hoja, formato y datos que no debe pedir. Los enlaces de reserva no los escribe el modelo: escribe un marcador y el sistema pone el enlace firmado. Si una IA corrige un mensaje, la corrección se comprueba sin IA.</p></div></div>
+      <div class="capa"><div><h3>Modelo de reserva y respuesta ante fallos</h3><p>Si el modelo principal falla o tarda demasiado, contesta un modelo de reserva de otro proveedor. Si fallan los dos, la persona recibe un mensaje de disculpa en lugar de silencio y se genera una alerta.</p></div></div>
+      <div class="capa"><div><h3>Límites y control de entrada</h3><p>Eventos duplicados descartados, mensajes seguidos agrupados, tope diario por contacto y por empresa, y límite de gasto de IA por cliente. Así se evitan abusos, respuestas repetidas y costes descontrolados.</p></div></div>
+      <div class="capa"><div><h3>Una persona cuando hace falta</h3><p>El agente pasa la conversación al equipo si la persona lo pide o si el caso está fuera de su alcance. En el correo marca lo que debe hacer el equipo («Para el equipo»), y si alguien del equipo interviene en WhatsApp, el agente se retira.</p></div></div>
+      <div class="capa"><div><h3>Autonomía que se gana</h3><p>En el correo la autonomía va por fases: primero se compara cada propuesta con la respuesta real de vuestro equipo; solo cuando la calidad es buena se pasa a borradores y, después, al envío automático de los tipos de correo que elijáis.</p></div></div>
+      <div class="capa"><div><h3>Medición y vigilancia</h3><p>Cada ejecución queda registrada (duración, resultado y errores). Se vigilan de forma continua el número de WhatsApp, la sincronización de la hoja, los envíos fallidos, las reservas rechazadas y los contactos atascados, y un latido externo avisa si la propia vigilancia se detiene.</p></div></div>
+      <div class="capa"><div><h3>Transparencia</h3><p>El agente se presenta como asistente automático en el primer mensaje (Reglamento europeo de IA) y no confirma quién es cliente ni da datos de ningún cliente.</p></div></div>
     </div>
   </div>
 </section>
@@ -410,103 +375,84 @@
 <section class="vista" id="v-seguridad" role="tabpanel" aria-label="Seguridad y datos">
   <div class="vcab">
     <h2 class="tit">Seguridad y datos</h2>
-    <p class="sub">Dónde están los datos, quién los ve y qué hace (y qué no hace nunca) el sistema con ellos.</p>
+    <p class="sub">Dónde están los datos, cómo se separan, cómo se accede a ellos y cómo se protegen.</p>
   </div>
-  <div class="seg">
+  <div class="rejilla r2">
     <div class="panel">
-      <h3>Dónde están y quién los ve</h3>
+      <h3>Ubicación y aislamiento</h3>
       <ul class="lista mt">
-        <li><i class="ok" aria-hidden="true">✓</i><span><b>Base de datos en la UE</b>: PostgreSQL gestionado, en Frankfurt (Alemania).</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span><b>Cada empresa ve solo lo suyo.</b> El servidor comprueba en cada consulta quién eres y a qué empresa perteneces. No depende de la pantalla.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span><b>Usuarios con nombre</b>: cada persona entra con su correo y su contraseña. Se dan de alta por invitación. Hay administradores y empleados.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Las <b>contraseñas de vuestro buzón</b> se guardan en un almacén de secretos cifrado y no se vuelven a mostrar, tampoco en el panel.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Todo viaja por <b>HTTPS</b>. Las peticiones del panel van con la sesión de cada persona, las reservas llegan firmadas y todo se valida antes de procesarlo.</span></li>
+        <li><i>✓</i><span><b>Servidores y base de datos en la UE</b> (Alemania).</span></li>
+        <li><i>✓</i><span><b>Multiempresa con los datos separados</b>: cada empresa solo ve los suyos.</span></li>
+        <li><i>✓</i><span><b>Datos que salen de la UE:</b> para redactar cada respuesta, el texto de la conversación se envía a los proveedores de modelos de IA, que tienen su sede en <b>Estados Unidos</b>. Es una transferencia internacional de datos, cubierta con las garantías del RGPD: las cláusulas contractuales tipo de la Comisión Europea incluidas en sus acuerdos de tratamiento de datos.</span></li>
+        <li><i>✓</i><span>Esos proveedores no usan los datos para entrenar sus modelos. Lo que guardamos nosotros (conversaciones, contactos, citas) se queda en la UE.</span></li>
+        <li><i>✓</i><span>Meta (WhatsApp) y Google (la hoja) tratan los datos según sus propias condiciones, que acepta vuestra empresa al usar sus servicios.</span></li>
       </ul>
     </div>
     <div class="panel">
-      <h3>Inteligencia artificial</h3>
+      <h3>Acceso y credenciales</h3>
       <ul class="lista mt">
-        <li><i class="ok" aria-hidden="true">✓</i><span>Modelos de proveedores de primer nivel, usados <b>por API empresarial</b>. <b>No se entrenan con vuestros datos.</b></span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Está preparado para responder <b>solo con lo que hay en vuestra hoja</b>. Si algo no está, lo dice, lo apunta o pasa la conversación al equipo.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span><b>No confirma quién es cliente</b> ni da datos de ningún cliente.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span><b>Se presenta como asistente automático</b> en el primer mensaje, como pide el Reglamento europeo de IA.</span></li>
+        <li><i>✓</i><span><b>Usuarios nominales</b> en el panel, con alta por invitación y roles (administrador y empleado).</span></li>
+        <li><i>✓</i><span>La contraseña del buzón la introducís vosotros en el panel y se guarda en un <b>almacén de secretos cifrado</b>. No vuelve a mostrarse.</span></li>
+        <li><i>✓</i><span>Las claves de los servicios están en el gestor cifrado de credenciales del orquestador, nunca en el código ni en el navegador.</span></li>
+        <li><i>✓</i><span>La administración de la infraestructura solo es accesible por canales cifrados y autenticados con clave.</span></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Transporte, entradas y copias</h3>
+      <ul class="lista mt">
+        <li><i>✓</i><span><b>TLS en todo</b>: HTTPS para webhooks, APIs y panel; IMAP y SMTP cifrados con vuestro servidor de correo.</span></li>
+        <li><i>✓</i><span>Las entradas se validan antes de procesarlas; las reservas llegan <b>firmadas (HMAC)</b>.</span></li>
+        <li><i>✓</i><span><b>Copias de seguridad diarias y cifradas</b>, guardadas fuera del servidor, con pruebas periódicas de restauración.</span></li>
       </ul>
     </div>
     <div class="panel">
       <h3>Protección de datos (RGPD)</h3>
       <ul class="lista mt">
-        <li><i class="ok" aria-hidden="true">✓</i><span>Simplia actúa como <b>encargado del tratamiento</b>. Firmamos el contrato con el presupuesto, con la lista de proveedores que intervienen.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>El primer mensaje incluye la <b>información básica de privacidad</b>: responsable, finalidad, derechos y enlace a vuestra política.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Si una persona pide que se borren sus datos, <b>los borramos</b>.</span></li>
-        <li><i class="ok" aria-hidden="true">✓</i><span>Los plazos de conservación se acuerdan con vosotros en el contrato.</span></li>
-      </ul>
-    </div>
-    <div class="panel nunca">
-      <h3>Lo que el sistema no hace nunca</h3>
-      <ul class="lista mt">
-        <li><i class="no" aria-hidden="true">✕</i><span><b>Contestar un correo de vuestro buzón sin que lo pulse una persona.</b></span></li>
-        <li><i class="no" aria-hidden="true">✕</i><span><b>Borrar correos</b> de vuestro buzón para siempre.</span></li>
-        <li><i class="no" aria-hidden="true">✕</i><span><b>Contestar en Idealista</b> por su cuenta.</span></li>
-        <li><i class="no" aria-hidden="true">✕</i><span><b>Mezclar datos de empresas</b> distintas.</span></li>
-        <li><i class="no" aria-hidden="true">✕</i><span><b>Pedir acceso a vuestros equipos</b> o instalar nada en ellos.</span></li>
+        <li><i>✓</i><span>Vosotros sois los responsables del tratamiento; Simplia actúa como <b>encargado del tratamiento</b> (art. 28 RGPD).</span></li>
+        <li><i>✓</i><span>El primer mensaje incluye la <b>información básica de privacidad</b> y el aviso de que responde un asistente automático.</span></li>
+        <li><i>✓</i><span>Los plazos de conservación se acuerdan en el contrato. Si una persona pide que se borren sus datos, se borran.</span></li>
       </ul>
     </div>
   </div>
-</section>
-
-<!-- ===================== FIABILIDAD ===================== -->
-<section class="vista" id="v-fiabilidad" role="tabpanel" aria-label="Fiabilidad">
-  <div class="vcab">
-    <h2 class="tit">Fiabilidad</h2>
-    <p class="sub">Qué pasa cuando algo no sale como debería. La idea es que nadie se quede sin respuesta y que nos enteremos antes que vosotros.</p>
-  </div>
-  <div class="rejilla r3">
-    <div class="panel"><h3>Vigilancia cada 10 minutos</h3><p class="ph">Por cada cliente comprobamos el estado del número de WhatsApp, la sincronización de la hoja, los envíos fallidos, las reservas rechazadas, los contactos atascados y el tiempo de respuesta. Si algo falla, avisa al equipo de Simplia.</p></div>
-    <div class="panel"><h3>Si la IA falla</h3><p class="ph">La persona recibe una disculpa breve en lugar de silencio, y nos llega el aviso para revisarlo.</p></div>
-    <div class="panel"><h3>Sin mensajes repetidos</h3><p class="ph">Los avisos duplicados de WhatsApp o del sistema de reservas se descartan. Así nadie recibe dos respuestas ni dos confirmaciones.</p></div>
-    <div class="panel"><h3>Topes contra abusos</h3><p class="ph">Hay un límite diario de mensajes por persona y otro de respuestas por correo por empresa. Si alguien insiste sin parar, el agente se detiene y lo avisa.</p></div>
-    <div class="panel"><h3>Una hoja mal rellenada no rompe nada</h3><p class="ph">Si un cambio en la hoja no se puede leer, el agente sigue con la última versión buena. Los cambios válidos se aplican en 10 minutos como mucho.</p></div>
-    <div class="panel"><h3>Envíos de correo con red</h3><p class="ph">El envío lo hace el servidor, aunque se cierre el navegador. Si vuestro servidor de correo no lo acepta, se reintenta y el panel lo indica.</p></div>
-  </div>
-  <div class="panel mt">
-    <h3>Vuestro equipo siempre puede intervenir</h3>
-    <div class="rejilla r3 mt">
-      <div class="clave"><div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.6 7.3L3 21l2.2-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg></div><div><b>Escribir desde la app</b><span>El agente se aparta de esa conversación.</span></div></div>
-      <div class="clave"><div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></div><div><b>Pausar desde el panel</b><span>2 horas, un día o hasta que lo reactivéis.</span></div></div>
-      <div class="clave"><div class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg></div><div><b>Cambiar la hoja</b><span>Precios, horarios o reglas, sin pedirnos nada.</span></div></div>
-    </div>
+  <div class="panel nunca mt">
+    <h3>Lo que el sistema no hace</h3>
+    <ul class="lista mt">
+      <li><i>✕</i><span><b>Borrar correos de vuestro buzón</b> de forma definitiva.</span></li>
+      <li><i>✕</i><span><b>Responder en Idealista</b> por su cuenta.</span></li>
+      <li><i>✕</i><span><b>Enviar sin revisión un tipo de correo</b> que no hayáis autorizado.</span></li>
+      <li><i>✕</i><span><b>Mezclar datos de empresas distintas</b>.</span></li>
+      <li><i>✕</i><span><b>Instalar software en vuestros equipos</b> o abrir accesos a vuestra red interna.</span></li>
+    </ul>
   </div>
 </section>
 
-<!-- ===================== PUESTA EN MARCHA ===================== -->
-<section class="vista" id="v-marcha" role="tabpanel" aria-label="Puesta en marcha">
+<!-- ===================== INTEGRACIÓN ===================== -->
+<section class="vista" id="v-integracion" role="tabpanel" aria-label="Integración">
   <div class="vcab">
-    <h2 class="tit">Puesta en marcha</h2>
-    <p class="sub">Lo que necesitamos de vuestro equipo técnico. El resto lo hacemos nosotros. Podéis ir marcando lo que ya está.</p>
+    <h2 class="tit">Integración</h2>
+    <p class="sub">Lo que necesitamos de vuestro equipo técnico para conectar cada servicio, y cómo se entrega sin compartir contraseñas por correo.</p>
   </div>
   <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
-      <h3>Lo que necesitamos</h3><span class="nota" id="cuenta">0 de 6</span>
-    </div>
-    <div class="barra" aria-hidden="true"><i id="barra"></i></div>
-    <ul class="tareas mt" id="tareas">
-      <li class="tarea"><input type="checkbox" id="t1" aria-describedby="t1d"><label for="t1"><b>WhatsApp</b><span id="t1d">Cuenta de Meta Business verificada y el número con la app de WhatsApp Business. La conexión la hacemos juntos en una videollamada corta.</span></label><span class="pill nt quien">Vosotros + Simplia</span></li>
-      <li class="tarea"><input type="checkbox" id="t2" aria-describedby="t2d"><label for="t2"><b>Buzón de correo</b><span id="t2d">Servidor IMAP y SMTP, puertos, usuario y contraseña de aplicación del buzón comercial. Si hay carpetas propias, cuáles leer.</span></label><span class="pill nt quien">Vosotros</span></li>
-      <li class="tarea"><input type="checkbox" id="t3" aria-describedby="t3d"><label for="t3"><b>Hoja de datos</b><span id="t3d">Os la entregamos prerrellenada con vuestra web y portales. La revisáis, la completáis y nos dais acceso de lectura.</span></label><span class="pill nt quien">Simplia + vosotros</span></li>
-      <li class="tarea"><input type="checkbox" id="t4" aria-describedby="t4d"><label for="t4"><b>Agenda de visitas</b><span id="t4d">Qué calendario usáis (Google Calendar, Outlook…) o si preferís uno nuevo.</span></label><span class="pill nt quien">Vosotros</span></li>
-      <li class="tarea"><input type="checkbox" id="t5" aria-describedby="t5d"><label for="t5"><b>Personas del panel</b><span id="t5d">El correo de cada persona que vaya a entrar y quién es administrador. Les llega una invitación.</span></label><span class="pill nt quien">Vosotros</span></li>
-      <li class="tarea"><input type="checkbox" id="t6" aria-describedby="t6d"><label for="t6"><b>Protección de datos</b><span id="t6d">Contrato de encargado del tratamiento y el aviso de privacidad del primer mensaje, con el enlace a vuestra política.</span></label><span class="pill nt quien">Vosotros + Simplia</span></li>
-    </ul>
-    <p class="nota mt">Lo que marques aquí se queda solo en este navegador.</p>
+    <table class="tabla">
+      <thead><tr><th>Servicio</th><th>Qué necesitamos</th><th>Cómo se entrega</th></tr></thead>
+      <tbody>
+        <tr><td>WhatsApp Business</td><td data-c="Qué necesitamos">Cuenta de Meta Business verificada y el número con la app de WhatsApp Business.</td><td data-c="Cómo se entrega">La conexión la hacemos juntos en una videollamada corta, desde el móvil del número. No hay que darnos ninguna contraseña.</td></tr>
+        <tr><td>Correo</td><td data-c="Qué necesitamos">El buzón comercial: servidor IMAP y SMTP, puertos con TLS, usuario y qué carpetas leer.</td><td data-c="Cómo se entrega">La contraseña (mejor una contraseña de aplicación, revocable) la escribís vosotros en el panel. Se guarda cifrada.</td></tr>
+        <tr><td>Dominio del correo</td><td data-c="Qué necesitamos">SPF, DKIM y DMARC del dominio en orden, porque los envíos salen de vuestro servidor.</td><td data-c="Cómo se entrega">Lo revisamos juntos. Si vuestro servidor limita por IP, os damos la de salida.</td></tr>
+        <tr><td>Calendario</td><td data-c="Qué necesitamos">Qué calendario usáis en cada centro o sede (Google Calendar, Microsoft 365…) o vuestro sistema de reservas.</td><td data-c="Cómo se entrega">Conectamos vuestro Google Calendar o Microsoft 365 con una autorización desde vuestra cuenta, sin contraseñas. Si lo preferís, creamos uno nuevo.</td></tr>
+        <tr><td>Base de conocimiento</td><td data-c="Qué necesitamos">Revisar y completar la hoja que os preparamos con los datos de vuestra web y portales.</td><td data-c="Cómo se entrega">La hoja es vuestra; nos dais acceso de lectura.</td></tr>
+        <tr><td>Panel</td><td data-c="Qué necesitamos">El correo de cada persona que vaya a usarlo y quién es administrador.</td><td data-c="Cómo se entrega">Cada persona recibe una invitación y crea su contraseña.</td></tr>
+        <tr><td>Contacto técnico</td><td data-c="Qué necesitamos">Una persona de vuestro equipo para la puesta en marcha y para incidencias.</td><td data-c="Cómo se entrega">Nombre y correo.</td></tr>
+      </tbody>
+    </table>
   </div>
   <div class="panel mt">
-    <h3>Cómo va la puesta en marcha</h3>
-    <div class="plazos mt">
-      <div class="plazo"><b>Día 0 · Arranque</b><span>Nos dais los accesos. Preparamos la hoja con vuestros datos.</span></div>
-      <div class="plazo"><b>Conexión</b><span>WhatsApp (con la aprobación de Meta), buzón y agenda.</span></div>
-      <div class="plazo"><b>Pruebas</b><span>Correo en modo sombra y pruebas de WhatsApp con números de vuestro equipo.</span></div>
-      <div class="plazo"><b>En marcha</b><span>Unos 7 días naturales desde la aprobación de Meta. Revisamos juntos el primer mes.</span></div>
-    </div>
+    <h3>Puesta en marcha</h3>
+    <p class="ph">WhatsApp queda listo en unos 7 días naturales desde la aprobación de Meta. El correo empieza en la fase 1 y pasa a la siguiente cuando lo decidimos juntos, a la vista de la calidad de las respuestas.</p>
+  </div>
+  <div class="panel mt">
+    <h3>Contacto técnico de Simplia</h3>
+    <p class="ph">Para dudas técnicas, la integración o una incidencia: <a href="mailto:sergio@simpliaspain.com">sergio@simpliaspain.com</a></p>
   </div>
 </section>
 
@@ -516,29 +462,27 @@
     <h2 class="tit">Preguntas frecuentes</h2>
     <p class="sub">Lo que suele preguntar un equipo técnico.</p>
   </div>
-  <details class="pq"><summary>¿Hay que instalar algo o abrir puertos?</summary><p>No. Todo funciona en nuestros servidores y el panel es una web. No necesitamos acceso a vuestros equipos ni a vuestra red. Solo conectamos con servicios que ya usáis: WhatsApp, vuestro buzón, vuestra agenda y una hoja de Google.</p></details>
-  <details class="pq"><summary>¿Perdemos la app de WhatsApp Business?</summary><p>No. Con la coexistencia, el número queda conectado a la API oficial de Meta y el equipo sigue usando la app. Si alguien del equipo escribe a un cliente, el agente se aparta de esa conversación.</p></details>
-  <details class="pq"><summary>¿Puede el agente contestar un correo por su cuenta?</summary><p>No. Prepara la respuesta y la deja en el panel y en Borradores. Sale solo cuando una persona pulsa Enviar, y durante 10 segundos se puede deshacer. Se envía por vuestro servidor SMTP, así que llega como un correo vuestro (con vuestro SPF y DKIM). Lo único automático son los avisos que activéis, como la confirmación de una visita.</p></details>
-  <details class="pq"><summary>¿Qué permisos necesita sobre el buzón?</summary><p>Los de un usuario normal del buzón, por IMAP y SMTP. Lee la bandeja de entrada y los enviados, deja borradores y, si lo activáis, ordena carpetas. No borra correos. Recomendamos una contraseña de aplicación, que podéis revocar cuando queráis.</p></details>
-  <details class="pq"><summary>¿Dónde están los datos y quién los ve?</summary><p>En una base de datos PostgreSQL gestionada en Frankfurt (UE). Cada empresa solo ve sus datos: el servidor lo comprueba en cada consulta. Las contraseñas de los buzones van en un almacén de secretos cifrado.</p></details>
-  <details class="pq"><summary>¿La IA aprende con nuestras conversaciones?</summary><p>No. Usamos los modelos por API empresarial, y por contrato no se entrenan con lo que se les envía. El agente responde con vuestra hoja de datos, no con lo que haya aprendido de otras empresas.</p></details>
-  <details class="pq"><summary>Si cambiamos un precio, ¿cuándo lo sabe el agente?</summary><p>En 10 minutos como mucho. La hoja se lee cada 10 minutos, y si un cambio no se puede leer, el agente sigue con la última versión buena.</p></details>
-  <details class="pq"><summary>¿Qué pasa si algo se cae?</summary><p>Vigilamos cada 10 minutos el número de WhatsApp, la hoja, los envíos y las reservas, y nos llega un aviso si algo falla. Si la IA no puede contestar, la persona recibe una disculpa en lugar de silencio.</p></details>
-  <details class="pq"><summary>¿Hay permanencia? ¿De quién son los datos?</summary><p>No hay permanencia: basta con avisar con 30 días. Los datos son vuestros.</p></details>
+  <details class="pq"><summary>¿Hay que instalar algo o abrir puertos?</summary><p>No hay que instalar nada en vuestros equipos ni abrir accesos entrantes a vuestra red. Nos conectamos a servicios que ya usáis: WhatsApp a través de Meta, vuestro servidor de correo por IMAP y SMTP, vuestro calendario y una hoja de Google. El panel es una web.</p></details>
+  <details class="pq"><summary>¿Por qué el correo sale de nuestro servidor?</summary><p>Porque es lo mejor para vosotros: los correos salen de vuestro dominio, con vuestra autenticación (SPF, DKIM y DMARC), quedan en vuestra carpeta de enviados y no dependen de la reputación ni de la capacidad de un servidor ajeno.</p></details>
+  <details class="pq"><summary>¿Qué permisos necesita sobre el buzón?</summary><p>Los de un usuario normal del buzón por IMAP y SMTP: leer la bandeja de entrada y los enviados, dejar borradores, ordenar carpetas si lo activáis y enviar. Recomendamos una contraseña de aplicación, que podéis revocar en cualquier momento.</p></details>
+  <details class="pq"><summary>¿Perdemos la app de WhatsApp Business?</summary><p>No. Con la coexistencia, el número queda conectado a la API oficial de Meta y el equipo sigue usando la app. Si alguien del equipo escribe a un contacto, el agente se retira de esa conversación.</p></details>
+  <details class="pq"><summary>¿La IA se entrena con nuestras conversaciones? ¿Salen datos de la UE?</summary><p>No se entrena con ellas: usamos los modelos por API empresarial, cuyos términos excluyen el entrenamiento con los datos enviados. Y sí salen datos de la UE: para redactar cada respuesta, el texto de la conversación va a proveedores de IA con sede en Estados Unidos, con las cláusulas contractuales tipo de la Comisión Europea. Lo que guardamos nosotros se queda en la UE.</p></details>
+  <details class="pq"><summary>¿Qué pasa si la IA se equivoca o no está disponible?</summary><p>Las respuestas pasan por comprobaciones sin IA antes de enviarse. Si el modelo principal falla, responde uno de reserva de otro proveedor; si fallan los dos, la persona recibe una disculpa y se genera una alerta. En el correo, la autonomía va por fases y la decidís vosotros.</p></details>
+  <details class="pq"><summary>Si cambiamos un precio en la hoja, ¿cuándo lo usa el agente?</summary><p>En pocos minutos, sin pedirnos nada. Si el cambio no se puede leer, el agente sigue con la última versión correcta.</p></details>
+  <details class="pq"><summary>¿Se puede conectar con nuestro CRM o sistema de reservas?</summary><p>Sí, si tiene API. Lo estudiamos en cada caso: disponibilidad de despachos, reservas o alta de contactos.</p></details>
+  <details class="pq"><summary>¿Hay permanencia? ¿De quién son los datos?</summary><p>No hay permanencia: basta con avisar con 30 días. Los datos, la cuenta de WhatsApp, el buzón y la hoja son vuestros.</p></details>
 </section>
 </main>
 
 <footer>
-  <span>SimpliaSpain · Resumen técnico para la reunión</span>
-  <span>Los datos de «Estado» y «Lo que va pasando» son de ejemplo.</span>
+  <span>SimpliaSpain · Documentación técnica · Noviembre de 2026 · Contacto técnico: <a href="mailto:sergio@simpliaspain.com">sergio@simpliaspain.com</a></span>
+  <a href="https://www.simpliaspain.com" target="_blank" rel="noopener">www.simpliaspain.com</a>
 </footer>
 
 <script>
 (() => {
   'use strict';
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-  const guardar = (k, v) => { try { localStorage.setItem('simplia-demotecnica:' + k, JSON.stringify(v)); } catch (e) {} };
-  const leer = (k, d) => { try { const v = localStorage.getItem('simplia-demotecnica:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   /* ---------- Pestañas (con #enlace) ---------- */
@@ -547,11 +491,11 @@
     if (!VISTAS.includes(v)) v = 'resumen';
     $$('nav [data-v]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.v === v)));
     $$('.vista').forEach(s => s.classList.toggle('on', s.id === 'v-' + v));
-    if (empujar) history.replaceState(null, '', '#' + v);
+    if (empujar) { history.replaceState(null, '', '#' + v); window.scrollTo({ top: 0 }); }
     $(`nav [data-v="${v}"]`).scrollIntoView({ block: 'nearest', inline: 'center' });
-    if (v !== 'funciona') parar();
   }
-  $$('nav [data-v]').forEach(b => b.addEventListener('click', () => { ir(b.dataset.v, true); window.scrollTo({ top: 0 }); }));
+  $$('nav [data-v]').forEach(b => b.addEventListener('click', () => ir(b.dataset.v, true)));
+  $$('[data-ir]').forEach(a => { a.href = '#' + a.dataset.ir; a.addEventListener('click', e => { e.preventDefault(); ir(a.dataset.ir, true); }); });
   addEventListener('hashchange', () => ir(location.hash.slice(1)));
   $('nav').addEventListener('keydown', e => {
     if (!['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
@@ -559,134 +503,65 @@
     ir(n, true); $(`nav [data-v="${n}"]`).focus();
   });
 
-  /* ---------- Estado del servicio (ejemplo) ---------- */
-  const T0 = Date.now();
-  const ESTADO = [
-    ['Número de WhatsApp', 'Conectado a la API oficial', 2],
-    ['Lectura del buzón', 'IMAP, cada minuto', 0.6],
-    ['Base de conocimiento', 'Hoja sincronizada', 6],
-    ['Envíos', 'Sin fallos hoy', 2],
-    ['Reservas de visitas', 'Sin rechazos', 2],
-    ['Contactos', 'Ninguno atascado', 2]
-  ];
-  const hace = min => { const s = Math.round(min * 60 + (Date.now() - T0) / 1000); return s < 60 ? `hace ${s} s` : `hace ${Math.floor(s / 60)} min`; };
-  function pintarEstado() {
-    $('#estado').innerHTML = ESTADO.map(([q, d, m]) => `<div class="fila"><span class="punto" aria-hidden="true"></span>
-      <span class="q">${esc(q)}<small>${esc(d)}</small></span><span class="c">Correcto · ${hace(m)}</span></div>`).join('');
-  }
-  pintarEstado();
-  setInterval(() => {
-    // Se «comprueba» de nuevo: el buzón cada minuto, el resto cada 10.
-    ESTADO.forEach(x => { const t = x[2] * 60 + (Date.now() - T0) / 1000; if ((x[0] === 'Lectura del buzón' && t >= 60) || t >= 600) x[2] = -(Date.now() - T0) / 60000; });
-    pintarEstado();
-  }, 5000);
-
-  /* ---------- Lo que va pasando (ejemplo, se mueve solo) ---------- */
-  const EVENTOS = [
-    'WhatsApp · Lucía pregunta por un despacho para 4 · respondido',
-    'Correo · nuevo cliente: respuesta preparada en Borradores',
-    'Visita reservada · Castellana, jueves 11:00 · confirmada por WhatsApp',
-    'Hoja de datos · 2 cambios publicados (tarifas)',
-    'Correo · Ana (equipo) envía la respuesta a un cliente',
-    'WhatsApp · audio transcrito y respondido',
-    'Idealista · consulta nueva: respuesta lista para pegar',
-    'Correo · aviso del banco → Avisos automáticos',
-    'WhatsApp · pide hablar con una persona · aviso al equipo',
-    'Recordatorio de visita enviado · mañana 10:30',
-    'Comprobación de salud · todo correcto',
-    'WhatsApp · el equipo escribe desde la app · el agente se aparta',
-    'Correo · publicidad → Publicidad y newsletters',
-    'Seguimiento · mensaje a quien dejó de contestar hace 2 días'
-  ];
-  const hm = d => d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-  let iEv = 0;
-  const reg = $('#registro');
-  for (let k = 6; k >= 1; k--) {
-    const li = document.createElement('li');
-    li.innerHTML = `<span class="h">${hm(new Date(Date.now() - k * 4 * 60000))}</span><span>${esc(EVENTOS[iEv++ % EVENTOS.length])}</span>`;
-    reg.prepend(li);
-  }
-  setInterval(() => {
-    if (document.hidden) return;
-    const li = document.createElement('li'); li.className = 'nuevo';
-    li.innerHTML = `<span class="h">${hm(new Date())}</span><span>${esc(EVENTOS[iEv++ % EVENTOS.length])}</span>`;
-    reg.prepend(li);
-    while (reg.children.length > 7) reg.lastElementChild.remove();
-  }, 7000);
-
-  /* ---------- Cómo funciona: seguir un mensaje ---------- */
-  const FLUJOS = {
+  /* ---------- Arquitectura: los pasos de cada caso ---------- */
+  const CASOS = {
     whatsapp: [
-      ['Llega el mensaje', 'Meta lo entrega por la API oficial de WhatsApp Business.', ['wa', 'orq']],
-      ['Se prepara', 'Si escribe varios mensajes seguidos, espera y los junta. Los audios se transcriben y las fotos se leen.', ['orq']],
-      ['Se comprueba', '¿Lo está llevando alguien del equipo? ¿Está pausada? ¿Pasa del límite diario? Si es así, el agente no responde.', ['orq', 'db']],
-      ['Redacta', 'El agente lee vuestra hoja y el historial de esa persona, y escribe la respuesta.', ['ia', 'kb', 'db']],
-      ['Responde', 'La respuesta sale por WhatsApp. Si la persona pide hablar con alguien, avisa al equipo.', ['wa', 'avisos']],
-      ['Queda guardado', 'La conversación y el contacto se guardan en el embudo. Lo veis en el panel.', ['db', 'panel']]
+      ['Entrada', 'Meta entrega el mensaje por webhook HTTPS. Se descartan duplicados y se identifica la empresa por el número.', ['wa', 'orq', 'cola']],
+      ['Agrupación y preparación', 'Se espera unos segundos por si llegan más mensajes y se procesan juntos. Los audios se transcriben y las imágenes se interpretan.', ['orq', 'cola', 'ia']],
+      ['Reglas previas', '¿La lleva una persona del equipo? ¿Está pausada? ¿Supera el tope diario? En esos casos el agente no responde.', ['orq', 'db']],
+      ['Respuesta', 'El modelo redacta con la base de conocimiento validada y el historial del contacto. Si el principal falla, responde el de reserva.', ['ia', 'cola', 'db']],
+      ['Comprobaciones y envío', 'Reglas sin IA revisan la respuesta y se sustituyen los marcadores por enlaces firmados. Sale por la API de WhatsApp.', ['orq', 'wa']],
+      ['Registro', 'Se guardan la conversación, el contacto en el embudo y la telemetría de la ejecución. Si pide una persona, se avisa al equipo.', ['db', 'panel', 'avisos']]
     ],
     correo: [
-      ['Lee el buzón', 'Cada minuto, por IMAP. Solo lectura: no borra nada.', ['mail', 'orq']],
-      ['Clasifica', 'Nuevo cliente, cliente actual, proveedor, aviso, publicidad, spam…', ['ia', 'db']],
-      ['Prepara la respuesta', 'A los correos comerciales, con vuestra hoja. Lo que no encuentra lo apunta como información que falta.', ['ia', 'kb']],
-      ['La deja a mano', 'En el panel y en la carpeta Borradores de vuestro buzón.', ['panel', 'mail']],
-      ['Una persona la envía', 'La revisa, la cambia si quiere y pulsa Enviar. Sale por vuestro SMTP a los 10 segundos. Hasta entonces se puede deshacer.', ['panel', 'mail', 'db']]
+      ['Lectura', 'Por IMAP sobre TLS. Se guarda lo necesario de cada mensaje; el buzón no cambia.', ['mail', 'orq', 'db']],
+      ['Clasificación', 'Primero reglas fijas y después el modelo: nuevo cliente, cliente actual, proveedor, aviso, publicidad, spam…', ['orq', 'ia', 'db']],
+      ['Borrador', 'Para los comerciales, el modelo redacta con la base de conocimiento y marca lo que falta y lo que debe hacer el equipo.', ['ia', 'cola', 'db']],
+      ['A disposición del equipo', 'El borrador aparece en el panel y en la carpeta Borradores del buzón (IMAP).', ['panel', 'mail']],
+      ['Envío', 'Fase 2: lo envía una persona desde el panel, con unos segundos para deshacerlo. Fase 3: los tipos autorizados salen solos. Siempre por vuestro SMTP.', ['panel', 'orq', 'mail']]
     ],
     idealista: [
-      ['Llega el aviso', 'Idealista manda la consulta a vuestro buzón por correo.', ['ideal', 'mail']],
-      ['Saca lo importante', 'Nombre, teléfono, anuncio y la pregunta, sin el resto del aviso.', ['orq', 'db']],
-      ['Redacta', 'La respuesta, con vuestra hoja y el enlace para reservar la visita.', ['ia', 'kb']],
-      ['Copiar y abrir', 'Desde el panel se copia y se abre la conversación de esa persona en Idealista. Allí se pega.', ['panel', 'ideal']],
-      ['¿Se respondió?', 'El panel lo pregunta al volver y lo apunta, para que nadie se quede sin respuesta.', ['panel', 'db']]
+      ['Aviso por correo', 'Idealista envía la consulta a vuestro buzón y se lee como cualquier otro correo.', ['ideal', 'mail', 'orq']],
+      ['Extracción', 'Se extraen nombre, teléfono, referencia del anuncio y pregunta de la plantilla del aviso.', ['orq', 'db']],
+      ['Respuesta preparada', 'El modelo redacta la respuesta con la base de conocimiento.', ['ia', 'cola']],
+      ['En el panel', 'El equipo copia la respuesta y abre la conversación en Idealista para pegarla. El panel registra si se respondió.', ['panel', 'ideal', 'db']]
     ],
     visita: [
-      ['El agente propone visitar', 'Envía el enlace de reserva del centro que interesa.', ['ia', 'wa']],
-      ['La persona elige día y hora', 'Con la disponibilidad de vuestra agenda.', ['cal']],
-      ['Se registra', 'Se comprueba que el aviso es auténtico y no está repetido, y se guarda.', ['cal', 'orq', 'db']],
-      ['Confirmación y aviso', 'Confirmación por WhatsApp a la persona y aviso al equipo con su ficha.', ['wa', 'avisos']],
-      ['Recordatorio', 'Antes de la visita le llega un recordatorio por WhatsApp. Aparece en la Agenda del panel.', ['orq', 'wa', 'panel']]
+      ['Enlace de reserva', 'El agente propone la visita y el sistema añade el enlace firmado de la página de reserva del centro.', ['ia', 'orq', 'wa']],
+      ['Disponibilidad', 'La persona elige día y hora según el calendario de ese centro.', ['res', 'cal']],
+      ['Aviso firmado', 'El motor de reservas avisa por webhook con firma HMAC. Se verifica, se descartan repetidos y se guarda.', ['res', 'orq', 'db']],
+      ['Confirmación', 'Confirmación por WhatsApp a la persona y aviso al equipo con la ficha del contacto.', ['wa', 'avisos', 'panel']],
+      ['Recordatorio', 'Antes de la visita se envía un recordatorio por WhatsApp.', ['orq', 'wa']]
+    ],
+    conocimiento: [
+      ['Edición', 'Vuestro equipo cambia un precio, un horario o una regla en la hoja.', ['kb']],
+      ['Lectura periódica', 'La hoja de cada empresa se lee periódicamente.', ['orq', 'kb']],
+      ['Validación', 'Si el contenido no es válido o no ha cambiado, no se publica: el agente sigue con la versión anterior.', ['orq']],
+      ['Publicación', 'La versión validada pasa a la caché que lee el agente en cada respuesta.', ['cola', 'ia']]
     ]
   };
-  let flujo = 'whatsapp', paso = 0, reloj = null;
-  function pintarPasos() {
-    const pasos = FLUJOS[flujo];
-    $('#pasos').innerHTML = pasos.map(([t, d], i) => `<li data-i="${i}" class="${i === paso ? 'on' : i < paso ? 'hecho' : ''}" ${i === paso ? 'aria-current="step"' : ''}><span><b>${esc(t)}</b>${esc(d)}</span></li>`).join('');
-    const mapa = $('#mapa'); mapa.classList.add('siguiendo');
-    const vistos = new Set(pasos.slice(0, paso).flatMap(p => p[2]));
-    $$('#mapa .nodo').forEach(n => { n.classList.toggle('activo', pasos[paso][2].includes(n.dataset.n)); n.classList.toggle('visto', vistos.has(n.dataset.n)); });
-    $('#ant').disabled = paso === 0;
-    $('#sig').textContent = paso === pasos.length - 1 ? 'Volver a empezar' : 'Siguiente';
+  let caso = 'whatsapp';
+  const mapa = $('#mapa');
+  function marcar(nodos) {
+    mapa.classList.toggle('marcando', !!nodos);
+    $$('#mapa .nodo').forEach(n => n.classList.toggle('activo', !!nodos && nodos.includes(n.dataset.n)));
   }
-  function mover(d) { const n = FLUJOS[flujo].length; paso = (paso + d + n) % n; pintarPasos(); }
-  function parar() { clearInterval(reloj); reloj = null; $('#auto').textContent = 'Reproducir'; }
-  $('#sig').addEventListener('click', () => { parar(); mover(1); });
-  $('#ant').addEventListener('click', () => { parar(); mover(-1); });
-  $('#auto').addEventListener('click', () => {
-    if (reloj) return parar();
-    $('#auto').textContent = 'Pausar';
-    if (paso === FLUJOS[flujo].length - 1) { paso = 0; pintarPasos(); }
-    reloj = setInterval(() => { if (paso === FLUJOS[flujo].length - 1) return parar(); mover(1); }, 2600);
-  });
-  $('#pasos').addEventListener('click', e => { const li = e.target.closest('li[data-i]'); if (li) { parar(); paso = Number(li.dataset.i); pintarPasos(); } });
-  $$('[data-flujo]').forEach(b => b.addEventListener('click', () => {
-    parar(); flujo = b.dataset.flujo; paso = 0;
-    $$('[data-flujo]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    pintarPasos();
+  function pintar() {
+    $('#pasos').innerHTML = CASOS[caso].map(([t, d], i) => `<li tabindex="0" data-i="${i}"><span><b>${esc(t)}</b>${esc(d)}</span></li>`).join('');
+    marcar(null);
+  }
+  const deLi = e => e.target.closest && e.target.closest('#pasos li');
+  const encender = li => { $$('#pasos li').forEach(x => x.classList.toggle('on', x === li)); marcar(li ? CASOS[caso][li.dataset.i][2] : null); };
+  $('#pasos').addEventListener('mouseover', e => { const li = deLi(e); if (li) encender(li); });
+  $('#pasos').addEventListener('mouseleave', () => encender(null));
+  $('#pasos').addEventListener('focusin', e => { const li = deLi(e); if (li) encender(li); });
+  $('#pasos').addEventListener('click', e => { const li = deLi(e); if (li) encender(li); });
+  $$('[data-caso]').forEach(b => b.addEventListener('click', () => {
+    caso = b.dataset.caso;
+    $$('[data-caso]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    pintar();
   }));
-  pintarPasos();
-
-  /* ---------- Puesta en marcha: lo marcado se queda en este navegador ---------- */
-  const marcadas = leer('tareas', {});
-  function contar() {
-    const t = $$('#tareas input'), n = t.filter(x => x.checked).length;
-    $('#cuenta').textContent = `${n} de ${t.length}`;
-    $('#barra').style.width = (n / t.length * 100) + '%';
-    t.forEach(x => x.closest('.tarea').classList.toggle('ok', x.checked));
-  }
-  $$('#tareas input').forEach(x => {
-    x.checked = !!marcadas[x.id];
-    x.addEventListener('change', () => { marcadas[x.id] = x.checked; guardar('tareas', marcadas); contar(); });
-  });
-  contar();
+  pintar();
 
   ir(location.hash.slice(1) || 'resumen');
 })();
