@@ -15,8 +15,8 @@
    · Correo e Idealista: un buzón inventado con sus carpetas, respuestas
      propuestas y mensajes de idealista. Enviar, leer el correo del buzón
      y abrir idealista se simulan aquí (nada sale de la página).
-   · Las preferencias que el panel guarda en el navegador van con otro
-     prefijo, para no mezclarse con las del panel real (mismo dominio).
+   · Nada se guarda en el navegador (ni preferencias, ni leídos, ni la
+     vista del correo): al recargar, todo vuelve a estar como al principio.
 
    Para regenerar /demo/index.html tras cambiar el panel:
      node demo/construir.mjs
@@ -24,30 +24,32 @@
 (function () {
   'use strict';
 
-  /* ---------- 0. Que nada de la demo toque lo del panel real ---------- */
-  // Mismo dominio que el panel real: el almacenamiento del navegador se
-  // comparte. Todo lo que la demo guarde va con el prefijo «simplia-demo:».
-  const PREFIJO = 'simplia-demo:';
-  function envolver(real) {
-    const propias = () => {
-      const ks = [];
-      try { for (let i = 0; i < real.length; i++) { const k = real.key(i); if (k && k.startsWith(PREFIJO)) ks.push(k); } } catch (e) {}
-      return ks;
-    };
+  /* ---------- 0. Nada se guarda: al recargar, la demo vuelve a empezar ---------- */
+  // La demo la abren a la vez varias personas, cada una en su navegador.
+  // Lo que el panel guardaría en el navegador (vista del correo, leídos,
+  // preferencias, la pantalla en la que estabas) vive solo en memoria:
+  // al recargar, todo vuelve a estar como al principio. Tampoco toca el
+  // almacenamiento del panel real (mismo dominio).
+  function memoria() {
+    const m = new Map();
     return {
-      getItem(k) { try { return real.getItem(PREFIJO + k); } catch (e) { return null; } },
-      setItem(k, v) { try { real.setItem(PREFIJO + k, String(v)); } catch (e) {} },
-      removeItem(k) { try { real.removeItem(PREFIJO + k); } catch (e) {} },
-      clear() { propias().forEach(k => { try { real.removeItem(k); } catch (e) {} }); },
-      key(i) { const k = propias()[i]; return k ? k.slice(PREFIJO.length) : null; },
-      get length() { return propias().length; }
+      getItem(k) { k = String(k); return m.has(k) ? m.get(k) : null; },
+      setItem(k, v) { m.set(String(k), String(v)); },
+      removeItem(k) { m.delete(String(k)); },
+      clear() { m.clear(); },
+      key(i) { return [...m.keys()][i] ?? null; },
+      get length() { return m.size; }
     };
   }
   for (const nombre of ['localStorage', 'sessionStorage']) {
     try {
+      // Lo que guardaron versiones anteriores de la demo (prefijo «simplia-demo:»), fuera.
       const real = window[nombre];
-      Object.defineProperty(window, nombre, { value: envolver(real), configurable: true });
-    } catch (e) { /* sin almacenamiento: el panel ya lo tolera */ }
+      const viejas = [];
+      for (let i = 0; i < real.length; i++) { const k = real.key(i); if (k && k.startsWith('simplia-demo:')) viejas.push(k); }
+      viejas.forEach(k => real.removeItem(k));
+    } catch (e) {}
+    try { Object.defineProperty(window, nombre, { value: memoria(), configurable: true }); } catch (e) {}
   }
 
   /* ---------- 1. Azar con semilla: siempre los mismos datos ---------- */
@@ -146,6 +148,26 @@
   const EMPRESAS = ['Nexo Legal', 'Brava Studio', 'Kinto Labs', 'Arce Consultores', 'Lumen Digital', 'Trazo Arquitectura', 'Norte Fintech',
     'Ápice Marketing', 'Vela Software', 'Cima Asesores', 'Pulso Media', 'Ébano Diseño', 'Faro Data', 'Origen Ventures', 'Rumbo Logística'];
   const sinTilde = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+  // Fotos de perfil: retratos de prueba gratuitos de randomuser.me (no son
+  // personas reales del cliente). Se eligen por el nombre, así que cada
+  // persona sale siempre con la misma foto; no todas tienen, como en WhatsApp.
+  const MUJERES = new Set(['lucia', 'marta', 'elena', 'sofia', 'laura', 'paula', 'andrea', 'carmen', 'irene', 'cristina', 'nuria', 'beatriz',
+    'sara', 'claudia', 'patricia', 'ana', 'silvia', 'rocio', 'natalia', 'eva', 'ines', 'blanca', 'alba', 'teresa', 'clara', 'julia', 'noelia',
+    'emily', 'mariana', 'sonia', 'monica', 'paula']);
+  const HOMBRES = new Set(['javier', 'pablo', 'carlos', 'daniel', 'alejandro', 'sergio', 'miguel', 'david', 'alvaro', 'jorge', 'raul', 'adrian',
+    'diego', 'ruben', 'inigo', 'mario', 'hugo', 'ivan', 'victor', 'gonzalo', 'fernando', 'oscar', 'marcos', 'luis', 'tomas', 'manuel', 'rafael',
+    'rodrigo', 'alberto', 'andres']);
+  function huella(s) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function fotoDe(nombre, porcentaje) {
+    const n = sinTilde(String(nombre || '').trim());
+    const pila = n.split(/\s+/)[0];
+    const mujer = MUJERES.has(pila);
+    if (!mujer && !HOMBRES.has(pila)) return '';          // empresas y avisos: con su inicial
+    const h = huella(n);
+    if (h % 100 >= porcentaje) return '';
+    return `https://randomuser.me/api/portraits/${mujer ? 'women' : 'men'}/${(h >>> 8) % 100}.jpg`;
+  }
 
   const usados = new Set();
   function nuevaPersona() {
@@ -299,23 +321,26 @@
     return pesado(FRANJA);
   }
 
-  function crearConversacion(p, inicio, vuelve) {
-    const servicio = vuelve ? p.servicio : pesado(Object.entries(SERVICIOS).map(([k, v]) => [k, v.peso]));
+  // forzar (opcional): { servicio, visita, email, terminaHace } para las
+  // conversaciones que salen arriba del todo en WhatsApp.
+  function crearConversacion(p, inicio, vuelve, forzar) {
+    const servicio = forzar ? forzar.servicio : vuelve ? p.servicio : pesado(Object.entries(SERVICIOS).map(([k, v]) => [k, v.peso]));
     const centro = vuelve ? p.centro : pesado(CENTROS.map(c => [c, c.peso]));
     p.servicio = servicio; p.centro = centro;
     const personas = servicio === 'despacho' ? pesado([[2, 4], [3, 6], [4, 6], [5, 4], [6, 3], [8, 2], [10, 1]])
       : servicio === 'fijo' ? pesado([[1, 6], [2, 3], [3, 2]]) : servicio === 'sala' ? entre(4, 10) : 1;
     p.personas = p.personas || personas;
-    const friccion = prob(0.025);
-    const quiereVisita = !friccion && ['despacho', 'fijo', 'flex'].includes(servicio) && (vuelve || prob(0.36));
+    // En la demo nadie pide hablar con una persona: no se enseña fricción.
+    const friccion = false;
+    const quiereVisita = forzar ? !!forzar.visita : ['despacho', 'fijo', 'flex'].includes(servicio) && (vuelve || prob(0.36));
     const visita = quiereVisita ? horaDeVisita(inicio) : null;
-    const daEmail = !friccion && (visita ? prob(0.92) : ['sala', 'virtual', 'bono'].includes(servicio) ? prob(0.85) : prob(0.22));
+    const daEmail = forzar ? !!forzar.email : (visita ? prob(0.92) : ['sala', 'virtual', 'bono'].includes(servicio) ? prob(0.85) : prob(0.22));
     const ctx = { inicio, servicio, centro, personas: p.personas, visita, daEmail, friccion, vuelve };
     const { M, precio } = guion(p, ctx);
 
     // Horas: el asistente contesta en 2–6 s; la persona tarda de 20 s a 6 min.
     let t = inicio;
-    const msgs = M.map((m, i) => {
+    let msgs = M.map((m, i) => {
       if (i > 0) t += m.papel === 'ai' ? 0 : entre(20, 360) * 1000;
       if (m.papel === 'ai') {
         const lat = Math.round(pesado([[1900, 2], [2400, 5], [2900, 8], [3300, 9], [3800, 7], [4400, 4], [5200, 2], [6100, 1]]) + entre(-250, 250));
@@ -323,7 +348,10 @@
         return { ...m, cuando: t, latencia_ms: lat };
       }
       return { ...m, cuando: t, latencia_ms: null };
-    }).filter(m => m.cuando <= AHORA - 20e3);
+    });
+    // Las de arriba del todo: entera, y acabando hace «terminaHace» ms.
+    if (forzar) { const d = AHORA - forzar.terminaHace - msgs[msgs.length - 1].cuando; msgs.forEach(m => { m.cuando += d; }); }
+    msgs = msgs.filter(m => m.cuando <= AHORA - 20e3);
     if (!msgs.length) return null;
     // Si la conversación de hoy aún va por la mitad, se corta ahí.
     const conv = {
@@ -356,7 +384,8 @@
       for (let k = 0; n === 0 && h > hoy.h && k < 30; k++) h = franjaHoraria();
       if (n === 0 && h > hoy.h) continue;
       const ini = local(d.y, d.m, d.d, h, entre(0, 59)) + entre(0, 59) * 1000;
-      if (ini > AHORA - 4 * MIN) continue;
+      // Las últimas 3 horas son para las conversaciones de arriba (más abajo).
+      if (ini > AHORA - 3 * HORA) continue;
       const vuelve = PERSONAS.length > 30 && prob(0.1);
       let p;
       if (vuelve) {
@@ -366,13 +395,14 @@
       crearConversacion(p, ini, !!vuelve && p.convs.length > 0);
     }
   }
-  // Para que se vea «en vivo»: algo de hace unos minutos.
-  for (const hace of [2.5, 7, 16, 31, 52]) {
+  // Arriba del todo en WhatsApp (lo más reciente): primero los que han
+  // reservado visita y luego los que han dejado su correo, con servicios
+  // variados. [hace cuántos minutos acabó, servicio, ¿visita?, ¿correo?]
+  for (const [hace, servicio, visita, email] of [[3, 'despacho', 1, 1], [9, 'flex', 1, 1], [17, 'fijo', 1, 1], [26, 'despacho', 1, 1],
+    [38, 'sala', 0, 1], [53, 'virtual', 0, 1], [71, 'bono', 0, 1], [94, 'fijo', 1, 1]]) {
     const p = nuevaPersona(); PERSONAS.push(p);
-    crearConversacion(p, AHORA - hace * MIN - 4 * MIN, false);
+    crearConversacion(p, AHORA - hace * MIN - 40 * MIN, false, { servicio, visita: !!visita, email: !!email, terminaHace: hace * MIN });
   }
-  // Una persona sin respuesta (para que el filtro exista, no para que abunde).
-  { const c = CONVS.filter(x => x.ultima < AHORA - 3 * DIA)[5]; if (c) c.sin_respuesta = true; }
 
   PERSONAS.forEach(p => { p.convs.sort((a, b) => a.primera - b.primera); });
   CONVS.sort((a, b) => a.primera - b.primera);
@@ -423,7 +453,7 @@
     const vivo = !['ganado', 'perdido'].includes(etapa);
     let toques = etapa === 'entrada' ? (prob(0.4) ? 1 : 0) : entre(1, 4);
     const lead = {
-      id: ++idLead, user_ref: p.user_ref, nombre: p.nombreConocido ? p.nombre : null, email: p.emailDado ? p.email : null,
+      id: ++idLead, user_ref: p.user_ref, nombre: p.nombre, email: p.emailDado ? p.email : null,
       telefono: p.telefono, canal: pesado([['google', 30], ['web', 22], ['whatsapp_directo', 16], ['portal', 12], ['referido', 11], ['walkin', 4], ['evento', 3], ['desconocido', 2]]), etapa, personas: p.personas || null,
       cuando_necesita: datos[1] || null, permanencia: datos[2] || null, situacion_actual: datos[3] || null, quien_decide: datos[4] || null,
       servicio: SERVICIOS[ult.servicio].nombre, ubicacion: ult.centro.nombre, valor_mes: valorMes(p, ult),
@@ -938,7 +968,7 @@ ${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-
     const cs = p.convs, pa = PAUSAS.get(p.user_ref);
     const pasa = pa && pa.hasta > AHORA;
     return {
-      user_ref: p.user_ref, nombre: p.nombreConocido ? p.nombre : null, telefono: p.telefono, email: p.emailDado ? p.email : null,
+      user_ref: p.user_ref, nombre: p.nombre, telefono: p.telefono, email: p.emailDado ? p.email : null,
       conversaciones: cs.length, mensajes: cs.reduce((s, c) => s + c.msgs.length, 0),
       del_cliente: cs.reduce((s, c) => s + c.msgs.filter(m => m.papel === 'human').length, 0),
       del_asistente: cs.reduce((s, c) => s + c.msgs.filter(m => m.papel !== 'human').length, 0),
@@ -996,7 +1026,7 @@ ${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-
     mt_tiempo_respuesta: a => tiempoRespuesta(a?.p_horas),
     mt_actividad: a => conversacionesQueCuentan().flatMap(c => c.msgs.map(m => ({ c, m }))).filter(x => x.m.cuando > AHORA - 60 * DIA)
       .sort((x, y) => y.m.cuando - x.m.cuando).slice(0, a?.p_limite || 12)
-      .map(({ c, m }) => ({ user_ref: c.p.user_ref, nombre: c.p.nombreConocido ? c.p.nombre : null, telefono: c.p.telefono, papel: m.papel, contenido: m.contenido, cuando: iso(m.cuando) })),
+      .map(({ c, m }) => ({ user_ref: c.p.user_ref, nombre: c.p.nombre, telefono: c.p.telefono, papel: m.papel, contenido: m.contenido, cuando: iso(m.cuando) })),
     mt_actividad_personas: a => vivas().filter(p => !EXCLUIDOS.has(p.user_ref))
       .map(p => ({ p, ult: p.convs[p.convs.length - 1] })).sort((x, y) => y.ult.ultima - x.ult.ultima).slice(0, a?.p_limite || 40)
       .map(({ p, ult }) => {
@@ -1004,7 +1034,7 @@ ${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-
         const ultH = [...msgs].reverse().find(m => m.papel === 'human');
         const ultM = msgs[msgs.length - 1];
         const at = p.convs.find(c => c.atencion && c.atencion > AHORA - 7 * DIA);
-        return { user_ref: p.user_ref, nombre: p.nombreConocido ? p.nombre : null, telefono: p.telefono, ultima: iso(ultM.cuando),
+        return { user_ref: p.user_ref, nombre: p.nombre, telefono: p.telefono, ultima: iso(ultM.cuando),
           texto: (ultH || ultM).contenido.slice(0, 220), papel: ultH ? 'human' : ultM.papel,
           atencion_en: at ? iso(at.atencion) : null, atencion_motivo: at ? at.atencion_motivo : null,
           cita: p.visita && p.visita > AHORA ? iso(p.visita) : null,
@@ -1059,10 +1089,11 @@ ${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-
       if (!q) return [];
       const out = [];
       for (const c of CONVS) for (const m of c.msgs) if (sinTilde(m.contenido).includes(q) || sinTilde(c.p.nombre).includes(q) || c.p.telefono.includes(q))
-        out.push({ user_ref: c.p.user_ref, nombre: c.p.nombreConocido ? c.p.nombre : null, contenido: m.contenido, papel: m.papel, cuando: iso(m.cuando) });
+        out.push({ user_ref: c.p.user_ref, nombre: c.p.nombre, contenido: m.contenido, papel: m.papel, cuando: iso(m.cuando) });
       return out.sort((x, y) => new Date(y.cuando) - new Date(x.cuando)).slice(0, a?.p_limite || 200);
     },
-    mt_fotos_panel: () => ({}),
+    // Foto de perfil de WhatsApp: unas 7 de cada 10 personas.
+    mt_fotos_panel: () => Object.fromEntries(PERSONAS.map(p => [p.user_ref, fotoDe(p.nombre, 70)]).filter(x => x[1])),
     mt_contactados_fuera: () => [...CONTACTADOS].map(([user_ref, x]) => ({ user_ref, ...x })).sort((a, b) => new Date(b.en) - new Date(a.en)),
     mt_visitas_panel: () => ({ centros: Object.fromEntries(CENTROS.map(c => [c.clave, c.nombre])), personas: VISITAS.map(v => ({ ...v })) }),
 
@@ -1289,7 +1320,10 @@ ${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-
     #demo-aviso{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);opacity:0;pointer-events:none;z-index:9999;
       background:#0F172A;color:#fff;font:600 13px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:10px 16px;border-radius:10px;
       box-shadow:0 10px 30px rgba(15,23,42,.25);transition:opacity .2s ease,transform .2s ease;max-width:calc(100vw - 32px)}
-    #demo-aviso.ver{opacity:1;transform:translate(-50%,0)}`;
+    #demo-aviso.ver{opacity:1;transform:translate(-50%,0)}
+    /* «Mover a…» en el correo abierto: tan pequeño como los otros botones. */
+    .cr-accs .cr-mover{padding:0 4px 0 8px}
+    .cr-accs .cr-mover select{width:84px;text-overflow:ellipsis}`;
   document.head.appendChild(estilo);
   function marcar() {
     const c = document.getElementById('cliente');
@@ -1301,5 +1335,34 @@ ${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', marcar); else marcar();
 
-  window.__DEMO = { createClient, aviso, datos: { PERSONAS, CONVS, LEADS, RESERVAS, HILOS } };
+  // Foto de quien escribe en Correo e Idealista: algunas personas, no todas
+  // (empresas, avisos y boletines siguen con su inicial).
+  const cara = p => fotoDe(p && p.nombre, 60);
+
+  // Embudo con aire: solo unas pocas tarjetas por columna, para que se vean
+  // huecos y se entienda que se pueden arrastrar. Se eligen una vez (las más
+  // recientes de cada columna y canal) y luego se respetan aunque se muevan.
+  const CUPO = { whatsapp: { pregunto: 2, datos: 2, reservada: 2, visito: 2, cerrado: 2 },
+                 correo:   { pregunto: 1, datos: 2, reservada: 1, visito: 1, cerrado: 1 },
+                 idealista:{ pregunto: 1, datos: 1, reservada: 0, visito: 1, cerrado: 1 } };
+  const ELEGIDOS = {};
+  function embudo(todas) {
+    for (const canal of Object.keys(CUPO)) {
+      if (ELEGIDOS[canal]) continue;
+      const suyas = todas.filter(p => p.canal === canal);
+      if (!suyas.length) continue;
+      const set = new Set();
+      for (const [col, n] of Object.entries(CUPO[canal])) {
+        suyas.filter(p => p.col === col)
+          .sort((a, b) => col === 'reservada' ? (a.fut || 0) - (b.fut || 0)
+            : col === 'cerrado' && (a.cerrado === 'ganado') !== (b.cerrado === 'ganado') ? (a.cerrado === 'ganado' ? -1 : 1)   // en Cerrado, antes los clientes
+            : new Date(b.ultima || 0) - new Date(a.ultima || 0))
+          .slice(0, n).forEach(p => set.add(p.k));
+      }
+      ELEGIDOS[canal] = set;
+    }
+    return todas.filter(p => ELEGIDOS[p.canal] && ELEGIDOS[p.canal].has(p.k));
+  }
+
+  window.__DEMO = { createClient, aviso, cara, embudo, datos: { PERSONAS, CONVS, LEADS, RESERVAS, HILOS } };
 })();
