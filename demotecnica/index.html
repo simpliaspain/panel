@@ -6,6 +6,10 @@
 <meta name="robots" content="noindex, nofollow">
 <title>SimpliaSpain · Documentación técnica</title>
 <meta name="description" content="Cómo funciona SimpliaSpain por dentro: arquitectura, canales, control de calidad de la IA, seguridad e integración.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -73,7 +77,7 @@
 
   /* ---------- Resumen ---------- */
   .heroe{background:linear-gradient(135deg,var(--profundo),#123B8A);color:#fff;border:none;padding:30px}
-  .heroe h2{font-size:24px;font-weight:800;letter-spacing:-.02em;max-width:820px}
+  .heroe h1{font-size:24px;font-weight:800;letter-spacing:-.02em;max-width:820px}
   .heroe p{color:#C9DAF8;margin-top:10px;max-width:820px}
   .claves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}
   .clave{display:flex;flex-direction:column}
@@ -186,13 +190,13 @@
   <div class="hcab">
     <a class="marca" href="https://www.simpliaspain.com" target="_blank" rel="noopener" title="Ir a la web de SimpliaSpain">Simplia<span>Spain</span></a>
     <nav role="tablist" aria-label="Apartados">
-      <button role="tab" data-v="resumen" aria-selected="true">Resumen</button>
-      <button role="tab" data-v="arquitectura">Arquitectura</button>
-      <button role="tab" data-v="canales">Canales</button>
-      <button role="tab" data-v="ia">IA y calidad</button>
-      <button role="tab" data-v="seguridad">Seguridad y datos</button>
-      <button role="tab" data-v="integracion">Integración</button>
-      <button role="tab" data-v="preguntas">Preguntas</button>
+      <button role="tab" id="t-resumen" aria-controls="v-resumen" data-v="resumen" aria-selected="true">Resumen</button>
+      <button role="tab" id="t-arquitectura" aria-controls="v-arquitectura" data-v="arquitectura">Arquitectura</button>
+      <button role="tab" id="t-canales" aria-controls="v-canales" data-v="canales">Canales</button>
+      <button role="tab" id="t-ia" aria-controls="v-ia" data-v="ia">IA y calidad</button>
+      <button role="tab" id="t-seguridad" aria-controls="v-seguridad" data-v="seguridad">Seguridad y datos</button>
+      <button role="tab" id="t-integracion" aria-controls="v-integracion" data-v="integracion">Integración</button>
+      <button role="tab" id="t-preguntas" aria-controls="v-preguntas" data-v="preguntas">Preguntas</button>
     </nav>
     <div class="hder"><b>Documentación técnica</b></div>
   </div>
@@ -200,9 +204,9 @@
 
 <main>
 <!-- ===================== RESUMEN ===================== -->
-<section class="vista on" id="v-resumen" role="tabpanel" aria-label="Resumen">
+<section class="vista on" id="v-resumen" role="tabpanel" aria-labelledby="t-resumen">
   <div class="panel heroe">
-    <h2>Agentes de IA para WhatsApp, correo e Idealista, con un panel web para el equipo</h2>
+    <h1>Agentes de IA para WhatsApp, correo e Idealista, con un panel web para el equipo</h1>
     <p>Esta página explica a un equipo técnico cómo funciona el sistema por dentro: qué piezas tiene, cómo se conecta con vuestros servicios, cómo controlamos la calidad de la IA, cómo protegemos los datos y qué necesitamos para la integración.</p>
   </div>
   <div class="claves">
@@ -228,7 +232,7 @@
 </section>
 
 <!-- ===================== ARQUITECTURA ===================== -->
-<section class="vista" id="v-arquitectura" role="tabpanel" aria-label="Arquitectura">
+<section class="vista" id="v-arquitectura" role="tabpanel" aria-labelledby="t-arquitectura">
   <div class="vcab">
     <h2 class="tit">Arquitectura</h2>
     <p class="sub">El sistema es multiempresa: un mismo conjunto de procesos atiende a cada cliente con su configuración, su base de conocimiento y sus datos, separados del resto. Elige un caso para ver por qué piezas pasa.</p>
@@ -291,7 +295,7 @@
 </section>
 
 <!-- ===================== CANALES ===================== -->
-<section class="vista" id="v-canales" role="tabpanel" aria-label="Canales">
+<section class="vista" id="v-canales" role="tabpanel" aria-labelledby="t-canales">
   <div class="vcab">
     <h2 class="tit">Canales</h2>
     <p class="sub">Qué hace el sistema en cada canal y con qué límites.</p>
@@ -361,7 +365,7 @@
 </section>
 
 <!-- ===================== IA ===================== -->
-<section class="vista" id="v-ia" role="tabpanel" aria-label="IA y control de calidad">
+<section class="vista" id="v-ia" role="tabpanel" aria-labelledby="t-ia">
   <div class="vcab">
     <h2 class="tit">IA y control de calidad</h2>
     <p class="sub">Un modelo de lenguaje puede equivocarse. Por eso no trabaja solo: lo rodean capas que limitan lo que puede decir, comprueban lo que escribe y pasan la conversación a una persona cuando hace falta.</p>
@@ -382,10 +386,10 @@
 </section>
 
 <!-- ===================== SEGURIDAD ===================== -->
-<section class="vista" id="v-seguridad" role="tabpanel" aria-label="Seguridad y datos">
+<section class="vista" id="v-seguridad" role="tabpanel" aria-labelledby="t-seguridad">
   <div class="vcab">
     <h2 class="tit">Seguridad y datos</h2>
-    <p class="sub">Dónde están los datos, cómo se separan, cómo se accede a ellos y cómo se protegen.</p>
+    <p class="sub">Dónde están los datos, cómo se separan y cómo se protegen.</p>
   </div>
   <div class="rejilla r2">
     <div class="panel">
@@ -437,7 +441,7 @@
 </section>
 
 <!-- ===================== INTEGRACIÓN ===================== -->
-<section class="vista" id="v-integracion" role="tabpanel" aria-label="Integración">
+<section class="vista" id="v-integracion" role="tabpanel" aria-labelledby="t-integracion">
   <div class="vcab">
     <h2 class="tit">Integración</h2>
     <p class="sub">Lo que necesitamos de vuestro equipo técnico para conectar cada servicio, y cómo se entrega sin compartir contraseñas por correo.</p>
@@ -467,7 +471,7 @@
 </section>
 
 <!-- ===================== PREGUNTAS ===================== -->
-<section class="vista" id="v-preguntas" role="tabpanel" aria-label="Preguntas">
+<section class="vista" id="v-preguntas" role="tabpanel" aria-labelledby="t-preguntas">
   <div class="vcab">
     <h2 class="tit">Preguntas frecuentes</h2>
     <p class="sub">Lo que suele preguntar un equipo técnico.</p>
@@ -499,7 +503,7 @@
   const VISTAS = $$('nav [data-v]').map(b => b.dataset.v);
   function ir(v, empujar) {
     if (!VISTAS.includes(v)) v = 'resumen';
-    $$('nav [data-v]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.v === v)));
+    $$('nav [data-v]').forEach(b => { b.setAttribute('aria-selected', String(b.dataset.v === v)); b.tabIndex = b.dataset.v === v ? 0 : -1; });
     $$('.vista').forEach(s => s.classList.toggle('on', s.id === 'v-' + v));
     if (empujar) { history.replaceState(null, '', '#' + v); window.scrollTo({ top: 0 }); }
     $(`nav [data-v="${v}"]`).scrollIntoView({ block: 'nearest', inline: 'center' });
