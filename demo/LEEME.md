@@ -14,6 +14,7 @@ a posibles clientes sin tocar datos reales.
   no leído, enviar una respuesta… se ve, pero solo en esa pestaña. Tampoco se
   guarda nada en el navegador: **al recargar, todo vuelve a estar como al
   principio**. Varias personas pueden usarla a la vez sin verse entre ellas.
+- **No hay cuenta ni «Salir»:** entra directa, sin pedir nada a nadie.
 - **Llamar, WhatsApp y Correo no abren nada** (son personas inventadas): sale
   un aviso «Demo: aquí se…». Enviar un correo tampoco manda nada.
 - **WhatsApp:** todos tienen nombre, unos 7 de cada 10 con foto, y arriba del

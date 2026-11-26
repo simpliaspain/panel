@@ -1244,7 +1244,8 @@ ${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-
         getSession: async () => ({ data: { session: SESION }, error: null }),
         getUser: async () => ({ data: { user: SESION.user }, error: null }),
         signInWithPassword: async () => ({ data: { session: SESION, user: SESION.user }, error: null }),
-        signOut: async () => { setTimeout(() => oyentes.forEach(f => { try { f('SIGNED_OUT', null); } catch (e) {} }), 0); return { error: null }; },
+        // En la demo no se sale nunca: no hay cuenta, la sesión es siempre la misma.
+        signOut: async () => ({ error: null }),
         onAuthStateChange: f => { oyentes.push(f); return { data: { subscription: { unsubscribe() { const i = oyentes.indexOf(f); if (i >= 0) oyentes.splice(i, 1); } } } }; },
         verifyOtp: async () => ({ data: null, error: { message: 'No disponible en la demo' } }),
         updateUser: async () => ({ data: null, error: { message: 'No disponible en la demo' } })

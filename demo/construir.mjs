@@ -23,6 +23,9 @@ const cambios = [
   // existir y sacar el de otra empresa); a algunas personas, un retrato de
   // prueba (demo-datos.js, cara).
   [/function crCaraUrl\(p\)\{/, "function crCaraUrl(p){\n  { const u = window.__DEMO.cara(p); return u ? { url:u, g:true } : { url:'' }; }   // demo"],
+  // Sin «Salir»: en la demo no hay cuenta ni inicio de sesión.
+  [/\s*<button class="salir" id="salir">Salir<\/button>/, ''],
+  [/\$\('#salir'\)\.addEventListener\(/, "$('#salir')?.addEventListener("],
   // Correo: por defecto, el correo a la izquierda y la respuesta a la derecha.
   [/CO\.vista = 'arriba';/, "CO.vista = 'lado';   // demo"],
   // Embudo: pocas tarjetas por columna, para que se vean huecos (demo-datos.js, embudo).

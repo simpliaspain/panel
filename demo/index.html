@@ -2332,7 +2332,6 @@
       <!-- 20/11: sin botón de actualizar ni «hace X»: el panel se pone al
            día solo (ver autoRefresco) sin recargar la página. -->
       <div class="vivo"><span class="dot on"></span><span id="cliente">—</span></div>
-      <button class="salir" id="salir">Salir</button>
     </div>
   </header>
   <!-- Equipo de Simplia: con qué empresa está y el candado (16/11). Fuera de
@@ -2755,7 +2754,7 @@ function alVolver(){
 document.addEventListener('visibilitychange', alVolver);
 window.addEventListener('focus', alVolver);
 
-$('#salir').addEventListener('click', async () => {
+$('#salir')?.addEventListener('click', async () => {
   clearInterval(TIMER);
   SIN_SITIO = true;
   await supabase.auth.signOut();
