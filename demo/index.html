@@ -3107,9 +3107,9 @@ const esSimplia = () => TENANT?.rol === 'operador' || SIMPLIA_EQUIPO.includes(US
 // primero las pruebas, después se activa a cada cliente).
 // 16/11: OficinasYA, para todo el que entre en su panel (sus cuentas y el
 // equipo de Simplia). Sigue en modo sombra: solo lee, no envía nada.
-const CO_EMPRESAS_CON_ACCESO = ['oficinasya'];
+const CO_EMPRESAS_CON_ACCESO = ['oficinasya', 'demo'];
 // STAGING y pruebas en local: las empresas de esta lista y el equipo de Simplia.
-const CO_EMPRESAS_EN_PRUEBAS = ['oficinasya'];
+const CO_EMPRESAS_EN_PRUEBAS = ['oficinasya', 'demo'];
 const CO_EN_PRODUCCION = location.hostname === 'panel.simpliaspain.com' && !location.pathname.startsWith('/staging');
 // 16/11: fuera los datos de ejemplo. El Correo enseña solo lo real (modo
 // sombra) y, sin buzón, un aviso; el Embudo y la Agenda no mezclan correos
@@ -4543,6 +4543,7 @@ const CR_CARAS = new Map();   // url → 'ok' | 'no'
 const CR_HASH = new Map();    // correo → huella sha-256
 const CR_HASHANDO = new Set();
 function crCaraUrl(p){
+  return { url:'' };   // demo: siempre la inicial
   if (p.via && p.via !== 'formulario web') return { url:'' };
   const email = String(p.email || '').trim().toLowerCase(), dom = crDominio(email);
   if (!dom || !dom.includes('.')) return { url:'' };

@@ -12,6 +12,9 @@
    · Lo que se hace en la demo (pausar, mover un lead, apuntar un
      toque…) funciona y se ve, pero solo vive en esa pestaña.
    · Llamar, WhatsApp y correo no abren nada: son personas inventadas.
+   · Correo e Idealista: un buzón inventado con sus carpetas, respuestas
+     propuestas y mensajes de idealista. Enviar, leer el correo del buzón
+     y abrir idealista se simulan aquí (nada sale de la página).
    · Las preferencias que el panel guarda en el navegador van con otro
      prefijo, para no mezclarse con las del panel real (mismo dominio).
 
@@ -535,6 +538,400 @@
       caduca_en: iso(AHORA + (78 + i * 4) * DIA), avisos: i === 2 ? 1 : 0, lead_id: p.lead ? p.lead.id : null }));
   }
 
+  /* ---------- 8 bis. Correo e Idealista ----------
+     El buzón comercial del cliente inventado, como lo ve hoy Oficinas YA:
+     el asistente clasifica cada correo en su carpeta y prepara la
+     respuesta; una persona la revisa y la envía (10 s para deshacer). Los
+     mensajes de idealista salen en su apartado: se copia la respuesta, se
+     pega en el chat de idealista y se confirma si se respondió.
+     Nada sale de aquí: enviar, leer el buzón y abrir idealista se simulan. */
+  const hex = n => { let s = ''; for (let i = 0; i < n; i++) s += '0123456789abcdef'[Math.floor(azar() * 16)]; return s; };
+  const uid = () => `${hex(8)}-${hex(4)}-4${hex(3)}-${'89ab'[Math.floor(azar() * 4)]}${hex(3)}-${hex(12)}`;
+  const BUZON_EMAIL = 'comercial@coworkingdemo.es';
+  const BUZON_ID = uid();
+  const YO = 'direccion@coworkingdemo.es';           // quien entra en la demo
+  const ANDREA = 'andrea@coworkingdemo.es';
+  const TEL_EMPRESA = '910 123 456';
+  const FIRMA_TXT = `\n\n--\nEquipo de ${EMPRESA}\n${TEL_EMPRESA} · ${BUZON_EMAIL} · coworkingdemo.es\nRespuesta preparada por el asistente de IA de ${EMPRESA}`;
+  const VISITA_URL = Object.fromEntries(CENTROS.map(c => [c.clave, `https://reservas.simpliaspain.com/demo/visita-${c.clave}`]));
+  const conEnlaces = t => String(t).replace(/\[\[\s*VISITA\s*:\s*([^\]]+?)\s*\]\]/gi, (_m, c) => VISITA_URL[c.trim().toLowerCase()] || '');
+  const haceMin = m => AHORA - m * MIN;
+  // Hace n días (1 o más), a una hora de Madrid.
+  const diaH = (n, h, mi = 0) => { const d = diaLocal(-n); return local(d.y, d.m, d.d, h, mi); };
+
+  // Anuncios de idealista (uno o dos por centro).
+  const ANUNCIOS = {
+    CA12: { centro: 'castellana', titulo: 'Oficina en Paseo de la Castellana, 120, Castellana, Madrid', codigo: '108734215', precio: '1.250 €' },
+    CA07: { centro: 'castellana', titulo: 'Oficina con espacios compartidos en Paseo de la Castellana, 120, Castellana, Madrid', codigo: '108734977', precio: '260 €' },
+    CH03: { centro: 'chamberi', titulo: 'Oficina privada en Calle de Santa Engracia, 54, Chamberí, Madrid', codigo: '107912384', precio: '820 €' },
+    CH09: { centro: 'chamberi', titulo: 'Oficina en Calle de Santa Engracia, 54, Chamberí, Madrid', codigo: '107913102', precio: '1.680 €' },
+    LT05: { centro: 'tablas', titulo: 'Oficina privada en Calle de Isabel Colbrand, 10, Las Tablas, Madrid', codigo: '109205561', precio: '1.040 €' },
+    MA02: { centro: 'mendez', titulo: 'Oficina con espacios compartidos en Calle de Méndez Álvaro, 56, Arganzuela, Madrid', codigo: '109877430', precio: '159 €' }
+  };
+  const letra = () => 'abcdefghijklmnopqrstuvwxyz'[Math.floor(azar() * 26)];
+  const contactoIdealista = () => letra() + hex(11) + letra() + hex(14) + letra() + hex(10) + '@contacts.idealista.com';
+  // El aviso de idealista, con su plantilla de siempre.
+  function avisoIdealista(nombre, tel, contacto, pregunta, ref) {
+    const a = ANUNCIOS[ref];
+    return 'Tienes un nuevo mensaje que espera tu respuesta \n\nTienes un nuevo mensaje que espera tu respuesta\n\n' + nombre + '\n\n'
+      + (tel ? `notDefaulter > tenantGuarantee --> ${tel} \n\n${contacto} \n\n` : `notDefaulter > tenantGuarantee --> ${contacto} \n\n`)
+      + pregunta + '\nResponder desde idealista/tools \nTambién puedes responderle contestando a este email \n\n'
+      + `${a.titulo} \nRef. ${ref} \nCódigo del anuncio: ${a.codigo}\n${a.precio}\n\n`
+      + 'Si respondes en el mismo día que recibes el contacto tienes un 40% más de posibilidades de cerrar la operación con el cliente. \n\n'
+      + 'Para conocer el uso que hacemos de tus datos puedes consultar nuestra política de privacidad \n\nidealista en tu móvil o tablet \n\nidealista © ' + hoy.y;
+  }
+
+  // Correos «tal cual llegaron» (boletines y avisos): HTML sencillo, sin nada de fuera.
+  function boletin({ marca, color, titulo, entradilla, bloques, pie }) {
+    return `<!doctype html><html><head><meta charset="utf-8"><title>${titulo}</title></head>
+<body style="margin:0;background:#f3f4f6;font-family:Helvetica,Arial,sans-serif;color:#1f2937">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:24px 0"><tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:10px;overflow:hidden">
+<tr><td style="background:${color};padding:22px 28px;color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:.3px">${marca}</td></tr>
+<tr><td style="padding:28px 28px 8px"><h1 style="margin:0 0 10px;font-size:22px;line-height:1.3;color:#111827">${titulo}</h1>
+<p style="margin:0;font-size:15px;line-height:1.6;color:#4b5563">${entradilla}</p></td></tr>
+${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-left:4px solid ${color};padding:4px 0 4px 14px">
+<p style="margin:0 0 4px;font-size:16px;font-weight:bold;color:#111827">${t}</p><p style="margin:0;font-size:14px;line-height:1.6;color:#4b5563">${x}</p></div></td></tr>`).join('')}
+<tr><td style="padding:20px 28px 28px;font-size:12px;line-height:1.5;color:#9ca3af;border-top:1px solid #f0f0f0">${pie}</td></tr>
+</table></td></tr></table></body></html>`;
+  }
+  const deHtml = html => html.replace(/<style[\s\S]*?<\/style>|<title[\s\S]*?<\/title>/gi, '').replace(/<\/(p|h1|tr|div)>/gi, '\n').replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+
+  /* Cada conversación: { carpeta (tipo/subtipo), asunto, motivo, mensajes,
+     borrador, estado del panel }. m: [quién, cuándo, texto, extra].
+     Una respuesta del agente ya enviada se escribe con s:'agente'. */
+  const HILOS = [];
+  const MSG_HTML = new Map();      // mensaje → HTML «tal cual llegó»
+  const CITAS_CORREO = [];         // visitas reservadas desde el correo
+  function hilo(o) {
+    const id = uid();
+    const ms = o.m.map(([s, cuando, texto, x = {}]) => {
+      const m = { id: uid(), sentido: s === 'r' ? 'recibido' : 'enviado', de: s === 'r' ? o.de : s === 'agente' ? `${EMPRESA} <${BUZON_EMAIL}>` : x.de,
+        para: s === 'r' ? (o.para || BUZON_EMAIL) : o.responder || (o.reply_to ? o.reply_to : o.de), cc: null,
+        reply_to: s === 'r' ? (o.reply_to || null) : null, agente: s === 'agente', fecha: iso(cuando), asunto: (s === 'r' ? '' : 'Re: ') + o.asunto,
+        texto: s === 'agente' ? conEnlaces(texto) + FIRMA_TXT : texto, adjuntos: x.adjuntos || [] };
+      if (x.html) MSG_HTML.set(m.id, x.html);
+      return m;
+    });
+    const recibidos = ms.filter(m => m.sentido === 'recibido');
+    const ultR = recibidos[recibidos.length - 1];
+    const ultAgente = [...o.m].reverse().find(x => x[0] === 'agente');
+    let bo = null;
+    if (o.bo) {
+      bo = { texto: o.bo.texto, equipo: o.bo.equipo || [], faltan: o.bo.faltan || [], estado: o.bo.estado || 'propuesto',
+        creado_en: iso(+new Date(ultR.fecha) + entre(25, 70) * 1000), en_buzon: o.bo.en_buzon !== false, revisado: !!o.bo.revisado };
+    } else if (ultAgente) {
+      const env = ms.filter(m => m.agente).pop();
+      bo = { texto: ultAgente[2], equipo: [], faltan: [], estado: 'enviado', creado_en: iso(+new Date(env.fecha) - entre(3, 50) * MIN),
+        en_buzon: false, revisado: true, enviado_en: env.fecha, enviado_como: 'panel', quien: ultAgente[3]?.quien || ANDREA };
+    }
+    if (bo) bo = { id: uid(), mensaje_id: ultR.id, fotos: [], version: 1, enviado_en: null, enviado_como: null, quien: null, error: null,
+      envio: null, reintento: false, modelo: 'asistente', ...bo };
+    const h = {
+      id, buzon: BUZON_EMAIL, asunto: o.asunto, tipo: o.tipo, subtipo: o.subtipo || null, a_persona: !!o.a_persona,
+      activo: o.activo !== undefined ? o.activo : ['comercial', 'cliente_actual'].includes(o.tipo),
+      motivo: o.motivo || null, estado: 'abierto', mensajes: ms, borrador: bo, comparacion: null, respondido: o.respondido || null,
+      primer_recibido_en: (recibidos[0] || ms[0]).fecha, ultimo_en: ms[ms.length - 1].fecha,
+      actualizado_en: iso(Math.max(+new Date(ms[ms.length - 1].fecha), bo ? +new Date(bo.creado_en) : 0)),
+      _nl: !!o.nl, _carpeta: o.carpeta || null, _confirmar: o.confirmar || null, _llega: o.llega || null
+    };
+    HILOS.push(h);
+    if (o.cita) CITAS_CORREO.push({ user_ref: null, nombre: o.nombre, telefono: null, email: o.email, inicio: iso(o.cita.inicio),
+      centro: CENTROS.find(c => c.clave === o.cita.centro).nombre, direccion: CENTROS.find(c => c.clave === o.cita.centro).dir, evento: 'BOOKING_CREATED' });
+    return h;
+  }
+  const quien = (nombre, email) => `${nombre} <${email}>`;
+  const siguienteLaborable = (n, h) => { for (let i = n; i < n + 7; i++) { const d = diaLocal(i); if (d.isodow <= 5) return local(d.y, d.m, d.d, h); } return AHORA + 2 * DIA; };
+
+  // ---- Nuevos clientes ----
+  hilo({ tipo: 'comercial', subtipo: 'despacho_meses', de: quien('Laura Benítez', 'laura.benitez@senda-abogados.es'), nl: true,
+    asunto: 'Despacho para 4 personas en Castellana', motivo: 'Despacho para 4 personas en Castellana, desde enero',
+    m: [['r', haceMin(26), 'Buenos días:\n\nSomos un despacho de abogados de 4 personas y buscamos oficina privada en la zona de Castellana a partir de enero. Necesitaríamos que tuviera luz natural y una sala para recibir a clientes.\n\n¿Qué disponibilidad y precios tenéis? ¿Cuál es la permanencia mínima?\n\nMuchas gracias,\nLaura Benítez\nSenda Abogados']],
+    bo: { texto: 'Hola, Laura:\n\nGracias por escribirnos. En Castellana 120 tenemos libre un despacho privado para 4 personas, exterior y con luz natural, por 1.250 €/mes + IVA. Es de uso exclusivo para vuestro despacho.\n\nIncluye limpieza diaria, fibra de 1 Gb, recepción de visitas y paquetería, café y 6 horas al mes de sala de reuniones para recibir a vuestros clientes (la hora extra de sala sale a 35 €). Tenéis acceso 24/7 con tarjeta.\n\nLa permanencia mínima es de 3 meses, y con contrato anual hay un 10 % de descuento. Para entrar en enero os lo podemos dejar reservado.\n\nSi queréis verlo en persona, aquí elegís día y hora para la visita:\n[[VISITA:castellana]]\n\n¿Queréis que os prepare la propuesta con el contrato anual?\n\nUn saludo.' } });
+
+  hilo({ tipo: 'comercial', subtipo: 'oficina_virtual', de: quien('Formulario web', 'website@coworkingdemo.es'), reply_to: quien('Daniel Ferrer', 'dferrer.consultoria@gmail.com'), nl: true,
+    asunto: 'Nuevo mensaje desde el formulario de la web', motivo: 'Oficina virtual para una SL en constitución',
+    m: [['r', haceMin(112), 'Nombre: Daniel Ferrer\nEmail: dferrer.consultoria@gmail.com\nTeléfono: 655 218 904\nCentro: Chamberí\n\nMensaje:\nHola, estoy constituyendo una SL y necesito domicilio social y fiscal en Madrid. ¿Me podéis decir el precio de la oficina virtual y qué documentación hace falta? Gracias.']],
+    bo: { texto: 'Hola, Daniel:\n\nGracias por tu mensaje. La oficina virtual en Chamberí (Calle de Santa Engracia, 54) son 49 €/mes + IVA e incluye:\n\n· Domicilio social y fiscal para la SL.\n· Recepción de correo y paquetería, con aviso al momento.\n· 2 horas al mes de sala de reuniones.\n\nPara darla de alta necesitamos el certificado de denominación social, el DNI del administrador y, cuando la tengáis, la escritura de constitución. El contrato es de prestación de servicios y se firma online; el servicio se activa en 24 horas.\n\nSi quieres conocer el centro antes, puedes reservar una visita aquí:\n[[VISITA:chamberi]]\n\n¿Te envío el contrato para que lo revises?\n\nUn saludo.' } });
+
+  hilo({ tipo: 'comercial', subtipo: 'despacho_meses', de: quien('Marcos Herrero', 'marcos@polaranalytics.es'), nombre: 'Marcos Herrero', email: 'marcos@polaranalytics.es',
+    asunto: 'Información despacho 6 personas', motivo: 'Despacho para 6 personas en Chamberí',
+    cita: { inicio: siguienteLaborable(1, 11), centro: 'chamberi' },
+    m: [['r', diaH(3, 10, 14), 'Hola,\n\nSomos una startup de datos y vamos a pasar de 4 a 6 personas en las próximas semanas. Me interesa el centro de Chamberí. ¿Tenéis algún despacho para 6? ¿Se puede entrar a mitad de mes?\n\nGracias,\nMarcos'],
+      ['agente', diaH(3, 10, 31), 'Hola, Marcos:\n\nSí: en Chamberí tenemos un despacho para 6 personas de 32 m², exterior, por 1.680 €/mes + IVA. Incluye limpieza, fibra de 1 Gb, recepción, café y 6 horas al mes de sala de reuniones. Se puede entrar cualquier día del mes: la primera cuota se prorratea.\n\nLa permanencia mínima es de 3 meses y no pedimos aval bancario, solo una fianza de una mensualidad.\n\nPuedes elegir día y hora para verlo aquí:\n[[VISITA:chamberi]]\n\nUn saludo.'],
+      ['r', diaH(2, 16, 48), 'Perfecto, acabo de reservar la visita. Iremos dos personas.\n\nMarcos'],
+      ['agente', diaH(2, 17, 2), '¡Perfecto, Marcos! Os esperamos en Chamberí (Calle de Santa Engracia, 54). Preguntad en recepción por el equipo comercial: os enseñaremos el despacho y las zonas comunes.\n\nSi necesitáis cambiar la hora, podéis hacerlo desde el mismo enlace de la reserva.\n\nUn saludo.', { quien: YO }]] });
+
+  hilo({ tipo: 'comercial', subtipo: 'sala', de: quien('Irene Sastre', 'formacion@mosaicoeventos.es'),
+    asunto: 'Sala para formación de 12 personas', motivo: 'Sala para una formación de 12 personas',
+    m: [['r', diaH(2, 12, 7), 'Hola:\n\nOrganizamos una formación interna para 12 personas y buscamos una sala con pantalla para el viernes 12, de 9:00 a 14:00. ¿Tenéis disponibilidad en Castellana o Méndez Álvaro? ¿Podríais incluir café a media mañana?\n\nUn saludo,\nIrene Sastre\nMosaico Eventos']],
+    bo: { texto: 'Hola, Irene:\n\nPara 12 personas tenemos la Sala Prado en Castellana 120: con pantalla de 75", videoconferencia, pizarra y luz natural. La hora sale a 45 € + IVA, así que de 9:00 a 14:00 serían 225 € + IVA.\n\nEl café de media mañana para 12 personas (café, infusiones, zumo y bollería) son 6 € por persona.\n\nEn cuanto lo confirméis, os dejamos la sala bloqueada y os enviamos la confirmación con la factura.\n\nUn saludo.',
+      equipo: ['Confirmar que la Sala Prado está libre el viernes 12 de 9:00 a 14:00 y bloquearla', 'Pedir el café para 12 personas a Cafés del Barrio'], en_buzon: false } });
+
+  hilo({ tipo: 'comercial', subtipo: 'despacho_meses', de: quien('Jorge Vidal', 'jorge.vidal@zenitseguros.es'), nl: true,
+    asunto: 'Oficina para 8 en Las Tablas, ¿con parking?', motivo: 'Despacho para 8 personas en Las Tablas, con parking',
+    m: [['r', haceMin(196), 'Buenas tardes,\n\nBuscamos un espacio para un equipo comercial de 8 personas en Las Tablas. Es importante que haya plazas de aparcamiento, al menos 3. ¿Qué opciones tenéis y cuánto costaría el parking?\n\nSaludos,\nJorge Vidal\nZenit Seguros']],
+    bo: { texto: 'Hola, Jorge:\n\nEn Las Tablas (Calle de Isabel Colbrand, 10) tenemos un despacho para 8 personas de 40 m², exterior, por 2.110 €/mes + IVA. Incluye limpieza, fibra de 1 Gb, recepción, café y 8 horas al mes de sala de reuniones.\n\nEl edificio tiene aparcamiento propio. El precio de las plazas te lo confirma hoy mismo el equipo.\n\nSi queréis verlo, aquí podéis reservar la visita:\n[[VISITA:tablas]]\n\nUn saludo.',
+      faltan: ['Precio del parking por mes en Las Tablas'], equipo: ['Confirmar el precio de 3 plazas de parking en Las Tablas: no está en la hoja'], en_buzon: false } });
+
+  hilo({ tipo: 'comercial', subtipo: 'broker', de: quien('Rodrigo Alcalde', 'ralcalde@atlas-inmobiliaria.es'), a_persona: true,
+    asunto: 'Cliente busca 300 m² en Madrid · colaboración', motivo: 'Intermediario: cliente de 300 m², pide comisión',
+    m: [['r', diaH(1, 13, 22), 'Hola,\n\nSoy consultor en Atlas Inmobiliaria. Tengo un cliente (empresa tecnológica, 35 puestos) que busca unos 300 m² en Madrid a partir de marzo. ¿Trabajáis con intermediarios? En ese caso, ¿qué comisión aplicáis?\n\nQuedo a la espera.\nRodrigo Alcalde']] });
+
+  hilo({ tipo: 'comercial', subtipo: 'puesto', de: quien('Sara Montero', 'sara.montero.design@gmail.com'),
+    asunto: 'Puesto flexible', motivo: 'Puesto flexible unos días a la semana',
+    m: [['r', diaH(4, 9, 41), 'Hola! Soy diseñadora freelance y me gustaría ir 2 o 3 días a la semana. ¿Qué precio tiene el puesto flexible? ¿Se puede probar un día?'],
+      ['e', diaH(4, 11, 5), 'Hola Sara,\n\nEl puesto flexible son 159 €/mes + IVA y puedes venir cuando quieras de 8:00 a 21:00, en cualquiera de los 4 centros. ¡Y sí, el primer día es gratis! Dime qué día te viene bien y te lo dejo preparado.\n\nUn abrazo,\nAndrea\nCoworking Demo', { de: quien('Andrea Molina', ANDREA) }]],
+    bo: { texto: 'Hola, Sara:\n\nEl puesto flexible son 159 €/mes + IVA. Puedes venir cuando quieras, de 8:00 a 21:00, a cualquiera de nuestros 4 centros, y tienes café, fibra de 1 Gb y taquilla por días.\n\nSí: el primer día es gratis. Elige el día aquí y te lo dejamos preparado:\n[[VISITA:castellana]]\n\nUn saludo.', estado: 'propuesto' } });
+
+  hilo({ tipo: 'comercial', subtipo: 'despacho_meses', de: quien('Beatriz Lozano', 'blozano@cobaltogames.com'), nl: true,
+      asunto: 'Despacho 5 personas – Castellana', motivo: 'Despacho para 5 personas en Castellana, contrato anual',
+      m: [['r', diaH(2, 9, 55), 'Hola,\n\n¿Tenéis algún despacho para 5 personas en Castellana? Lo necesitaríamos en febrero.\n\nGracias,\nBeatriz'],
+        ['agente', diaH(2, 10, 20), 'Hola, Beatriz:\n\nSí: en Castellana 120 tenemos un despacho para 5 personas, exterior, por 1.470 €/mes + IVA. Incluye limpieza, fibra de 1 Gb, recepción, café y 6 horas al mes de sala de reuniones. Para febrero os lo podemos dejar reservado.\n\nAquí podéis elegir día y hora para verlo:\n[[VISITA:castellana]]\n\nUn saludo.'],
+        ['r', haceMin(48), 'Gracias por la info. Si firmamos 12 meses, ¿hay algún descuento? ¿Y se puede añadir una mesa más más adelante?\n\nBeatriz']],
+      bo: { texto: 'Hola, Beatriz:\n\nSí: con contrato de 12 meses el despacho queda en 1.323 €/mes + IVA (un 10 % menos), y el precio se mantiene todo el año.\n\nY sí, se puede añadir un puesto más adelante: en ese despacho cabe una sexta mesa, por 210 €/mes + IVA. Si el equipo crece más, os cambiamos a un despacho mayor sin penalización.\n\nSi queréis verlo antes de decidir, aquí reserváis la visita:\n[[VISITA:castellana]]\n\nUn saludo.' } });
+
+  hilo({ tipo: 'comercial', subtipo: 'oficina_virtual', de: quien('Víctor Calvo', 'victor.calvo.autonomo@outlook.es'), carpeta: 'archivados',
+    asunto: 'Domiciliación autónomo', motivo: 'Domiciliación fiscal para autónomo',
+    m: [['r', diaH(7, 18, 3), 'Hola, ¿cuánto cuesta domiciliar mi actividad de autónomo en vuestra dirección de Méndez Álvaro?'],
+      ['agente', diaH(6, 9, 15), 'Hola, Víctor:\n\nLa domiciliación en Méndez Álvaro (Calle de Méndez Álvaro, 56) son 39 €/mes + IVA, con recepción de correo y aviso al momento. Para autónomos vale como domicilio fiscal y de la actividad en el modelo 036; solo necesitamos tu DNI y el contrato, que se firma online.\n\n¿Te envío el contrato?\n\nUn saludo.']] });
+
+  hilo({ tipo: 'comercial', subtipo: 'bono', de: quien('Nuria Campos', 'nuria.campos@albaingenieria.es'), nombre: 'Nuria Campos', email: 'nuria.campos@albaingenieria.es',
+    cita: { inicio: diaH(6, 17, 30), centro: 'mendez' },
+    asunto: 'Bono de horas para reuniones', motivo: 'Bono de horas de sala para reuniones',
+    m: [['r', diaH(9, 11, 12), 'Hola, necesitamos una sala unas 10 horas al mes para reunirnos con clientes. ¿Tenéis bonos?'],
+      ['agente', diaH(9, 11, 30), 'Hola, Nuria:\n\nSí: el bono de 10 horas son 99 € + IVA, se puede usar en las salas de los 4 centros y no caduca en 3 meses. Las salas tienen pantalla, videoconferencia y café para los asistentes.\n\nSi queréis ver las salas antes, reservad la visita aquí:\n[[VISITA:mendez]]\n\nUn saludo.']] });
+
+  hilo({ tipo: 'comercial', subtipo: 'despacho_meses', de: quien('Gonzalo Peña', 'gonzalo@trazoestudio.es'),
+    respondido: { en: iso(diaH(5, 12, 40)), quien: ANDREA, como: 'mano' },
+    asunto: 'Despacho 3 personas Chamberí', motivo: 'Despacho para 3 personas en Chamberí',
+    m: [['r', diaH(5, 10, 2), 'Buenos días, ¿me puede llamar alguien para ver un despacho para 3 en Chamberí? Mi teléfono es el 622 410 873. Gracias.']],
+    bo: { texto: 'Hola, Gonzalo:\n\nClaro. En Chamberí tenemos un despacho para 3 personas por 1.040 €/mes + IVA, con limpieza, fibra, recepción y 4 horas de sala al mes. Te llamamos hoy mismo al 622 410 873.\n\nUn saludo.', equipo: ['Llamar a Gonzalo al 622 410 873'] } });
+
+  hilo({ tipo: 'comercial', subtipo: 'despacho_meses', de: quien('Emily Carter', 'emily.carter@northbridge.io'), nl: true,
+    asunto: 'Office for a team of 5 in Madrid', motivo: 'Despacho para 5 personas (empresa extranjera)',
+    m: [['r', haceMin(305), 'Hi there,\n\nWe are a UK software company opening a small office in Madrid. We need a private office for 5 people from February, ideally near Méndez Álvaro or the centre. Could you share availability and pricing? Do you offer a registered address too?\n\nBest regards,\nEmily Carter\nNorthbridge']],
+    bo: { texto: 'Hi Emily,\n\nThank you for getting in touch. At our Méndez Álvaro centre (Calle de Méndez Álvaro, 56) we have a private office for 5 people available from February, at €1,470/month + VAT. It includes cleaning, 1 Gb fibre, reception, coffee and 6 hours of meeting room per month, with 24/7 access.\n\nYes, the office can be used as your registered and tax address in Spain at no extra cost.\n\nThe minimum term is 3 months, with a 10% discount on a 12-month contract. You can book a visit here:\n[[VISITA:mendez]]\n\nKind regards.' } });
+
+  hilo({ tipo: 'comercial', subtipo: 'puesto', de: quien('Raúl Ortiz', 'raul.ortiz88@gmail.com'),
+    asunto: 'Puesto fijo para 2 desde enero', motivo: 'Dos puestos fijos en Las Tablas desde enero',
+    m: [['r', diaH(1, 19, 42), 'Hola, buenas noches. Mi socio y yo buscamos dos puestos fijos en Las Tablas desde el 1 de enero. ¿Precio? Gracias.'],
+      ['agente', diaH(1, 20, 5), 'Hola, Raúl:\n\nEl puesto fijo en Las Tablas son 240 €/mes + IVA por persona, con taquilla, acceso 24/7, fibra, café y 4 horas de sala al mes. Os reservamos dos puestos juntos en la misma isla para el 1 de enero.\n\nSi queréis verlos antes, elegid día y hora aquí:\n[[VISITA:tablas]]\n\nUn saludo.', { quien: YO }]] });
+
+  // ---- Clientes actuales ----
+  hilo({ tipo: 'cliente_actual', de: quien('Ana Ortega', 'ana.ortega@lumendigital.es'), nl: true,
+    asunto: 'Factura de noviembre', motivo: 'Cliente: reenviar la factura a administración',
+    m: [['r', haceMin(78), 'Hola,\n\n¿Podéis enviar la factura de noviembre del despacho 2.04 también a administracion@lumendigital.es? A partir de ahora queremos recibirlas allí.\n\nGracias,\nAna']],
+    bo: { texto: 'Hola, Ana:\n\nClaro. Reenviamos hoy la factura de noviembre a administracion@lumendigital.es, y desde diciembre os las enviaremos a esa dirección.\n\nUn saludo.', equipo: ['Reenviar la factura de noviembre del despacho 2.04 a administracion@lumendigital.es y cambiar el correo de facturación'] } });
+
+  hilo({ tipo: 'cliente_actual', subtipo: 'sala', de: quien('Iván Medina', 'ivan@faro-data.es'),
+    asunto: 'Reserva sala jueves', motivo: 'Cliente: reservar sala el jueves',
+    m: [['r', diaH(1, 9, 20), 'Buenos días, ¿podéis reservarnos la sala grande el jueves de 10:00 a 12:00? Seremos 8. Gracias!']],
+    bo: { texto: 'Hola, Iván:\n\nOs dejamos reservada la Sala Retiro el jueves de 10:00 a 12:00 para 8 personas, con pantalla y videoconferencia. Son 2 horas de las 6 que tenéis incluidas este mes.\n\nUn saludo.', equipo: ['Bloquear la Sala Retiro el jueves de 10:00 a 12:00 para Faro Data'] } });
+
+  hilo({ tipo: 'cliente_actual', de: quien('Clara Domínguez', 'clara@brava-studio.es'),
+    asunto: 'He perdido la tarjeta de acceso', motivo: 'Cliente: tarjeta de acceso perdida',
+    m: [['r', diaH(3, 8, 47), 'Hola, creo que perdí ayer la tarjeta de acceso. ¿Me podéis dar otra? Estoy en el despacho 1.07 de Chamberí.'],
+      ['e', diaH(3, 9, 12), 'Hola Clara,\n\nYa hemos dado de baja la tarjeta anterior. Tienes una nueva en recepción: pásate cuando quieras.\n\nUn saludo,\nRecepción Chamberí', { de: quien('Recepción', 'recepcion@coworkingdemo.es') }]],
+    bo: { texto: 'Hola, Clara:\n\nDamos de baja ahora mismo la tarjeta anterior para que nadie pueda usarla. Tienes una nueva en la recepción de Chamberí: pásate cuando quieras.\n\nUn saludo.', equipo: ['Dar de baja la tarjeta de Clara Domínguez (1.07 Chamberí) y preparar una nueva'] } });
+
+  hilo({ tipo: 'cliente_actual', de: quien('Tomás Reyes', 'tomas@origen-ventures.es'), nl: true,
+    asunto: 'Nos quedamos pequeños', motivo: 'Cliente: quiere un despacho más grande',
+    m: [['r', diaH(1, 16, 5), 'Hola equipo,\n\nEn marzo pasamos de 3 a 6 personas. ¿Habría un despacho más grande en Castellana al que cambiarnos? ¿Cómo funcionaría el cambio de contrato?\n\nTomás']],
+    bo: { texto: 'Hola, Tomás:\n\n¡Enhorabuena por el crecimiento! En Castellana 120 se queda libre en marzo un despacho para 6 personas, exterior, por 1.680 €/mes + IVA. El cambio es sencillo: firmamos un anexo al contrato, la fianza que ya tenéis se descuenta de la nueva y no hay penalización por cambiar.\n\nSi queréis, os lo enseñamos la semana que viene. ¿Qué día os viene bien?\n\nUn saludo.' } });
+
+  // ---- Proveedores y facturas ----
+  hilo({ tipo: 'no_comercial', subtipo: 'proveedor', de: quien('Limpiezas Brillo', 'facturacion@limpiezasbrillo.es'),
+    asunto: 'Factura FV-2026-1187 · Servicio de limpieza', nl: true,
+    m: [['r', diaH(1, 8, 2), 'Buenos días:\n\nAdjuntamos la factura FV-2026-1187 correspondiente al servicio de limpieza de los 4 centros del mes en curso, por importe de 3.420,00 € (IVA incluido). Vencimiento a 30 días.\n\nUn saludo,\nDepartamento de facturación\nLimpiezas Brillo S.L.',
+      { adjuntos: [{ nombre: 'FV-2026-1187.pdf', tipo: 'application/pdf', bytes: 84213 }] }]] });
+  hilo({ tipo: 'no_comercial', subtipo: 'proveedor', de: quien('Clima Norte', 'servicio@climanorte.es'),
+    asunto: 'Revisión trimestral de climatización · Castellana 120',
+    m: [['r', diaH(4, 12, 30), 'Hola:\n\nOs confirmamos la revisión trimestral de la climatización de Castellana 120 para el martes de 8:00 a 10:00. El técnico necesitará acceso a la sala de máquinas de la planta 6.\n\nUn saludo,\nClima Norte']] });
+  hilo({ tipo: 'no_comercial', subtipo: 'proveedor', de: quien('Cafés del Barrio', 'pedidos@cafesdelbarrio.es'),
+    asunto: 'Confirmación de pedido 4471',
+    m: [['r', diaH(6, 10, 18), 'Pedido 4471 confirmado:\n\n· 12 kg de café en grano\n· 400 cápsulas de infusión\n· 6 cajas de vasos compostables\n\nEntrega el jueves por la mañana en Castellana 120.\n\nCafés del Barrio']] });
+
+  // ---- Avisos automáticos ----
+  const avReserva = boletin({ marca: 'Reservas · Coworking Demo', color: '#1B7CFF', titulo: 'Nueva visita reservada',
+    entradilla: 'Marcos Herrero ha reservado una visita desde el enlace que le envió el asistente.',
+    bloques: [['Centro', 'Chamberí · Calle de Santa Engracia, 54'], ['Cuándo', cuandoTexto(siguienteLaborable(1, 11)).replace(/^el /, '')], ['Personas', '2']],
+    pie: 'Aviso automático del sistema de reservas. La visita ya está en la Agenda del panel.' });
+  hilo({ tipo: 'no_comercial', subtipo: 'avisos', de: quien('Reservas', 'no-reply@reservas.simpliaspain.com'),
+    asunto: 'Nueva visita reservada · Chamberí', m: [['r', diaH(2, 16, 46), deHtml(avReserva), { html: avReserva }]] });
+  const avBanco = boletin({ marca: 'Banca Norte', color: '#0F766E', titulo: 'Has recibido una transferencia',
+    entradilla: 'Se ha abonado una transferencia en tu cuenta de empresa terminada en 4821.',
+    bloques: [['Importe', '1.250,00 €'], ['Ordenante', 'ORIGEN VENTURES SL'], ['Concepto', 'Despacho 3.02 diciembre']],
+    pie: 'Este es un aviso automático. Por tu seguridad, nunca te pediremos claves por correo.' });
+  hilo({ tipo: 'no_comercial', subtipo: 'avisos', de: quien('Banca Norte', 'avisos@bancanorte.es'),
+    asunto: 'Transferencia recibida: 1.250,00 €', m: [['r', haceMin(240), deHtml(avBanco), { html: avBanco }]] });
+  hilo({ tipo: 'no_comercial', subtipo: 'avisos', de: quien('Copias Nube', 'alertas@copiasnube.es'),
+    asunto: 'Copia de seguridad completada', m: [['r', diaH(1, 3, 0), 'La copia de seguridad nocturna de «Servidor recepción» se ha completado correctamente.\n\n12.418 archivos · 38,2 GB · 0 errores']] });
+
+  // ---- Publicidad y newsletters ----
+  const nlRevista = boletin({ marca: 'Espacio Flex', color: '#7C3AED', titulo: 'Tendencias del trabajo flexible',
+    entradilla: 'Lo más leído del mes en la revista de los espacios de trabajo.',
+    bloques: [['El híbrido se queda', 'El 64 % de las empresas medianas combinará oficina propia y coworking el año que viene.'],
+      ['Salas, el nuevo reclamo', 'Las salas de reuniones con buena videoconferencia ya pesan más que el precio al elegir centro.'],
+      ['Respuesta en minutos', 'Los centros que contestan en menos de una hora cierran el doble de visitas.']],
+    pie: 'Recibes este boletín porque te suscribiste en espacioflex.es. Puedes darte de baja cuando quieras.' });
+  hilo({ tipo: 'no_comercial', subtipo: 'newsletter', de: quien('Espacio Flex', 'boletin@espacioflex.es'),
+    asunto: 'Tendencias del trabajo flexible · este mes', m: [['r', diaH(2, 7, 30), deHtml(nlRevista), { html: nlRevista }]] });
+  const nlRed = boletin({ marca: 'Red de Espacios Madrid', color: '#B45309', titulo: 'Encuentro de coworkings de Madrid',
+    entradilla: 'Te invitamos a la reunión anual de centros de trabajo flexible de la Comunidad de Madrid.',
+    bloques: [['Cuándo', 'Jueves de la semana que viene, de 18:00 a 20:30'], ['Dónde', 'Auditorio del Ateneo (Madrid)'], ['Programa', 'Mesa redonda sobre ocupación, precios y nuevos servicios, y networking.']],
+    pie: 'Plazas limitadas. Responde a este correo para confirmar tu asistencia.' });
+  hilo({ tipo: 'no_comercial', subtipo: 'newsletter', de: quien('Red de Espacios Madrid', 'hola@redespaciosmadrid.es'),
+    asunto: 'Invitación: Encuentro de coworkings de Madrid', m: [['r', diaH(5, 9, 0), deHtml(nlRed), { html: nlRed }]] });
+  hilo({ tipo: 'no_comercial', subtipo: 'newsletter', de: quien('Mueble Oficina Pro', 'ofertas@muebleoficinapro.es'),
+    asunto: 'Hasta un 30 % en sillas ergonómicas', m: [['r', diaH(3, 11, 45), 'Solo esta semana: hasta un 30 % de descuento en sillas ergonómicas y mesas regulables para tu oficina. Envío gratis a partir de 300 €.']] });
+
+  // ---- Personal o interno ----
+  hilo({ tipo: 'no_comercial', subtipo: 'personal', de: quien('Javier Ruiz', 'javier@coworkingdemo.es'),
+    asunto: 'Turnos de recepción de diciembre', m: [['r', diaH(1, 18, 10), 'Hola equipo,\n\nOs paso los turnos de recepción de diciembre. Si alguien necesita cambiar algún día, decídmelo antes del viernes.\n\nGracias,\nJavier']] });
+  hilo({ tipo: 'no_comercial', subtipo: 'personal', de: quien('Andrea Molina', ANDREA),
+    asunto: 'Comida de Navidad', m: [['r', diaH(4, 14, 2), '¿Os va bien el viernes 19 para la comida de Navidad? He mirado un sitio cerca de Castellana. 🎄']] });
+
+  // ---- Otros ----
+  hilo({ tipo: 'no_comercial', subtipo: 'otros', de: quien('Paula Soto', 'paula@paulasotofoto.es'),
+    asunto: 'Fotografía de espacios', m: [['r', diaH(8, 12, 12), 'Hola, soy fotógrafa de interiores. Me encantaría hacer un reportaje de vuestros centros para la web y los portales. ¿Os puedo enviar mi portfolio?']] });
+
+  // ---- Enviados por el equipo (sin respuesta aún) ----
+  hilo({ tipo: 'no_comercial', subtipo: 'saliente', de: quien('Andrea Molina', ANDREA), responder: 'compras@rumbologistica.es',
+    asunto: 'Propuesta despacho 6 personas · Rumbo Logística',
+    m: [['e', diaH(2, 13, 15), 'Hola Fernando,\n\nComo hablamos por teléfono, te adjunto la propuesta del despacho para 6 personas en Las Tablas, con 2 plazas de parking. Cualquier duda, me dices.\n\nUn saludo,\nAndrea Molina\nCoworking Demo', { de: quien('Andrea Molina', ANDREA), adjuntos: [{ nombre: 'Propuesta Rumbo Logística.pdf', tipo: 'application/pdf', bytes: 412880 }] }]] });
+
+  // ---- Spam ----
+  hilo({ tipo: 'no_comercial', subtipo: 'spam', de: quien('Premios Online', 'ganador@premios-semanales.top'),
+    asunto: '¡¡Enhorabuena!! Has sido seleccionado', m: [['r', diaH(1, 4, 12), 'Has sido seleccionado para recibir un premio. Haz clic para reclamarlo antes de 24 horas.']] });
+  hilo({ tipo: 'no_comercial', subtipo: 'spam', de: quien('SEO Rápido', 'info@seo-primera-pagina.click'),
+    asunto: 'Primera página de Google en 7 días', m: [['r', diaH(3, 6, 40), 'Garantizamos posicionar tu web en primera página en 7 días. Precio especial solo hoy.']] });
+  hilo({ tipo: 'no_comercial', subtipo: 'spam', de: quien('Soporte Cuenta', 'soporte@verificacion-cuentas.xyz'), carpeta: 'papelera',
+    asunto: 'Su buzón está lleno: verifique su cuenta', m: [['r', diaH(5, 2, 15), 'Su buzón ha superado el límite. Verifique su contraseña en el siguiente enlace para no perder correos.']] });
+
+  // ---- Idealista ----
+  function idealista(o) {
+    const contacto = contactoIdealista();
+    const nombre = o.nombre;
+    return hilo({ tipo: 'comercial', subtipo: 'portal', de: 'idealista <reply@idealista.com>', reply_to: `${nombre} <${contacto}>`,
+      asunto: `Nuevo mensaje de ${nombre} sobre tu inmueble, con ref: ${o.ref}, ${ANUNCIOS[o.ref].titulo}`,
+      motivo: o.motivo, nl: o.nl, carpeta: o.carpeta, confirmar: o.confirmar, respondido: o.respondido, llega: o.llega,
+      m: [['r', o.cuando, avisoIdealista(nombre, o.tel, contacto, o.pregunta, o.ref)]],
+      bo: { texto: o.respuesta, equipo: o.equipo || [] } });
+  }
+  const resp = (dias, h, mi, como = 'idealista', q = ANDREA) => ({ en: iso(diaH(dias, h, mi)), quien: q, como });
+  idealista({ nombre: 'javier', ref: 'CA12', cuando: haceMin(34), nl: true, motivo: 'Despacho para 4 en Castellana (idealista)',
+    pregunta: 'Hola, me interesa esta oficina y me gustaría hacer una visita.\nUn saludo ',
+    respuesta: 'Hola, Javier:\n\nGracias por escribirnos. El despacho de la ref. CA12 está en Castellana 120: exterior, con luz natural y para 4 personas, por 1.250 €/mes + IVA. Incluye limpieza, fibra de 1 Gb, recepción, café y 6 horas de sala de reuniones al mes.\n\nPuedes reservar la visita aquí, eligiendo día y hora:\n[[VISITA:castellana]]\n\n¿Para cuántas personas sería y desde cuándo lo necesitas?\n\nUn saludo.' });
+  idealista({ nombre: 'Mariana Ruiz', ref: 'CH03', tel: '634 772 019', cuando: haceMin(131), nl: true, motivo: 'Despacho para 2 en Chamberí (idealista)',
+    pregunta: 'Hola, ¿está disponible a partir de enero? Somos 2 personas y trabajamos en diseño gráfico.\n\nUn saludo',
+    respuesta: 'Hola, Mariana:\n\nSí, el despacho de la ref. CH03 está disponible desde el 1 de enero. Es un despacho privado para 2 personas en Chamberí (Santa Engracia, 54), por 820 €/mes + IVA, con limpieza, fibra de 1 Gb, recepción, café y 4 horas de sala al mes. Tiene muy buena luz, ideal para diseño.\n\nPuedes venir a verlo cuando te venga bien; reserva aquí la visita:\n[[VISITA:chamberi]]\n\nUn saludo.' });
+  idealista({ nombre: 'Rubén Sanz', ref: 'LT05', tel: '611 908 245', cuando: haceMin(96), motivo: 'Despacho para 3 en Las Tablas (idealista)',
+    confirmar: { quien: ANDREA, mio: false, abierto_en: iso(haceMin(38)) },
+    pregunta: 'Buenas, ¿el precio incluye IVA y gastos de luz y agua? ¿Hay parking en el edificio?',
+    respuesta: 'Hola, Rubén:\n\nEl precio de la ref. LT05 son 1.040 €/mes + IVA, con todos los gastos incluidos: luz, agua, climatización, limpieza, fibra de 1 Gb y recepción. El edificio tiene aparcamiento propio; el equipo te confirma el precio de la plaza.\n\nSi quieres verlo, reserva aquí la visita:\n[[VISITA:tablas]]\n\nUn saludo.',
+    equipo: ['Confirmarle el precio de la plaza de parking en Las Tablas'] });
+  idealista({ nombre: 'Carmen Soler', ref: 'CH09', tel: '699 341 552', cuando: haceMin(212), nl: true, motivo: 'Oficina para 6 en Chamberí (idealista)',
+    pregunta: 'Hola, buscamos oficina para 6 personas. Me gustaría ver esta y también alguna en Castellana el mismo día si es posible. Gracias',
+    respuesta: 'Hola, Carmen:\n\nLa oficina de la ref. CH09 es para 6 personas, de 32 m² y exterior, por 1.680 €/mes + IVA, con limpieza, fibra, recepción, café y 6 horas de sala al mes.\n\nEn Castellana 120 también tenemos un despacho para 6. Podemos enseñaros los dos el mismo día: reservad aquí la primera visita y os organizamos la segunda justo después:\n[[VISITA:chamberi]]\n\nUn saludo.',
+    equipo: ['Coordinar dos visitas el mismo día: Chamberí y Castellana'] });
+  idealista({ nombre: 'Alberto', ref: 'MA02', cuando: diaH(1, 20, 12), motivo: 'Puesto flexible en Méndez Álvaro (idealista)',
+    pregunta: 'Hola, ¿se puede ir solo por las tardes? ¿Cuánto costaría?\nUn saludo ',
+    respuesta: 'Hola, Alberto:\n\nSí. El puesto flexible de la ref. MA02 son 159 €/mes + IVA y puedes venir cuando quieras, de 8:00 a 21:00, también solo por las tardes. Si prefieres pagar por uso, el bono de 10 días sale a 99 € + IVA.\n\nPuedes probar un día gratis; elige el día aquí:\n[[VISITA:mendez]]\n\nUn saludo.' });
+  idealista({ nombre: 'Lucía Fernández', ref: 'CA07', tel: '687 220 461', cuando: diaH(1, 11, 3), respondido: resp(1, 11, 26), motivo: 'Puesto fijo en Castellana (idealista)',
+    pregunta: 'Hola, me interesa un puesto fijo. ¿Tiene taquilla? ¿Se puede ir los fines de semana?',
+    respuesta: 'Hola, Lucía:\n\nSí: el puesto fijo de la ref. CA07 son 260 €/mes + IVA e incluye taquilla, acceso 24/7 (también fines de semana), fibra, café y 4 horas de sala al mes.\n\nReserva aquí la visita para verlo:\n[[VISITA:castellana]]\n\nUn saludo.' });
+  idealista({ nombre: 'Hugo', ref: 'CA12', cuando: diaH(2, 18, 30), respondido: resp(2, 19, 2, 'no_hace_falta'), motivo: 'Ya ha encontrado oficina (idealista)',
+    pregunta: 'Gracias por la información, al final hemos encontrado algo más cerca de casa.\nUn saludo',
+    respuesta: 'Hola, Hugo:\n\n¡Gracias por avisarnos y mucha suerte con la nueva oficina! Si en algún momento necesitáis una sala de reuniones o más espacio, aquí estamos.\n\nUn saludo.' });
+  idealista({ nombre: 'Elena Marín', ref: 'LT05', tel: '655 017 338', cuando: diaH(3, 10, 40), respondido: resp(3, 11, 5), motivo: 'Despacho para 3 en Las Tablas (idealista)',
+    pregunta: 'Hola, me interesa esta oficina y me gustaría hacer una visita.\n\nUn saludo\nSomos una gestoría pequeña y buscamos algo tranquilo.',
+    respuesta: 'Hola, Elena:\n\nEl despacho de la ref. LT05 es muy tranquilo: está en la planta alta, para 3 personas, por 1.040 €/mes + IVA con limpieza, fibra, recepción y 4 horas de sala al mes. Para una gestoría va muy bien, porque podéis recibir a vuestros clientes en las salas.\n\nReserva aquí la visita:\n[[VISITA:tablas]]\n\nUn saludo.' });
+  idealista({ nombre: 'Andrés', ref: 'CH03', cuando: diaH(5, 9, 18), respondido: resp(5, 9, 40), carpeta: 'archivados', motivo: 'Despacho para 2 en Chamberí (idealista)',
+    pregunta: 'Buenos días, ¿cuál es la permanencia mínima?',
+    respuesta: 'Hola, Andrés:\n\nLa permanencia mínima del despacho de la ref. CH03 es de 3 meses, y con contrato anual tienes un 10 % de descuento. La fianza es de una mensualidad.\n\nSi quieres verlo, reserva aquí la visita:\n[[VISITA:chamberi]]\n\nUn saludo.' });
+  idealista({ nombre: 'Sonia Prieto', ref: 'CA07', tel: '648 551 902', cuando: diaH(6, 16, 22), respondido: resp(6, 16, 50, 'idealista', YO), motivo: 'Puesto fijo en Castellana (idealista)',
+    pregunta: 'Hola, ¿se puede domiciliar la empresa con el puesto fijo?',
+    respuesta: 'Hola, Sonia:\n\nSí: con el puesto fijo de la ref. CA07 puedes domiciliar tu empresa en Castellana 120 sin coste añadido, con recepción de correo y paquetería.\n\nReserva aquí la visita para conocer el centro:\n[[VISITA:castellana]]\n\nUn saludo.' });
+  idealista({ nombre: 'Patricia Gómez', ref: 'CH09', tel: '622 784 115', cuando: diaH(8, 12, 50), respondido: resp(8, 13, 20), motivo: 'Oficina para 6 en Chamberí (idealista)',
+    pregunta: 'Hola, ¿tiene sala de reuniones propia o es compartida?',
+    respuesta: 'Hola, Patricia:\n\nLa oficina de la ref. CH09 incluye 6 horas al mes de sala de reuniones, en las salas del centro (las reserváis desde la app). Si necesitáis más, la hora extra sale a 35 € + IVA.\n\nReserva aquí la visita:\n[[VISITA:chamberi]]\n\nUn saludo.' });
+
+  // En vivo: durante la reunión entra un correo y, un rato después, un mensaje de idealista.
+  const VIVO = [];
+  {
+    const h1 = hilo({ tipo: 'comercial', subtipo: 'despacho_meses', de: quien('Alejandro Gil', 'alejandro.gil@nexodigital.es'),
+      asunto: '¿Despacho para 2 desde el lunes?', motivo: 'Despacho para 2 personas, entrada inmediata', llega: AHORA + 150e3,
+      m: [['r', AHORA + 150e3, 'Hola,\n\nNecesitamos un despacho para 2 personas a partir del lunes, en Castellana o Chamberí. ¿Tenéis algo libre? Sería para al menos 6 meses.\n\nGracias,\nAlejandro Gil']],
+      bo: { texto: 'Hola, Alejandro:\n\nSí: en Chamberí (Santa Engracia, 54) tenemos libre un despacho privado para 2 personas por 820 €/mes + IVA, y podéis entrar el lunes. Incluye limpieza, fibra de 1 Gb, recepción, café y 4 horas de sala al mes. Con 6 meses de contrato no hay que pagar nada más que la fianza de una mensualidad.\n\nSi queréis verlo antes del lunes, reservad aquí la visita:\n[[VISITA:chamberi]]\n\nUn saludo.' } });
+    VIVO.push({ h: h1, clasifica: AHORA + 168e3, redacta: AHORA + 215e3 });
+    h1.borrador.creado_en = iso(AHORA + 215e3);
+    const h2 = idealista({ nombre: 'Mónica', ref: 'CA12', cuando: AHORA + 420e3, llega: AHORA + 420e3, motivo: 'Despacho para 4 en Castellana (idealista)',
+      pregunta: 'Hola, ¿está disponible para entrar en diciembre? Somos 4.\nGracias',
+      respuesta: 'Hola, Mónica:\n\nSí, el despacho de la ref. CA12 está disponible para entrar en diciembre. Es para 4 personas, exterior, por 1.250 €/mes + IVA, con limpieza, fibra de 1 Gb, recepción, café y 6 horas de sala al mes.\n\nReserva aquí la visita:\n[[VISITA:castellana]]\n\nUn saludo.' });
+    VIVO.push({ h: h2, clasifica: AHORA + 435e3, redacta: AHORA + 470e3 });
+    h2.borrador.creado_en = iso(AHORA + 470e3);
+  }
+
+  // En el Embudo, como lo habría dejado el equipo: quién visitó, quién se hizo
+  // cliente y quién no siguió, de los que llegaron por correo o idealista.
+  {
+    const de = t => HILOS.find(h => !h._llega && (h.mensajes[0].de.includes(t) || h.asunto.includes('mensaje de ' + t + ' ')));
+    for (const [t, etapa, dias] of [['Nuria Campos', 'ganado', 5], ['Gonzalo Peña', 'visito', 3], ['Sonia Prieto', 'ganado', 2],
+      ['Elena Marín', 'visito', 1], ['Lucía Fernández', 'reservada', 1], ['Mariana Ruiz', 'datos', 0], ['Patricia Gómez', 'datos', 6], ['Hugo', 'perdido', 2]]) {
+      const h = de(t);
+      if (h) MARCAS.push({ clave: 'c:' + h.id, etapa, cuando: iso(Math.min(AHORA - 30 * MIN, diaH(Math.max(1, dias), 13, 10))) });
+    }
+  }
+
+  // Lo que cada persona ha leído, las carpetas a mano y los «¿se respondió?» de idealista.
+  const CR_MARCAS = { desde: iso(AHORA - 3 * DIA), leidos: {}, carpetas: {}, confirmar: {} };
+  for (const h of HILOS) {
+    const ultR = Math.max(...h.mensajes.filter(m => m.sentido === 'recibido').map(m => +new Date(m.fecha)), 0);
+    if (!h._nl && !h._llega && ultR > AHORA - 3 * DIA) CR_MARCAS.leidos[h.id] = { leido: true, en: iso(Math.min(AHORA - MIN, ultR + entre(4, 40) * MIN)) };
+    if (h._carpeta) CR_MARCAS.carpetas[h.id] = { carpeta: h._carpeta, quien: ANDREA, en: iso(+new Date(h.ultimo_en) + DIA) };
+    if (h._confirmar) CR_MARCAS.confirmar[h.id] = h._confirmar;
+  }
+  // Lo que el asistente no encontró en la hoja al contestar.
+  const FALTAN = [
+    { dato: 'Precio del parking por mes en Las Tablas', veces: 3, ultimo_en: iso(haceMin(196)), estado: null },
+    { dato: 'Si se admiten mascotas en los centros', veces: 2, ultimo_en: iso(diaH(2, 12, 30)), estado: null },
+    { dato: 'Horario de recepción los sábados', veces: 2, ultimo_en: iso(diaH(4, 10, 5)), estado: null },
+    { dato: 'Fianza del puesto fijo', veces: 1, ultimo_en: iso(diaH(6, 17, 40)), estado: null }
+  ].map(d => ({ ...d, hilos: [], marcado_en: null }));
+  let CR_TOPE = 50;
+  const ENVIOS = new Map();          // envío → { h, texto, sale, previo }
+
+  // Cómo se ve cada conversación ahora (las «en vivo» van apareciendo).
+  function crVer(h) {
+    const v = VIVO.find(x => x.h === h), t = Date.now();
+    if (h._llega && t < h._llega) return null;
+    const c = { ...h };
+    if (v && t < v.clasifica) { c.tipo = null; c.subtipo = null; c.borrador = null; c.motivo = null; }
+    else if (v && t < v.redacta) { c.borrador = null; c.actualizado_en = iso(v.clasifica); }
+    else if (v) c.actualizado_en = iso(Math.max(+new Date(h.actualizado_en), v.redacta));
+    for (const k of Object.keys(c)) if (k[0] === '_') delete c[k];
+    return c;
+  }
+  // Los envíos cuyo plazo de 10 s ya pasó salen (de mentira).
+  function crAlDia() {
+    for (const [id, e] of ENVIOS) {
+      if (e.estado !== 'enviando' || Date.now() < e.sale) continue;
+      e.estado = 'enviado';
+      const h = e.h, bo = h.borrador, en = iso(e.sale + 1200);
+      Object.assign(bo, { estado: 'enviado', enviado_en: en, enviado_como: 'panel', quien: YO, envio: null, texto: e.texto, version: bo.version + 1 });
+      const p = h.reply_to || h.mensajes[0].de;
+      h.mensajes.push({ id: uid(), sentido: 'enviado', de: `${EMPRESA} <${BUZON_EMAIL}>`, para: p, cc: null, reply_to: null, agente: true,
+        fecha: en, asunto: 'Re: ' + h.asunto, texto: conEnlaces(e.texto) + FIRMA_TXT, adjuntos: [] });
+      h.ultimo_en = en; h.actualizado_en = en;
+      e.enviado_en = en;
+    }
+  }
+  const crHilo = id => HILOS.find(h => h.id === id);
+  const crHiloBo = id => HILOS.find(h => h.borrador && h.borrador.id === id);
+  const usadoHoy = () => 9 + HILOS.filter(h => { const v = crVer(h); return v && v.borrador && +new Date(v.borrador.creado_en) >= inicioHoy; }).length;
+
   /* ---------- 9. Respuestas de cada función ---------- */
   const conversacionesQueCuentan = () => CONVS.filter(cuenta);
   function filaContacto(p) {
@@ -680,6 +1077,7 @@
     mt_embudo_marcas_leer: () => MARCAS.map(m => ({ ...m })),
     mt_mis_citas: () => RESERVAS.filter(r => !EXCLUIDOS.has(r.p.user_ref)).map(r => ({ user_ref: r.p.user_ref, nombre: r.p.nombre, telefono: r.p.telefono,
       email: r.p.email, inicio: iso(r.inicio), centro: r.centro.nombre, direccion: r.centro.dir, evento: r.evento }))
+      .concat(CITAS_CORREO.map(c => ({ ...c })))
       .sort((a, b) => new Date(b.inicio) - new Date(a.inicio)),
     mt_mi_lista_espera: () => ESPERA.map(e => ({ ...e })),
 
@@ -720,11 +1118,70 @@
     mt_guardar_ajustes: a => { Object.assign(AJUSTES, a?.p_ajustes || {}); return { ...AJUSTES }; },
     mt_guardar_parametros: a => { Object.assign(AJUSTES, a?.p_valores || {}); return { ...AJUSTES }; },
 
-    // Correo y cuentas: esta demo no los enseña (son de pago aparte / del equipo de Simplia).
-    mt_correo_panel: () => ({ hilos: [], resumen: [], faltan: [] }),
-    mt_correo_panel_buzones: () => ({ buzones: [], puede_editar: false, puede_cambiar_tope: false, tope: 50, usado_hoy: 0, visitas: {}, firma: null }),
-    mt_correo_marcas: () => ({ desde: iso(AHORA), leidos: {}, carpetas: {}, confirmar: {}, solo_mirar: false }),
-    mt_correo_faltan: () => ({ puede_marcar: false, hoja: null, datos: [] }),
+    // Correo e Idealista (8 bis). Lo que se hace aquí solo vive en esta pestaña.
+    mt_correo_panel: a => {
+      crAlDia();
+      const desde = a?.p_desde ? +new Date(a.p_desde) : 0;
+      const hilos = HILOS.map(crVer).filter(Boolean)
+        .filter(h => !desde || Math.max(+new Date(h.ultimo_en), +new Date(h.actualizado_en)) >= desde)
+        .sort((x, y) => new Date(y.ultimo_en) - new Date(x.ultimo_en));
+      return { hilos, resumen: [], faltan: FALTAN.filter(d => !d.estado).map(d => ({ dato: d.dato, veces: d.veces })) };
+    },
+    mt_correo_panel_buzones: () => ({ puede_editar: true, puede_cambiar_tope: false, tope: CR_TOPE, usado_hoy: usadoHoy(), visitas: { ...VISITA_URL },
+      firma: { nombre: EMPRESA, web: 'https://coworkingdemo.es', telefono: TEL_EMPRESA, color: '#1B7CFF' },
+      buzones: [{ id: BUZON_ID, email: BUZON_EMAIL, host: 'mail.coworkingdemo.es', modo: 'borrador', estado: 'ok', tiene_clave: true,
+        leido_en: iso(Date.now() - (Math.floor(Date.now() / 1000) % 75) * 1000 - 5000), ultimo_error: null, ultimo_error_ia: null, ultimo_error_ia_en: null,
+        desde: iso(AHORA - 75 * DIA), carpetas_entrada: ['INBOX'], carpetas_enviados: ['Enviados'] }] }),
+    mt_correo_marcas: () => ({ ...CR_MARCAS, solo_mirar: false }),
+    mt_correo_faltan: () => ({ puede_marcar: true, datos: FALTAN.map(d => ({ ...d })),
+      hoja: { url: 'https://docs.google.com/spreadsheets/d/demo-coworking', pestanas: [{ clave: 'centros', gid: '0' }, { clave: 'tarifas', gid: '1' }, { clave: 'reglas', gid: '2' }] } }),
+    mt_correo_marcar_leido: a => { const en = iso(Date.now()); for (const id of a?.p_hilos || []) CR_MARCAS.leidos[id] = { leido: !!a.p_leido, en }; return { ok: true }; },
+    mt_correo_mover: a => {
+      for (const id of a?.p_hilos || []) {
+        if (a.p_carpeta) CR_MARCAS.carpetas[id] = { carpeta: a.p_carpeta, quien: YO, en: iso(Date.now()) }; else delete CR_MARCAS.carpetas[id];
+      }
+      return { ok: true };
+    },
+    mt_correo_marcar_respondido: a => {
+      const h = crHilo(a?.p_hilo); if (!h) return { ok: false };
+      h.respondido = a.p_respondido ? { en: iso(Date.now()), quien: YO, como: 'mano' } : null;
+      if (a.p_respondido) delete CR_MARCAS.confirmar[h.id];
+      return { ok: true };
+    },
+    mt_correo_borrador_guardar: a => {
+      const h = crHiloBo(a?.p_borrador); if (!h) throw new Error('sin borrador');
+      Object.assign(h.borrador, { texto: String(a.p_texto || ''), version: h.borrador.version + 1, estado: 'propuesto', revisado: true, error: null });
+      return { version: h.borrador.version };
+    },
+    mt_correo_borrador_descartar: a => {
+      const h = crHiloBo(a?.p_borrador); if (!h) throw new Error('sin borrador');
+      h.borrador.estado = a.p_descartar ? 'descartado' : 'propuesto'; if (!a.p_descartar) h.borrador.version++;
+      return { ok: true };
+    },
+    mt_correo_enviar_cancelar: a => {
+      const e = ENVIOS.get(a?.p_envio);
+      if (!e || e.estado !== 'enviando' || Date.now() > e.sale - 400) return { ok: false };
+      e.estado = 'cancelado'; Object.assign(e.h.borrador, { estado: e.previo, envio: null });
+      return { ok: true };
+    },
+    mt_correo_envio_estado: a => {
+      crAlDia();
+      const e = ENVIOS.get(a?.p_envio); if (!e) return null;
+      return e.estado === 'enviado' ? { que: 'enviado', enviado_en: e.enviado_en, error: null, version: e.h.borrador.version }
+        : e.estado === 'cancelado' ? { que: 'no_enviado', error: 'No se ha enviado.', enviado_en: null, version: e.h.borrador.version }
+        : { que: 'enviando', error: null, enviado_en: null, version: e.h.borrador.version };
+    },
+    mt_correo_idealista_abrir: a => { CR_MARCAS.confirmar[a?.p_hilo] = { quien: YO, mio: true, abierto_en: iso(Date.now()) }; return { ok: true }; },
+    mt_correo_idealista_confirmar: a => {
+      const h = crHilo(a?.p_hilo), en = iso(Date.now());
+      delete CR_MARCAS.confirmar[a?.p_hilo];
+      if (a?.p_respuesta === 'todavia') CR_MARCAS.leidos[a.p_hilo] = { leido: false, en };
+      else if (h) h.respondido = { en, quien: YO, como: a.p_respuesta === 'si' ? 'idealista' : 'no_hace_falta' };
+      return { ok: true };
+    },
+    mt_correo_falta_marcar: a => { const d = FALTAN.find(x => x.dato === a?.p_dato); if (d) { d.estado = a.p_estado; d.marcado_en = iso(Date.now()); } return { ok: true }; },
+    mt_correo_tope_cambiar: a => { CR_TOPE = Math.round(Number(a?.p_tope)) || CR_TOPE; return { ok: true }; },
+    mt_correo_guardar_clave: () => ({ ok: true }),
     mt_cuentas_panel: () => ({ cuentas: [], empresas: [] })
   };
 
@@ -769,11 +1226,42 @@
   }
 
   /* ---------- 11. Nada sale de la demo ---------- */
-  // Las llamadas a n8n (correo, cuentas) no salen.
+  // Las llamadas a n8n no salen: las del correo se contestan aquí (leer el
+  // correo del buzón, enviar una respuesta, el enlace de idealista); el resto, 503.
   const fetchReal = window.fetch.bind(window);
-  window.fetch = (u, o) => /easypanel\.host|supabase\.co/.test(String(u && u.url || u))
-    ? Promise.resolve(new Response(JSON.stringify({ ok: false, demo: true }), { status: 503, headers: { 'Content-Type': 'application/json' } }))
-    : fetchReal(u, o);
+  const json = (x, status = 200) => new Response(JSON.stringify(x), { status, headers: { 'Content-Type': 'application/json' } });
+  const mensajeDe = id => { for (const h of HILOS) { const m = h.mensajes.find(x => x.id === id); if (m) return { h, m }; } return null; };
+  function n8n(url, o) {
+    const u = new window.URL(url), m = u.searchParams.get('m');
+    if (/\/correo\/texto$/.test(u.pathname)) {
+      const x = mensajeDe(m);
+      return x ? json({ html: MSG_HTML.get(m) || null, texto: x.m.texto, dentro: [] }) : json({ error: 'No se encuentra el correo.' }, 404);
+    }
+    if (/\/correo\/enlace$/.test(u.pathname)) {
+      const x = mensajeDe(m);
+      return x ? json({ url: 'https://www.idealista.com/conversaciones/' + x.h.id.slice(0, 8) }) : json({ error: 'No se ha encontrado el enlace.' }, 404);
+    }
+    if (/\/correo\/envio$/.test(u.pathname)) {
+      let b = {}; try { b = JSON.parse(o && o.body || '{}'); } catch (e) {}
+      const h = crHiloBo(b.borrador);
+      if (!h) return json({ error: 'No se encuentra la respuesta.' }, 400);
+      if (Number(b.version) !== h.borrador.version) return json({ error: 'Alguien ha cambiado esta respuesta. Vuelve a abrirla.' }, 409);
+      const id = uid();
+      ENVIOS.set(id, { h, texto: String(b.texto || ''), sale: Date.now() + 10000, previo: h.borrador.estado, estado: 'enviando' });
+      Object.assign(h.borrador, { estado: 'enviando', envio: id, quien: YO, error: null, reintento: false });
+      return json({ envio: id, ms: 10000 });
+    }
+    return json({ ok: false, demo: true }, /\/correo\/(foto|adjunto)$/.test(u.pathname) ? 404 : 503);
+  }
+  window.fetch = (u, o) => {
+    const url = String(u && u.url || u);
+    if (/easypanel\.host/.test(url)) return new Promise(r => setTimeout(() => r(n8n(url, o)), 180 + azar() * 220));
+    if (/supabase\.co/.test(url)) return Promise.resolve(json({ ok: false, demo: true }, 503));
+    return fetchReal(u, o);
+  };
+  // «Copiar y abrir en idealista»: la conversación no existe, se avisa y sigue el resto (copiar y preguntar si se respondió).
+  window.open = () => ({ opener: null, document: { write() {} }, close() {},
+    location: { replace() { aviso('Demo: aquí se abriría la conversación en idealista, con la respuesta ya copiada para pegarla.'); } } });
 
   function aviso(texto) {
     let t = document.getElementById('demo-aviso');
@@ -813,5 +1301,5 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', marcar); else marcar();
 
-  window.__DEMO = { createClient, aviso, datos: { PERSONAS, CONVS, LEADS, RESERVAS } };
+  window.__DEMO = { createClient, aviso, datos: { PERSONAS, CONVS, LEADS, RESERVAS, HILOS } };
 })();

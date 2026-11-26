@@ -15,7 +15,13 @@ const cambios = [
   // demo-datos.js antes que el panel: los módulos se ejecutan después.
   [/<script type="module">/, '<script src="demo-datos.js"></script>\n<script type="module">'],
   [/<title>[^<]*<\/title>/, '<title>SimpliaSpain · Panel (demo)</title>'],
-  [/const VERSION = '[^']*';/, "const VERSION = 'demo · " + new Date().toISOString().slice(0, 10) + "';"]
+  [/const VERSION = '[^']*';/, "const VERSION = 'demo · " + new Date().toISOString().slice(0, 10) + "';"],
+  // Correo e Idealista: como los tiene Oficinas YA, con el buzón inventado de demo-datos.js.
+  [/const CO_EMPRESAS_CON_ACCESO = \['oficinasya'\];/, "const CO_EMPRESAS_CON_ACCESO = ['oficinasya', 'demo'];"],
+  [/const CO_EMPRESAS_EN_PRUEBAS = \['oficinasya'\];/, "const CO_EMPRESAS_EN_PRUEBAS = ['oficinasya', 'demo'];"],
+  // Sin fotos de fuera para quien escribe: son personas y empresas inventadas
+  // (un dominio inventado podría existir y sacar el logo de otra empresa).
+  [/function crCaraUrl\(p\)\{/, "function crCaraUrl(p){\n  return { url:'' };   // demo: siempre la inicial"]
 ];
 for (const [re, por] of cambios) {
   if (!re.test(h)) { console.error('No encuentro en index.html:', re); process.exit(1); }
