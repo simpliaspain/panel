@@ -2087,6 +2087,22 @@
   .cr-atajos dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0;font-size:14px}
   .cr-atajos dt{white-space:nowrap} .cr-atajos dd{margin:0;color:var(--tinta-suave)}
   .cr-atajos kbd,.cr-adj kbd{font:12px/1 inherit;padding:3px 6px;border:1px solid var(--linea);border-bottom-width:2px;border-radius:6px;background:var(--fondo)}
+  /* 27/11: «Pegar un correo» (SQL 196) */
+  .cr-pegar{max-width:680px}
+  .cr-pegar h3{font-size:18px;margin:0 0 6px}
+  .cr-pegar > p{margin:0 0 12px;font-size:13px;color:var(--tinta-suave);line-height:1.5}
+  .cr-pegar label{display:block;font-size:12px;font-weight:600;color:var(--tinta);margin:10px 0 4px}
+  .cr-pegar label small{font-weight:400;color:var(--gris)}
+  .cr-pegar input,.cr-pegar textarea{width:100%;box-sizing:border-box;font:inherit;font-size:13.5px;color:var(--tinta);
+    border:1px solid var(--linea);border-radius:10px;padding:8px 10px;background:var(--blanco)}
+  .cr-pegar textarea{min-height:180px;resize:vertical;line-height:1.5}
+  .cr-pegar .cr-pdos{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  .cr-pegar .cr-pacc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}
+  .cr-pegar .cr-pacc .co-para{margin-left:auto}
+  .cr-pegar .co-alerta{margin-top:10px}
+  .cr-pegar .cr-pfirma{white-space:pre-line;font-size:12px;color:var(--gris);margin-top:6px}
+  .cr-pegar .cr-pnota{margin:10px 0 0;padding:0 0 0 18px;font-size:12.5px;color:var(--tinta-suave)}
+  @media (max-width:560px){ .cr-pegar .cr-pdos{grid-template-columns:1fr} }
   .cr-prefs{display:grid;gap:6px;margin:8px 0}
   .cr-prefs .co-interr{display:flex;gap:10px;align-items:flex-start}
   .cr-prefs .co-interr small{display:block;font-size:12px;color:var(--gris);font-weight:400}
@@ -2376,7 +2392,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-27a · Un periodo para todo el Latido; «Tiempo liberado» con el tiempo real de atención';
+const VERSION = '2026-11-27b · «Pegar un correo» en Correo; un periodo para todo el Latido; «Tiempo liberado»';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -5261,6 +5277,7 @@ function coPintarReal(){
         <div class="co-ctrl">
           ${crEnBorrador() ? '<span class="co-ej cr-sombra" tabindex="0" title="El asistente prepara la respuesta y la deja aquí y en Borradores. Solo sale cuando alguien del equipo le da a Enviar.">Borradores · los envía el equipo</span>'
             : '<span class="co-ej cr-sombra" tabindex="0" title="El asistente lee vuestro correo y prepara la respuesta que daría, pero no envía nada ni toca vuestro buzón.">Modo sombra · no se envía nada</span>'}
+          ${crPuede() ? '<button type="button" class="cbtn sec" data-cr="pegar">Pegar un correo</button>' : ''}
           <button type="button" class="cr-ayuda" data-cr="atajos" title="Atajos de teclado (?)" aria-label="Atajos de teclado">?</button>
           ${esSimplia() && !OP.activo ? `<label class="co-chip co-cliente" title="Equipo de Simplia: ves todos los clientes">Cliente
             <select data-cr="cliente" aria-label="Cliente">${CO_CLIENTES.map(k => `<option value="${k.slug}" ${k.slug === crSlug() ? 'selected' : ''}>${esc(k.nombre)}</option>`).join('')}</select></label>` : ''}
@@ -5466,6 +5483,134 @@ document.addEventListener('click', e => {
   crVisor(todas.map(x => ({ src: x.src, alt: x.alt })), todas.indexOf(img));
 }, true);
 
+/* =====================================================================
+   PEGAR UN CORREO (27/11, SQL 196; webhook mt/correo/pegar de
+   «[MT] Correo · Procesar»). Para un correo que ha llegado a otra cuenta
+   que no está conectada al panel: el asistente prepara la respuesta con lo
+   mismo que usa para la cuenta conectada (prompt, hoja de conocimiento y
+   firma). No se envía ni se guarda nada: la persona la copia o la abre en
+   su programa de correo. Lo pegado es un correo de fuera: va a n8n como
+   dato y aquí solo se pinta como texto (esc). Tope por empresa y día.
+   ===================================================================== */
+const N8N_PEGAR = 'https://simpliaspain-n8n.mruvi8.easypanel.host/webhook/mt/correo/pegar';
+// Uno por empresa (el equipo de Simplia puede cambiar de empresa mientras se prepara).
+CO.crPegarPor = {};   // slug → { slug, de, asunto, texto, fase:'escribir'|'esperando'|'hecho', res, editado, error, cuota }
+const crPegarYa = () => CO.crPegarPor[CO.real?.slug] || null;
+function crPegarEstado(){
+  const slug = CO.real?.slug;
+  return (CO.crPegarPor[slug] ||= { slug, de:'', asunto:'', texto:'', fase:'escribir', res:null, editado:null, error:'', cuota:null });
+}
+const crPegarRespuesta = p => String(p.editado ?? crTextoCopiar({ texto: p.res?.respuesta || '' }, false));
+const crPegarTexto = () => crPegarYa()?.res ? crPegarRespuesta(crPegarYa()).trim() + '\n\n' + crFirma() : '';
+function crPegarCorreoUrl(){
+  const r = crPegarYa()?.res;
+  if (!/^[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(r?.para || '')) return '';
+  const asunto = r.asunto ? (/^re:/i.test(r.asunto) ? r.asunto : 'Re: ' + r.asunto) : '';
+  const url = `mailto:${r.para}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(crPegarTexto())}`;
+  return url.length <= 1900 ? url : '';   // más largo, algunos programas lo cortan: mejor copiar
+}
+function crPegarCuota(p){
+  const cu = p.cuota;
+  if (!cu || !Number.isFinite(cu.tope)) return '';
+  return cu.usados >= cu.tope ? `Hoy ya se han usado las ${cu.tope} del día. Mañana se puede volver a usar.` : `Hoy: ${cu.usados} de ${cu.tope}`;
+}
+function crPegarHTML(){
+  const p = crPegarEstado();
+  const cab = '<button class="cerrar" data-cr="cerrar" aria-label="Cerrar">×</button><h3>Responder un correo de otra cuenta</h3>';
+  const cuota = `<span class="co-para" id="crp-cuota">${esc(crPegarCuota(p))}</span>`;
+  if (p.fase === 'hecho' && p.res){
+    const r = p.res, url = crPegarCorreoUrl();
+    const notas = [...(r.equipo || []).map(x => 'Para el equipo: ' + x), ...(r.faltan || []).map(x => 'Falta en la hoja: ' + x)];
+    return `<div class="cr-pegar">${cab}
+      <p>Revísala antes de mandarla. No se ha enviado nada${r.para ? ` y va dirigida a ${esc(r.para)}` : ''}.</p>
+      <label for="crp-resp">Respuesta propuesta</label>
+      <textarea id="crp-resp" data-crp="editado" rows="12">${esc(crPegarRespuesta(p))}</textarea>
+      <div class="cr-pfirma">${esc(crFirma())}</div>
+      ${notas.length ? `<ul class="cr-pnota">${notas.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
+      ${r.fotos?.length ? `<div class="co-alerta">La respuesta dice que adjuntas fotos (${esc(crNombreFoto(r.fotos[0].clave))}). Desde aquí no se adjuntan: añádelas tú o quita esa frase.</div>` : ''}
+      <div class="cr-pacc">
+        <button class="cbtn" type="button" data-cr="pegar-copiar">Copiar con la firma</button>
+        <a class="cbtn sec" id="crp-abrir" href="${esc(url)}" ${url ? '' : 'hidden'}>Abrir en mi programa de correo</a>
+        <button class="cbtn sec" type="button" data-cr="pegar-otro">Pegar otro correo</button>
+        ${cuota}
+      </div></div>`;
+  }
+  const esperando = p.fase === 'esperando', dis = esperando ? 'disabled' : '';
+  const lleno = p.cuota && p.cuota.usados >= p.cuota.tope;
+  const conectada = (CO.real?.buzones || [])[0]?.email;
+  return `<div class="cr-pegar">${cab}
+    <p>Pega un correo que os haya llegado a otra cuenta. El asistente la contesta como si hubiera llegado a ${conectada ? esc(conectada) : 'la cuenta conectada'}, con vuestra hoja de información y vuestra firma. No se envía nada: tú copias la respuesta y la mandas.</p>
+    <label for="crp-texto">Correo <small>(si copias también las líneas «De:» y «Asunto:», se rellenan solas)</small></label>
+    <textarea id="crp-texto" data-crp="texto" maxlength="12000" placeholder="Pega aquí el correo" ${dis}>${esc(p.texto)}</textarea>
+    <div class="cr-pdos">
+      <div><label for="crp-de">Quién lo envía <small>(opcional)</small></label>
+        <input id="crp-de" data-crp="de" maxlength="300" autocomplete="off" placeholder="Nombre <correo@ejemplo.com>" value="${esc(p.de)}" ${dis}></div>
+      <div><label for="crp-asunto">Asunto <small>(opcional)</small></label>
+        <input id="crp-asunto" data-crp="asunto" maxlength="300" autocomplete="off" value="${esc(p.asunto)}" ${dis}></div>
+    </div>
+    ${p.error ? `<div class="co-alerta" role="alert">${esc(p.error)}</div>` : ''}
+    <div class="cr-pacc">
+      <button class="cbtn" type="button" data-cr="pegar-ir" ${esperando || lleno ? 'disabled' : ''}>${esperando ? 'Preparando la respuesta…' : 'Preparar la respuesta'}</button>
+      ${esperando ? '<span class="co-para" aria-live="polite">Suele tardar entre 10 y 30 segundos.</span>' : cuota}
+    </div></div>`;
+}
+// Pinta la ventana. Sin «abrir», solo si ya la está enseñando (no tapa otra cosa ni la reabre).
+function crPegarPintar(abrir){
+  if (!abrir && !($('#modal').style.display === 'block' && $('#mbox .cr-pegar'))) return false;
+  $('#mbox').innerHTML = crPegarHTML();
+  $('#mbox').classList.remove('co-mboxancho');
+  $('#modal').style.display = 'block';
+  return true;
+}
+async function crPegarAbrir(){
+  if (!crPuede()) return coAviso(crSoloMirar() ? 'Estás en «Solo mirar»: abre el candado para usarlo.' : 'Solo quien puede editar puede usarlo.');
+  const p = crPegarEstado();
+  crPegarPintar(true);
+  (p.fase === 'hecho' ? $('#crp-resp') : $('#crp-texto'))?.focus();
+  const { data } = await supabase.rpc('mt_correo_pegar_estado', { p_slug: CO.real.slug });
+  if (!data || crPegarYa() !== p) return;
+  p.cuota = { usados: data.usados, tope: data.tope };
+  const c = $('#crp-cuota'); if (c) c.textContent = crPegarCuota(p);
+  if (p.fase === 'escribir' && p.cuota.usados >= p.cuota.tope) $('#mbox [data-cr="pegar-ir"]')?.setAttribute('disabled', '');
+}
+async function crPegarPedir(){
+  const p = crPegarEstado(); if (p.fase !== 'escribir') return;
+  document.querySelectorAll('#mbox [data-crp]').forEach(el => { p[el.dataset.crp] = el.value; });
+  if (p.texto.trim().length < 20){ p.error = 'Pega el correo entero: con tan poco texto no se puede contestar.'; crPegarPintar(); return $('#crp-texto')?.focus(); }
+  p.fase = 'esperando'; p.error = ''; crPegarPintar();
+  let r = null, j = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    const ctl = new AbortController(), reloj = setTimeout(() => ctl.abort(), 120000);
+    r = await fetch(N8N_PEGAR, { method:'POST', signal: ctl.signal,
+      headers:{ 'Authorization':'Bearer ' + (data?.session?.access_token || ''), 'Content-Type':'application/json' },
+      body: JSON.stringify({ slug: p.slug, texto: p.texto, de: p.de, asunto: p.asunto }) });
+    clearTimeout(reloj);
+    j = await r.json().catch(() => null);
+  } catch { r = null; }
+  if (CO.crPegarPor[p.slug] !== p) return;   // se ha empezado otro mientras tanto
+  const aqui = CO.real?.slug === p.slug;   // ¿sigue en la misma empresa?
+  if (Number.isFinite(j?.usados)) p.cuota = { usados: j.usados, tope: j.tope };
+  if (!r?.ok || typeof j?.respuesta !== 'string' || !j.respuesta.trim()){
+    p.fase = 'escribir';
+    p.error = (j && typeof j.error === 'string' && j.error) || (r ? 'No se ha podido preparar la respuesta. Prueba otra vez en un momento.' : 'Se ha cortado la conexión. Prueba otra vez.');
+    crSonar('error');
+    if (!aqui || !crPegarPintar()) coAviso(aqui ? p.error : 'No se ha podido preparar la respuesta del correo pegado en la otra empresa.');
+    return;
+  }
+  p.res = j; p.editado = null; p.fase = 'hecho';
+  crSonar('hecho');
+  if (aqui && crPegarPintar()) $('#crp-resp')?.focus();
+  else coAviso(aqui ? 'Ya está la respuesta del correo pegado. Pulsa «Pegar un correo» para verla.'
+    : 'Ya está la respuesta del correo que pegaste en la otra empresa. Vuelve a esa empresa y pulsa «Pegar un correo» para verla.');
+}
+// Lo que se escribe en la ventana se guarda al momento (si se repinta, no se pierde).
+document.addEventListener('input', e => {
+  const el = e.target.closest?.('#mbox .cr-pegar [data-crp]'), p = crPegarYa(); if (!el || !p) return;
+  p[el.dataset.crp] = el.value;
+  if (el.dataset.crp === 'editado'){ const a = $('#crp-abrir'), url = crPegarCorreoUrl(); if (a){ a.href = url; a.hidden = !url; } }
+});
+
 // --- Ayuda de los atajos.
 function crAyudaAtajos(){
   $('#mbox').innerHTML = `<div class="cr-atajos"><button class="cerrar" data-cr="cerrar" aria-label="Cerrar">×</button>
@@ -5592,6 +5737,14 @@ if (!window.__crOyentes){
     if (que === 'bo-guardar') return crBorradorGuardar(el.dataset.id, el);
     if (que === 'bo-descartar') return crBorradorDescartar(el.dataset.id, el.dataset.v === '1', el);
     if (que === 'atajos') return crAyudaAtajos();
+    if (que === 'pegar') return crPegarAbrir();
+    if (que === 'pegar-ir') return crPegarPedir();
+    if (que === 'pegar-otro'){ delete CO.crPegarPor[CO.real.slug]; return crPegarAbrir(); }
+    if (que === 'pegar-copiar'){
+      const ok = await crCopiar(crPegarTexto());
+      crSonar(ok ? 'hecho' : 'error');
+      return coAviso(ok ? 'Respuesta copiada, con la firma.' : 'No se ha podido copiar: selecciona el texto y cópialo a mano.');
+    }
     if (que === 'copiar'){
       const h = (CO.real.hilos || []).find(x => x.id === el.dataset.id);
       const ok = h?.borrador ? await crCopiar(crTextoCopiar(h.borrador, !crEsIdealista(h))) : false;
