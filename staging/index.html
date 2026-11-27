@@ -2087,72 +2087,135 @@
   .cr-atajos dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0;font-size:14px}
   .cr-atajos dt{white-space:nowrap} .cr-atajos dd{margin:0;color:var(--tinta-suave)}
   .cr-atajos kbd,.cr-adj kbd{font:12px/1 inherit;padding:3px 6px;border:1px solid var(--linea);border-bottom-width:2px;border-radius:6px;background:var(--fondo)}
-  /* 27/11: «Pegar un correo» (SQL 196) */
-  #mbox.crp-ancho{max-width:1200px}
-  /* 27/11 (b): pasos animados, progreso mientras se prepara y los dos correos lado a lado */
-  .cr-pegar h3{font-size:18px;margin:0 0 6px;padding-right:40px}
-  .crp-pasos{display:flex;list-style:none;margin:4px 0 18px;padding:0;gap:0;counter-reset:paso}
-  .crp-pasos li{flex:1;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--gris);position:relative;min-width:0}
-  .crp-pasos li + li{padding-left:12px}
-  .crp-pasos li + li::before{content:'';flex:0 0 28px;height:2px;border-radius:2px;margin-right:4px;
+  /* 27/11: «Pegar un correo» (SQL 196). Repaso de diseño (27/11 d): cabecera con la × en su sitio,
+     pasos en una pista compacta, ancho según la fase y barra de acciones fija abajo. */
+  #mbox.crp-medio{max-width:880px}
+  #mbox.crp-ancho{max-width:1180px}
+  .cr-pegar{--crp-pad:32px}
+  .cr-pegar ::selection{background:var(--azul-suave)}
+  .crp-cab{display:flex;align-items:flex-start;gap:16px}
+  .crp-cab > div{flex:1;min-width:0}
+  .cr-pegar h3{font-size:20px;font-weight:700;letter-spacing:-.01em;line-height:1.25;margin:0;text-wrap:balance}
+  .crp-intro{margin:6px 0 0;font-size:13.5px;line-height:1.55;color:var(--tinta-suave);max-width:68ch}
+  .crp-como{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:4px 10px 4px 8px;border-radius:999px;
+    background:var(--aire);color:var(--azul-texto);font-size:12px;font-weight:600}
+  .crp-como svg{width:14px;height:14px}
+  .crp-cab .cerrar{flex:0 0 auto;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;margin:-6px -8px 0 0;
+    font-size:24px;transition:background .15s,color .15s}
+  .crp-cab .cerrar:hover{background:var(--fondo);color:var(--tinta)}
+  .cr-pegar :is(button,a,textarea,input,[tabindex]):focus-visible{outline:2px solid var(--pulso);outline-offset:2px}
+
+  /* Pasos */
+  .crp-pasos{display:flex;align-items:center;gap:12px;list-style:none;margin:20px 0 24px;padding:12px 16px;border-radius:12px;background:var(--fondo)}
+  .crp-pasos li{display:flex;align-items:center;gap:8px;flex:0 0 auto;font-size:13px;font-weight:600;color:var(--gris);white-space:nowrap}
+  .crp-pasos li.crp-sep{flex:1 1 24px;min-width:16px;height:2px;border-radius:2px;
     background:linear-gradient(var(--pulso),var(--pulso)) no-repeat left center / 0% 100%,var(--linea)}
-  .crp-pasos li.hecho:not(:first-child)::before,.crp-pasos li.ahora:not(:first-child)::before{background-size:100% 100%,auto}
-  .crp-pasos li.nuevo::before{animation:crpLinea .5s ease-out both}
-  .crp-pasos .crp-num{flex:0 0 26px;height:26px;border-radius:999px;display:grid;place-items:center;font-size:12px;
-    border:2px solid var(--linea);background:var(--blanco);color:var(--gris);transition:background .3s,border-color .3s,color .3s}
-  .crp-pasos li span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .crp-pasos li.crp-sep.lleno{background-size:100% 100%,auto}
+  .crp-pasos li.crp-sep.nuevo{animation:crpLinea .5s cubic-bezier(.22,1,.36,1) both}
+  .crp-num{flex:0 0 24px;height:24px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:700;
+    border:1.5px solid var(--borde-fuerte);background:var(--blanco);color:var(--gris);font-variant-numeric:tabular-nums}
+  .crp-num svg{width:13px;height:13px}
   .crp-pasos li.ahora{color:var(--tinta)}
-  .crp-pasos li.ahora .crp-num{border-color:var(--pulso);color:var(--pulso);box-shadow:0 0 0 4px #E5EFFE}
-  .crp-pasos li.ahora.trabajando .crp-num{animation:crpLatido 1.4s ease-in-out infinite}
+  .crp-pasos li.ahora .crp-num{border-color:var(--pulso-texto);background:var(--pulso-texto);color:#fff;box-shadow:0 0 0 4px var(--azul-suave)}
+  .crp-pasos li.ahora.trabajando .crp-num{animation:crpLatido 1.6s ease-in-out infinite}
   .crp-pasos li.hecho{color:var(--verde-oscuro)}
   .crp-pasos li.hecho .crp-num{background:var(--verde);border-color:var(--verde);color:#fff}
-  .crp-pasos li.nuevo .crp-num{animation:crpSalto .45s cubic-bezier(.3,1.6,.5,1) both}
+  .crp-pasos li.nuevo .crp-num{animation:crpSalto .45s cubic-bezier(.34,1.56,.64,1) both}
+  .crp-pasos li.ahora.trabajando.nuevo .crp-num{animation:crpSalto .45s cubic-bezier(.34,1.56,.64,1) both,crpLatido 1.6s .45s ease-in-out infinite}
   @keyframes crpLinea{from{background-size:0% 100%,auto}to{background-size:100% 100%,auto}}
-  @keyframes crpSalto{0%{transform:scale(.6)}100%{transform:scale(1)}}
-  @keyframes crpLatido{0%,100%{box-shadow:0 0 0 4px #E5EFFE}50%{box-shadow:0 0 0 8px #E5EFFE00}}
-  @keyframes crpEntra{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes crpSalto{from{transform:scale(.55)}to{transform:scale(1)}}
+  @keyframes crpLatido{0%,100%{box-shadow:0 0 0 4px var(--azul-suave)}50%{box-shadow:0 0 0 7px rgba(219,234,254,.35)}}
+  @keyframes crpEntra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
   @keyframes crpBarra{0%{left:-40%}100%{left:100%}}
-  .crp-cuerpo{animation:crpEntra .35s ease-out both}
-  .crp-dos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:20px;align-items:stretch}
+  .crp-cuerpo{animation:crpEntra .4s cubic-bezier(.22,1,.36,1) both}
+
+  /* Formulario */
+  .cr-pegar label,.crp-etq{display:block;font-size:13px;font-weight:600;color:var(--tinta);margin:0 0 6px}
+  .crp-ayuda{font-size:12.5px;color:var(--gris);margin:-2px 0 8px}
+  .cr-pegar input,.cr-pegar textarea{width:100%;box-sizing:border-box;font:inherit;font-size:14px;color:var(--tinta);
+    border:1px solid var(--borde-fuerte);border-radius:10px;padding:10px 12px;background:var(--blanco);transition:border-color .15s,box-shadow .15s}
+  .cr-pegar input::placeholder,.cr-pegar textarea::placeholder{color:#64748B}
+  .cr-pegar input:hover,.cr-pegar textarea:hover{border-color:var(--gris-claro)}
+  .cr-pegar input:focus,.cr-pegar textarea:focus{outline:none;border-color:var(--pulso);box-shadow:0 0 0 3px var(--aire)}
+  .cr-pegar textarea{resize:vertical;line-height:1.6;caret-color:var(--pulso)}
+  .cr-pegar .crp-texto{min-height:min(40vh,340px)}
+  .crp-campos{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+  .crp-campos label small{font-weight:400;color:var(--gris)}
+  .cr-pegar .co-alerta{margin-top:16px}
+
+  /* Barra de acciones (fija abajo mientras se baja) */
+  .crp-pie{position:sticky;bottom:-24px;z-index:2;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    margin:24px calc(-1 * var(--crp-pad)) calc(-1 * var(--crp-pad));padding:14px var(--crp-pad);
+    background:var(--blanco-tibio);border-top:1px solid var(--linea);border-radius:0 0 var(--r) var(--r)}
+  .crp-uso{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--tinta-suave);margin-right:auto;min-width:120px}
+  .crp-uso b{color:var(--tinta);font-variant-numeric:tabular-nums}
+  .crp-uso i{display:block;width:120px;height:4px;border-radius:4px;background:var(--linea);overflow:hidden}
+  .crp-uso i::before{content:'';display:block;height:100%;width:var(--uso,0%);background:var(--pulso);border-radius:4px;transition:width .4s}
+  .crp-uso.lleno i::before{background:var(--ambar)}
+  .crp-tecla{font-size:12px;color:var(--gris)}
+  .crp-tecla kbd{font-family:inherit;font-weight:600;font-size:11px;line-height:1;padding:3px 6px;border:1px solid var(--linea);border-bottom-width:2px;border-radius:6px;background:var(--blanco)}
+  .crp-prim,.crp-sec{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-weight:600;font-size:14px;line-height:1;padding:11px 18px;border-radius:10px;cursor:pointer;
+    text-decoration:none;white-space:nowrap;transition:background .15s,filter .15s,transform .1s}
+  .crp-prim{background:var(--pulso-texto);color:#fff;border:1px solid var(--pulso-texto);box-shadow:0 1px 2px rgba(10,31,74,.18)}
+  .crp-prim:hover{filter:brightness(1.07)}
+  .crp-prim:active,.crp-sec:active{transform:translateY(1px)}
+  .crp-prim:disabled{opacity:.55;cursor:not-allowed;filter:none;transform:none}
+  .crp-prim.ok{background:var(--verde);border-color:var(--verde)}
+  .crp-sec{background:var(--blanco);color:var(--tinta);border:1px solid var(--borde-fuerte)}
+  .crp-sec:hover{background:var(--fondo);border-color:var(--gris-claro)}
+  .crp-link{background:none;border:none;padding:8px 6px;font-family:inherit;font-weight:600;font-size:13px;line-height:1;color:var(--pulso-texto);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .crp-prim svg,.crp-sec svg{width:16px;height:16px;flex:0 0 auto}
+  .crp-gira{width:16px;height:16px;border-radius:999px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;animation:gira .8s linear infinite}
+
+  /* Dos columnas: correo recibido y respuesta */
+  .crp-dos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:24px;align-items:stretch}
   .crp-col{display:flex;flex-direction:column;min-width:0}
-  .crp-col + .crp-col{animation:crpEntra .45s .1s ease-out both}
-  .crp-tit{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--gris);margin:0 0 6px}
-  .crp-orig{flex:1;border:1px solid var(--linea);border-radius:12px;background:var(--fondo);padding:12px 14px;overflow:auto;
-    max-height:62vh;min-height:220px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--tinta)}
-  .crp-orig .crp-meta{display:block;font-size:12px;color:var(--tinta-suave);margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--linea);white-space:normal}
-  .cr-pegar textarea.crp-resp{flex:1;min-height:52vh;font-size:14px;line-height:1.6;padding:12px 14px;border-color:var(--azul-borde)}
-  .cr-pegar textarea.crp-resp:focus{outline:2px solid var(--pulso);outline-offset:1px}
-  .crp-trabajo{flex:1;border:1px dashed var(--azul-borde);border-radius:12px;padding:16px;min-height:220px;display:flex;flex-direction:column;gap:14px;background:#FBFDFF}
-  .crp-barra{position:relative;height:4px;border-radius:4px;background:#E5EFFE;overflow:hidden}
+  .crp-col + .crp-col{animation:crpEntra .45s .08s cubic-bezier(.22,1,.36,1) both}
+  .crp-colcab{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 8px}
+  .crp-colcab h4{margin:0;font-size:13px;font-weight:700;color:var(--tinta)}
+  .crp-colcab span{font-size:12px;color:var(--gris)}
+  .crp-orig{flex:1;border:1px solid var(--linea);border-radius:12px;background:var(--fondo);padding:14px 16px;overflow:auto;resize:vertical;
+    max-height:62vh;min-height:240px;font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--tinta)}
+  .crp-meta{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12.5px;white-space:normal;margin:0 0 12px;padding:0 0 12px;border-bottom:1px solid var(--linea)}
+  .crp-meta dt{color:var(--gris)} .crp-meta dd{margin:0;color:var(--tinta);font-weight:600;overflow-wrap:anywhere}
+  .cr-pegar textarea.crp-resp{flex:1;min-height:min(52vh,520px);font-size:14.5px;line-height:1.65;padding:14px 16px;border-color:var(--azul-borde)}
+  .crp-firma{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--fondo);font-size:12px;line-height:1.5;color:var(--tinta-suave);white-space:pre-line}
+  .crp-avisos{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+  .crp-avisos li{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.45;border:1px solid}
+  .crp-avisos li b{flex:0 0 auto;font-weight:700}
+  .crp-avisos .falta{background:var(--ambar-tenue);border-color:#FEDF89;color:var(--ambar-texto)}
+  .crp-avisos .equipo{background:var(--coral-fondo);border-color:#F4C7B8;color:var(--coral-texto)}
+  .crp-avisos .fotos{background:var(--aire);border-color:var(--azul-borde);color:var(--azul-texto)}
+
+  /* Mientras se prepara */
+  .crp-trabajo{flex:1;border:1px solid var(--azul-borde);border-radius:12px;padding:18px;min-height:240px;display:flex;flex-direction:column;gap:16px;background:var(--blanco-tibio)}
+  .crp-barra{position:relative;height:4px;border-radius:4px;background:var(--aire);overflow:hidden}
   .crp-barra::after{content:'';position:absolute;top:0;bottom:0;width:40%;border-radius:4px;background:var(--pulso);animation:crpBarra 1.3s ease-in-out infinite}
-  .crp-sub{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:13px;color:var(--gris)}
-  .crp-sub li{display:flex;gap:8px;align-items:center;transition:color .3s}
-  .crp-sub li::before{content:'';flex:0 0 14px;height:14px;border-radius:999px;border:2px solid var(--linea);box-sizing:border-box;transition:all .3s}
-  .crp-sub li.ahora{color:var(--tinta);font-weight:600}
-  .crp-sub li.ahora::before{border-color:var(--pulso);border-top-color:transparent;animation:gira .8s linear infinite}
-  .crp-sub li.hecho{color:var(--verde-oscuro)}
-  .crp-sub li.hecho::before{background:var(--verde);border-color:var(--verde)}
-  .crp-hoja{display:grid;gap:8px;margin-top:auto}
-  .crp-hoja i{display:block;height:9px;border-radius:5px}
-  .crp-hoja i:nth-child(1){width:35%} .crp-hoja i:nth-child(2){width:92%} .crp-hoja i:nth-child(3){width:84%} .crp-hoja i:nth-child(4){width:60%}
-  .cr-pegar .crp-texto{min-height:42vh}
-  @media (max-width:820px){ .crp-dos{grid-template-columns:1fr} .crp-orig{max-height:28vh;min-height:0} .cr-pegar textarea.crp-resp{min-height:40vh}
-    .crp-pasos li span:last-child{display:none} .crp-pasos li:not(.ahora){flex:0 0 auto}
-    .crp-pasos li.ahora span:last-child{display:inline;white-space:normal} }
-  .cr-pegar > p{margin:0 0 12px;font-size:13px;color:var(--tinta-suave);line-height:1.5}
-  .cr-pegar label{display:block;font-size:12px;font-weight:600;color:var(--tinta);margin:10px 0 4px}
-  .cr-pegar label small{font-weight:400;color:var(--gris)}
-  .cr-pegar input,.cr-pegar textarea{width:100%;box-sizing:border-box;font:inherit;font-size:13.5px;color:var(--tinta);
-    border:1px solid var(--linea);border-radius:10px;padding:8px 10px;background:var(--blanco)}
-  .cr-pegar textarea{min-height:180px;resize:vertical;line-height:1.5}
-  .cr-pegar .crp-orig,.cr-pegar textarea.crp-resp{resize:vertical}
-  .cr-pegar .cr-pdos{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
-  .cr-pegar .cr-pacc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}
-  .cr-pegar .cr-pacc .co-para{margin-left:auto}
-  .cr-pegar .co-alerta{margin-top:10px}
-  .cr-pegar .cr-pfirma{white-space:pre-line;font-size:12px;color:var(--gris);margin-top:6px}
-  .cr-pegar .cr-pnota{margin:10px 0 0;padding:0 0 0 18px;font-size:12.5px;color:var(--tinta-suave)}
-  @media (max-width:560px){ .cr-pegar .cr-pdos{grid-template-columns:1fr} }
+  .crp-hace{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-size:13.5px;color:var(--gris)}
+  .crp-hace li{display:flex;gap:10px;align-items:center;transition:color .3s}
+  .crp-hace li::before{content:'';flex:0 0 16px;height:16px;border-radius:999px;border:2px solid var(--linea);box-sizing:border-box;transition:background .3s,border-color .3s}
+  .crp-hace li.ahora{color:var(--tinta);font-weight:600}
+  .crp-hace li.ahora::before{border-color:var(--pulso);border-top-color:transparent;animation:gira .8s linear infinite}
+  .crp-hace li.hecho{color:var(--verde-oscuro)}
+  .crp-hace li.hecho::before{background:var(--verde) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center/10px no-repeat;border-color:var(--verde)}
+  .crp-hoja{display:grid;gap:10px;margin-top:auto}
+  .crp-hoja i{display:block;height:10px;border-radius:5px}
+  .crp-hoja i:nth-child(1){width:30%} .crp-hoja i:nth-child(2){width:94%} .crp-hoja i:nth-child(3){width:86%} .crp-hoja i:nth-child(4){width:58%}
+
+  .crp-corto{display:none}
+  @media (max-width:820px){
+    .cr-pegar{--crp-pad:20px}
+    .crp-dos{grid-template-columns:1fr;gap:20px}
+    .crp-orig{max-height:30vh;min-height:0}
+    .cr-pegar textarea.crp-resp{min-height:42vh}
+    .crp-campos{grid-template-columns:1fr;gap:12px}
+    .crp-pasos{padding:10px 12px;gap:8px}
+    .crp-pasos li:not(.ahora):not(.crp-sep) span:last-child{display:none}
+    .crp-tecla{display:none}
+    .crp-pie{gap:8px} .crp-pie .crp-prim{flex:1 1 auto;justify-content:center} .crp-pie .crp-sec{flex:0 0 auto}
+    .crp-largo{display:none} .crp-corto{display:inline}
+  }
+  @media (max-width:600px){ .crp-pie{margin-bottom:-24px;padding-bottom:calc(14px + env(safe-area-inset-bottom));border-radius:0} }
   .cr-prefs{display:grid;gap:6px;margin:8px 0}
   .cr-prefs .co-interr{display:flex;gap:10px;align-items:flex-start}
   .cr-prefs .co-interr small{display:block;font-size:12px;color:var(--gris);font-weight:400}
@@ -2442,7 +2505,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-27c · «Pegar un correo» con pasos y los dos correos a la vista; un periodo para todo el Latido; «Tiempo liberado»';
+const VERSION = '2026-11-27d · «Pegar un correo» rediseñado (cabecera, pasos, barra de acciones); un periodo para todo el Latido; «Tiempo liberado»';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -5559,20 +5622,23 @@ function crPegarCorreoUrl(){
   const url = `mailto:${r.para}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(crPegarTexto())}`;
   return url.length <= 1900 ? url : '';   // más largo, algunos programas lo cortan: mejor copiar
 }
-function crPegarCuota(p){
-  const cu = p.cuota;
-  if (!cu || !Number.isFinite(cu.tope)) return '';
-  return cu.usados >= cu.tope ? `Hoy ya se han usado las ${cu.tope} del día. Mañana se puede volver a usar.` : `Hoy: ${cu.usados} de ${cu.tope}`;
-}
-// Los tres pasos de arriba. «nuevo» anima solo el paso al que se acaba de llegar.
+// Iconos de la ventana (trazo de 2, como los del resto del correo).
+const CRP_ICO = {
+  ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+  chispa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/></svg>',
+  copiar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>',
+  abrir: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+};
+// Los tres pasos de arriba. «nuevo» anima solo el paso al que se acaba de llegar (y su línea).
 function crPegarPasos(p){
   const n = p.fase === 'hecho' ? 3 : p.fase === 'esperando' ? 2 : 1;
   const nuevo = n > (p.pasoVisto || 1); p.pasoVisto = n;
   const pasos = ['Pegar el correo', 'Preparar la respuesta', 'Revisar y mandar'];
   return `<ol class="crp-pasos" aria-label="Pasos">${pasos.map((t, i) => {
     const k = i + 1, est = k < n ? 'hecho' : k === n ? 'ahora' : '';
-    return `<li class="${est}${k === n && nuevo ? ' nuevo' : ''}${k === n && n === 2 ? ' trabajando' : ''}" ${k === n ? 'aria-current="step"' : ''}>
-      <span class="crp-num" aria-hidden="true">${k < n ? '✓' : k}</span><span>${t}</span></li>`; }).join('')}</ol>`;
+    const sep = k > 1 ? `<li class="crp-sep${k <= n ? ' lleno' : ''}${k === n && nuevo ? ' nuevo' : ''}" aria-hidden="true"></li>` : '';
+    return `${sep}<li class="${est}${k === n && nuevo ? ' nuevo' : ''}${k === n && n === 2 ? ' trabajando' : ''}" ${k === n ? 'aria-current="step"' : ''}>
+      <span class="crp-num">${k < n ? CRP_ICO.ok + '<span class="sr">Hecho: </span>' : k}</span><span>${t}</span></li>`; }).join('')}</ol>`;
 }
 // Lo que hace el servidor mientras se espera, en orden. Los tiempos son aproximados.
 const CRP_SUB = [['Leyendo el correo', 0], ['Buscando en vuestra hoja de información', 2500], ['Escribiendo la respuesta', 7000]];
@@ -5581,90 +5647,118 @@ function crPegarSubHTML(p){
   const actual = CRP_SUB.reduce((a, [, desde], i) => t >= desde ? i : a, 0);
   return CRP_SUB.map(([txt], i) => `<li class="${i < actual ? 'hecho' : i === actual ? 'ahora' : ''}">${txt}${i === actual ? '…' : ''}</li>`).join('');
 }
-// El correo pegado, tal cual (solo texto).
+// El correo pegado, tal cual (solo texto). Quién y asunto, arriba, si se saben.
 function crPegarOriginal(p){
-  const meta = [p.de && 'De: ' + p.de, p.asunto && 'Asunto: ' + p.asunto].filter(Boolean).map(esc).join('<br>');
-  return `<div class="crp-orig" tabindex="0" aria-label="Correo recibido">${meta ? `<span class="crp-meta">${meta}</span>` : ''}${esc(p.texto)}</div>`;
+  const de = p.de || p.res?.para || '', asunto = p.asunto || p.res?.asunto || '';
+  const meta = (de || asunto) ? `<dl class="crp-meta">${de ? `<dt>De</dt><dd>${esc(de)}</dd>` : ''}${asunto ? `<dt>Asunto</dt><dd>${esc(asunto)}</dd>` : ''}</dl>` : '';
+  return `<div class="crp-orig" tabindex="0" role="region" aria-label="Correo recibido">${meta}${esc(p.texto)}</div>`;
+}
+// Cuántas van hoy, con una barrita.
+function crPegarUso(p){
+  const cu = p.cuota;
+  if (!cu || !Number.isFinite(cu.tope) || cu.tope <= 0) return '<div class="crp-uso" id="crp-cuota"></div>';
+  const lleno = cu.usados >= cu.tope, pc = Math.min(100, Math.round(cu.usados / cu.tope * 100));
+  return `<div class="crp-uso${lleno ? ' lleno' : ''}" id="crp-cuota" style="--uso:${pc}%">
+    <span>${lleno ? 'Hoy ya se han usado las ' + cu.tope + '. Mañana se puede volver a usar.' : `<b>${cu.usados} de ${cu.tope}</b> hoy`}</span><i aria-hidden="true"></i></div>`;
+}
+function crPegarCab(p){
+  const conectada = (CO.real?.buzones || [])[0]?.email;
+  const intro = p.fase === 'hecho' ? `Revísala y cámbiala si hace falta. No se ha enviado nada${p.res?.para ? `; va dirigida a ${esc(p.res.para)}` : ''}.`
+    : p.fase === 'esperando' ? 'El asistente está preparando la respuesta. Puedes cerrar esta ventana: te avisamos cuando esté.'
+    : 'Para un correo que os ha llegado a otra cuenta. El asistente lo contesta con vuestra hoja de información y vuestra firma. No se envía nada: tú copias la respuesta y la mandas.';
+  return `<div class="crp-cab"><div>
+      <h3 id="crp-tit">Responder un correo de otra cuenta</h3>
+      <p class="crp-intro">${intro}</p>
+      ${p.fase === 'escribir' && conectada ? `<span class="crp-como">${CR_ICO_SOBRE}Contesta como ${esc(conectada)}</span>` : ''}
+    </div><button class="cerrar" type="button" data-cr="cerrar" aria-label="Cerrar">×</button></div>${crPegarPasos(p)}`;
 }
 function crPegarHTML(){
   const p = crPegarEstado();
-  const cab = '<button class="cerrar" data-cr="cerrar" aria-label="Cerrar">×</button><h3>Responder un correo de otra cuenta</h3>' + crPegarPasos(p);
-  const cuota = `<span class="co-para" id="crp-cuota">${esc(crPegarCuota(p))}</span>`;
   if (p.fase === 'hecho' && p.res){
     const r = p.res, url = crPegarCorreoUrl();
-    const notas = [...(r.equipo || []).map(x => 'Para el equipo: ' + x), ...(r.faltan || []).map(x => 'Falta en la hoja: ' + x)];
-    return `<div class="cr-pegar">${cab}<div class="crp-cuerpo">
-      <p class="co-para" style="margin:0 0 10px">Revísala y cámbiala si hace falta. No se ha enviado nada${r.para ? ` y va dirigida a ${esc(r.para)}` : ''}.</p>
+    const avisos = [
+      ...(r.equipo || []).map(x => `<li class="equipo"><b>Para el equipo</b><span>${esc(x)}</span></li>`),
+      ...(r.faltan || []).map(x => `<li class="falta"><b>Falta en la hoja</b><span>${esc(x)}</span></li>`),
+      ...(r.fotos?.length ? [`<li class="fotos"><b>Fotos</b><span>La respuesta dice que adjuntas fotos (${esc(crNombreFoto(r.fotos[0].clave))}). Desde aquí no se adjuntan: añádelas tú o quita esa frase.</span></li>`] : []),
+    ];
+    return `<div class="cr-pegar" role="document" aria-labelledby="crp-tit">${crPegarCab(p)}<div class="crp-cuerpo">
       <div class="crp-dos">
-        <section class="crp-col"><h4 class="crp-tit">Correo recibido</h4>${crPegarOriginal(p)}</section>
-        <section class="crp-col"><h4 class="crp-tit" id="crp-resp-tit">Respuesta (se puede editar)</h4>
+        <section class="crp-col"><div class="crp-colcab"><h4>Correo recibido</h4></div>${crPegarOriginal(p)}</section>
+        <section class="crp-col"><div class="crp-colcab"><h4 id="crp-resp-tit">Respuesta</h4><span>Se puede editar</span></div>
           <textarea id="crp-resp" class="crp-resp" data-crp="editado" aria-labelledby="crp-resp-tit">${esc(crPegarRespuesta(p))}</textarea>
-          <div class="cr-pfirma">${esc(crFirma())}</div>
-          ${notas.length ? `<ul class="cr-pnota">${notas.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
-          ${r.fotos?.length ? `<div class="co-alerta">La respuesta dice que adjuntas fotos (${esc(crNombreFoto(r.fotos[0].clave))}). Desde aquí no se adjuntan: añádelas tú o quita esa frase.</div>` : ''}
+          <div class="crp-firma" aria-label="Firma que se añade al copiar">${esc(crFirma())}</div>
+          ${avisos.length ? `<ul class="crp-avisos">${avisos.join('')}</ul>` : ''}
         </section>
       </div>
-      <div class="cr-pacc">
-        <button class="cbtn" type="button" data-cr="pegar-copiar">Copiar con la firma</button>
-        <a class="cbtn sec" id="crp-abrir" href="${esc(url)}" ${url ? '' : 'hidden'}>Abrir en mi programa de correo</a>
-        <button class="cbtn sec" type="button" data-cr="pegar-otro">Pegar otro correo</button>
-        ${cuota}
+      <div class="crp-pie">
+        ${crPegarUso(p)}
+        <button class="crp-link" type="button" data-cr="pegar-otro">Pegar otro correo</button>
+        <a class="crp-sec" id="crp-abrir" href="${esc(url)}" ${url ? '' : 'hidden'}>${CRP_ICO.abrir}<span class="crp-largo">Abrir en mi programa de correo</span><span class="crp-corto">Abrir</span></a>
+        <button class="crp-prim" type="button" data-cr="pegar-copiar">${CRP_ICO.copiar}<span>Copiar con la firma</span></button>
       </div></div></div>`;
   }
   if (p.fase === 'esperando'){
-    return `<div class="cr-pegar">${cab}<div class="crp-cuerpo">
+    return `<div class="cr-pegar" role="document" aria-labelledby="crp-tit">${crPegarCab(p)}<div class="crp-cuerpo">
       <div class="crp-dos">
-        <section class="crp-col"><h4 class="crp-tit">Correo recibido</h4>${crPegarOriginal(p)}</section>
-        <section class="crp-col"><h4 class="crp-tit">Respuesta</h4>
-          <div class="crp-trabajo" aria-live="polite">
+        <section class="crp-col"><div class="crp-colcab"><h4>Correo recibido</h4></div>${crPegarOriginal(p)}</section>
+        <section class="crp-col"><div class="crp-colcab"><h4>Respuesta</h4><span id="crp-reloj" aria-live="off"></span></div>
+          <div class="crp-trabajo">
             <div class="crp-barra" role="progressbar" aria-label="Preparando la respuesta"></div>
-            <ul class="crp-sub" id="crp-sub">${crPegarSubHTML(p)}</ul>
+            <ul class="crp-hace" id="crp-sub" aria-live="polite">${crPegarSubHTML(p)}</ul>
             <div class="crp-hoja" aria-hidden="true"><i class="esq"></i><i class="esq"></i><i class="esq"></i><i class="esq"></i></div>
           </div>
         </section>
       </div>
-      <div class="cr-pacc">
-        <button class="cbtn" type="button" disabled>Preparando la respuesta…</button>
-        <span class="co-para" id="crp-reloj">Suele tardar entre 10 y 30 segundos.</span>
+      <div class="crp-pie">
+        ${crPegarUso(p)}
+        <span class="crp-tecla">Suele tardar entre 10 y 30 segundos</span>
+        <button class="crp-prim" type="button" disabled><span class="crp-gira" aria-hidden="true"></span>Preparando…</button>
       </div></div></div>`;
   }
   const lleno = p.cuota && p.cuota.usados >= p.cuota.tope;
-  const conectada = (CO.real?.buzones || [])[0]?.email;
-  return `<div class="cr-pegar">${cab}<div class="crp-cuerpo">
-    <p>Pega un correo que os haya llegado a otra cuenta. El asistente lo contesta como si hubiera llegado a ${conectada ? esc(conectada) : 'la cuenta conectada'}, con vuestra hoja de información y vuestra firma. No se envía nada: tú copias la respuesta y la mandas.</p>
-    <label for="crp-texto">Correo <small>(si copias también las líneas «De:» y «Asunto:», se rellenan solas)</small></label>
-    <textarea id="crp-texto" class="crp-texto" data-crp="texto" maxlength="12000" placeholder="Pega aquí el correo">${esc(p.texto)}</textarea>
-    <div class="cr-pdos">
+  return `<div class="cr-pegar" role="document" aria-labelledby="crp-tit">${crPegarCab(p)}<div class="crp-cuerpo">
+    <label for="crp-texto">El correo</label>
+    <p class="crp-ayuda" id="crp-texto-ayuda">Cópialo entero. Si copias también las líneas «De:» y «Asunto:», se rellenan solas.</p>
+    <textarea id="crp-texto" class="crp-texto" data-crp="texto" maxlength="12000" aria-describedby="crp-texto-ayuda"
+      placeholder="De: Marta López &lt;marta@empresa.com&gt;&#10;Asunto: Despacho para 3 personas&#10;&#10;Hola, buscamos un despacho…">${esc(p.texto)}</textarea>
+    <div class="crp-campos">
       <div><label for="crp-de">Quién lo envía <small>(opcional)</small></label>
         <input id="crp-de" data-crp="de" maxlength="300" autocomplete="off" placeholder="Nombre <correo@ejemplo.com>" value="${esc(p.de)}"></div>
       <div><label for="crp-asunto">Asunto <small>(opcional)</small></label>
         <input id="crp-asunto" data-crp="asunto" maxlength="300" autocomplete="off" value="${esc(p.asunto)}"></div>
     </div>
     ${p.error ? `<div class="co-alerta" role="alert">${esc(p.error)}</div>` : ''}
-    <div class="cr-pacc">
-      <button class="cbtn" type="button" data-cr="pegar-ir" ${lleno ? 'disabled' : ''}>Preparar la respuesta</button>
-      ${cuota}
+    <div class="crp-pie">
+      ${crPegarUso(p)}
+      <span class="crp-tecla"><kbd>Ctrl</kbd> + <kbd>Intro</kbd></span>
+      <button class="crp-prim" type="button" data-cr="pegar-ir" ${lleno ? 'disabled' : ''}>${CRP_ICO.chispa}Preparar la respuesta</button>
     </div></div></div>`;
 }
 // Pinta la ventana. Sin «abrir», solo si ya la está enseñando (no tapa otra cosa ni la reabre).
 let CRP_RELOJ = null;
 function crPegarPintar(abrir){
   if (!abrir && !($('#modal').style.display === 'block' && $('#mbox .cr-pegar'))) return false;
+  const p = crPegarYa() || crPegarEstado();
   $('#mbox').innerHTML = crPegarHTML();
-  $('#mbox').classList.add('crp-ancho');
+  $('#mbox').classList.remove('crp-ancho', 'crp-medio');
+  $('#mbox').classList.add(p.fase === 'escribir' ? 'crp-medio' : 'crp-ancho');
   $('#modal').style.display = 'block';
   // Mientras se prepara: avanza la lista de lo que se está haciendo y cuenta los segundos (sin repintar).
   clearInterval(CRP_RELOJ); CRP_RELOJ = null;
-  const p = crPegarYa();
-  if (p?.fase === 'esperando') CRP_RELOJ = setInterval(() => {
+  if (p.fase === 'esperando') CRP_RELOJ = setInterval(() => {
     const sub = $('#crp-sub'), reloj = $('#crp-reloj');
     if (!sub || crPegarYa() !== p || p.fase !== 'esperando'){ clearInterval(CRP_RELOJ); CRP_RELOJ = null; return; }
     const html = crPegarSubHTML(p); if (sub.innerHTML !== html) sub.innerHTML = html;
     const sg = Math.round((Date.now() - p.inicio) / 1000);
-    if (reloj && sg >= 3) reloj.textContent = `${sg} s · suele tardar entre 10 y 30 segundos.`;
+    if (reloj) reloj.textContent = sg >= 2 ? sg + ' s' : '';
   }, 500);
   return true;
 }
+// Ctrl/Cmd + Intro en la ventana: prepara la respuesta.
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !(e.ctrlKey || e.metaKey) || !e.target.closest?.('#mbox .cr-pegar')) return;
+  e.preventDefault(); if (crPegarYa()?.fase === 'escribir') crPegarPedir();
+});
 async function crPegarAbrir(){
   if (!crPuede()) return coAviso(crSoloMirar() ? 'Estás en «Solo mirar»: abre el candado para usarlo.' : 'Solo quien puede editar puede usarlo.');
   const p = crPegarEstado();
@@ -5673,7 +5767,7 @@ async function crPegarAbrir(){
   const { data } = await supabase.rpc('mt_correo_pegar_estado', { p_slug: CO.real.slug });
   if (!data || crPegarYa() !== p) return;
   p.cuota = { usados: data.usados, tope: data.tope };
-  const c = $('#crp-cuota'); if (c) c.textContent = crPegarCuota(p);
+  const c = $('#crp-cuota'); if (c) c.outerHTML = crPegarUso(p);
   if (p.fase === 'escribir' && p.cuota.usados >= p.cuota.tope) $('#mbox [data-cr="pegar-ir"]')?.setAttribute('disabled', '');
 }
 async function crPegarPedir(){
@@ -5846,6 +5940,8 @@ if (!window.__crOyentes){
     if (que === 'pegar-copiar'){
       const ok = await crCopiar(crPegarTexto());
       crSonar(ok ? 'hecho' : 'error');
+      if (ok){ const t = el.querySelector('span'); el.classList.add('ok'); if (t) t.textContent = 'Copiada';
+        setTimeout(() => { el.classList.remove('ok'); if (t) t.textContent = 'Copiar con la firma'; }, 2000); }
       return coAviso(ok ? 'Respuesta copiada, con la firma.' : 'No se ha podido copiar: selecciona el texto y cópialo a mano.');
     }
     if (que === 'copiar'){
@@ -10744,7 +10840,7 @@ function cerrar(){
   // dejar a medias la conversación de la columna derecha.
   if ($('#modal').style.display === 'block') TURNO_DET++;
   $('#modal').style.display = 'none';
-  $('#mbox').classList.remove('crp-ancho');   // la de «Pegar un correo» es más ancha (27/11)
+  $('#mbox').classList.remove('crp-ancho', 'crp-medio');   // la de «Pegar un correo» tiene su ancho (27/11)
   // La ventana ya no enseña a nadie: un refresco no debe escribir en
   // ella, y una ficha del Embudo puede ocuparla después.
   delete $('#mbox').dataset.c;
