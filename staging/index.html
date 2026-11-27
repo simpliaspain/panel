@@ -304,6 +304,14 @@
     background:var(--ambar-tenue);border:1px solid var(--ambar-borde);border-radius:14px;
     padding:12px 16px;font-size:13px;color:var(--ambar-texto);margin-bottom:24px;line-height:1.6;
   }
+  .sugmin{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .sugmin .cbtn{padding:5px 11px;font-size:12.5px}
+  /* 27/11: el periodo de todo el Latido, junto al título. */
+  .latcab{display:flex;justify-content:space-between;align-items:center;gap:12px 20px;flex-wrap:wrap;margin-bottom:22px}
+  .latcab h2.tit{margin-bottom:0}
+  .latper{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .latrango{font-size:13px;color:var(--gris)}
+  @media (max-width:560px){ .latper{width:100%} .latper .rangos{width:100%} .latper .rg{flex:1;padding:6px 4px} }
   .cabpanel{display:flex;justify-content:space-between;align-items:flex-start;
             gap:16px;flex-wrap:wrap;margin-bottom:20px}
   .cabpanel .ph{margin-bottom:0}
@@ -2368,7 +2376,7 @@ const KEY = 'sb_publishable_FAdZnCbOMYQTDJY-5ysSBg_FryJ_Z81';
 // unos minutos: sin esto no hay forma de saber si lo que se está
 // probando es lo último que se subió. Se cambia en cada entrega.
 // Solo la fecha y el último cambio: el historial está en git y en CAMBIOS.md.
-const VERSION = '2026-11-25g · El correo no vibra: solo se cambia lo que ha cambiado';
+const VERSION = '2026-11-27a · Un periodo para todo el Latido; «Tiempo liberado» con el tiempo real de atención';
 console.info('Panel SimpliaSpain · versión', VERSION);
 
 /* ---------- sesión guardada ----------
@@ -7401,7 +7409,34 @@ window.addEventListener('hashchange', () => {
   if (TENANT && $('#app').style.display === 'block') abrirDesdeEnlace();
 });
 
-let RANGO = 168;  // horas. El Latido abre en 7 días (lo pidió el cliente).
+/* 27/11 (pedido del usuario): un solo periodo arriba para todo el Latido
+   (indicadores, cardiograma, señales, servicios, zonas, Tus números, mapa
+   y «Cuándo escriben»). Días enteros contando hoy: «Semana» = hoy y los 6
+   días anteriores; «Mes» = 30 días; «Año» = 365 días. Abre en «Semana»
+   (el cliente pidió 7 días por defecto); se recuerda en este navegador. */
+const PERIODOS = [['dia','Hoy'], ['semana','Semana'], ['mes','Mes'], ['ano','Año'], ['todo','Todo']];
+const PER_DIAS = { semana:7, mes:30, ano:365 };
+let PERIODO = (() => { try { const v = localStorage.getItem('latido_periodo'); return PERIODOS.some(p => p[0] === v) ? v : 'semana'; } catch { return 'semana'; } })();
+const TODO_DESDE = new Date(2000, 0, 1);   // «Todo»: desde antes del primer cliente
+// Inicio del periodo: medianoche de hoy o de hace N-1 días.
+function periodoDesde(p = PERIODO){
+  if (p === 'todo') return TODO_DESDE;
+  const d = new Date(); d.setHours(0,0,0,0);
+  if (PER_DIAS[p]) d.setDate(d.getDate() - (PER_DIAS[p] - 1));
+  return d;
+}
+// Horas que abarca el periodo (para las lecturas que aún van por horas).
+const periodoHoras = (p = PERIODO) => Math.min(Math.max(1, Math.ceil((Date.now() - periodoDesde(p)) / 36e5)), 24 * 365 * 30);
+// En una frase: «hoy», «los últimos 7 días»…
+const PER_FRASE = { dia:'hoy', semana:'los últimos 7 días', mes:'los últimos 30 días', ano:'los últimos 12 meses', todo:'desde el principio' };
+function periodoRango(p = PERIODO){
+  const f = d => d.toLocaleDateString('es-ES', { day:'numeric', month:'short' }).replace('.', '');
+  const hoy = new Date();
+  if (p === 'dia') return 'Hoy, ' + hoy.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+  if (p === 'todo') return 'Todo el histórico';
+  const d = periodoDesde(p);
+  return `Del ${f(d)}${d.getFullYear() !== hoy.getFullYear() ? ' ' + d.getFullYear() : ''} al ${f(hoy)}`;
+}
 
 function pintarCuando(){
   const el = $('#rcuando'); if (!el) return;
@@ -7440,9 +7475,10 @@ async function refrescar(){
    recuento de 24 horas no vale para «7 días». Se vacía al entrar. */
 let LATIDO_CACHE = new Map();
 let ACT_PERS = null;   // mt_actividad_personas (SQL 111); null = no ha llegado
-const DEPENDE_RANGO = new Set(['resumen', 'porHora', 'lat']);
+const DEPENDE_RANGO = new Set(['resumen', 'porHora', 'lat', 'lugares', 'patron', 'numeros']);
 
-async function datos(rango = RANGO){
+async function datos(periodo = PERIODO){
+  const desde = periodoDesde(periodo).toISOString(), horas = periodoHoras(periodo);
   // Ninguna lectura directa de tablas: en el proyecto nuevo todas
   // están cerradas y se entra solo por función. Eso cierra de raíz
   // la familia de fallos que nos costó más caro — una vista que
@@ -7461,17 +7497,17 @@ async function datos(rango = RANGO){
   const [cts, convs, resumen, porHora, lat, reciente, lugares, patron, numeros, pers] = await Promise.all([
     supabase.rpc('mt_mis_contactos'),
     supabase.rpc('mt_conversaciones_lista', { p_limite: 1000 }),
-    supabase.rpc('mt_resumen',    { p_horas: rango }),
-    supabase.rpc('mt_por_hora',   { p_horas: rango }),
+    supabase.rpc('mt_resumen',    { p_horas: horas, p_desde: desde }),
+    supabase.rpc('mt_por_hora',   { p_horas: horas, p_desde: desde }),
     // mt_tiempo_respuesta y no mt_latencias: la cifra sale de quien
     // de verdad mide, y viene con su procedencia. El indicador
     // enseñaba 0,0 s porque promediaba el hueco entre dos filas que
     // n8n escribe en la misma operación.
-    supabase.rpc('mt_tiempo_respuesta', { p_horas: rango }),
+    supabase.rpc('mt_tiempo_respuesta', { p_horas: horas }),
     supabase.rpc('mt_actividad',  { p_limite: 60 }),
-    supabase.rpc('mt_demanda'),
-    supabase.rpc('mt_patron_horario'),
-    supabase.rpc('mt_mis_numeros'),
+    supabase.rpc('mt_demanda',        { p_desde: desde }),
+    supabase.rpc('mt_patron_horario', { p_desde: desde }),
+    supabase.rpc('mt_mis_numeros',    { p_desde: desde }),
     // 20/11: Actividad reciente por persona (SQL 111). Si falla, se usa
     // la de antes (mt_actividad), agrupada aquí.
     supabase.rpc('mt_actividad_personas', { p_limite: 40 })
@@ -7487,7 +7523,7 @@ async function datos(rango = RANGO){
   //   · viejos: no ha llegado, y se usa lo último que llegó;
   //   · fallos: no ha llegado nunca, y su bloque lo dice.
   const R = { convs, resumen, porHora, lat, reciente, lugares, patron, numeros };
-  const clave = k => DEPENDE_RANGO.has(k) ? k + '|' + rango : k;
+  const clave = k => DEPENDE_RANGO.has(k) ? k + '|' + periodo : k;
   const D = {}, fallos = new Set(), viejos = new Set();
   for (const k of Object.keys(R)){
     if (R[k] && !R[k].error){ D[k] = R[k].data; LATIDO_CACHE.set(clave(k), R[k].data); }
@@ -7703,7 +7739,7 @@ async function pintarLatido(silencioso, forzar){
   }
   let d = null;
   LATIDO_EN_VUELO++;
-  try { d = await datos(RANGO); }
+  try { d = await datos(PERIODO); }
   catch (e){ console.error('Latido · no se han podido leer los datos:', e); }
   finally { LATIDO_EN_VUELO--; }
   // Ya se ha pedido otra carga, o se ha cambiado de pestaña: esta
@@ -7750,27 +7786,25 @@ function pintarLatidoCon(d, silencioso){
   const sinDato = titulo => `<div class="panel"><h3>${esc(titulo)}</h3>
     <div class="vacio">No ha llegado este dato. Se vuelve a pedir solo.</div></div>`;
 
-  const etc = RANGO === 24 ? '24h' : RANGO === 168 ? '7 días' : '30 días';
-
+  // Los tres indicadores salen de mt_resumen, ya filtrado por el periodo
+  // de arriba en el servidor (antes «Personas atendidas» contaba todo el
+  // histórico y «Conversaciones» solo las últimas horas: no casaban).
   const kpis = seguro('Indicadores', () => {
-    if (F.has('convs')) return [
+    if (F.has('resumen')) return [
       kpiPend('Personas atendidas', NO_LLEGA),
-      kpiPend(`Conversaciones en ${etc}`, NO_LLEGA),
+      kpiPend('Mensajes recibidos', NO_LLEGA),
       kpiPend('Respuestas de la IA', NO_LLEGA)].join('');
-    const contactos = new Set(d.convs.map(c => c.user_ref)).size;
-    const auto = d.convs.reduce((s,c) => s + (Number(c.del_asistente) || 0), 0);
-    const cR   = d.vivas.filter(c => new Date(c.ultima_en) > Date.now() - RANGO*36e5);
-    const entr = Number(d.res.del_cliente)   || 0;
-    const resp = Number(d.res.del_asistente) || 0;
-    return kpi('Personas atendidas', nf.format(contactos),
-            `En ${nf.format(d.convs.length)} ${
-              d.convs.length === 1 ? 'conversación' : 'conversaciones'}`)
-      + kpi(`Conversaciones en ${etc}`, nf.format(cR.length),
-            F.has('resumen') ? 'Sin el recuento de mensajes'
-              : `${nf.format(entr + resp)} ${entr + resp === 1 ? 'mensaje' : 'mensajes'}`)
-      + kpi('Respuestas de la IA', nf.format(auto), 'Sin intervención humana', true);
+    const r = d.res;
+    const pers = Number(r.personas) || 0, convs = Number(r.conversaciones) || 0;
+    const msgs = (Number(r.del_cliente) || 0) + (Number(r.del_asistente) || 0);
+    const recib = Number(r.del_cliente) || 0;
+    return kpi('Personas atendidas', nf.format(pers),
+            `En ${nf.format(convs)} ${convs === 1 ? 'conversación' : 'conversaciones'}`)
+      + kpi('Mensajes recibidos', nf.format(recib),
+            `${nf.format(msgs)} ${msgs === 1 ? 'mensaje' : 'mensajes'} en total`)
+      + kpi('Respuestas de la IA', nf.format(Number(r.del_asistente) || 0), 'Sin intervención humana', true);
   }, [kpiPend('Personas atendidas', 'No se ha podido calcular'),
-      kpiPend(`Conversaciones en ${etc}`, 'No se ha podido calcular'),
+      kpiPend('Mensajes recibidos', 'No se ha podido calcular'),
       kpiPend('Respuestas de la IA', 'No se ha podido calcular')].join(''));
 
   const tiempo = F.has('lat') ? kpiPend('Tiempo de respuesta', NO_LLEGA)
@@ -7798,7 +7832,16 @@ function pintarLatidoCon(d, silencioso){
     </div>` : '';
 
   pintaEn(`
-    <h2 class="tit">Latido</h2>
+    <div class="latcab">
+      <h2 class="tit">Latido</h2>
+      <div class="latper">
+        <div class="rangos" role="group" aria-label="Periodo de todo el Latido">
+          ${PERIODOS.map(([k, l]) => `<button class="rg${PERIODO === k ? ' on' : ''}" data-per="${k}"
+              aria-pressed="${PERIODO === k}">${l}</button>`).join('')}
+        </div>
+        <span class="latrango">${esc(periodoRango())}</span>
+      </div>
+    </div>
     ${aviso}
 
     <div class="kpis">
@@ -7810,11 +7853,7 @@ function pintarLatidoCon(d, silencioso){
       <div class="cabpanel">
         <div>
           <h3>Cardiograma</h3>
-          <p class="ph">Mensajes entrantes ${RANGO > 48 ? 'por día' : 'por hora'}.</p>
-        </div>
-        <div class="rangos">
-          ${[[24,'24h'],[168,'7d'],[720,'30d']].map(([h,l]) =>
-            `<button class="rg${RANGO===h?' on':''}" data-h="${h}">${l}</button>`).join('')}
+          <p class="ph">Mensajes ${{ hora:'por hora', dia:'por día', semana:'por semana' }[modoGrafica()]}, ${PER_FRASE[PERIODO]}.</p>
         </div>
       </div>
       ${cardiograma}
@@ -7879,11 +7918,16 @@ function pintarLatidoCon(d, silencioso){
     });
   });
 
-  // El rango sí necesita volver a consultar (otra ventana temporal),
+  // El periodo sí necesita volver a consultar (otra ventana temporal),
   // pero se pinta en modo silencioso para conservar el scroll. Lo pide
   // la persona: se pinta aunque falte algo (forzar).
-  document.querySelectorAll('.rg[data-h]').forEach(b =>
-    b.addEventListener('click', () => { RANGO = +b.dataset.h; pintarLatido(true, true); }));
+  document.querySelectorAll('.rg[data-per]').forEach(b =>
+    b.addEventListener('click', () => {
+      if (b.dataset.per === PERIODO) return;
+      PERIODO = b.dataset.per;
+      try { localStorage.setItem('latido_periodo', PERIODO); } catch {}
+      pintarLatido(true, true);
+    }));
 
   // El mapa no necesita datos nuevos: solo se reencuadra.
   document.querySelectorAll('.rg[data-m]').forEach(b =>
@@ -8048,6 +8092,12 @@ function bloqueActividad(d){
   </div>`;
 }
 
+// «12 h», «1 h 20 min», «40 min».
+function horasTexto(min){
+  const m = Math.round(min), h = Math.floor(m / 60), r = m % 60;
+  if (!h) return `${nf.format(r)}&nbsp;min`;
+  return `${nf.format(h)}&nbsp;h${r ? `&nbsp;${r}&nbsp;min` : ''}`;
+}
 function bloqueNumeros(n){
   if (!n) return '';
   const falta = new Set(Array.isArray(n.faltan) ? n.faltan : []);
@@ -8085,22 +8135,28 @@ function bloqueNumeros(n){
       // de lunes a viernes. La cuenta usa la franja configurada, así
       // que el texto tiene que decir eso y no suponerla.
       `<strong>${nf.format(n.fuera_horario)}</strong>
-       ${n.fuera_horario === 1 ? 'contacto' : 'contactos'} llegados cuando
+       ${n.fuera_horario === 1 ? 'contacto llegado' : 'contactos llegados'} cuando
        tu equipo no estaba
-       × <strong>${nf.format(n.ticket_medio)}&nbsp;€</strong> al mes`,
+       × <strong>${nf.format(n.ticket_medio)}&nbsp;€</strong> de cuota al mes`,
       falta.has('ticket') ? 'el pago medio de un cliente' : null)],
+    // 27/11: «Tiempo liberado» = el tiempo que tu equipo habría dedicado a
+    // atender a mano las conversaciones que ha llevado el asistente (las
+    // que tienen alguna respuesta suya; mt_mis_numeros ya las cuenta así),
+    // con el tiempo REAL de atención: leer, buscar precio y disponibilidad,
+    // responder, llamar y hacer seguimiento.
     [Number(n.tiempo_eur) || 0, fila('Tiempo liberado', n.tiempo_eur,
       // nf.format: «7,5 min» y no «7.5 min».
       `<strong>${nf.format(n.conversaciones)}</strong> ${
-         Number(n.conversaciones) === 1 ? 'conversación' : 'conversaciones'}
-       × <strong>${nf.format(Number(n.minutos_por_conv))}&nbsp;min</strong>
+         Number(n.conversaciones) === 1 ? 'conversación atendida' : 'conversaciones atendidas'} por el asistente
+       × <strong>${nf.format(Number(n.minutos_por_conv))}&nbsp;min</strong> de atención real
+       = <strong>${horasTexto(Number(n.minutos_ahorrados) || 0)}</strong>
        × <strong>${nf.format(Number(n.coste_hora))}&nbsp;€</strong> la hora`,
       falta.has('minutos') || falta.has('coste_hora')
-        ? 'el coste por hora o los minutos por conversación' : null)],
+        ? 'el coste por hora o el tiempo de atención' : null)],
     [Number(n.ventas_eur) || 0, fila('Ventas cerradas', n.ventas_eur,
       `<strong>${nf.format(n.ganados)}</strong>
        ${n.ganados === 1 ? 'cliente ganado' : 'clientes ganados'}
-       × <strong>${nf.format(n.ticket_medio)}&nbsp;€</strong> al mes`,
+       × <strong>${nf.format(n.ticket_medio)}&nbsp;€</strong> de cuota al mes`,
       falta.has('ticket') ? 'el pago medio de un cliente' : null)],
   ].sort((a,b) => b[0] - a[0]).map(x => x[1]).join('');
 
@@ -8121,35 +8177,22 @@ function bloqueNumeros(n){
     <div class="cabpanel">
       <div>
         <h3>Tus números</h3>
-        <p class="ph">Calculado con tus datos de este mes.</p>
+        <p class="ph">Calculado con tus datos ${{ dia:'de hoy', semana:'de los últimos 7 días', mes:'de los últimos 30 días', ano:'de los últimos 12 meses', todo:'de todo el histórico' }[PERIODO]}.</p>
       </div>
       <button class="binfo" id="binum" title="Cambiar los valores del cálculo"
         aria-label="Cambiar los valores del cálculo en Configuración">i</button>
     </div>
-    <div class="tn-total">${nada ? '—' : `${nf.format(Math.round(total))}<span>€/mes</span>`}</div>
+    <div class="tn-total">${nada ? '—' : `${nf.format(Math.round(total))}<span>€</span>`}</div>
     <div class="tn">${partidas}
-      <div class="tn-tot"><span>= Total al mes${!nada && (faltaT || faltaK) ? ' (sin lo que falta)' : ''}</span>
+      <div class="tn-tot"><span>= Total${PERIODO === 'dia' ? ' de hoy' : PERIODO === 'todo' ? '' : ' del periodo'}${!nada && (faltaT || faltaK) ? ' (sin lo que falta)' : ''}</span>
         <span class="tn-eur">${nada ? '—' : eur(total)}</span></div>
     </div>
   </div>`;
 }
 
-function inicioPeriodo(p){
-  const d = new Date();
-  if (p === 'dia'){ d.setHours(0,0,0,0); return d; }
-  if (p === 'semana'){
-    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-    d.setHours(0,0,0,0); return d;
-  }
-  if (p === 'mes'){ d.setDate(1); d.setHours(0,0,0,0); return d; }
-  if (p === 'ano'){ d.setMonth(0,1); d.setHours(0,0,0,0); return d; }
-  return null;                       // 'todo'
-}
-
-// Estado de la segmentacion de senales: por periodo y por persona.
-// Vive fuera de la funcion porque sobrevive a los repintados.
-const SEN_PERIODOS = [['dia','Hoy'], ['semana','Semana'], ['mes','Mes'], ['ano','Año'], ['todo','Todo']];
-let SEN_PER = 'todo', SEN_QUIEN = '';
+// Estado de la segmentación de señales por persona (el periodo es el de
+// arriba, PERIODO). Vive fuera de la función porque sobrevive a los repintados.
+let SEN_QUIEN = '';
 
 // primera_en es el dato real (users.created_at en el histórico).
 // Si faltara, se recurre al inicio de la sesión registrada.
@@ -8161,11 +8204,13 @@ const fechaConv = c => {
 function segmentaConvs(d){
   let lista = d.convs;
   if (SEN_QUIEN) lista = lista.filter(c => c.user_ref === SEN_QUIEN);
-  const desde = inicioPeriodo(SEN_PER);
+  // Las conversaciones con actividad en el periodo: lo mismo que cuentan
+  // los indicadores de arriba (mt_resumen).
+  const desde = PERIODO === 'todo' ? null : periodoDesde();
   let sinFecha = 0;
   if (desde){
     lista = lista.filter(c => {
-      const f = fechaConv(c);
+      const f = c.ultima_en ? new Date(c.ultima_en) : fechaConv(c);
       if (!f){ sinFecha++; return false; }
       return f >= desde;
     });
@@ -8192,7 +8237,7 @@ function interiorSenales(d){
   const t = lista.length;
   const personas = personasSenales(d);
   const quien = personas.find(p => p.ref === SEN_QUIEN);
-  const segmentado = SEN_PER !== 'todo' || !!SEN_QUIEN;
+  const segmentado = PERIODO !== 'todo' || !!SEN_QUIEN;
 
   // Las píldoras van bajo el título, como en el diseño. El
   // desplegable de personas se queda: con 39 contactos, mirar las
@@ -8206,20 +8251,15 @@ function interiorSenales(d){
         ${personas.map(p => `<option value="${esc(String(p.ref))}"${
           p.ref === SEN_QUIEN ? ' selected' : ''}>${esc(String(p.n))}</option>`).join('')}
       </select>` : ''}
-      <div class="rangos per">
-        ${SEN_PERIODOS.map(([k,l]) => `<button class="rg${SEN_PER===k?' on':''}"
-          data-p="${k}">${l}</button>`).join('')}
-      </div>
     </div>`;
 
   // El alcance solo se escribe cuando hay algo que aclarar: sin
   // segmentar, "todas las personas, todo el histórico" es decir lo
   // obvio, y la maqueta no lo lleva.
   const quienTxt = quien ? `<strong>${esc(String(quien.n))}</strong>, ` : '';
-  const nomPer = { dia:'Hoy', semana:'Esta semana', mes:'Este mes',
-                   ano:'Este año', todo:'' }[SEN_PER];
+  const nomPer = PERIODO === 'todo' ? '' : PER_FRASE[PERIODO][0].toUpperCase() + PER_FRASE[PERIODO].slice(1);
   const pie = (segmentado || sinFecha) ? `<p class="segpie">${quienTxt}${
-    nomPer ? nomPer + (desde ? ` desde el ${fechaCorta(desde)}` : '') + ', ' : ''
+    nomPer ? nomPer + ', ' : ''
   }<strong>${nf.format(t)}</strong> ${t === 1 ? 'conversación' : 'conversaciones'}${
     sinFecha ? `, ${nf.format(sinFecha)} sin fecha ${sinFecha === 1 ? 'queda' : 'quedan'} fuera` : ''}</p>` : '';
 
@@ -8231,7 +8271,7 @@ function interiorSenales(d){
 
   if (!t) return `${cab}<div class="vacio">
     Ninguna conversación en este periodo.<br>
-    Amplía el rango o elige otra persona.</div>`;
+    Elige otro periodo arriba o a otra persona.</div>`;
 
   const i = lista.filter(c => c.interes).length;
   const f = lista.filter(c => c.friccion).length;
@@ -8268,9 +8308,6 @@ function repintarSenales(){
 function activarSenales(){
   const cont = $('#psen'); if (!cont) return;
 
-  cont.querySelectorAll('.rg[data-p]').forEach(b =>
-    b.addEventListener('click', () => { SEN_PER = b.dataset.p; repintarSenales(); }));
-
   const sel = cont.querySelector('#senquien');
   sel?.addEventListener('change', () => { SEN_QUIEN = sel.value; repintarSenales(); });
 
@@ -8305,7 +8342,13 @@ const barra = (lab, n, t, pie, cl, tipo) => {
 /* ---------- temas: ubicaciones y servicios ---------- */
 function bloqueTemas(d, cat){
   const todos = (d.temas || []).filter(t => t.categoria === cat);
-  if (!todos.length) return '';
+  // Con un periodo corto es normal que no haya nada: el bloque se queda
+  // (si desapareciera, la rejilla saltaría al cambiar de periodo) y lo dice.
+  if (!todos.length) return `<div class="panel" id="p-${cat}">
+      <h3>${esc(E(cat + '_titulo'))}</h3>
+      <p class="ph">${esc(E(cat + '_desc'))}</p>
+      <div class="vacio">Nada en este periodo.<br>Elige un periodo más largo arriba.</div>
+  </div>`;
   const gen  = todos.filter(t => t.generico);
   // Cuatro y no diez: los que van detrás tienen una o dos menciones
   // y solo alargan el panel. Lo que importa es qué piden más.
@@ -8569,7 +8612,8 @@ function repintarMapa(){
 
 /* ---------- patrón horario ---------- */
 function bloquePatron(d){
-  if (!d.patron.length) return '';
+  if (!d.patron.length) return `<div class="panel"><h3>Cuándo escriben</h3>
+    <div class="vacio">Sin mensajes en este periodo.<br>Elige un periodo más largo arriba.</div></div>`;
   const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   const grid = Array.from({length:7}, () => Array(24).fill(0));
   let max = 0;
@@ -8638,13 +8682,34 @@ function bloquePatron(d){
 }
 
 /* ---------- cardiograma ---------- */
+function modoGrafica(p = PERIODO){
+  return p === 'dia' ? 'hora' : (p === 'semana' || p === 'mes') ? 'dia' : 'semana';
+}
+// El lunes de la semana de una fecha, a medianoche.
+function lunesDe(t){
+  const d = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return d;
+}
 function grafica(ev){
   if (!ev.length) return `<div class="vacio">
     Sin mensajes en este periodo.<br>
     El primero que entre aparece aquí.</div>`;
 
-  const porDia = RANGO > 48;
-  const n      = porDia ? Math.round(RANGO/24) : RANGO;
+  const modo   = modoGrafica();
+  const porDia = modo !== 'hora';
+  const porSem = modo === 'semana';
+  // Cuántos tramos: las horas de hoy, los días del periodo o las semanas
+  // desde el primer mensaje que haya (en «Todo», desde el primero de todos).
+  const hoy0 = new Date(); hoy0.setHours(0,0,0,0);
+  let n;
+  if (!porDia) n = new Date().getHours() + 1;
+  else if (!porSem) n = PER_DIAS[PERIODO] || 7;
+  else {
+    const primero = ev.reduce((m, e) => { const t = new Date(e.tramo); return isNaN(t) || t >= m ? m : t; }, new Date());
+    const ini = PERIODO === 'todo' ? primero : periodoDesde();
+    n = Math.max(1, Math.round((lunesDe(hoy0) - lunesDe(ini)) / (7 * 864e5)) + 1);
+  }
 
   // `ev` viene de mt_por_hora, ya agrupado por la base EN LA ZONA
   // HORARIA DEL CLIENTE. Agrupar aquí lo haría en la del navegador,
@@ -8655,8 +8720,8 @@ function grafica(ev){
   // retrocediendo con setDate. Antes se restaban 24 h y 1 h fijas: el
   // domingo del cambio de octubre salía «2:00» dos veces con el doble de
   // mensajes, y durante un mes un día se repetía y otro desaparecía.
-  const clave = t => porDia
-    ? new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime()
+  const clave = t => porSem ? lunesDe(t).getTime()
+    : porDia ? new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime()
     : Math.floor(t.getTime() / 36e5);
   const conteo = new Map();
   ev.forEach(e => {
@@ -8666,11 +8731,12 @@ function grafica(ev){
     conteo.set(k, (conteo.get(k) || 0) + Number(e.mensajes || 0));
   });
 
-  const hoy0 = new Date(); hoy0.setHours(0,0,0,0);
   const hora0 = Math.floor(Date.now() / 36e5) * 36e5;
+  const lunes0 = lunesDe(hoy0);
   const cubos = Array.from({length:n}, (_,i) => {
     let t;
-    if (porDia){ t = new Date(hoy0); t.setDate(hoy0.getDate() - (n-1-i)); }
+    if (porSem){ t = new Date(lunes0); t.setDate(lunes0.getDate() - 7 * (n-1-i)); }
+    else if (porDia){ t = new Date(hoy0); t.setDate(hoy0.getDate() - (n-1-i)); }
     else t = new Date(hora0 - (n-1-i) * 36e5);
     return { t, n: conteo.get(clave(t)) || 0 };
   });
@@ -8683,11 +8749,13 @@ function grafica(ev){
   ]);
   const linea = pts.map((p,i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
   const area  = `M0 ${H} L` + pts.map(p => p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L') + ` L${W} ${H} Z`;
-  const et = d => porDia
-    ? d.toLocaleDateString('es-ES', { day:'2-digit', month:'short' })
+  const et = d => porSem
+    ? d.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year: n > 52 ? '2-digit' : undefined })
+    : porDia ? d.toLocaleDateString('es-ES', { day:'2-digit', month:'short' })
     : d.getHours() + ':00';
-  const etLargo = d => porDia
-    ? d.toLocaleDateString('es-ES', { weekday:'long', day:'2-digit', month:'long' })
+  const etLargo = d => porSem
+    ? 'Semana del ' + d.toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' })
+    : porDia ? d.toLocaleDateString('es-ES', { weekday:'long', day:'2-digit', month:'long' })
     : d.toLocaleDateString('es-ES', { day:'2-digit', month:'short' }) +
       ', ' + d.getHours() + ':00 h';
   const ancho = W / cubos.length;
@@ -9483,12 +9551,16 @@ async function pintarAjustes(silencioso){
             <p class="hint">Lo que paga al mes un cliente normal vuestro.</p>
           </div>
           <div>
-            <label for="mn">Minutos por conversación</label>
+            <label for="mn">Tiempo real de atención por conversación</label>
             <div class="campo-u"><input id="mn" type="text" inputmode="decimal"
-              autocomplete="off" placeholder="Ej.: 7"
+              autocomplete="off" placeholder="Ej.: 20"
               value="${esc(numCampo(a.minutos_por_conversacion))}"><span>min</span></div>
-            <p class="hint">Lo que tardaría alguien de tu equipo en atender a mano
-               una conversación como las del asistente.</p>
+            <div class="sugmin" role="group" aria-label="Valores habituales">
+              ${[15, 20, 30].map(v => `<button type="button" class="cbtn sec" data-min="${v}">${v} min</button>`).join('')}
+            </div>
+            <p class="hint">Todo lo que le lleva a alguien de tu equipo atender a un
+               contacto: leer, buscar precio y disponibilidad, responder, llamar y
+               hacer el seguimiento. Lo normal está entre 15 y 30 minutos.</p>
           </div>
           <div>
             <label for="ch">Coste por hora de trabajo</label>
@@ -9506,7 +9578,7 @@ async function pintarAjustes(silencioso){
         : `<dl class="ficha">
           <dt>Pago medio de un cliente</dt>
           <dd>${a.ticket_medio_eur != null ? nf.format(Number(a.ticket_medio_eur)) + ' €/mes' : '—'}</dd>
-          <dt>Minutos por conversación</dt>
+          <dt>Tiempo real de atención por conversación</dt>
           <dd>${a.minutos_por_conversacion != null ? nf.format(Number(a.minutos_por_conversacion)) + ' min' : '—'}</dd>
           <dt>Coste por hora</dt>
           <dd>${a.coste_hora_eur != null ? nf.format(Number(a.coste_hora_eur)) + ' €/h' : '—'}</dd>
@@ -9651,9 +9723,15 @@ async function pintarAjustes(silencioso){
   // se guardaba como si se hubiera borrado el dato.
   const PARAMS = [
     ['#tk', 'ticket_medio_eur',         'El pago medio de un cliente',  100000, 'tiene'],
-    ['#mn', 'minutos_por_conversacion', 'Los minutos por conversación', 480,    'tienen'],
+    ['#mn', 'minutos_por_conversacion', 'El tiempo de atención',        480,    'tiene'],
     ['#ch', 'coste_hora_eur',           'El coste por hora',            1000,   'tiene']
   ];
+  // Valores habituales del tiempo de atención: rellenan el campo (se guarda con «Guardar»).
+  document.querySelectorAll('.sugmin [data-min]').forEach(b => b.addEventListener('click', () => {
+    const c = $('#mn'); if (!c) return;
+    c.value = b.dataset.min; c.focus();
+    const m = $('#msgpar'); if (m){ m.textContent = 'Pulsa «Guardar» para usarlo.'; m.className = 'msg-ok'; }
+  }));
   $('#guardarpar')?.addEventListener('click', () => {
     const m = $('#msgpar');
     const vals = {};

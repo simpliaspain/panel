@@ -131,7 +131,7 @@
     bono: { nombre: 'Bono de horas', peso: 8 }
   };
   const AJUSTES = {
-    ticket_medio_eur: 480, minutos_por_conversacion: 9, coste_hora_eur: 24,
+    ticket_medio_eur: 480, minutos_por_conversacion: 20, coste_hora_eur: 24,
     horario: { inicio: 9, fin: 19, dias: [1, 2, 3, 4, 5] },
     email_avisos: ['comercial@coworkingdemo.es', 'direccion@coworkingdemo.es']
   };
@@ -979,7 +979,9 @@ ${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-
       pausa_pedida_hasta: pasa ? iso(pa.hasta) : null, pausa_aplicada: pasa ? true : null
     };
   }
-  function enRango(horas) { const desde = AHORA - Math.max(1, horas) * HORA; return conversacionesQueCuentan().filter(c => c.ultima > desde); }
+  // El panel manda el inicio del periodo (p_desde, SQL 175) o, el de antes, unas horas.
+  const desdeDe = (a, horasDef) => a?.p_desde ? +new Date(a.p_desde) : AHORA - Math.max(1, a?.p_horas || horasDef) * HORA;
+  function enRango(horas, desde) { desde = desde ?? AHORA - Math.max(1, horas) * HORA; return conversacionesQueCuentan().filter(c => c.ultima > desde); }
   function mediana(l) { if (!l.length) return null; const s = [...l].sort((a, b) => a - b); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
   function p95(l) { if (!l.length) return null; const s = [...l].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(0.95 * (s.length - 1)))]; }
   function tiempoRespuesta(horas) {
@@ -1008,7 +1010,7 @@ ${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-
       del_cliente: c.msgs.filter(m => m.papel === 'human').length, del_asistente: c.msgs.filter(m => m.papel !== 'human').length,
       historico: false, seq: i + 1, interes: c.interes, friccion: c.friccion, contacto: c.contacto, sin_respuesta: c.sin_respuesta })),
     mt_resumen: a => {
-      const h = a?.p_horas || 24, v = enRango(h);
+      const h = a?.p_horas || 24, v = enRango(h, desdeDe(a, 24));
       return [{ personas: new Set(v.map(c => c.p.user_ref)).size, conversaciones: v.length,
         mensajes: v.reduce((s, c) => s + c.msgs.length, 0), del_cliente: v.reduce((s, c) => s + c.msgs.filter(m => m.papel === 'human').length, 0),
         del_asistente: v.reduce((s, c) => s + c.msgs.filter(m => m.papel !== 'human').length, 0),
@@ -1017,7 +1019,7 @@ ${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-
         ultimo: v.length ? iso(Math.max(...v.map(c => c.ultima))) : null }];
     },
     mt_por_hora: a => {
-      const h = a?.p_horas || 24, porDia = h > 48, desde = AHORA - Math.max(1, h) * HORA, cuenta = new Map();
+      const desde = desdeDe(a, 24), porDia = desde < AHORA - 48 * HORA, cuenta = new Map();
       for (const c of conversacionesQueCuentan()) for (const m of c.msgs) if (m.cuando > desde) {
         const k = truncar(m.cuando, porDia); cuenta.set(k, (cuenta.get(k) || 0) + 1);
       }
@@ -1043,34 +1045,40 @@ ${bloques.map(([t, x]) => `<tr><td style="padding:16px 28px"><div style="border-
     mt_demanda: a => {
       const filas = [];
       const porServ = new Map(), porCentro = new Map();
-      for (const c of conversacionesQueCuentan()) {
+      const desde = a?.p_desde ? +new Date(a.p_desde) : null;
+      const lista = conversacionesQueCuentan().filter(c => !desde || c.ultima >= desde);
+      for (const c of lista) {
         porServ.set(c.servicio, (porServ.get(c.servicio) || 0) + 1);
         porCentro.set(c.centro.clave, (porCentro.get(c.centro.clave) || 0) + 1);
       }
       for (const [k, n] of porServ) filas.push({ categoria: 'servicio', nombre: SERVICIOS[k].nombre, conversaciones: n, veces: Math.round(n * 1.6), lat: null, lng: null, ambito: 'espana', generico: false, coord_origen: 'estimada' });
       for (const c of CENTROS) { const n = porCentro.get(c.clave) || 0; filas.push({ categoria: 'ubicacion', nombre: c.lugar, conversaciones: n, veces: Math.round(n * 1.3), lat: c.lat, lng: c.lng, ambito: 'madrid', generico: false, coord_origen: 'verificada' }); }
-      filas.push({ categoria: 'ubicacion', nombre: 'Madrid', conversaciones: Math.round(CONVS.length * 0.12), veces: Math.round(CONVS.length * 0.14), lat: 40.4168, lng: -3.7038, ambito: 'espana', generico: true, coord_origen: 'verificada' });
-      for (const [n, la, ln, k] of OTRAS_CIUDADES) filas.push({ categoria: 'ubicacion', nombre: n, conversaciones: k, veces: k + 1, lat: la, lng: ln, ambito: 'espana', generico: false, coord_origen: 'verificada' });
-      return filas.filter(f => !a?.p_categoria || f.categoria === a.p_categoria).sort((x, y) => y.conversaciones - x.conversaciones || x.nombre.localeCompare(y.nombre));
+      if (lista.length) filas.push({ categoria: 'ubicacion', nombre: 'Madrid', conversaciones: Math.max(1, Math.round(lista.length * 0.12)), veces: Math.max(1, Math.round(lista.length * 0.14)), lat: 40.4168, lng: -3.7038, ambito: 'espana', generico: true, coord_origen: 'verificada' });
+      // Las otras ciudades son de todo el histórico: solo en periodos de un mes o más.
+      if (!desde || desde <= AHORA - 29 * DIA) for (const [n, la, ln, k] of OTRAS_CIUDADES) filas.push({ categoria: 'ubicacion', nombre: n, conversaciones: k, veces: k + 1, lat: la, lng: ln, ambito: 'espana', generico: false, coord_origen: 'verificada' });
+      return filas.filter(f => f.conversaciones > 0 && (!a?.p_categoria || f.categoria === a.p_categoria)).sort((x, y) => y.conversaciones - x.conversaciones || x.nombre.localeCompare(y.nombre));
     },
-    mt_patron_horario: () => {
-      const m = new Map();
-      for (const c of conversacionesQueCuentan()) for (const x of c.msgs) if (x.papel === 'human') {
+    mt_patron_horario: a => {
+      const m = new Map(), desde = a?.p_desde ? +new Date(a.p_desde) : -Infinity;
+      for (const c of conversacionesQueCuentan()) for (const x of c.msgs) if (x.papel === 'human' && x.cuando >= desde) {
         const p = partes(x.cuando), k = p.isodow * 100 + p.h; m.set(k, (m.get(k) || 0) + 1);
       }
       return [...m].sort((a, b) => a[0] - b[0]).map(([k, n]) => ({ dia: Math.floor(k / 100), hora: k % 100, mensajes: n }));
     },
-    mt_mis_numeros: () => {
-      const mes = conversacionesQueCuentan().filter(c => c.primera >= inicioMes);
-      const convs = mes.length, contactos = new Set(mes.map(c => c.p.user_ref)).size;
-      const fuera = vivas().filter(p => !EXCLUIDOS.has(p.user_ref) && p.convs[0].primera >= inicioMes && fueraHorario(p.convs[0].msgs[0].cuando)).length;
-      const ganados = LEADS.filter(l => l.etapa === 'ganado' && l.cerrado_en >= inicioMes).length;
+    mt_mis_numeros: a => {
+      // Como el SQL 175: el periodo (p_desde) o, sin él, el mes en curso; «conversaciones» son
+      // las que atendió el asistente (con alguna respuesta suya), con actividad en el periodo.
+      const ini = a?.p_desde ? +new Date(a.p_desde) : inicioMes;
+      const per = conversacionesQueCuentan().filter(c => c.ultima >= ini);
+      const convs = per.filter(c => c.msgs.some(m => m.papel !== 'human')).length, contactos = new Set(per.map(c => c.p.user_ref)).size;
+      const fuera = vivas().filter(p => !EXCLUIDOS.has(p.user_ref) && p.convs[0].primera >= ini && fueraHorario(p.convs[0].msgs[0].cuando)).length;
+      const ganados = LEADS.filter(l => l.etapa === 'ganado' && l.cerrado_en >= ini).length;
       const min = AJUSTES.minutos_por_conversacion, coste = AJUSTES.coste_hora_eur, ticket = AJUSTES.ticket_medio_eur;
       const tiempo = Math.round(convs * min / 60 * coste * 100) / 100, ventas = ganados * ticket;
-      const d0 = partes(inicioMes);
+      const d0 = partes(ini);
       return [{ desde: `${d0.y}-${String(d0.m).padStart(2, '0')}-${String(d0.d).padStart(2, '0')}`, contactos, conversaciones: convs, minutos_ahorrados: Math.round(convs * min),
         tiempo_eur: tiempo, ganados, ventas_eur: ventas, fuera_horario: fuera, fuera_horario_eur: fuera * ticket, total_eur: tiempo + ventas,
-        coste_hora: coste, minutos_por_conv: min, ticket_medio: ticket, faltan: [] }];
+        coste_hora: coste, minutos_por_conv: min, ticket_medio: ticket, faltan: [], conversaciones_total: per.length, desde_ts: iso(ini) }];
     },
     mt_resumen_servicio: () => [{ cliente: EMPRESA, slug: SLUG, canal: 'WhatsApp', sector: 'Coworking y oficinas flexibles',
       alta: iso(CONVS[0].primera - 2 * DIA), primer_registro: iso(CONVS[0].primera), conversaciones: CONVS.length,
